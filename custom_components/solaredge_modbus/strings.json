@@ -1,0 +1,26 @@
+{
+  "config": {
+    "title": "SolarEdge Modbus",
+    "step": {
+      "user": {
+        "title": "SolarEdge Modbus Configuration",
+        "data": {
+          "name": "Sensor Prefix",
+          "host": "Inverter IP Address",
+          "port": "Modbus/TCP Port",
+          "number_of_inverters": "Number of Inverters",
+          "read_meter_1": "Use Meter 1",
+          "read_meter_2": "Use Meter 2",
+          "read_meter_3": "Use Meter 3",
+          "scan_interval": "Polling Frequency (seconds)"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Device is already configured!"
+    },
+    "abort": {
+      "already_configured": "Device is already configured!"
+    }
+  }
+}
