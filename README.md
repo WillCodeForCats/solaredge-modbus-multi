@@ -3,6 +3,8 @@
 # solaredge-modbus-multi
 A Home Assistant integration for Solaredge inverters. Supports multiple inverters chained through RS485.
 
+Works with 1 or more inverters - you don't need to have multiple inverters to use this integration, it will work fine with a single inverter.
+
 This integration is for installations where you have a single Leader (Master) inverter connected to network, and one or more Follower (Slave) inverters connected behild it using one of the RS485 bus ports. This integration also supports up to three meters connected to the first inverter.
 
 # Multiple Inverter Support
