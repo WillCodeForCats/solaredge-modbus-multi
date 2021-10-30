@@ -14,7 +14,13 @@ from .const import (
 )
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_NAME, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR
+from homeassistant.const import (
+    CONF_NAME,
+    DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR,
+    POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE,
+    ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
+    PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ,
+)
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     STATE_CLASS_MEASUREMENT,
@@ -115,9 +121,13 @@ class SolarEdgeSensor(SensorEntity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
-        # not everything is a measurement, i.e. text status fields
-        #self._attr_state_class = STATE_CLASS_MEASUREMENT
-        if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
+        if self._unit_of_measurement in [
+            POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE,
+            ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
+            PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ, "VA", "VAR",
+        ]:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+        elif self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
             self._attr_device_class = DEVICE_CLASS_ENERGY
             if STATE_CLASS_TOTAL_INCREASING == STATE_CLASS_MEASUREMENT: # compatibility to 2021.8
