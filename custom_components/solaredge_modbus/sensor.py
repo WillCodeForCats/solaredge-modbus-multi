@@ -2,15 +2,13 @@ import logging
 import re
 from typing import Optional, Dict, Any
 from .const import (
-    SENSOR_TYPES,
-    METER1_SENSOR_TYPES,
-    METER2_SENSOR_TYPES,
-    METER3_SENSOR_TYPES,
     DOMAIN,
+    SENSOR_TYPES,
+    METER_SENSOR_TYPES,
     ATTR_DESCRIPTION,
+    ATTR_MANUFACTURER,
     DEVICE_STATUS_DESC,
     PHASE_CONFIG,
-    ATTR_MANUFACTURER,
 )
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
@@ -67,39 +65,39 @@ async def async_setup_entry(hass, entry, async_add_entities):
              entities.append(sensor)
 
     if hub.read_meter1 == True:
-        for meter_sensor_info in METER1_SENSOR_TYPES.values():
+        for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
                 hub,
                 device_info,
-                meter_sensor_info[0],
-                meter_sensor_info[1],
+                "M1 " + meter_sensor_info[0],
+                "m1_" + meter_sensor_info[1],
                 meter_sensor_info[2],
                 meter_sensor_info[3],
             )
             entities.append(sensor)
 
     if hub.read_meter2 == True:
-        for meter_sensor_info in METER2_SENSOR_TYPES.values():
+        for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
                 hub,
                 device_info,
-                meter_sensor_info[0],
-                meter_sensor_info[1],
+                "M2 " + meter_sensor_info[0],
+                "m2_" + meter_sensor_info[1],
                 meter_sensor_info[2],
                 meter_sensor_info[3],
             )
             entities.append(sensor)
 
     if hub.read_meter3 == True:
-        for meter_sensor_info in METER3_SENSOR_TYPES.values():
+        for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
                 hub,
                 device_info,
-                meter_sensor_info[0],
-                meter_sensor_info[1],
+                "M3 " + meter_sensor_info[0],
+                "m3_" + meter_sensor_info[1],
                 meter_sensor_info[2],
                 meter_sensor_info[3],
             )
