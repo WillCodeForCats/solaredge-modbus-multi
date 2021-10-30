@@ -522,12 +522,20 @@ class SolaredgeModbusHub:
     def read_modbus_data_inverters(self):
         for inverter_index in range(self.number_of_inverters):
             inverter_prefix = "i" + str(inverter_index + 1) + "_"
-            inverter_data = self.read_holding_registers(unit=inverter_index + 1, address=40071, count=38)
+            inverter_data = self.read_holding_registers(unit=inverter_index + 1, address=40069, count=40)
             if inverter_data.isError():
                 return False
             decoder = BinaryPayloadDecoder.fromRegisters(
                 inverter_data.registers, byteorder=Endian.Big
             )
+            
+            # solaredge uses this for the inverter's phase config
+            sunspecdid = decoder.decode_16bit_uint()
+            self.data[inverter_prefix + "phaseconfig"] = sunspecdid
+            
+            # skip register
+            decoder.skip_bytes(2)
+            
             accurrent = decoder.decode_16bit_uint()
             accurrenta = decoder.decode_16bit_uint()
             accurrentb = decoder.decode_16bit_uint()

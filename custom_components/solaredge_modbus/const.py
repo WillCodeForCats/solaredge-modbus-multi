@@ -15,6 +15,7 @@ CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
 
 SENSOR_TYPES = {
+    "Phase_Config": ["Phase Configuration", "phaseconfig", None, None],
     "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
     "AC_CurrentA": ["AC Current A", "accurrenta", "A", "mdi:current-ac"],
     "AC_CurrentB": ["AC Current B", "accurrentb", "A", "mdi:current-ac"],
@@ -295,4 +296,10 @@ VENDOR_STATUSES = {
     150: "Arc fault detected",
     151: "Arc fault detected",
     153: "Hardware error",
+}
+
+PHASE_CONFIG = {
+    101: "Single Phase",
+    102: "Split Phase",
+    103: "Three Phase",
 }

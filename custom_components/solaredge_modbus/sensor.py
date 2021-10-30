@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Optional, Dict, Any
 from .const import (
     SENSOR_TYPES,
@@ -8,6 +9,7 @@ from .const import (
     DOMAIN,
     ATTR_STATUS_DESCRIPTION,
     DEVICE_STATUSES,
+    PHASE_CONFIG,
     ATTR_MANUFACTURER,
 )
 from datetime import datetime
@@ -162,12 +164,12 @@ class SolarEdgeSensor(SensorEntity):
         if self._key in self._hub.data:
             return self._hub.data[self._key]
 
-#    @property
-#   def extra_state_attributes(self):
-#        if self._key in ["status"]:
-#            if self.state in DEVICE_STATUSES:
-#                return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSES[self.state]}
-#        return None
+    @property
+    def extra_state_attributes(self):
+        if re.match('i[0-9]_phaseconfig', self._key):
+            if self.state in PHASE_CONFIG:
+                return {ATTR_STATUS_DESCRIPTION: PHASE_CONFIG[self.state]}
+        return None
 
     @property
     def should_poll(self) -> bool:
