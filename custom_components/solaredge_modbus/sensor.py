@@ -7,8 +7,8 @@ from .const import (
     METER2_SENSOR_TYPES,
     METER3_SENSOR_TYPES,
     DOMAIN,
-    ATTR_STATUS_DESCRIPTION,
-    DEVICE_STATUSES,
+    ATTR_DESCRIPTION,
+    DEVICE_STATUS_DESC,
     PHASE_CONFIG,
     ATTR_MANUFACTURER,
 )
@@ -168,7 +168,10 @@ class SolarEdgeSensor(SensorEntity):
     def extra_state_attributes(self):
         if re.match('i[0-9]_phaseconfig', self._key):
             if self.state in PHASE_CONFIG:
-                return {ATTR_STATUS_DESCRIPTION: PHASE_CONFIG[self.state]}
+                return {ATTR_DESCRIPTION: PHASE_CONFIG[self.state]}
+        elif re.match('i[0-9]_status', self._key):
+            if self.state in DEVICE_STATUS_DESC:
+                return {ATTR_DESCRIPTION: DEVICE_STATUS_DESC[self.state]}
         return None
 
     @property

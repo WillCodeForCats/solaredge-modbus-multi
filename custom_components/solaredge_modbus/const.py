@@ -7,7 +7,7 @@ DEFAULT_READ_METER1 = False
 DEFAULT_READ_METER2 = False
 DEFAULT_READ_METER3 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
-ATTR_STATUS_DESCRIPTION = "status_description"
+ATTR_DESCRIPTION = "description"
 ATTR_MANUFACTURER = "Solaredge"
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_READ_METER1 = "read_meter_1"
@@ -236,16 +236,16 @@ METER3_SENSOR_TYPES = {
 }
 
 # parameter names per sunspec
-#DEVICE_STATUSES = {
-#    1: "I_STATUS_OFF",
-#    2: "I_STATUS_SLEEPING",
-#    3: "I_STATUS_STARTING",
-#    4: "I_STATUS_MPPT",
-#    5: "I_STATUS_THROTTLED",
-#    6: "I_STATUS_SHUTTING_DOWN",
-#    7: "I_STATUS_FAULT",
-#    8: "I_STATUS_STANDBY",
-#}
+DEVICE_STATUS_DESC = {
+    1: "I_STATUS_OFF",
+    2: "I_STATUS_SLEEPING",
+    3: "I_STATUS_STARTING",
+    4: "I_STATUS_MPPT",
+    5: "I_STATUS_THROTTLED",
+    6: "I_STATUS_SHUTTING_DOWN",
+    7: "I_STATUS_FAULT",
+    8: "I_STATUS_STANDBY",
+}
 
 # English descriptions of parameter names
 DEVICE_STATUSES = {
