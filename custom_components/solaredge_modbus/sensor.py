@@ -3,12 +3,11 @@ import re
 from typing import Optional, Dict, Any
 from .const import (
     DOMAIN,
-    SENSOR_TYPES,
-    METER_SENSOR_TYPES,
-    ATTR_DESCRIPTION,
-    ATTR_MANUFACTURER,
-    DEVICE_STATUS_DESC,
-    PHASE_CONFIG,
+    SENSOR_TYPES, METER_SENSOR_TYPES,
+    ATTR_DESCRIPTION, ATTR_MANUFACTURER,
+    DEVICE_STATUS_DESC, PHASE_CONFIG,
+    POWER_VOLT_AMPERE_REACTIVE,
+    ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
 )
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
@@ -120,9 +119,10 @@ class SolarEdgeSensor(SensorEntity):
         self._icon = icon
         self._device_info = device_info
         if self._unit_of_measurement in [
-            POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE,
+            POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
             ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
-            PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ, "VA", "VAR",
+            ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
+            PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ, 
         ]:
             self._attr_state_class = STATE_CLASS_MEASUREMENT
         elif self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
