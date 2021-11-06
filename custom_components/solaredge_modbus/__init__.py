@@ -21,15 +21,14 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     CONF_NUMBER_INVERTERS,
-    DEFAULT_NUMBER_INVERTERS,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
+    DEFAULT_NUMBER_INVERTERS,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
-    DEVICE_STATUS,
-    VENDOR_STATUS,
+    DEVICE_STATUS, VENDOR_STATUS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -167,11 +166,14 @@ class SolaredgeModbusHub:
         if not self._sensors:
             return
 
-        update_result = self.read_modbus_data()
-
-        if update_result:
-            for update_callback in self._sensors:
-                update_callback()
+        if not self.is_socket_open():
+            _LOGGER.error("No open Modbus/TCP connection for %s", self._name)
+            self.connect()
+        else:
+            update_result = self.read_modbus_data()
+            if update_result:
+              for update_callback in self._sensors:
+                    update_callback()
 
     @property
     def name(self):
@@ -187,6 +189,11 @@ class SolaredgeModbusHub:
         """Connect client."""
         with self._lock:
             self._client.connect()
+
+    def is_socket_open(self):
+        """Check client."""
+        with self._lock:
+            return self._client.is_socket_open()
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -514,6 +521,8 @@ class SolaredgeModbusHub:
             self.data[meter_prefix + "importvarhq4c"] = round(
                 importvarhq4c, abs(energyvarsf)
             )
+            
+            #meterevents = decoder.decode_32bit_uint()
 
             return True
         else:
@@ -522,16 +531,33 @@ class SolaredgeModbusHub:
     def read_modbus_data_inverters(self):
         for inverter_index in range(self.number_of_inverters):
             inverter_prefix = "i" + str(inverter_index + 1) + "_"
-            inverter_data = self.read_holding_registers(unit=inverter_index + 1, address=40069, count=40)
+            inverter_data = self.read_holding_registers(unit=inverter_index + 1, address=40004, count=108)
             if inverter_data.isError():
                 return False
             decoder = BinaryPayloadDecoder.fromRegisters(
                 inverter_data.registers, byteorder=Endian.Big
             )
             
-            # solaredge uses this for the inverter's phase config
+            cmanufacturer = decoder.decode_string(32).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
+            self.data[inverter_prefix + "manufacturer"] = cmanufacturer
+            
+            cmodel = decoder.decode_string(32).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
+            self.data[inverter_prefix + "model"] = cmodel
+
+            # NOT_IMPLEMENTED
+            copt = decoder.decode_string(16)
+            
+            cversion = decoder.decode_string(16).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
+            self.data[inverter_prefix + "version"] = cversion
+
+            cserialnumber = decoder.decode_string(32).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
+            self.data[inverter_prefix + "serialnumber"] = cserialnumber
+
+            cdeviceaddress = decoder.decode_16bit_uint()
+            self.data[inverter_prefix + "deviceaddress"] = cdeviceaddress
+
             sunspecdid = decoder.decode_16bit_uint()
-            self.data[inverter_prefix + "phaseconfig"] = sunspecdid
+            self.data[inverter_prefix + "sunspecdid"] = sunspecdid
             
             # skip register
             decoder.skip_bytes(2)

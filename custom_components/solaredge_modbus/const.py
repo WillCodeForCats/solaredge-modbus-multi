@@ -27,7 +27,12 @@ ENERGY_VOLT_AMPERE_HOUR = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR = "VARh"
 
 SENSOR_TYPES = {
-    "Phase_Config": ["Phase Configuration", "phaseconfig", None, None],
+    "C_Manufacturer": ["Manufacturer", "manufacturer", None, None],
+    "C_Model": ["Model", "model", None, None],
+    "C_Version": ["Version", "version", None, None],
+    "C_SerialNumber": ["Serial Number", "serialnumber", None, None],
+    "C_DeviceAddress": ["Device Address", "deviceaddress", None, None],
+    "Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None],
     "AC_Current": ["AC Current", "accurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
     "AC_CurrentA": ["AC Current A", "accurrenta", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
     "AC_CurrentB": ["AC Current B", "accurrentb", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
@@ -182,8 +187,12 @@ VENDOR_STATUS = {
     153: "Hardware error",
 }
 
-PHASE_CONFIG = {
-    101: "Single Phase",
-    102: "Split Phase",
-    103: "Three Phase",
+SUNSPEC_DID = {
+    101: "Single Phase Inverter",
+    102: "Split Phase Inverter",
+    103: "Three Phase Inverter",
+    201: "Single Phase Meter",
+    202: "Split Phase Meter",
+    203: "Three Phase Wye Meter",
+    204: "Three Phase Delta Meter",
 }
