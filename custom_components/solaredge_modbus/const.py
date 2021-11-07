@@ -32,7 +32,7 @@ SENSOR_TYPES = {
     "C_Version": ["Version", "version", None, None],
     "C_SerialNumber": ["Serial Number", "serialnumber", None, None],
     "C_DeviceAddress": ["Device Address", "deviceaddress", None, None],
-    "Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None],
+    "C_Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None],
     "AC_Current": ["AC Current", "accurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
     "AC_CurrentA": ["AC Current A", "accurrenta", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
     "AC_CurrentB": ["AC Current B", "accurrentb", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
@@ -60,6 +60,13 @@ SENSOR_TYPES = {
 }
 
 METER_SENSOR_TYPES = {
+    "C_Manufacturer": ["Manufacturer", "manufacturer", None, None],
+    "C_Model": ["Model", "model", None, None],
+    "C_Option": ["Option", "option", None, None],
+    "C_Version": ["Version", "version", None, None],
+    "C_SerialNumber": ["Serial Number", "serialnumber", None, None],
+    "C_DeviceAddress": ["Device Address", "deviceaddress", None, None],
+    "C_Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None],
     "AC_Current": ["AC Current", "accurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
     "AC_Current_A": ["AC Current_A", "accurrenta", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
     "AC_Current_B": ["AC Current_B", "accurrentb", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac"],
@@ -121,6 +128,8 @@ METER_SENSOR_TYPES = {
     "IMPORT_VARH_Q4_A": ["IMPORT VARH Q4 A", "importvarhq4a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None],
     "IMPORT_VARH_Q4_B": ["IMPORT VARH Q4 B", "importvarhq4b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None],
     "IMPORT_VARH_Q4_C": ["IMPORT VARH Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None],
+    "M_Events": ["Meter Events", "meterevents", None, None],
+
 }
 
 # parameter names per sunspec

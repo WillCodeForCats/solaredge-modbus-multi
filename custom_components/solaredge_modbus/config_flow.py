@@ -1,7 +1,6 @@
+import voluptuous as vol
 import ipaddress
 import re
-
-import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL

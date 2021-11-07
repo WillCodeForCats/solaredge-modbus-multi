@@ -203,6 +203,9 @@ class SolaredgeModbusHub:
 
     def calculate_value(self, value, sf):
         return value * 10 ** sf
+        
+    def parse_modbus_string(self, s):
+        return s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
 
     def read_modbus_data(self):
         return (
@@ -216,342 +219,378 @@ class SolaredgeModbusHub:
         if not self.read_meter1:
             return True
         else:
-            return self.read_modbus_data_meter("m1_", 40190)
+            return self.read_modbus_data_meter("m1_", 40000 + 121)
 
     def read_modbus_data_meter2(self):
         if not self.read_meter2:
             return True
         else:
-            return self.read_modbus_data_meter("m2_", 40364)
+            return self.read_modbus_data_meter("m2_", 40000 + 295)
 
     def read_modbus_data_meter3(self):
         if not self.read_meter3:
             return True
         else:
-            return self.read_modbus_data_meter("m3_", 40539)
+            return self.read_modbus_data_meter("m3_", 40000 + 469)
 
     def read_modbus_data_meter(self, meter_prefix, start_address):
-        """start reading meter  data """
+        """start reading meter data"""
         meter_data = self.read_holding_registers(
-            unit=1, address=start_address, count=103
+            unit=1, address=start_address, count=68
         )
-        if not meter_data.isError():
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                meter_data.registers, byteorder=Endian.Big
-            )
-            accurrent = decoder.decode_16bit_int()
-            accurrenta = decoder.decode_16bit_int()
-            accurrentb = decoder.decode_16bit_int()
-            accurrentc = decoder.decode_16bit_int()
-            accurrentsf = decoder.decode_16bit_int()
-
-            accurrent = self.calculate_value(accurrent, accurrentsf)
-            accurrenta = self.calculate_value(accurrenta, accurrentsf)
-            accurrentb = self.calculate_value(accurrentb, accurrentsf)
-            accurrentc = self.calculate_value(accurrentc, accurrentsf)
-
-            self.data[meter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
-            self.data[meter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
-            self.data[meter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
-            self.data[meter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
-
-            acvoltageln = decoder.decode_16bit_int()
-            acvoltagean = decoder.decode_16bit_int()
-            acvoltagebn = decoder.decode_16bit_int()
-            acvoltagecn = decoder.decode_16bit_int()
-            acvoltagell = decoder.decode_16bit_int()
-            acvoltageab = decoder.decode_16bit_int()
-            acvoltagebc = decoder.decode_16bit_int()
-            acvoltageca = decoder.decode_16bit_int()
-            acvoltagesf = decoder.decode_16bit_int()
-
-            acvoltageln = self.calculate_value(acvoltageln, acvoltagesf)
-            acvoltagean = self.calculate_value(acvoltagean, acvoltagesf)
-            acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
-            acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
-            acvoltagell = self.calculate_value(acvoltagell, acvoltagesf)
-            acvoltageab = self.calculate_value(acvoltageab, acvoltagesf)
-            acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
-            acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
-
-            self.data[meter_prefix + "acvoltageln"] = round(
-                acvoltageln, abs(acvoltagesf)
-            )
-            self.data[meter_prefix + "acvoltagean"] = round(
-                acvoltagean, abs(acvoltagesf)
-            )
-            self.data[meter_prefix + "acvoltagebn"] = round(
-                acvoltagebn, abs(acvoltagesf)
-            )
-            self.data[meter_prefix + "acvoltagecn"] = round(
-                acvoltagecn, abs(acvoltagesf)
-            )
-            self.data[meter_prefix + "acvoltagell"] = round(
-                acvoltagell, abs(acvoltagesf)
-            )
-            self.data[meter_prefix + "acvoltageab"] = round(
-                acvoltageab, abs(acvoltagesf)
-            )
-            self.data[meter_prefix + "acvoltagebc"] = round(
-                acvoltagebc, abs(acvoltagesf)
-            )
-            self.data[meter_prefix + "acvoltageca"] = round(
-                acvoltageca, abs(acvoltagesf)
-            )
-
-            acfreq = decoder.decode_16bit_int()
-            acfreqsf = decoder.decode_16bit_int()
-
-            acfreq = self.calculate_value(acfreq, acfreqsf)
-
-            self.data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
-
-            acpower = decoder.decode_16bit_int()
-            acpowera = decoder.decode_16bit_int()
-            acpowerb = decoder.decode_16bit_int()
-            acpowerc = decoder.decode_16bit_int()
-            acpowersf = decoder.decode_16bit_int()
-
-            acpower = self.calculate_value(acpower, acpowersf)
-            acpowera = self.calculate_value(acpowera, acpowersf)
-            acpowerb = self.calculate_value(acpowerb, acpowersf)
-            acpowerc = self.calculate_value(acpowerc, acpowersf)
-
-            self.data[meter_prefix + "acpower"] = round(acpower, abs(acpowersf))
-            self.data[meter_prefix + "acpowera"] = round(acpowera, abs(acpowersf))
-            self.data[meter_prefix + "acpowerb"] = round(acpowerb, abs(acpowersf))
-            self.data[meter_prefix + "acpowerc"] = round(acpowerc, abs(acpowersf))
-
-            acva = decoder.decode_16bit_int()
-            acvaa = decoder.decode_16bit_int()
-            acvab = decoder.decode_16bit_int()
-            acvac = decoder.decode_16bit_int()
-            acvasf = decoder.decode_16bit_int()
-
-            acva = self.calculate_value(acva, acvasf)
-            acvaa = self.calculate_value(acvaa, acvasf)
-            acvab = self.calculate_value(acvab, acvasf)
-            acvac = self.calculate_value(acvac, acvasf)
-
-            self.data[meter_prefix + "acva"] = round(acva, abs(acvasf))
-            self.data[meter_prefix + "acvaa"] = round(acvaa, abs(acvasf))
-            self.data[meter_prefix + "acvab"] = round(acvab, abs(acvasf))
-            self.data[meter_prefix + "acvac"] = round(acvac, abs(acvasf))
-
-            acvar = decoder.decode_16bit_int()
-            acvara = decoder.decode_16bit_int()
-            acvarb = decoder.decode_16bit_int()
-            acvarc = decoder.decode_16bit_int()
-            acvarsf = decoder.decode_16bit_int()
-
-            acvar = self.calculate_value(acvar, acvarsf)
-            acvara = self.calculate_value(acvara, acvarsf)
-            acvarb = self.calculate_value(acvarb, acvarsf)
-            acvarc = self.calculate_value(acvarc, acvarsf)
-
-            self.data[meter_prefix + "acvar"] = round(acvar, abs(acvarsf))
-            self.data[meter_prefix + "acvara"] = round(acvara, abs(acvarsf))
-            self.data[meter_prefix + "acvarb"] = round(acvarb, abs(acvarsf))
-            self.data[meter_prefix + "acvarc"] = round(acvarc, abs(acvarsf))
-
-            acpf = decoder.decode_16bit_int()
-            acpfa = decoder.decode_16bit_int()
-            acpfb = decoder.decode_16bit_int()
-            acpfc = decoder.decode_16bit_int()
-            acpfsf = decoder.decode_16bit_int()
-
-            acpf = self.calculate_value(acpf, acpfsf)
-            acpfa = self.calculate_value(acpfa, acpfsf)
-            acpfb = self.calculate_value(acpfb, acpfsf)
-            acpfc = self.calculate_value(acpfc, acpfsf)
-
-            self.data[meter_prefix + "acpf"] = round(acpf, abs(acpfsf))
-            self.data[meter_prefix + "acpfa"] = round(acpfa, abs(acpfsf))
-            self.data[meter_prefix + "acpfb"] = round(acpfb, abs(acpfsf))
-            self.data[meter_prefix + "acpfc"] = round(acpfc, abs(acpfsf))
-
-            exported = decoder.decode_32bit_uint()
-            exporteda = decoder.decode_32bit_uint()
-            exportedb = decoder.decode_32bit_uint()
-            exportedc = decoder.decode_32bit_uint()
-            imported = decoder.decode_32bit_uint()
-            importeda = decoder.decode_32bit_uint()
-            importedb = decoder.decode_32bit_uint()
-            importedc = decoder.decode_32bit_uint()
-            energywsf = decoder.decode_16bit_int()
-
-            exported = self.calculate_value(exported, energywsf)
-            exporteda = self.calculate_value(exporteda, energywsf)
-            exportedb = self.calculate_value(exportedb, energywsf)
-            exportedc = self.calculate_value(exportedc, energywsf)
-            imported = self.calculate_value(imported, energywsf)
-            importeda = self.calculate_value(importeda, energywsf)
-            importedb = self.calculate_value(importedb, energywsf)
-            importedc = self.calculate_value(importedc, energywsf)
-
-            self.data[meter_prefix + "exported"] = round(exported * 0.001, 3)
-            self.data[meter_prefix + "exporteda"] = round(exporteda * 0.001, 3)
-            self.data[meter_prefix + "exportedb"] = round(exportedb * 0.001, 3)
-            self.data[meter_prefix + "exportedc"] = round(exportedc * 0.001, 3)
-            self.data[meter_prefix + "imported"] = round(imported * 0.001, 3)
-            self.data[meter_prefix + "importeda"] = round(importeda * 0.001, 3)
-            self.data[meter_prefix + "importedb"] = round(importedb * 0.001, 3)
-            self.data[meter_prefix + "importedc"] = round(importedc * 0.001, 3)
-
-            exportedva = decoder.decode_32bit_uint()
-            exportedvaa = decoder.decode_32bit_uint()
-            exportedvab = decoder.decode_32bit_uint()
-            exportedvac = decoder.decode_32bit_uint()
-            importedva = decoder.decode_32bit_uint()
-            importedvaa = decoder.decode_32bit_uint()
-            importedvab = decoder.decode_32bit_uint()
-            importedvac = decoder.decode_32bit_uint()
-            energyvasf = decoder.decode_16bit_int()
-
-            exportedva = self.calculate_value(exportedva, energyvasf)
-            exportedvaa = self.calculate_value(exportedvaa, energyvasf)
-            exportedvab = self.calculate_value(exportedvab, energyvasf)
-            exportedvac = self.calculate_value(exportedvac, energyvasf)
-            importedva = self.calculate_value(importedva, energyvasf)
-            importedvaa = self.calculate_value(importedvaa, energyvasf)
-            importedvab = self.calculate_value(importedvab, energyvasf)
-            importedvac = self.calculate_value(importedvac, energyvasf)
-
-            self.data[meter_prefix + "exportedva"] = round(exportedva, abs(energyvasf))
-            self.data[meter_prefix + "exportedvaa"] = round(
-                exportedvaa, abs(energyvasf)
-            )
-            self.data[meter_prefix + "exportedvab"] = round(
-                exportedvab, abs(energyvasf)
-            )
-            self.data[meter_prefix + "exportedvac"] = round(
-                exportedvac, abs(energyvasf)
-            )
-            self.data[meter_prefix + "importedva"] = round(importedva, abs(energyvasf))
-            self.data[meter_prefix + "importedvaa"] = round(
-                importedvaa, abs(energyvasf)
-            )
-            self.data[meter_prefix + "importedvab"] = round(
-                importedvab, abs(energyvasf)
-            )
-            self.data[meter_prefix + "importedvac"] = round(
-                importedvac, abs(energyvasf)
-            )
-
-            importvarhq1 = decoder.decode_32bit_uint()
-            importvarhq1a = decoder.decode_32bit_uint()
-            importvarhq1b = decoder.decode_32bit_uint()
-            importvarhq1c = decoder.decode_32bit_uint()
-            importvarhq2 = decoder.decode_32bit_uint()
-            importvarhq2a = decoder.decode_32bit_uint()
-            importvarhq2b = decoder.decode_32bit_uint()
-            importvarhq2c = decoder.decode_32bit_uint()
-            importvarhq3 = decoder.decode_32bit_uint()
-            importvarhq3a = decoder.decode_32bit_uint()
-            importvarhq3b = decoder.decode_32bit_uint()
-            importvarhq3c = decoder.decode_32bit_uint()
-            importvarhq4 = decoder.decode_32bit_uint()
-            importvarhq4a = decoder.decode_32bit_uint()
-            importvarhq4b = decoder.decode_32bit_uint()
-            importvarhq4c = decoder.decode_32bit_uint()
-            energyvarsf = decoder.decode_16bit_int()
-
-            importvarhq1 = self.calculate_value(importvarhq1, energyvarsf)
-            importvarhq1a = self.calculate_value(importvarhq1a, energyvarsf)
-            importvarhq1b = self.calculate_value(importvarhq1b, energyvarsf)
-            importvarhq1c = self.calculate_value(importvarhq1c, energyvarsf)
-            importvarhq2 = self.calculate_value(importvarhq2, energyvarsf)
-            importvarhq2a = self.calculate_value(importvarhq2a, energyvarsf)
-            importvarhq2b = self.calculate_value(importvarhq2b, energyvarsf)
-            importvarhq2c = self.calculate_value(importvarhq2c, energyvarsf)
-            importvarhq3 = self.calculate_value(importvarhq3, energyvarsf)
-            importvarhq3a = self.calculate_value(importvarhq3a, energyvarsf)
-            importvarhq3b = self.calculate_value(importvarhq3b, energyvarsf)
-            importvarhq3c = self.calculate_value(importvarhq3c, energyvarsf)
-            importvarhq4 = self.calculate_value(importvarhq4, energyvarsf)
-            importvarhq4a = self.calculate_value(importvarhq4a, energyvarsf)
-            importvarhq4b = self.calculate_value(importvarhq4b, energyvarsf)
-            importvarhq4c = self.calculate_value(importvarhq4c, energyvarsf)
-
-            self.data[meter_prefix + "importvarhq1"] = round(
-                importvarhq1, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq1a"] = round(
-                importvarhq1a, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq1b"] = round(
-                importvarhq1b, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq1c"] = round(
-                importvarhq1c, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq2"] = round(
-                importvarhq2, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq2a"] = round(
-                importvarhq2a, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq2b"] = round(
-                importvarhq2b, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq2c"] = round(
-                importvarhq2c, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq3"] = round(
-                importvarhq3, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq3a"] = round(
-                importvarhq3a, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq3b"] = round(
-                importvarhq3b, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq3c"] = round(
-                importvarhq3c, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq4"] = round(
-                importvarhq4, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq4a"] = round(
-                importvarhq4a, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq4b"] = round(
-                importvarhq4b, abs(energyvarsf)
-            )
-            self.data[meter_prefix + "importvarhq4c"] = round(
-                importvarhq4c, abs(energyvarsf)
-            )
-            
-            #meterevents = decoder.decode_32bit_uint()
-
-            return True
-        else:
+        if meter_data.isError():
             return False
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            meter_data.registers, byteorder=Endian.Big
+        )
+
+        decoder.skip_bytes(4)
+
+        cmanufacturer = decoder.decode_string(32)
+        self.data[meter_prefix + "manufacturer"] = self.parse_modbus_string(cmanufacturer)
+        
+        cmodel = decoder.decode_string(32)
+        self.data[meter_prefix + "model"] = self.parse_modbus_string(cmodel)
+
+        copt = decoder.decode_string(16)
+        self.data[meter_prefix + "option"] = self.parse_modbus_string(copt)
+
+        cversion = decoder.decode_string(16)
+        self.data[meter_prefix + "version"] = self.parse_modbus_string(cversion)
+
+        cserialnumber = decoder.decode_string(32)
+        self.data[meter_prefix + "serialnumber"] = self.parse_modbus_string(cserialnumber)
+
+        cdeviceaddress = decoder.decode_16bit_uint()
+        self.data[meter_prefix + "deviceaddress"] = cdeviceaddress
+
+        sunspecdid = decoder.decode_16bit_uint()
+        self.data[meter_prefix + "sunspecdid"] = sunspecdid
+        
+        meter_data = self.read_holding_registers(
+            unit=1, address=start_address + 69, count=105
+        )
+        if meter_data.isError():
+            return False
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            meter_data.registers, byteorder=Endian.Big
+        )
+
+        accurrent = decoder.decode_16bit_int()
+        accurrenta = decoder.decode_16bit_int()
+        accurrentb = decoder.decode_16bit_int()
+        accurrentc = decoder.decode_16bit_int()
+        accurrentsf = decoder.decode_16bit_int()
+
+        accurrent = self.calculate_value(accurrent, accurrentsf)
+        accurrenta = self.calculate_value(accurrenta, accurrentsf)
+        accurrentb = self.calculate_value(accurrentb, accurrentsf)
+        accurrentc = self.calculate_value(accurrentc, accurrentsf)
+
+        self.data[meter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
+        self.data[meter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
+        self.data[meter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
+        self.data[meter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
+
+        acvoltageln = decoder.decode_16bit_int()
+        acvoltagean = decoder.decode_16bit_int()
+        acvoltagebn = decoder.decode_16bit_int()
+        acvoltagecn = decoder.decode_16bit_int()
+        acvoltagell = decoder.decode_16bit_int()
+        acvoltageab = decoder.decode_16bit_int()
+        acvoltagebc = decoder.decode_16bit_int()
+        acvoltageca = decoder.decode_16bit_int()
+        acvoltagesf = decoder.decode_16bit_int()
+
+        acvoltageln = self.calculate_value(acvoltageln, acvoltagesf)
+        acvoltagean = self.calculate_value(acvoltagean, acvoltagesf)
+        acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
+        acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
+        acvoltagell = self.calculate_value(acvoltagell, acvoltagesf)
+        acvoltageab = self.calculate_value(acvoltageab, acvoltagesf)
+        acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
+        acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
+
+        self.data[meter_prefix + "acvoltageln"] = round(
+            acvoltageln, abs(acvoltagesf)
+        )
+        self.data[meter_prefix + "acvoltagean"] = round(
+            acvoltagean, abs(acvoltagesf)
+        )
+        self.data[meter_prefix + "acvoltagebn"] = round(
+            acvoltagebn, abs(acvoltagesf)
+        )
+        self.data[meter_prefix + "acvoltagecn"] = round(
+            acvoltagecn, abs(acvoltagesf)
+        )
+        self.data[meter_prefix + "acvoltagell"] = round(
+            acvoltagell, abs(acvoltagesf)
+        )
+        self.data[meter_prefix + "acvoltageab"] = round(
+            acvoltageab, abs(acvoltagesf)
+        )
+        self.data[meter_prefix + "acvoltagebc"] = round(
+            acvoltagebc, abs(acvoltagesf)
+        )
+        self.data[meter_prefix + "acvoltageca"] = round(
+            acvoltageca, abs(acvoltagesf)
+        )
+
+        acfreq = decoder.decode_16bit_int()
+        acfreqsf = decoder.decode_16bit_int()
+
+        acfreq = self.calculate_value(acfreq, acfreqsf)
+
+        self.data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
+
+        acpower = decoder.decode_16bit_int()
+        acpowera = decoder.decode_16bit_int()
+        acpowerb = decoder.decode_16bit_int()
+        acpowerc = decoder.decode_16bit_int()
+        acpowersf = decoder.decode_16bit_int()
+
+        acpower = self.calculate_value(acpower, acpowersf)
+        acpowera = self.calculate_value(acpowera, acpowersf)
+        acpowerb = self.calculate_value(acpowerb, acpowersf)
+        acpowerc = self.calculate_value(acpowerc, acpowersf)
+
+        self.data[meter_prefix + "acpower"] = round(acpower, abs(acpowersf))
+        self.data[meter_prefix + "acpowera"] = round(acpowera, abs(acpowersf))
+        self.data[meter_prefix + "acpowerb"] = round(acpowerb, abs(acpowersf))
+        self.data[meter_prefix + "acpowerc"] = round(acpowerc, abs(acpowersf))
+
+        acva = decoder.decode_16bit_int()
+        acvaa = decoder.decode_16bit_int()
+        acvab = decoder.decode_16bit_int()
+        acvac = decoder.decode_16bit_int()
+        acvasf = decoder.decode_16bit_int()
+
+        acva = self.calculate_value(acva, acvasf)
+        acvaa = self.calculate_value(acvaa, acvasf)
+        acvab = self.calculate_value(acvab, acvasf)
+        acvac = self.calculate_value(acvac, acvasf)
+
+        self.data[meter_prefix + "acva"] = round(acva, abs(acvasf))
+        self.data[meter_prefix + "acvaa"] = round(acvaa, abs(acvasf))
+        self.data[meter_prefix + "acvab"] = round(acvab, abs(acvasf))
+        self.data[meter_prefix + "acvac"] = round(acvac, abs(acvasf))
+
+        acvar = decoder.decode_16bit_int()
+        acvara = decoder.decode_16bit_int()
+        acvarb = decoder.decode_16bit_int()
+        acvarc = decoder.decode_16bit_int()
+        acvarsf = decoder.decode_16bit_int()
+
+        acvar = self.calculate_value(acvar, acvarsf)
+        acvara = self.calculate_value(acvara, acvarsf)
+        acvarb = self.calculate_value(acvarb, acvarsf)
+        acvarc = self.calculate_value(acvarc, acvarsf)
+
+        self.data[meter_prefix + "acvar"] = round(acvar, abs(acvarsf))
+        self.data[meter_prefix + "acvara"] = round(acvara, abs(acvarsf))
+        self.data[meter_prefix + "acvarb"] = round(acvarb, abs(acvarsf))
+        self.data[meter_prefix + "acvarc"] = round(acvarc, abs(acvarsf))
+
+        acpf = decoder.decode_16bit_int()
+        acpfa = decoder.decode_16bit_int()
+        acpfb = decoder.decode_16bit_int()
+        acpfc = decoder.decode_16bit_int()
+        acpfsf = decoder.decode_16bit_int()
+
+        acpf = self.calculate_value(acpf, acpfsf)
+        acpfa = self.calculate_value(acpfa, acpfsf)
+        acpfb = self.calculate_value(acpfb, acpfsf)
+        acpfc = self.calculate_value(acpfc, acpfsf)
+
+        self.data[meter_prefix + "acpf"] = round(acpf, abs(acpfsf))
+        self.data[meter_prefix + "acpfa"] = round(acpfa, abs(acpfsf))
+        self.data[meter_prefix + "acpfb"] = round(acpfb, abs(acpfsf))
+        self.data[meter_prefix + "acpfc"] = round(acpfc, abs(acpfsf))
+
+        exported = decoder.decode_32bit_uint()
+        exporteda = decoder.decode_32bit_uint()
+        exportedb = decoder.decode_32bit_uint()
+        exportedc = decoder.decode_32bit_uint()
+        imported = decoder.decode_32bit_uint()
+        importeda = decoder.decode_32bit_uint()
+        importedb = decoder.decode_32bit_uint()
+        importedc = decoder.decode_32bit_uint()
+        energywsf = decoder.decode_16bit_int()
+
+        exported = self.calculate_value(exported, energywsf)
+        exporteda = self.calculate_value(exporteda, energywsf)
+        exportedb = self.calculate_value(exportedb, energywsf)
+        exportedc = self.calculate_value(exportedc, energywsf)
+        imported = self.calculate_value(imported, energywsf)
+        importeda = self.calculate_value(importeda, energywsf)
+        importedb = self.calculate_value(importedb, energywsf)
+        importedc = self.calculate_value(importedc, energywsf)
+
+        self.data[meter_prefix + "exported"] = round(exported * 0.001, 3)
+        self.data[meter_prefix + "exporteda"] = round(exporteda * 0.001, 3)
+        self.data[meter_prefix + "exportedb"] = round(exportedb * 0.001, 3)
+        self.data[meter_prefix + "exportedc"] = round(exportedc * 0.001, 3)
+        self.data[meter_prefix + "imported"] = round(imported * 0.001, 3)
+        self.data[meter_prefix + "importeda"] = round(importeda * 0.001, 3)
+        self.data[meter_prefix + "importedb"] = round(importedb * 0.001, 3)
+        self.data[meter_prefix + "importedc"] = round(importedc * 0.001, 3)
+
+        exportedva = decoder.decode_32bit_uint()
+        exportedvaa = decoder.decode_32bit_uint()
+        exportedvab = decoder.decode_32bit_uint()
+        exportedvac = decoder.decode_32bit_uint()
+        importedva = decoder.decode_32bit_uint()
+        importedvaa = decoder.decode_32bit_uint()
+        importedvab = decoder.decode_32bit_uint()
+        importedvac = decoder.decode_32bit_uint()
+        energyvasf = decoder.decode_16bit_int()
+
+        exportedva = self.calculate_value(exportedva, energyvasf)
+        exportedvaa = self.calculate_value(exportedvaa, energyvasf)
+        exportedvab = self.calculate_value(exportedvab, energyvasf)
+        exportedvac = self.calculate_value(exportedvac, energyvasf)
+        importedva = self.calculate_value(importedva, energyvasf)
+        importedvaa = self.calculate_value(importedvaa, energyvasf)
+        importedvab = self.calculate_value(importedvab, energyvasf)
+        importedvac = self.calculate_value(importedvac, energyvasf)
+
+        self.data[meter_prefix + "exportedva"] = round(exportedva, abs(energyvasf))
+        self.data[meter_prefix + "exportedvaa"] = round(
+            exportedvaa, abs(energyvasf)
+        )
+        self.data[meter_prefix + "exportedvab"] = round(
+            exportedvab, abs(energyvasf)
+        )
+        self.data[meter_prefix + "exportedvac"] = round(
+            exportedvac, abs(energyvasf)
+        )
+        self.data[meter_prefix + "importedva"] = round(importedva, abs(energyvasf))
+        self.data[meter_prefix + "importedvaa"] = round(
+            importedvaa, abs(energyvasf)
+        )
+        self.data[meter_prefix + "importedvab"] = round(
+            importedvab, abs(energyvasf)
+        )
+        self.data[meter_prefix + "importedvac"] = round(
+            importedvac, abs(energyvasf)
+        )
+
+        importvarhq1 = decoder.decode_32bit_uint()
+        importvarhq1a = decoder.decode_32bit_uint()
+        importvarhq1b = decoder.decode_32bit_uint()
+        importvarhq1c = decoder.decode_32bit_uint()
+        importvarhq2 = decoder.decode_32bit_uint()
+        importvarhq2a = decoder.decode_32bit_uint()
+        importvarhq2b = decoder.decode_32bit_uint()
+        importvarhq2c = decoder.decode_32bit_uint()
+        importvarhq3 = decoder.decode_32bit_uint()
+        importvarhq3a = decoder.decode_32bit_uint()
+        importvarhq3b = decoder.decode_32bit_uint()
+        importvarhq3c = decoder.decode_32bit_uint()
+        importvarhq4 = decoder.decode_32bit_uint()
+        importvarhq4a = decoder.decode_32bit_uint()
+        importvarhq4b = decoder.decode_32bit_uint()
+        importvarhq4c = decoder.decode_32bit_uint()
+        energyvarsf = decoder.decode_16bit_int()
+
+        importvarhq1 = self.calculate_value(importvarhq1, energyvarsf)
+        importvarhq1a = self.calculate_value(importvarhq1a, energyvarsf)
+        importvarhq1b = self.calculate_value(importvarhq1b, energyvarsf)
+        importvarhq1c = self.calculate_value(importvarhq1c, energyvarsf)
+        importvarhq2 = self.calculate_value(importvarhq2, energyvarsf)
+        importvarhq2a = self.calculate_value(importvarhq2a, energyvarsf)
+        importvarhq2b = self.calculate_value(importvarhq2b, energyvarsf)
+        importvarhq2c = self.calculate_value(importvarhq2c, energyvarsf)
+        importvarhq3 = self.calculate_value(importvarhq3, energyvarsf)
+        importvarhq3a = self.calculate_value(importvarhq3a, energyvarsf)
+        importvarhq3b = self.calculate_value(importvarhq3b, energyvarsf)
+        importvarhq3c = self.calculate_value(importvarhq3c, energyvarsf)
+        importvarhq4 = self.calculate_value(importvarhq4, energyvarsf)
+        importvarhq4a = self.calculate_value(importvarhq4a, energyvarsf)
+        importvarhq4b = self.calculate_value(importvarhq4b, energyvarsf)
+        importvarhq4c = self.calculate_value(importvarhq4c, energyvarsf)
+
+        self.data[meter_prefix + "importvarhq1"] = round(
+            importvarhq1, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq1a"] = round(
+            importvarhq1a, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq1b"] = round(
+            importvarhq1b, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq1c"] = round(
+            importvarhq1c, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq2"] = round(
+            importvarhq2, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq2a"] = round(
+            importvarhq2a, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq2b"] = round(
+            importvarhq2b, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq2c"] = round(
+            importvarhq2c, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq3"] = round(
+            importvarhq3, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq3a"] = round(
+            importvarhq3a, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq3b"] = round(
+            importvarhq3b, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq3c"] = round(
+            importvarhq3c, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq4"] = round(
+            importvarhq4, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq4a"] = round(
+            importvarhq4a, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq4b"] = round(
+            importvarhq4b, abs(energyvarsf)
+        )
+        self.data[meter_prefix + "importvarhq4c"] = round(
+            importvarhq4c, abs(energyvarsf)
+        )
+        
+        meterevents = decoder.decode_32bit_uint()
+        self.data[meter_prefix + "meterevents"] = hex(meterevents)
+
+        return True
+
 
     def read_modbus_data_inverters(self):
+        """start reading inverter data"""
         for inverter_index in range(self.number_of_inverters):
             inverter_prefix = "i" + str(inverter_index + 1) + "_"
-            inverter_data = self.read_holding_registers(unit=inverter_index + 1, address=40004, count=108)
+            inverter_data = self.read_holding_registers(
+                unit=inverter_index + 1, address=40004, count=108
+            )
             if inverter_data.isError():
                 return False
             decoder = BinaryPayloadDecoder.fromRegisters(
                 inverter_data.registers, byteorder=Endian.Big
             )
             
-            cmanufacturer = decoder.decode_string(32).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
-            self.data[inverter_prefix + "manufacturer"] = cmanufacturer
+            cmanufacturer = decoder.decode_string(32)
+            self.data[inverter_prefix + "manufacturer"] = self.parse_modbus_string(cmanufacturer)
             
-            cmodel = decoder.decode_string(32).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
-            self.data[inverter_prefix + "model"] = cmodel
+            cmodel = decoder.decode_string(32)
+            self.data[inverter_prefix + "model"] = self.parse_modbus_string(cmodel)
 
-            # NOT_IMPLEMENTED
-            copt = decoder.decode_string(16)
+            decoder.skip_bytes(16)
             
-            cversion = decoder.decode_string(16).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
-            self.data[inverter_prefix + "version"] = cversion
+            cversion = decoder.decode_string(16)
+            self.data[inverter_prefix + "version"] = self.parse_modbus_string(cversion)
 
-            cserialnumber = decoder.decode_string(32).decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
-            self.data[inverter_prefix + "serialnumber"] = cserialnumber
+            cserialnumber = decoder.decode_string(32)
+            self.data[inverter_prefix + "serialnumber"] = self.parse_modbus_string(cserialnumber)
 
             cdeviceaddress = decoder.decode_16bit_uint()
             self.data[inverter_prefix + "deviceaddress"] = cdeviceaddress
