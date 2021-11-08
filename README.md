@@ -32,7 +32,7 @@ This only needs to be done on the Leader (Master) inverter with the IP (network)
 - https://github.com/julezman/home-assistant-solaredge-modbus/tree/multiple_inverters
 - https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
 
-This started as a fork but things got too messy and I wasn't sure how to clean it up to get it merged upstream, so this repository is my installation as it was before I tried to create a pull request to get it merged upstream.
+This started as a fork but things got too messy and I wasn't sure how to clean it up to get it merged upstream, so I started a new repository. It's now evolved into my "learn about python and HA" project and I've started to make larger changes.
 
 Origional fork:
 - https://github.com/WillCodeForCats/home-assistant-solaredge-modbus
