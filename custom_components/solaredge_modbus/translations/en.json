@@ -17,7 +17,12 @@
       }
     },
     "error": {
-      "already_configured": "Device is already configured!"
+      "already_configured": "Device is already configured!",
+      "max_inverters": "Must be bewteeen 1 to 32 inverters.",
+      "min_inverters": "Must be bewteeen 1 to 32 inverters.",
+      "invalid_host": "Invalid IP address.",
+      "invalid_tcp_port": "Valid port range is 1 to 65535.",
+      "invalid_scan_interval": "Valid interval is 10 to 86400 seconds."
     },
     "abort": {
       "already_configured": "Device is already configured!"

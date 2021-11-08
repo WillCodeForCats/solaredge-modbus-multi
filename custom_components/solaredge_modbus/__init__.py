@@ -5,12 +5,10 @@ import threading
 from datetime import timedelta
 from typing import Optional
 
-import voluptuous as vol
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 
-import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
@@ -33,27 +31,6 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Required(CONF_HOST): cv.string,
-        vol.Required(CONF_PORT): cv.string,
-        vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): cv.boolean,
-        vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): cv.boolean,
-        vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
-        vol.Optional(
-            CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-        ): cv.positive_int,
-        vol.Optional(
-             CONF_NUMBER_INVERTERS, default=DEFAULT_NUMBER_INVERTERS
-        ): cv.positive_int,
-    }
-)
-
-CONFIG_SCHEMA = vol.Schema(
-    {DOMAIN: vol.Schema({cv.slug: SOLAREDGE_MODBUS_SCHEMA})}, extra=vol.ALLOW_EXTRA
-)
-
 PLATFORMS = ["sensor"]
 
 
@@ -73,9 +50,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
     number_of_inverters = entry.data.get(CONF_NUMBER_INVERTERS, 1)
-    # TODO is there anyway to ensure we don't receive 0 during config flow
+    
     if number_of_inverters < 1:
         number_of_inverters = 1
+    if number_of_inverters > 32:
+        number_of_inverters = 32
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
