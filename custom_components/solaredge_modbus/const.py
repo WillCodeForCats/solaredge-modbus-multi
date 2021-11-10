@@ -1,3 +1,6 @@
+import ctypes
+c_uint = ctypes.c_uint
+
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 60
@@ -131,7 +134,6 @@ METER_SENSOR_TYPES = {
     "IMPORT_VARH_Q4_B": ["IMPORT VARH Q4 B", "importvarhq4b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None],
     "IMPORT_VARH_Q4_C": ["IMPORT VARH Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None],
     "M_Events": ["Meter Events", "meterevents", None, None],
-
 }
 
 # parameter names per sunspec
@@ -207,3 +209,45 @@ SUNSPEC_DID = {
     203: "Three Phase Wye Meter",
     204: "Three Phase Delta Meter",
 }
+
+class M_Event_bits( ctypes.LittleEndianStructure ):
+    _fields_ = [
+                ("undefined",               c_uint, 1 ),  
+                ("undefined",               c_uint, 1 ),  
+                ("M_EVENT_Power_Failure",   c_uint, 1 ), 
+                ("M_EVENT_Under_Voltage",   c_uint, 1 ),
+                ("M_EVENT_Low_PF",          c_uint, 1 ), 
+                ("M_EVENT_Over_Current",    c_uint, 1 ), 
+                ("M_EVENT_Over_Voltage",    c_uint, 1 ),
+                ("M_EVENT_Missing_Sensor",  c_uint, 1 ),
+                ("M_EVENT_Reserved1",       c_uint, 1 ),
+                ("M_EVENT_Reserved2",       c_uint, 1 ),
+                ("M_EVENT_Reserved3",       c_uint, 1 ),
+                ("M_EVENT_Reserved4",       c_uint, 1 ),
+                ("M_EVENT_Reserved5",       c_uint, 1 ),
+                ("M_EVENT_Reserved6",       c_uint, 1 ),
+                ("M_EVENT_Reserved7",       c_uint, 1 ),
+                ("M_EVENT_Reserved8",       c_uint, 1 ),
+                ("M_EVENT_OEM1",            c_uint, 1 ),
+                ("M_EVENT_OEM2",            c_uint, 1 ),
+                ("M_EVENT_OEM3",            c_uint, 1 ),
+                ("M_EVENT_OEM4",            c_uint, 1 ),
+                ("M_EVENT_OEM5",            c_uint, 1 ),
+                ("M_EVENT_OEM6",            c_uint, 1 ),
+                ("M_EVENT_OEM7",            c_uint, 1 ),
+                ("M_EVENT_OEM8",            c_uint, 1 ),
+                ("M_EVENT_OEM9",            c_uint, 1 ),
+                ("M_EVENT_OEM10",           c_uint, 1 ),
+                ("M_EVENT_OEM11",           c_uint, 1 ),
+                ("M_EVENT_OEM12",           c_uint, 1 ),
+                ("M_EVENT_OEM13",           c_uint, 1 ),
+                ("M_EVENT_OEM14",           c_uint, 1 ),
+                ("M_EVENT_OEM15",           c_uint, 1 ),
+               ]
+
+class M_Event( ctypes.Union ):
+    _anonymous_ = ("bit",)
+    _fields_ = [
+                ("bit",    M_Event_bits ),
+                ("mEvent", c_uint    )
+               ]
