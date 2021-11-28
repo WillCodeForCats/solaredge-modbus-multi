@@ -2,9 +2,11 @@
   "domain": "solaredge_modbus",
   "name": "SolarEdge Modbus Multi-Inverter",
   "documentation": "https://github.com/WillCodeForCats/solaredge-modbus-multi",
+  "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
   "requirements": ["pymodbus==1.5.2"],
   "dependencies": [],
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
+  "iot_class": "local_polling",
   "version": "1.0.6"
 }
