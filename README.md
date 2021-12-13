@@ -20,6 +20,8 @@ This integration is developed on a system that consists of two inverters and one
 Copy the contents of the custom_components folder into to your Home Assistant config/custom_components folder or install through HACS.
 After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 
+NOTICE: Starting with version 1.1.0 this integration requires Home Assistant 2012.12.0 or newer.
+
 # Enabling Modbus TCP on SolarEdge Inverter
 1. Enable wifi direct on the inverter by switching the red toggle switch on the inverter to "P" position for less than 5 seconds.
 2. Connect to the inverter access point like you would for a normal wifi network. The wifi password is published at the right side of the inverter. OR scan the QR code on the side of your inverter.

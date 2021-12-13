@@ -10,30 +10,21 @@ from .const import (
     ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
 )
 from datetime import datetime
+from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
     CONF_NAME,
-    DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR,
+    ENERGY_KILO_WATT_HOUR,
     POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE,
     ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
     PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ,
 )
 from homeassistant.components.sensor import (
-    PLATFORM_SCHEMA,
+    STATE_CLASS_TOTAL_INCREASING,
     STATE_CLASS_MEASUREMENT,
+    SensorDeviceClass,
     SensorEntity,
 )
-
-try: # backward-compatibility to 2021.8
-    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
-except ImportError:
-    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING
-
-
-from homeassistant.core import callback
-from homeassistant.util import dt as dt_util
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -118,18 +109,42 @@ class SolarEdgeSensor(SensorEntity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
+
         if self._unit_of_measurement in [
-            POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
-            ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
+            POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
             ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
-            PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ, 
         ]:
             self._attr_state_class = STATE_CLASS_MEASUREMENT
+        
+        elif self._unit_of_measurement in [
+            POWER_WATT, POWER_KILO_WATT
+        ]:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.POWER
+            
+        elif self._unit_of_measurement == PERCENTAGE:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.POWER_FACTOR
+
+        elif self._unit_of_measurement == ELECTRIC_POTENTIAL_VOLT:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.VOLTAGE
+
+        elif self._unit_of_measurement == ELECTRIC_CURRENT_AMPERE:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.CURRENT
+
+        elif self._unit_of_measurement == TEMP_CELSIUS:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+        elif self._unit_of_measurement == FREQUENCY_HERTZ:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.FREQUENCY
+            
         elif self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
-            self._attr_device_class = DEVICE_CLASS_ENERGY
-            if STATE_CLASS_TOTAL_INCREASING == STATE_CLASS_MEASUREMENT: # compatibility to 2021.8
-                self._attr_last_reset = dt_util.utc_from_timestamp(0)
+            self._attr_device_class = SensorDeviceClass.ENERGY
 
     async def async_added_to_hass(self):
         """Register callbacks."""
