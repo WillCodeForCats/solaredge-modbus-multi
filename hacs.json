@@ -2,6 +2,5 @@
   "name": "Solaredge Modbus Multi-Inverter",
   "content_in_root": false,
   "domains": ["sensor"],
-  "homeassistant": "2021.12.0",
-  "iot_class": "local_poll"
+  "homeassistant": "2021.12.0"
 }
