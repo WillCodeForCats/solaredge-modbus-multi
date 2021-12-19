@@ -8,6 +8,7 @@
           "name": "Sensor Prefix",
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
+          "device_id": "Inverter Modbus Address (Device ID)",
           "number_of_inverters": "Number of Inverters",
           "read_meter_1": "Use Meter 1",
           "read_meter_2": "Use Meter 2",
@@ -18,8 +19,11 @@
     },
     "error": {
       "already_configured": "Device is already configured!",
+      "max_device_id": "Device ID must be bewteeen 1 to 247.",
+      "min_device_id": "Device ID must be bewteeen 1 to 247.",
       "max_inverters": "Must be bewteeen 1 to 32 inverters.",
       "min_inverters": "Must be bewteeen 1 to 32 inverters.",
+      "too_many_inverters": "Number of inverters too high for Device ID",
       "invalid_host": "Invalid IP address.",
       "invalid_tcp_port": "Valid port range is 1 to 65535.",
       "invalid_scan_interval": "Valid interval is 10 to 86400 seconds."

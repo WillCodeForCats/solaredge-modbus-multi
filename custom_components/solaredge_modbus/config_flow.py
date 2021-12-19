@@ -10,14 +10,16 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_PORT,
-    CONF_NUMBER_INVERTERS,
+    DEFAULT_DEVICE_ID,
     DEFAULT_NUMBER_INVERTERS,
-    CONF_READ_METER1,
-    CONF_READ_METER2,
-    CONF_READ_METER3,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
+    CONF_DEVICE_ID,
+    CONF_NUMBER_INVERTERS,
+    CONF_READ_METER1,
+    CONF_READ_METER2,
+    CONF_READ_METER3
 )
 from homeassistant.core import HomeAssistant, callback
 
@@ -60,14 +62,20 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_HOST] = "already_configured"
             elif not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
-            elif user_input[CONF_NUMBER_INVERTERS] > 32:
-                errors[CONF_NUMBER_INVERTERS] = "max_inverters"  
-            elif user_input[CONF_NUMBER_INVERTERS] < 1:
-                errors[CONF_NUMBER_INVERTERS] = "min_inverters"
             elif user_input[CONF_PORT] < 1:
                 errors[CONF_PORT] = "invalid_tcp_port"
             elif user_input[CONF_PORT] > 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
+            elif user_input[CONF_DEVICE_ID] > 247:
+                errors[CONF_DEVICE_ID] = "max_device_id"  
+            elif user_input[CONF_DEVICE_ID] < 1:
+                errors[CONF_DEVICE_ID] = "min_device_id"
+            elif user_input[CONF_NUMBER_INVERTERS] > 32:
+                errors[CONF_NUMBER_INVERTERS] = "max_inverters"  
+            elif user_input[CONF_NUMBER_INVERTERS] < 1:
+                errors[CONF_NUMBER_INVERTERS] = "min_inverters"
+            elif user_input[CONF_NUMBER_INVERTERS] + user_input[CONF_DEVICE_ID] > 247:
+                errors[CONF_NUMBER_INVERTERS] = "too_many_inverters"
             elif user_input[CONF_SCAN_INTERVAL] < 10:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
@@ -84,6 +92,7 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_HOST: "",
                 CONF_PORT: DEFAULT_PORT,
                 CONF_NUMBER_INVERTERS: DEFAULT_NUMBER_INVERTERS,
+                CONF_DEVICE_ID: DEFAULT_DEVICE_ID,
                 CONF_READ_METER1: DEFAULT_READ_METER1,
                 CONF_READ_METER2: DEFAULT_READ_METER2,
                 CONF_READ_METER3: DEFAULT_READ_METER3,
@@ -102,6 +111,9 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): cv.string,
                     vol.Required(
                         CONF_PORT, default=user_input[CONF_PORT]
+                    ): vol.Coerce(int),
+                    vol.Required(
+                        CONF_DEVICE_ID, default=user_input[CONF_DEVICE_ID]
                     ): vol.Coerce(int),
                     vol.Required(
                         CONF_NUMBER_INVERTERS, default=user_input[CONF_NUMBER_INVERTERS]

@@ -22,11 +22,13 @@ from .const import (
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
+    CONF_DEVICE_ID,
     DEFAULT_NUMBER_INVERTERS,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
-    DEVICE_STATUS, VENDOR_STATUS,
+    DEVICE_STATUS,
+    VENDOR_STATUS
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,16 +52,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
     number_of_inverters = entry.data.get(CONF_NUMBER_INVERTERS, 1)
+    device_id = entry.data.get(CONF_DEVICE_ID, 1)
     
-    if number_of_inverters < 1:
-        number_of_inverters = 1
-    if number_of_inverters > 32:
-        number_of_inverters = 32
-
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
     hub = SolaredgeModbusHub(
-        hass, name, host, port, scan_interval, read_meter1, read_meter2, read_meter3, number_of_inverters
+        hass, name, host, port, scan_interval,
+        read_meter1, read_meter2, read_meter3,
+        number_of_inverters, device_id
     )
     """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
@@ -102,6 +102,7 @@ class SolaredgeModbusHub:
         read_meter2=False,
         read_meter3=False,
         number_of_inverters=1,
+        device_id=1,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -112,6 +113,7 @@ class SolaredgeModbusHub:
         self.read_meter2 = read_meter2
         self.read_meter3 = read_meter3
         self.number_of_inverters = number_of_inverters
+        self.device_id = device_id
         self._scan_interval = timedelta(seconds=scan_interval)
         self._unsub_interval_method = None
         self._sensors = []
@@ -215,7 +217,7 @@ class SolaredgeModbusHub:
     def read_modbus_data_meter(self, meter_prefix, start_address):
         """start reading meter data"""
         meter_data = self.read_holding_registers(
-            unit=1, address=start_address, count=68
+            unit=self.device_id, address=start_address, count=68
         )
         if meter_data.isError():
             return False
@@ -549,7 +551,7 @@ class SolaredgeModbusHub:
         for inverter_index in range(self.number_of_inverters):
             inverter_prefix = "i" + str(inverter_index + 1) + "_"
             inverter_data = self.read_holding_registers(
-                unit=inverter_index + 1, address=40004, count=108
+                unit=inverter_index + self.device_id, address=40004, count=108
             )
             if inverter_data.isError():
                 return False
