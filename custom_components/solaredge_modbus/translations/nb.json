@@ -1,23 +1,31 @@
 {
   "config": {
-    "title": "SolarEdge Modbus",
     "step": {
       "user": {
-        "title": "Definer din SolarEdge modbus-tilkobling",
+        "title": "SolarEdge Modbus-konfigurasjon",
         "data": {
-          "host": "IP-adressen til din Solaredge-omformer",
-          "name": "Prefikset som skal brukes til SolarEdge-sensorene dine",
-          "port": "TCP-porten som skal kobles til SolarEdge-omformeren",
+          "name": "Sensorvoorvoegsel",
+          "host": "IP-adres van omvormer",
+          "port": "Modbus/TCP-poort",
           "number_of_inverters": "Antall omformere koblet sammen",
-          "read_meter_1": "Les måler 1-data (bare for målermodeller)",
-          "read_meter_2": "Les måler 2-data (bare for målermodeller)",
-          "read_meter_3": "Les måler 3-data (bare for målermodeller)",
-          "scan_interval": "Avstemningsfrekvensen til modbus registreres på få sekunder"
+          "device_id": "Inverter Modbus-adresse (enhets-ID)",
+          "read_meter_1": "Bruk måler 1",
+          "read_meter_2": "Bruk måler 2",
+          "read_meter_3": "Bruk måler 3",
+          "scan_interval": "Avstemningsfrekvens (sekunder)"
         }
       }
     },
     "error": {
-      "already_configured": "Enheten er allerede konfigurert"
+      "already_configured": "Enheten er allerede konfigurert",
+      "max_device_id": "Enhets-ID må være mellom 1 og 247.",
+      "min_device_id": "Enhets-ID må være mellom 1 og 247.",
+      "max_inverters": "Må være mellom 1 og 32 omformere.",
+      "min_inverters": "Må være mellom 1 og 32 omformere.",
+      "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+      "invalid_host": "Ugyldig IP-adresse.",
+      "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
+      "invalid_scan_interval": "Gyldig intervall er 10 til 86400 sekunder."
     },
     "abort": {
       "already_configured": "Enheten er allerede konfigurert"

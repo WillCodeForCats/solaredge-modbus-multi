@@ -1,23 +1,31 @@
 {
   "config": {
-    "title": "SolarEdge Modbus",
     "step": {
       "user": {
-        "title": "Definieer uw SolarEdge modbus-verbinding",
+        "title": "SolarEdge Modbus-configuratie",
         "data": {
-          "host": "Het ip-adres van uw Solaredge-omvormer",
-          "name": "Het voorvoegsel dat moet worden gebruikt voor uw SolarEdge-sensoren",
-          "port": "De TCP-poort waarop verbinding moet worden gemaakt met de SolarEdge-omvormer",
+          "name": "Sensorprefiks",
+          "host": "Inverter IP-adresse",
+          "port": "Modbus/TCP-port",
           "number_of_inverters": "Aantal aangesloten omvormers",
-          "read_meter_1": "Lees meter 1 data (enkel voor voor meter modellen)",
-          "read_meter_2": "Lees meter 2 data (enkel voor voor meter modellen)",
-          "read_meter_3": "Lees meter 3 data (enkel voor voor meter modellen)",
-          "scan_interval": "De polling-frequentie van de modbus registratie in seconden"
+          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
+          "read_meter_1": "Gebruik meter 1",
+          "read_meter_2": "Gebruik meter 2",
+          "read_meter_3": "Gebruik meter 3",
+          "scan_interval": "Oproepfrequentie (seconden)"
         }
       }
     },
     "error": {
-      "already_configured": "Apparaat is al geconfigureerd"
+      "already_configured": "Apparaat is al geconfigureerd",
+      "max_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+      "min_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+      "max_inverters": "Moet tussen 1 en 32 omvormers zijn.",
+      "min_inverters": "Moet tussen 1 en 32 omvormers zijn.",
+      "too_many_inverters": "Aantal omvormers te hoog voor Device ID.",
+      "invalid_host": "Ongeldig IP-adres.",
+      "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
+      "invalid_scan_interval": "Geldig interval is 10 tot 86400 seconden."
     },
     "abort": {
       "already_configured": "Apparaat is al geconfigureerd"
