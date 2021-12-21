@@ -124,7 +124,6 @@ class SolaredgeModbusHub:
         """Listen for data updates."""
         # This is the first sensor, set up interval.
         if not self._sensors:
-            self.connect()
             self._unsub_interval_method = async_track_time_interval(
                 self._hass, self.async_refresh_modbus_data, self._scan_interval
             )
@@ -135,26 +134,31 @@ class SolaredgeModbusHub:
     def async_remove_solaredge_sensor(self, update_callback):
         """Remove data update."""
         self._sensors.remove(update_callback)
+        
+        if self.is_socket_open():
+            self.close()
 
         if not self._sensors:
             """stop the interval timer upon removal of last sensor"""
             self._unsub_interval_method()
             self._unsub_interval_method = None
-            self.close()
 
     async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> None:
         """Time to update."""
         if not self._sensors:
             return
 
+        self.connect()
+        
         if not self.is_socket_open():
-            _LOGGER.error("No open Modbus/TCP connection for %s", self._name)
-            self.connect()
+            _LOGGER.error("Could not open Modbus/TCP connection for %s", self._name)
         else:
             update_result = self.read_modbus_data()
             if update_result:
               for update_callback in self._sensors:
                     update_callback()
+        
+        self.close()
 
     @property
     def name(self):
