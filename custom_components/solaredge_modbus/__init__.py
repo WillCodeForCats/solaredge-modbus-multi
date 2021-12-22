@@ -253,7 +253,7 @@ class SolaredgeModbusHub:
         self.data[meter_prefix + "sunspecdid"] = sunspecdid
         
         meter_data = self.read_holding_registers(
-            unit=1, address=start_address + 69, count=105
+            unit=self.device_id, address=start_address + 69, count=105
         )
         if meter_data.isError():
             return False
