@@ -200,6 +200,165 @@ class SolaredgeModbusHub:
             and self.read_modbus_data_meter3()
         )
 
+    def read_modbus_data_inverters(self):
+        """start reading inverter data"""
+        for inverter_index in range(self.number_of_inverters):
+            inverter_prefix = "i" + str(inverter_index + 1) + "_"
+            inverter_data = self.read_holding_registers(
+                unit=inverter_index + self.device_id, address=40004, count=108
+            )
+            if inverter_data.isError():
+                return False
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                inverter_data.registers, byteorder=Endian.Big
+            )
+            
+            cmanufacturer = decoder.decode_string(32)
+            self.data[inverter_prefix + "manufacturer"] = self.parse_modbus_string(cmanufacturer)
+            
+            cmodel = decoder.decode_string(32)
+            self.data[inverter_prefix + "model"] = self.parse_modbus_string(cmodel)
+
+            decoder.skip_bytes(16)
+            
+            cversion = decoder.decode_string(16)
+            self.data[inverter_prefix + "version"] = self.parse_modbus_string(cversion)
+
+            cserialnumber = decoder.decode_string(32)
+            self.data[inverter_prefix + "serialnumber"] = self.parse_modbus_string(cserialnumber)
+
+            cdeviceaddress = decoder.decode_16bit_uint()
+            self.data[inverter_prefix + "deviceaddress"] = cdeviceaddress
+
+            sunspecdid = decoder.decode_16bit_uint()
+            self.data[inverter_prefix + "sunspecdid"] = sunspecdid
+            
+            # skip register
+            decoder.skip_bytes(2)
+            
+            accurrent = decoder.decode_16bit_uint()
+            accurrenta = decoder.decode_16bit_uint()
+            accurrentb = decoder.decode_16bit_uint()
+            accurrentc = decoder.decode_16bit_uint()
+            accurrentsf = decoder.decode_16bit_int()
+
+            accurrent = self.calculate_value(accurrent, accurrentsf)
+            accurrenta = self.calculate_value(accurrenta, accurrentsf)
+            accurrentb = self.calculate_value(accurrentb, accurrentsf)
+            accurrentc = self.calculate_value(accurrentc, accurrentsf)
+
+            self.data[inverter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
+            self.data[inverter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
+            self.data[inverter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
+            self.data[inverter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
+
+            acvoltageab = decoder.decode_16bit_uint()
+            acvoltagebc = decoder.decode_16bit_uint()
+            acvoltageca = decoder.decode_16bit_uint()
+            acvoltagean = decoder.decode_16bit_uint()
+            acvoltagebn = decoder.decode_16bit_uint()
+            acvoltagecn = decoder.decode_16bit_uint()
+            acvoltagesf = decoder.decode_16bit_int()
+
+            acvoltageab = self.calculate_value(acvoltageab, acvoltagesf)
+            acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
+            acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
+            acvoltagean = self.calculate_value(acvoltagean, acvoltagesf)
+            acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
+            acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
+
+            self.data[inverter_prefix + "acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
+            self.data[inverter_prefix + "acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
+            self.data[inverter_prefix + "acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
+            self.data[inverter_prefix + "acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
+            self.data[inverter_prefix + "acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
+            self.data[inverter_prefix + "acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
+                
+            acpower = decoder.decode_16bit_int()
+            acpowersf = decoder.decode_16bit_int()
+            acpower = self.calculate_value(acpower, acpowersf)
+
+            self.data[inverter_prefix + "acpower"] = round(acpower, abs(acpowersf))
+
+            acfreq = decoder.decode_16bit_uint()
+            acfreqsf = decoder.decode_16bit_int()
+            acfreq = self.calculate_value(acfreq, acfreqsf)
+
+            self.data[inverter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
+
+            acva = decoder.decode_16bit_int()
+            acvasf = decoder.decode_16bit_int()
+            acva = self.calculate_value(acva, acvasf)
+
+            self.data[inverter_prefix + "acva"] = round(acva, abs(acvasf))
+
+            acvar = decoder.decode_16bit_int()
+            acvarsf = decoder.decode_16bit_int()
+            acvar = self.calculate_value(acvar, acvarsf)
+
+            self.data[inverter_prefix + "acvar"] = round(acvar, abs(acvarsf))
+
+            acpf = decoder.decode_16bit_int()
+            acpfsf = decoder.decode_16bit_int()
+            acpf = self.calculate_value(acpf, acpfsf)
+
+            self.data[inverter_prefix + "acpf"] = round(acpf, abs(acpfsf))
+
+            acenergy = decoder.decode_32bit_uint()
+            acenergysf = decoder.decode_16bit_uint()
+            acenergy = self.calculate_value(acenergy, acenergysf)
+
+            self.data[inverter_prefix + "acenergy"] = round(acenergy * 0.001, 3)
+
+            dccurrent = decoder.decode_16bit_uint()
+            dccurrentsf = decoder.decode_16bit_int()
+            dccurrent = self.calculate_value(dccurrent, dccurrentsf)
+
+            self.data[inverter_prefix + "dccurrent"] = round(dccurrent, abs(dccurrentsf))
+
+            dcvoltage = decoder.decode_16bit_uint()
+            dcvoltagesf = decoder.decode_16bit_int()
+            dcvoltage = self.calculate_value(dcvoltage, dcvoltagesf)
+
+            self.data[inverter_prefix + "dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
+
+            dcpower = decoder.decode_16bit_int()
+            dcpowersf = decoder.decode_16bit_int()
+            dcpower = self.calculate_value(dcpower, dcpowersf)
+
+            self.data[inverter_prefix + "dcpower"] = round(dcpower, abs(dcpowersf))
+
+            # skip register
+            decoder.skip_bytes(2)
+
+            tempsink = decoder.decode_16bit_int()
+
+            # skip 2 registers
+            decoder.skip_bytes(4)
+
+            tempsf = decoder.decode_16bit_int()
+            tempsink = self.calculate_value(tempsink, tempsf)
+
+            self.data[inverter_prefix + "tempsink"] = round(tempsink, abs(tempsf))
+
+            status = decoder.decode_16bit_int()
+            self.data[inverter_prefix + "status"] = status
+            
+            if status in DEVICE_STATUS:
+                self.data[inverter_prefix + "status_text"] = DEVICE_STATUS[status]
+            else:
+                self.data[inverter_prefix + "status_text"] = "Unknown"
+            
+            statusvendor = decoder.decode_16bit_int()
+            self.data[inverter_prefix + "statusvendor"] = statusvendor
+            
+            if statusvendor in VENDOR_STATUS:
+                self.data[inverter_prefix + "statusvendor_text"] = VENDOR_STATUS[statusvendor]
+            else:
+                self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
+
+        return True
+
     def read_modbus_data_meter1(self):
         if not self.read_meter1:
             return True
@@ -546,165 +705,5 @@ class SolaredgeModbusHub:
         
         meterevents = decoder.decode_32bit_uint()
         self.data[meter_prefix + "meterevents"] = hex(meterevents)
-
-        return True
-
-
-    def read_modbus_data_inverters(self):
-        """start reading inverter data"""
-        for inverter_index in range(self.number_of_inverters):
-            inverter_prefix = "i" + str(inverter_index + 1) + "_"
-            inverter_data = self.read_holding_registers(
-                unit=inverter_index + self.device_id, address=40004, count=108
-            )
-            if inverter_data.isError():
-                return False
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.Big
-            )
-            
-            cmanufacturer = decoder.decode_string(32)
-            self.data[inverter_prefix + "manufacturer"] = self.parse_modbus_string(cmanufacturer)
-            
-            cmodel = decoder.decode_string(32)
-            self.data[inverter_prefix + "model"] = self.parse_modbus_string(cmodel)
-
-            decoder.skip_bytes(16)
-            
-            cversion = decoder.decode_string(16)
-            self.data[inverter_prefix + "version"] = self.parse_modbus_string(cversion)
-
-            cserialnumber = decoder.decode_string(32)
-            self.data[inverter_prefix + "serialnumber"] = self.parse_modbus_string(cserialnumber)
-
-            cdeviceaddress = decoder.decode_16bit_uint()
-            self.data[inverter_prefix + "deviceaddress"] = cdeviceaddress
-
-            sunspecdid = decoder.decode_16bit_uint()
-            self.data[inverter_prefix + "sunspecdid"] = sunspecdid
-            
-            # skip register
-            decoder.skip_bytes(2)
-            
-            accurrent = decoder.decode_16bit_uint()
-            accurrenta = decoder.decode_16bit_uint()
-            accurrentb = decoder.decode_16bit_uint()
-            accurrentc = decoder.decode_16bit_uint()
-            accurrentsf = decoder.decode_16bit_int()
-
-            accurrent = self.calculate_value(accurrent, accurrentsf)
-            accurrenta = self.calculate_value(accurrenta, accurrentsf)
-            accurrentb = self.calculate_value(accurrentb, accurrentsf)
-            accurrentc = self.calculate_value(accurrentc, accurrentsf)
-
-            self.data[inverter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
-            self.data[inverter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
-            self.data[inverter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
-            self.data[inverter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
-
-            acvoltageab = decoder.decode_16bit_uint()
-            acvoltagebc = decoder.decode_16bit_uint()
-            acvoltageca = decoder.decode_16bit_uint()
-            acvoltagean = decoder.decode_16bit_uint()
-            acvoltagebn = decoder.decode_16bit_uint()
-            acvoltagecn = decoder.decode_16bit_uint()
-            acvoltagesf = decoder.decode_16bit_int()
-
-            acvoltageab = self.calculate_value(acvoltageab, acvoltagesf)
-            acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
-            acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
-            acvoltagean = self.calculate_value(acvoltagean, acvoltagesf)
-            acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
-            acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
-
-            self.data[inverter_prefix + "acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-            self.data[inverter_prefix + "acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-            self.data[inverter_prefix + "acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
-            self.data[inverter_prefix + "acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-            self.data[inverter_prefix + "acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-            self.data[inverter_prefix + "acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
-                
-            acpower = decoder.decode_16bit_int()
-            acpowersf = decoder.decode_16bit_int()
-            acpower = self.calculate_value(acpower, acpowersf)
-
-            self.data[inverter_prefix + "acpower"] = round(acpower, abs(acpowersf))
-
-            acfreq = decoder.decode_16bit_uint()
-            acfreqsf = decoder.decode_16bit_int()
-            acfreq = self.calculate_value(acfreq, acfreqsf)
-
-            self.data[inverter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
-
-            acva = decoder.decode_16bit_int()
-            acvasf = decoder.decode_16bit_int()
-            acva = self.calculate_value(acva, acvasf)
-
-            self.data[inverter_prefix + "acva"] = round(acva, abs(acvasf))
-
-            acvar = decoder.decode_16bit_int()
-            acvarsf = decoder.decode_16bit_int()
-            acvar = self.calculate_value(acvar, acvarsf)
-
-            self.data[inverter_prefix + "acvar"] = round(acvar, abs(acvarsf))
-
-            acpf = decoder.decode_16bit_int()
-            acpfsf = decoder.decode_16bit_int()
-            acpf = self.calculate_value(acpf, acpfsf)
-
-            self.data[inverter_prefix + "acpf"] = round(acpf, abs(acpfsf))
-
-            acenergy = decoder.decode_32bit_uint()
-            acenergysf = decoder.decode_16bit_uint()
-            acenergy = self.calculate_value(acenergy, acenergysf)
-
-            self.data[inverter_prefix + "acenergy"] = round(acenergy * 0.001, 3)
-
-            dccurrent = decoder.decode_16bit_uint()
-            dccurrentsf = decoder.decode_16bit_int()
-            dccurrent = self.calculate_value(dccurrent, dccurrentsf)
-
-            self.data[inverter_prefix + "dccurrent"] = round(dccurrent, abs(dccurrentsf))
-
-            dcvoltage = decoder.decode_16bit_uint()
-            dcvoltagesf = decoder.decode_16bit_int()
-            dcvoltage = self.calculate_value(dcvoltage, dcvoltagesf)
-
-            self.data[inverter_prefix + "dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
-
-            dcpower = decoder.decode_16bit_int()
-            dcpowersf = decoder.decode_16bit_int()
-            dcpower = self.calculate_value(dcpower, dcpowersf)
-
-            self.data[inverter_prefix + "dcpower"] = round(dcpower, abs(dcpowersf))
-
-            # skip register
-            decoder.skip_bytes(2)
-
-            tempsink = decoder.decode_16bit_int()
-
-            # skip 2 registers
-            decoder.skip_bytes(4)
-
-            tempsf = decoder.decode_16bit_int()
-            tempsink = self.calculate_value(tempsink, tempsf)
-
-            self.data[inverter_prefix + "tempsink"] = round(tempsink, abs(tempsf))
-
-            status = decoder.decode_16bit_int()
-            self.data[inverter_prefix + "status"] = status
-            
-            if status in DEVICE_STATUS:
-                self.data[inverter_prefix + "status_text"] = DEVICE_STATUS[status]
-            else:
-                self.data[inverter_prefix + "status_text"] = "Unknown"
-            
-            statusvendor = decoder.decode_16bit_int()
-            self.data[inverter_prefix + "statusvendor"] = statusvendor
-            
-            if statusvendor in VENDOR_STATUS:
-                self.data[inverter_prefix + "statusvendor_text"] = VENDOR_STATUS[statusvendor]
-            else:
-                self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
 
         return True
