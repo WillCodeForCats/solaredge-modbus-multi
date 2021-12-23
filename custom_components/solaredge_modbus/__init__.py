@@ -188,10 +188,7 @@ class SolaredgeModbusHub:
 
     def calculate_value(self, value, sf):
         return value * 10 ** sf
-
-    def watts_to_kilowatts(self, value):
-        return round(value * 0.001, 3)
-
+        
     def parse_modbus_string(self, s):
         return s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
 
