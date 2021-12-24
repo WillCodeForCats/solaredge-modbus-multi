@@ -196,14 +196,15 @@ class SolarEdgeSensor(SensorEntity):
             if self.state in DEVICE_STATUS_DESC:
                 return {ATTR_DESCRIPTION: DEVICE_STATUS_DESC[self.state]}
         elif re.match('m[1-3]_meterevents', self._key):
-            m_events_active = []
-            if int(self.state,16) == 0x0:
-                return m_events_active
-            else:
-                for i in range(0,32):
-                    if (int(self.state,16) & (1 << i)):
-                        m_events_active.append(METER_EVENTS[i])
-                return m_events_active
+            if isinstance(self.state, str):
+                m_events_active = []
+                if int(self.state,16) == 0x0:
+                    return m_events_active
+                else:
+                    for i in range(0,32):
+                        if (int(self.state,16) & (1 << i)):
+                            m_events_active.append(METER_EVENTS[i])
+                    return m_events_active
         
         return None
 
