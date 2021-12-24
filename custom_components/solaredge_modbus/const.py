@@ -1,6 +1,3 @@
-import ctypes
-c_uint = ctypes.c_uint
-
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 60
