@@ -199,12 +199,12 @@ class SolarEdgeSensor(SensorEntity):
             if isinstance(self.state, str):
                 m_events_active = []
                 if int(self.state,16) == 0x0:
-                    return m_events_active
+                    return {ATTR_DESCRIPTION: str(m_events_active)}
                 else:
                     for i in range(0,32):
                         if (int(self.state,16) & (1 << i)):
                             m_events_active.append(METER_EVENTS[i])
-                    return m_events_active
+                    return {ATTR_DESCRIPTION: str(m_events_active)}
         
         return None
 
