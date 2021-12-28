@@ -106,8 +106,7 @@ class SolaredgeModbusHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        #self._client = ModbusTcpClient(host=host, port=port)
-        self._client = ModbusTcpClient(host=host, port=port, retry_on_empty=True)
+        self._client = ModbusTcpClient(host=host, port=port)
         self._lock = threading.Lock()
         self._name = name
         self.read_meter1 = read_meter1
