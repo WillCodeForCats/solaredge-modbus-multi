@@ -131,7 +131,6 @@ METER_SENSOR_TYPES = {
     "IMPORT_VARH_Q4_B": ["IMPORT VARH Q4 B", "importvarhq4b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None],
     "IMPORT_VARH_Q4_C": ["IMPORT VARH Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None],
     "M_Events": ["Meter Events", "meterevents", None, None],
-
 }
 
 # parameter names per sunspec
@@ -206,4 +205,39 @@ SUNSPEC_DID = {
     202: "Split Phase Meter",
     203: "Three Phase Wye Meter",
     204: "Three Phase Delta Meter",
+}
+
+METER_EVENTS = {
+    0: "undefined_0",
+    1: "undefined_1",
+    2: "M_EVENT_Power_Failure",
+    3: "M_EVENT_Under_Voltage",
+    4: "M_EVENT_Low_PF",
+    5: "M_EVENT_Over_Current",
+    6: "M_EVENT_Over_Voltage",
+    7: "M_EVENT_Missing_Sensor",
+    8: "M_EVENT_Reserved1",
+    9: "M_EVENT_Reserved2",
+    10: "M_EVENT_Reserved3",
+    11: "M_EVENT_Reserved4",
+    12: "M_EVENT_Reserved5",
+    13: "M_EVENT_Reserved6",
+    14: "M_EVENT_Reserved7",
+    15: "M_EVENT_Reserved8",
+    16: "M_EVENT_OEM1",
+    17: "M_EVENT_OEM2",
+    18: "M_EVENT_OEM3",
+    19: "M_EVENT_OEM4",
+    20: "M_EVENT_OEM5",
+    21: "M_EVENT_OEM6",
+    22: "M_EVENT_OEM7",
+    23: "M_EVENT_OEM8",
+    24: "M_EVENT_OEM9",
+    25: "M_EVENT_OEM10",
+    26: "M_EVENT_OEM11",
+    27: "M_EVENT_OEM12",
+    28: "M_EVENT_OEM13",
+    29: "M_EVENT_OEM14",
+    30: "M_EVENT_OEM15",
+    31: "undefined_31",
 }
