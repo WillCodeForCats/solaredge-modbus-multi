@@ -39,21 +39,22 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
 
-    hub = hass.data[DOMAIN][config_entry.entry_id]
-    config_name = entry.data[CONF_NAME]
-    
-    device_info = {
-        "identifiers": {(DOMAIN, config_name)},
-        "name": config_name,
-        "manufacturer": ATTR_MANUFACTURER,
-    }
+    hub = hass.data[DOMAIN][entry.entry_id]
+    config_name = entry.data[CONF_NAME]  
 
     entities = []
 
     for inverter_index in range(hub.number_of_inverters):
-         inverter_variable_prefix = "i" + str(inverter_index + 1) + "_"
-         inverter_title_prefix = "I" + str(inverter_index + 1) + " "
-         for sensor_info in SENSOR_TYPES.values():
+        inverter_variable_prefix = "i" + str(inverter_index + 1) + "_"
+        inverter_title_prefix = "I" + str(inverter_index + 1) + " "
+        device_info = {
+            "identifiers": {(DOMAIN, config_name)},
+            "name": f"{config_name.capitalize()} Inverter {str(inverter_index + 1)}",
+            "manufacturer": ATTR_MANUFACTURER,
+            #"model": self.model,
+            #"sw_version": self.firmware_version,
+            }
+        for sensor_info in SENSOR_TYPES.values():
              sensor = SolarEdgeSensor(
                  config_name,
                  hub,
@@ -67,6 +68,13 @@ async def async_setup_entry(
              entities.append(sensor)
 
     if hub.read_meter1 == True:
+        device_info = {
+            "identifiers": {(DOMAIN, config_name)},
+            "name": f"{config_name.capitalize()} Meter 1",
+            "manufacturer": ATTR_MANUFACTURER,
+            #"model": self.model,
+            #"sw_version": self.firmware_version,
+            }
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 config_name,
@@ -81,6 +89,13 @@ async def async_setup_entry(
             entities.append(sensor)
 
     if hub.read_meter2 == True:
+        device_info = {
+            "identifiers": {(DOMAIN, config_name)},
+            "name": f"{config_name.capitalize()} Meter 2",
+            "manufacturer": ATTR_MANUFACTURER,
+            #"model": self.model,
+            #"sw_version": self.firmware_version,
+            }
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 config_name,
@@ -95,6 +110,13 @@ async def async_setup_entry(
             entities.append(sensor)
 
     if hub.read_meter3 == True:
+        device_info = {
+            "identifiers": {(DOMAIN, config_name)},
+            "name": f"{config_name.capitalize()} Meter 3",
+            "manufacturer": ATTR_MANUFACTURER,
+            #"model": self.model,
+            #"sw_version": self.firmware_version,
+            }
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 config_name,
@@ -108,7 +130,7 @@ async def async_setup_entry(
             )
             entities.append(sensor)
 
-    async_add_entities(entities)
+    async_add_entities(entities, update_before_add=True)
 
 class SolarEdgeSensor(SensorEntity):
     """Representation of an SolarEdge Modbus sensor."""
@@ -179,7 +201,7 @@ class SolarEdgeSensor(SensorEntity):
     @property
     def name(self):
         """Return the name."""
-        return f"{self._platform_name} ({self._name})"
+        return f"{self._platform_name.capitalize()} ({self._name})"
 
     @property
     def unique_id(self) -> Optional[str]:
