@@ -11,7 +11,6 @@ from .const import (
 )
 from datetime import datetime
 from homeassistant.core import callback
-from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
     CONF_NAME,
     ENERGY_KILO_WATT_HOUR,
@@ -51,6 +50,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                  inverter_variable_prefix + sensor_info[1],
                  sensor_info[2],
                  sensor_info[3],
+                 sensor_info[4],
              )
              entities.append(sensor)
 
@@ -64,6 +64,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 "m1_" + meter_sensor_info[1],
                 meter_sensor_info[2],
                 meter_sensor_info[3],
+                meter_sensor_info[4],
             )
             entities.append(sensor)
 
@@ -77,6 +78,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 "m2_" + meter_sensor_info[1],
                 meter_sensor_info[2],
                 meter_sensor_info[3],
+                meter_sensor_info[4],
             )
             entities.append(sensor)
 
@@ -90,6 +92,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 "m3_" + meter_sensor_info[1],
                 meter_sensor_info[2],
                 meter_sensor_info[3],
+                meter_sensor_info[4],
             )
             entities.append(sensor)
 
@@ -100,7 +103,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class SolarEdgeSensor(SensorEntity):
     """Representation of an SolarEdge Modbus sensor."""
 
-    def __init__(self, platform_name, hub, device_info, name, key, unit, icon):
+    def __init__(self, platform_name, hub, device_info, name, key, unit, icon, category):
         """Initialize the sensor."""
         self._platform_name = platform_name
         self._hub = hub
@@ -109,6 +112,7 @@ class SolarEdgeSensor(SensorEntity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
+        self._attr_entity_category = category
 
         if self._unit_of_measurement in [
             POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
