@@ -5,6 +5,9 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 
 from homeassistant.core import callback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
 from homeassistant.const import (
     CONF_NAME,
     ENERGY_KILO_WATT_HOUR,
@@ -12,12 +15,14 @@ from homeassistant.const import (
     ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
     PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ,
 )
+
 from homeassistant.components.sensor import (
     STATE_CLASS_TOTAL_INCREASING,
     STATE_CLASS_MEASUREMENT,
     SensorDeviceClass,
     SensorEntity,
 )
+
 from .const import (
     DOMAIN,
     SENSOR_TYPES, METER_SENSOR_TYPES,
@@ -27,13 +32,19 @@ from .const import (
     ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
 )
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    hub_name = entry.data[CONF_NAME]
-    hub = hass.data[DOMAIN][hub_name]["hub"]
 
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+
+    hub = hass.data[DOMAIN][config_entry.entry_id]
+    config_name = entry.data[CONF_NAME]
+    
     device_info = {
-        "identifiers": {(DOMAIN, hub_name)},
-        "name": hub_name,
+        "identifiers": {(DOMAIN, config_name)},
+        "name": config_name,
         "manufacturer": ATTR_MANUFACTURER,
     }
 
@@ -44,7 +55,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
          inverter_title_prefix = "I" + str(inverter_index + 1) + " "
          for sensor_info in SENSOR_TYPES.values():
              sensor = SolarEdgeSensor(
-                 hub_name,
+                 config_name,
                  hub,
                  device_info,
                  inverter_title_prefix + sensor_info[0],
@@ -58,7 +69,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     if hub.read_meter1 == True:
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
-                hub_name,
+                config_name,
                 hub,
                 device_info,
                 "M1 " + meter_sensor_info[0],
@@ -72,7 +83,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     if hub.read_meter2 == True:
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
-                hub_name,
+                config_name,
                 hub,
                 device_info,
                 "M2 " + meter_sensor_info[0],
@@ -86,7 +97,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     if hub.read_meter3 == True:
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
-                hub_name,
+                config_name,
                 hub,
                 device_info,
                 "M3 " + meter_sensor_info[0],
@@ -98,8 +109,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
             entities.append(sensor)
 
     async_add_entities(entities)
-    return True
-
 
 class SolarEdgeSensor(SensorEntity):
     """Representation of an SolarEdge Modbus sensor."""

@@ -27,60 +27,41 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor"]
+PLATFORMS: list[str] = ["sensor"]
 
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up SolarEdge Modbus from a config entry."""
 
-async def async_setup(hass, config):
-    """Set up the Solaredge modbus component."""
-    hass.data[DOMAIN] = {}
-    return True
-
-
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up a solaredge mobus."""
-    host = entry.data[CONF_HOST]
-    name = entry.data[CONF_NAME]
-    port = entry.data[CONF_PORT]
-    scan_interval = entry.data[CONF_SCAN_INTERVAL]
-    read_meter1 = entry.data.get(CONF_READ_METER1, False)
-    read_meter2 = entry.data.get(CONF_READ_METER2, False)
-    read_meter3 = entry.data.get(CONF_READ_METER3, False)
-    number_of_inverters = entry.data.get(CONF_NUMBER_INVERTERS, 1)
-    device_id = entry.data.get(CONF_DEVICE_ID, 1)
-    
-    _LOGGER.debug("Setup %s.%s", DOMAIN, name)
-
-    hub = SolaredgeModbusMultiHub(
-        hass, name, host, port, scan_interval,
-        read_meter1, read_meter2, read_meter3,
-        number_of_inverters, device_id
+    hub = SolaredgeModbusHub(
+        hass,
+        entry.data[CONF_NAME],
+        entry.data[CONF_HOST],
+        entry.data[CONF_PORT],
+        entry.data[CONF_SCAN_INTERVAL],
+        entry.data.get(CONF_READ_METER1, False),
+        entry.data.get(CONF_READ_METER2, False),
+        entry.data.get(CONF_READ_METER3, False),
+        entry.data.get(CONF_NUMBER_INVERTERS, 1),
+        entry.data.get(CONF_DEVICE_ID, 1)
     )
     """Register the hub."""
-    hass.data[DOMAIN][name] = {"hub": hub}
+    hass.data[DOMAIN][entry.data[CONF_NAME]] = {"hub": hub}
 
-    for component in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
-        )
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = hub
+
+    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+
     return True
 
-
-async def async_unload_entry(hass, entry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload Solaredge mobus entry."""
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in PLATFORMS
-            ]
-        )
-    )
-    if not unload_ok:
-        return False
-
-    hass.data[DOMAIN].pop(entry.data["name"])
-    return True
-
+    
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+        
+    return unload_ok
 
 class SolaredgeModbusMultiHub:
     """Thread safe wrapper class for pymodbus."""
