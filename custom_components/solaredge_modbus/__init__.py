@@ -376,16 +376,12 @@ class SolaredgeModbusHub:
                 else:
                     self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
             
-            except AssertionError as error:
-                _LOGGER.error("Error reading inverter at id %s: %s", inverter_unit_id, error)
-                return False
-            
             except ValueError as error:
                 _LOGGER.error("Bad data from inverter at id %s: %s", inverter_unit_id, error)
                 return False
                 
-            except:
-                _LOGGER.error("Error reading inverter at id %s", inverter_unit_id)
+            except Exception as error:
+                _LOGGER.error("Error reading inverter at id %s: %s", inverter_unit_id, error)
                 return False
 
         return True
@@ -443,17 +439,13 @@ class SolaredgeModbusHub:
             sunspecdid = decoder.decode_16bit_uint()
             self.data[meter_prefix + "sunspecdid"] = sunspecdid
 
-        except AssertionError as error:
-            _LOGGER.error("Error reading meter on inverter %s: %s", self.device_id, error)
-            return False
-            
-        except:
-            _LOGGER.error("Error reading meter on inverter %s", self.device_id)
+        except Exception as error:
+            _LOGGER.error("Error reading meter info on inverter %s: %s", self.device_id, error)
             return False
 
         try:
             meter_data = self.read_holding_registers(
-                unit=device_id, address=start_address + 69, count=105
+                unit=self.device_id, address=start_address + 69, count=105
             )
             assert(not meter_data.isError())
 
@@ -747,12 +739,8 @@ class SolaredgeModbusHub:
             meterevents = decoder.decode_32bit_uint()
             self.data[meter_prefix + "meterevents"] = hex(meterevents)
         
-        except AssertionError as error:
+        except Exception as error:
             _LOGGER.error("Error reading meter on inverter %s: %s", self.device_id, error)
-            return False
-            
-        except:
-            _LOGGER.error("Error reading meter on inverter %s", self.device_id)
             return False
 
         return True
