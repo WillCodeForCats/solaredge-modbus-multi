@@ -198,6 +198,16 @@ class SolarEdgeSensor(SensorEntity):
                 return False
             else:
                 return True
+    
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._unit_of_measurement in [
+            POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
+            ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR
+        ]:
+            return False
+        else:
+            return True
 
     @property
     def extra_state_attributes(self):
