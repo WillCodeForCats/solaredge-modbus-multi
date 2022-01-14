@@ -671,88 +671,56 @@ class SolaredgeModbusHub:
             importedc = decoder.decode_32bit_uint()
             energywsf = decoder.decode_16bit_int()
 
-            if (
-                exported == SUNSPEC_NOT_ACCUM_ACC32 or 
-                exported > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if exported == SUNSPEC_NOT_ACCUM_ACC32 or exported > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exported"] = None
             else:                
                 exported = self.scale_factor(exported, energywsf)
                 exported_kw = self.watts_to_kilowatts(exported)
                 self.update_accum(f"{meter_prefix}exported", exported, exported_kw)
             
-            if (
-                exporteda == SUNSPEC_NOT_ACCUM_ACC32 or
-                exporteda > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if exporteda == SUNSPEC_NOT_ACCUM_ACC32 or exporteda > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exporteda"] = None
             else:           
                 exporteda = self.scale_factor(exporteda, energywsf)
                 exporteda_kw = self.watts_to_kilowatts(exporteda)
                 self.update_accum(f"{meter_prefix}exporteda", exporteda, exporteda_kw)
     
-            if (
-                exportedb == SUNSPEC_NOT_ACCUM_ACC32 or
-                exportedb > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if exportedb == SUNSPEC_NOT_ACCUM_ACC32 or exportedb > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exportedb"] = None
             else:                   
                 exportedb = self.scale_factor(exportedb, energywsf)
                 exportedb_kw = self.watts_to_kilowatts(exportedb)
                 self.update_accum(f"{meter_prefix}exportedb", exportedb, exportedb_kw)
 
-            if (
-                exportedc == SUNSPEC_NOT_ACCUM_ACC32 or
-                exportedc > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if exportedc == SUNSPEC_NOT_ACCUM_ACC32 or exportedc > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exportedc"] = None
             else:                   
                 exportedc = self.scale_factor(exportedc, energywsf)
                 exportedc_kw = self.watts_to_kilowatts(exportedc)
                 self.update_accum(f"{meter_prefix}exportedc", exportedc, exportedc_kw)
 
-            if (
-                imported == SUNSPEC_NOT_ACCUM_ACC32 or
-                imported > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if imported == SUNSPEC_NOT_ACCUM_ACC32 or imported > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "imported"] = None
             else:                            
                 imported = self.scale_factor(imported, energywsf)
                 imported_kw = self.watts_to_kilowatts(imported)
                 self.update_accum(f"{meter_prefix}imported", imported, imported_kw)
 
-            if (
-                importeda == SUNSPEC_NOT_ACCUM_ACC32 or
-                importeda > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if importeda == SUNSPEC_NOT_ACCUM_ACC32 or importeda > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "importeda"] = None
             else:                            
                 importeda = self.scale_factor(importeda, energywsf)
                 importeda_kw = self.watts_to_kilowatts(importeda)
                 self.update_accum(f"{meter_prefix}importeda", importeda, importeda_kw)
 
-            if (
-                importedb == SUNSPEC_NOT_ACCUM_ACC32 or
-                importedb > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if importedb == SUNSPEC_NOT_ACCUM_ACC32 or importedb > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "importedb"] = None
             else:                            
                 importedb = self.scale_factor(importedb, energywsf)
                 importedb_kw = self.watts_to_kilowatts(importedb)
                 self.update_accum(f"{meter_prefix}importedb", importedb, importedb_kw)
 
-            if (
-                importedc == SUNSPEC_NOT_ACCUM_ACC32 or
-                importedc > SUNSPEC_ACCUM_LIMIT or
-                energywsf == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if importedc == SUNSPEC_NOT_ACCUM_ACC32 or importedc > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "importedc"] = None
             else:                            
                 importedc = self.scale_factor(importedc, energywsf)
