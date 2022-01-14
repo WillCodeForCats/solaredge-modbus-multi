@@ -195,6 +195,21 @@ class SolaredgeModbusHub:
     def parse_modbus_string(self, s):
         return s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
 
+    def update_accum(self, key, raw, current) -> None:
+        try:
+            last = self.data[key]
+        except KeyError:
+            last = 0
+
+        if not raw > 0:
+            raise ValueError(f"{key} must be non-zero value.")
+        if current >= last:
+            # doesn't account for accumulator rollover, but it would probably take
+            # several decades to roll over to 0 so we'll worry about it later
+            self.data[key] = current    
+        else:
+            raise ValueError(f"{key} must be an increasing value.")
+
     def read_modbus_data(self):
         return (
             self.read_modbus_data_inverters()
@@ -311,23 +326,14 @@ class SolaredgeModbusHub:
                 self.data[inverter_prefix + "acpf"] = round(acpf, abs(acpfsf))
 
                 acenergy = decoder.decode_32bit_uint()
-                acenergysf = decoder.decode_16bit_uint()
-                acenergy = self.calculate_value(acenergy, acenergysf)
-                acenergy_kw = self.watts_to_kilowatts(acenergy)
+                if acenergy not SUNSPEC_NOT_IMPL_UINT32:
+                    acenergysf = decoder.decode_16bit_uint()
+                    acenergy = self.calculate_value(acenergy, acenergysf)
+                    acenergy_kw = self.watts_to_kilowatts(acenergy)
+                    self.update_accum(f"{inverter_prefix}acenergy", acenergy, acenergy_kw)
                 
-                try:
-                    acenergy_kw_last = self.data[inverter_prefix + "acenergy"]
-                except KeyError:
-                    acenergy_kw_last = 0
-
-                if not acenergy > 0:
-                    raise ValueError('Inverter AC_Energy_kWh must be non-zero value')
-                if acenergy_kw >= acenergy_kw_last:
-                    # doesn't account for accumulator rollover, but it would probably take
-                    # several decades to roll over to 0 so we'll worry about it later
-                    self.data[inverter_prefix + "acenergy"] = acenergy_kw    
                 else:
-                    raise ValueError('Inverter AC_Energy_kWh must be an increasing value.')      
+                    self.data[inverter_prefix + "acenergy"] = None
 
                 dccurrent = decoder.decode_16bit_uint()
                 dccurrentsf = decoder.decode_16bit_int()
@@ -595,23 +601,118 @@ class SolaredgeModbusHub:
             energywsf = decoder.decode_16bit_int()
 
             exported = self.calculate_value(exported, energywsf)
+            exported_kw = self.watts_to_kilowatts(exported)
             exporteda = self.calculate_value(exporteda, energywsf)
+            exporteda_kw = self.watts_to_kilowatts(exporteda)
             exportedb = self.calculate_value(exportedb, energywsf)
+            exportedb_kw = self.watts_to_kilowatts(exportedb)
             exportedc = self.calculate_value(exportedc, energywsf)
+            exportedc_kw = self.watts_to_kilowatts(exportedc)
             imported = self.calculate_value(imported, energywsf)
+            imported_kw = self.watts_to_kilowatts(imported)
             importeda = self.calculate_value(importeda, energywsf)
+            importeda_kw = self.watts_to_kilowatts(importeda)
             importedb = self.calculate_value(importedb, energywsf)
+            importedb_kw = self.watts_to_kilowatts(importedb)
             importedc = self.calculate_value(importedc, energywsf)
+            importedc_kw = self.watts_to_kilowatts(importedc)
 
-            self.data[meter_prefix + "exported"] = self.watts_to_kilowatts(exported)
-            self.data[meter_prefix + "exporteda"] = self.watts_to_kilowatts(exporteda)
-            self.data[meter_prefix + "exportedb"] = self.watts_to_kilowatts(exportedb)
-            self.data[meter_prefix + "exportedc"] = self.watts_to_kilowatts(exportedc)
-            self.data[meter_prefix + "imported"] = self.watts_to_kilowatts(imported)
-            self.data[meter_prefix + "importeda"] = self.watts_to_kilowatts(importeda)
-            self.data[meter_prefix + "importedb"] = self.watts_to_kilowatts(importedb)
-            self.data[meter_prefix + "importedc"] = self.watts_to_kilowatts(importedc)
+            try:
+                exported_kw_last = self.data[meter_prefix + "exported"]
+            except KeyError:
+                exported_kw_last = 0
+            
+            if not exported > 0:
+                raise ValueError('Meter EXPORTED_KWH must be non-zero value.')
+            if exported_kw >= exported_kw_last:
+                self.data[meter_prefix + "exported"] = exported_kw
+            else:
+                raise ValueError('Meter EXPORTED_KWH must be an increasing value.')
+            
+            try:
+                exporteda_kw_last = self.data[meter_prefix + "exporteda"]
+            except KeyError:
+                exporteda_kw_last = 0
 
+            if not exporteda > 0:
+                raise ValueError('Meter EXPORTED_KWH_A must be non-zero value.')
+            if exporteda_kw >= exporteda_kw_last:
+                self.data[meter_prefix + "exporteda"] = exporteda_kw
+            else:
+                raise ValueError('Meter EXPORTED_KWH_A must be an increasing value.')
+            
+            try:
+                exportedb_kw_last = self.data[meter_prefix + "exportedb"]
+            except KeyError:
+                exportedb_kw_last = 0
+
+            if not exportedb > 0:
+                raise ValueError('Meter EXPORTED_KWH_B must be non-zero value.')
+            if exportedb_kw >= exportedb_kw_last:
+                self.data[meter_prefix + "exportedb"] = exportedb_kw
+            else:
+                raise ValueError('Meter EXPORTED_KWH_B must be an increasing value.')
+            
+            try:
+                exportedc_kw_last = self.data[meter_prefix + "exportedc"]
+            except KeyError:
+                exportedc_kw_last = 0
+
+            if not exportedc > 0:
+                raise ValueError('Meter EXPORTED_KWH_C must be non-zero value.')
+            if exportedc_kw >= exportedc_kw_last:
+                self.data[meter_prefix + "exportedc"] = exportedc_kw
+            else:
+                raise ValueError('Meter EXPORTED_KWH_C must be an increasing value.')
+            
+            try:
+                imported_kw_last = self.data[meter_prefix + "imported"]
+            except KeyError:
+                imported_kw_last = 0
+
+            if not imported > 0:
+                raise ValueError('Meter IMPORTED_KWH must be non-zero value.')
+            if imported_kw >= imported_kw_last:
+                self.data[meter_prefix + "imported"] = imported_kw
+            else:
+                raise ValueError('Meter IMPORTED_KWH must be an increasing value.')
+            
+            try:
+                importeda_kw_last = self.data[meter_prefix + "importeda"]
+            except KeyError:
+                importeda_kw_last = 0
+
+            if not importeda > 0:
+                raise ValueError('Meter IMPORTED_KWH_A must be non-zero value.')
+            if importeda_kw >= importeda_kw_last:
+                self.data[meter_prefix + "importeda"] = importeda_kw
+            else:
+                raise ValueError('Meter IMPORTED_KWH_A must be an increasing value.')
+            
+            try:
+                importedb_kw_last = self.data[meter_prefix + "importedb"]
+            except KeyError:
+                importedb_kw_last = 0
+
+            if not importedb > 0:
+                raise ValueError('Meter IMPORTED_KWH_B must be non-zero value.')
+            if importedb_kw >= importedb_kw_last:
+                self.data[meter_prefix + "importedb"] = importedb_kw
+            else:
+                raise ValueError('Meter IMPORTED_KWH_B must be an increasing value.')
+            
+            try:
+                importedc_kw_last = self.data[meter_prefix + "importedc"]
+            except KeyError:
+                importedc_kw_last = 0
+
+            if not importedc > 0:
+                raise ValueError('Meter IMPORTED_KWH_C must be non-zero value.')
+            if importedc_kw >= importedc_kw_last:
+                self.data[meter_prefix + "importedc"] = importedc_kw
+            else:
+                raise ValueError('Meter IMPORTED_KWH_C must be an increasing value.')
+                        
             exportedva = decoder.decode_32bit_uint()
             exportedvaa = decoder.decode_32bit_uint()
             exportedvab = decoder.decode_32bit_uint()
@@ -738,7 +839,11 @@ class SolaredgeModbusHub:
         
             meterevents = decoder.decode_32bit_uint()
             self.data[meter_prefix + "meterevents"] = hex(meterevents)
-        
+
+        except ValueError as error:
+            _LOGGER.error("Bad data from meter on inverter %s: %s", self.device_id, error)
+            return False
+                    
         except Exception as error:
             _LOGGER.error("Error reading meter on inverter %s: %s", self.device_id, error)
             return False
