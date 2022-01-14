@@ -20,7 +20,8 @@ from .const import (
     CONF_NUMBER_INVERTERS, CONF_DEVICE_ID,
     CONF_READ_METER1, CONF_READ_METER2, CONF_READ_METER3, 
     SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
-    SUNSPEC_NOT_IMPL_UINT32, SUNSPEC_NOT_ACCUM_ACC32
+    SUNSPEC_NOT_IMPL_UINT32, SUNSPEC_NOT_ACCUM_ACC32,
+    SUNSPEC_ACCUM_LIMIT
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -200,13 +201,14 @@ class SolaredgeModbusHub:
             last = 0
 
         if not raw > 0:
-            raise ValueError(f"{key} must be non-zero value.")
+            raise ValueError(f"update_accum {key} must be non-zero value.")
+                
         if current >= last:
             # doesn't account for accumulator rollover, but it would probably take
             # several decades to roll over to 0 so we'll worry about it later
             self.data[key] = current    
         else:
-            raise ValueError(f"{key} must be an increasing value.")
+            raise ValueError(f"update_accum {key} must be an increasing value.")
 
     def read_modbus_data(self):
         return (
@@ -379,7 +381,7 @@ class SolaredgeModbusHub:
 
                 if (
                     acenergy == SUNSPEC_NOT_ACCUM_ACC32 or
-                    acenergy == SUNSPEC_NOT_IMPL_UINT32 or
+                    acenergy > SUNSPEC_ACCUM_LIMIT or
                     acenergysf == SUNSPEC_NOT_IMPL_UINT16
                 ):
                     self.data[inverter_prefix + "acenergy"] = None
@@ -669,56 +671,56 @@ class SolaredgeModbusHub:
             importedc = decoder.decode_32bit_uint()
             energywsf = decoder.decode_16bit_int()
 
-            if exported == SUNSPEC_NOT_ACCUM_ACC32:
+            if exported == SUNSPEC_NOT_ACCUM_ACC32 or exported > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exported"] = None
             else:                
                 exported = self.scale_factor(exported, energywsf)
                 exported_kw = self.watts_to_kilowatts(exported)
                 self.update_accum(f"{meter_prefix}exported", exported, exported_kw)
             
-            if exporteda == SUNSPEC_NOT_ACCUM_ACC32:
+            if exporteda == SUNSPEC_NOT_ACCUM_ACC32 or exporteda > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exporteda"] = None
             else:           
                 exporteda = self.scale_factor(exporteda, energywsf)
                 exporteda_kw = self.watts_to_kilowatts(exporteda)
                 self.update_accum(f"{meter_prefix}exporteda", exporteda, exporteda_kw)
     
-            if exportedb == SUNSPEC_NOT_ACCUM_ACC32:
+            if exportedb == SUNSPEC_NOT_ACCUM_ACC32 or exportedb > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exportedb"] = None
             else:                   
                 exportedb = self.scale_factor(exportedb, energywsf)
                 exportedb_kw = self.watts_to_kilowatts(exportedb)
                 self.update_accum(f"{meter_prefix}exportedb", exportedb, exportedb_kw)
 
-            if exportedc == SUNSPEC_NOT_ACCUM_ACC32:
+            if exportedc == SUNSPEC_NOT_ACCUM_ACC32 or exportedc > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "exportedc"] = None
             else:                   
                 exportedc = self.scale_factor(exportedc, energywsf)
                 exportedc_kw = self.watts_to_kilowatts(exportedc)
                 self.update_accum(f"{meter_prefix}exportedc", exportedc, exportedc_kw)
 
-            if imported == SUNSPEC_NOT_ACCUM_ACC32:
+            if imported == SUNSPEC_NOT_ACCUM_ACC32 or imported > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "imported"] = None
             else:                            
                 imported = self.scale_factor(imported, energywsf)
                 imported_kw = self.watts_to_kilowatts(imported)
                 self.update_accum(f"{meter_prefix}imported", imported, imported_kw)
 
-            if importeda == SUNSPEC_NOT_ACCUM_ACC32:
+            if importeda == SUNSPEC_NOT_ACCUM_ACC32 or importeda > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "importeda"] = None
             else:                            
                 importeda = self.scale_factor(importeda, energywsf)
                 importeda_kw = self.watts_to_kilowatts(importeda)
                 self.update_accum(f"{meter_prefix}importeda", importeda, importeda_kw)
 
-            if importedb == SUNSPEC_NOT_ACCUM_ACC32:
+            if importedb == SUNSPEC_NOT_ACCUM_ACC32 or importedb > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "importedb"] = None
             else:                            
                 importedb = self.scale_factor(importedb, energywsf)
                 importedb_kw = self.watts_to_kilowatts(importedb)
                 self.update_accum(f"{meter_prefix}importedb", importedb, importedb_kw)
 
-            if importedc == SUNSPEC_NOT_ACCUM_ACC32:
+            if importedc == SUNSPEC_NOT_ACCUM_ACC32 or importedc > SUNSPEC_ACCUM_LIMIT:
                 self.data[meter_prefix + "importedc"] = None
             else:                            
                 importedc = self.scale_factor(importedc, energywsf)
@@ -736,35 +738,41 @@ class SolaredgeModbusHub:
             energyvasf = decoder.decode_16bit_int()
 
             exportedva = self.scale_factor(exportedva, energyvasf)
-            exportedvaa = self.scale_factor(exportedvaa, energyvasf)
-            exportedvab = self.scale_factor(exportedvab, energyvasf)
-            exportedvac = self.scale_factor(exportedvac, energyvasf)
-            importedva = self.scale_factor(importedva, energyvasf)
-            importedvaa = self.scale_factor(importedvaa, energyvasf)
-            importedvab = self.scale_factor(importedvab, energyvasf)
-            importedvac = self.scale_factor(importedvac, energyvasf)
-
             self.data[meter_prefix + "exportedva"] = round(
                 exportedva, abs(energyvasf)
                 )
+
+            exportedvaa = self.scale_factor(exportedvaa, energyvasf)
             self.data[meter_prefix + "exportedvaa"] = round(
                 exportedvaa, abs(energyvasf)
                 )
+
+            exportedvab = self.scale_factor(exportedvab, energyvasf)
             self.data[meter_prefix + "exportedvab"] = round(
                 exportedvab, abs(energyvasf)
                 )  
+
+            exportedvac = self.scale_factor(exportedvac, energyvasf)
             self.data[meter_prefix + "exportedvac"] = round(
                 exportedvac, abs(energyvasf)
                 )
+
+            importedva = self.scale_factor(importedva, energyvasf)
             self.data[meter_prefix + "importedva"] = round(
                 importedva, abs(energyvasf)
                 )
+
+            importedvaa = self.scale_factor(importedvaa, energyvasf)
             self.data[meter_prefix + "importedvaa"] = round(
                 importedvaa, abs(energyvasf)
                 )
+
+            importedvab = self.scale_factor(importedvab, energyvasf)
             self.data[meter_prefix + "importedvab"] = round(
                 importedvab, abs(energyvasf)
                 )
+
+            importedvac = self.scale_factor(importedvac, energyvasf)
             self.data[meter_prefix + "importedvac"] = round(
                 importedvac, abs(energyvasf)
                 )
@@ -788,67 +796,81 @@ class SolaredgeModbusHub:
             energyvarsf = decoder.decode_16bit_int()
 
             importvarhq1 = self.scale_factor(importvarhq1, energyvarsf)
-            importvarhq1a = self.scale_factor(importvarhq1a, energyvarsf)
-            importvarhq1b = self.scale_factor(importvarhq1b, energyvarsf)
-            importvarhq1c = self.scale_factor(importvarhq1c, energyvarsf)
-            importvarhq2 = self.scale_factor(importvarhq2, energyvarsf)
-            importvarhq2a = self.scale_factor(importvarhq2a, energyvarsf)
-            importvarhq2b = self.scale_factor(importvarhq2b, energyvarsf)
-            importvarhq2c = self.scale_factor(importvarhq2c, energyvarsf)
-            importvarhq3 = self.scale_factor(importvarhq3, energyvarsf)
-            importvarhq3a = self.scale_factor(importvarhq3a, energyvarsf)
-            importvarhq3b = self.scale_factor(importvarhq3b, energyvarsf)
-            importvarhq3c = self.scale_factor(importvarhq3c, energyvarsf)
-            importvarhq4 = self.scale_factor(importvarhq4, energyvarsf)
-            importvarhq4a = self.scale_factor(importvarhq4a, energyvarsf)
-            importvarhq4b = self.scale_factor(importvarhq4b, energyvarsf)
-            importvarhq4c = self.scale_factor(importvarhq4c, energyvarsf)
-
             self.data[meter_prefix + "importvarhq1"] = round(
                 importvarhq1, abs(energyvarsf)
             )
+
+            importvarhq1a = self.scale_factor(importvarhq1a, energyvarsf)
             self.data[meter_prefix + "importvarhq1a"] = round(
                 importvarhq1a, abs(energyvarsf)
             )
+
+            importvarhq1b = self.scale_factor(importvarhq1b, energyvarsf)
             self.data[meter_prefix + "importvarhq1b"] = round(
                 importvarhq1b, abs(energyvarsf)
             )
+
+            importvarhq1c = self.scale_factor(importvarhq1c, energyvarsf)
             self.data[meter_prefix + "importvarhq1c"] = round(
                 importvarhq1c, abs(energyvarsf)
             )
+
+            importvarhq2 = self.scale_factor(importvarhq2, energyvarsf)
             self.data[meter_prefix + "importvarhq2"] = round(
                 importvarhq2, abs(energyvarsf)
             )
+
+            importvarhq2a = self.scale_factor(importvarhq2a, energyvarsf)
             self.data[meter_prefix + "importvarhq2a"] = round(
                 importvarhq2a, abs(energyvarsf)
             )
+
+            importvarhq2b = self.scale_factor(importvarhq2b, energyvarsf)
             self.data[meter_prefix + "importvarhq2b"] = round(
                 importvarhq2b, abs(energyvarsf)
             )
+
+            importvarhq2c = self.scale_factor(importvarhq2c, energyvarsf)
             self.data[meter_prefix + "importvarhq2c"] = round(
                 importvarhq2c, abs(energyvarsf)
             )
+
+            importvarhq3 = self.scale_factor(importvarhq3, energyvarsf)
             self.data[meter_prefix + "importvarhq3"] = round(
                 importvarhq3, abs(energyvarsf)
             )
+
+            importvarhq3a = self.scale_factor(importvarhq3a, energyvarsf)
             self.data[meter_prefix + "importvarhq3a"] = round(
                 importvarhq3a, abs(energyvarsf)
             )
+
+            importvarhq3b = self.scale_factor(importvarhq3b, energyvarsf)
             self.data[meter_prefix + "importvarhq3b"] = round(
                 importvarhq3b, abs(energyvarsf)
             )
+
+            importvarhq3c = self.scale_factor(importvarhq3c, energyvarsf)
             self.data[meter_prefix + "importvarhq3c"] = round(
                 importvarhq3c, abs(energyvarsf)
             )
+
+            importvarhq4 = self.scale_factor(importvarhq4, energyvarsf)
             self.data[meter_prefix + "importvarhq4"] = round(
                 importvarhq4, abs(energyvarsf)
             )
+
+            importvarhq4a = self.scale_factor(importvarhq4a, energyvarsf)
             self.data[meter_prefix + "importvarhq4a"] = round(
                 importvarhq4a, abs(energyvarsf)
             )
+
+            importvarhq4b = self.scale_factor(importvarhq4b, energyvarsf)
             self.data[meter_prefix + "importvarhq4b"] = round(
                 importvarhq4b, abs(energyvarsf)
             )
+
+            importvarhq4c = self.scale_factor(importvarhq4c, energyvarsf)
             self.data[meter_prefix + "importvarhq4c"] = round(
                 importvarhq4c, abs(energyvarsf)
             )
