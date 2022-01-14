@@ -28,7 +28,8 @@ from .const import (
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
     DEVICE_STATUS,
-    VENDOR_STATUS
+    VENDOR_STATUS,
+    SUNSPEC_NOT_ACCUM_ACC32
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -326,14 +327,13 @@ class SolaredgeModbusHub:
                 self.data[inverter_prefix + "acpf"] = round(acpf, abs(acpfsf))
 
                 acenergy = decoder.decode_32bit_uint()
-                if acenergy not SUNSPEC_NOT_IMPL_UINT32:
+                if acenergy SUNSPEC_NOT_ACCUM_ACC32:
+                    self.data[inverter_prefix + "acenergy"] = None
+                else:
                     acenergysf = decoder.decode_16bit_uint()
                     acenergy = self.calculate_value(acenergy, acenergysf)
                     acenergy_kw = self.watts_to_kilowatts(acenergy)
                     self.update_accum(f"{inverter_prefix}acenergy", acenergy, acenergy_kw)
-                
-                else:
-                    self.data[inverter_prefix + "acenergy"] = None
 
                 dccurrent = decoder.decode_16bit_uint()
                 dccurrentsf = decoder.decode_16bit_int()
