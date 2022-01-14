@@ -1015,7 +1015,7 @@ class SolaredgeModbusHub:
                     importvarhq3b, abs(energyvarsf)
                 )
 
-             if (
+            if (
                 importvarhq3c == SUNSPEC_NOT_ACCUM_ACC32 or 
                 importvarhq3c > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
