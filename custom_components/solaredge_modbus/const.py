@@ -156,6 +156,7 @@ DEVICE_STATUS_DESC = {
 
 # English descriptions of parameter names
 DEVICE_STATUS = {
+    SUNSPEC_NOT_IMPL_INT16: None,
     0: "Unknown",
     1: "Off",
     2: "Sleeping (Auto-Shutdown)",
@@ -168,6 +169,7 @@ DEVICE_STATUS = {
 }
 
 VENDOR_STATUS = {
+    SUNSPEC_NOT_IMPL_INT16: None,
     0: "No Error",
     17: "Temperature too high",
     25: "Isolation faults",

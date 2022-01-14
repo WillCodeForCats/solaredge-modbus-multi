@@ -16,20 +16,11 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
 from .const import (
     DOMAIN,
-    DEFAULT_NAME,
-    DEFAULT_SCAN_INTERVAL,
-    CONF_NUMBER_INVERTERS,
-    CONF_READ_METER1,
-    CONF_READ_METER2,
-    CONF_READ_METER3,
-    CONF_DEVICE_ID,
-    DEFAULT_NUMBER_INVERTERS,
-    DEFAULT_READ_METER1,
-    DEFAULT_READ_METER2,
-    DEFAULT_READ_METER3,
-    DEVICE_STATUS,
-    VENDOR_STATUS,
-    SUNSPEC_NOT_ACCUM_ACC32
+    DEVICE_STATUS, VENDOR_STATUS,
+    CONF_NUMBER_INVERTERS, CONF_DEVICE_ID,
+    CONF_READ_METER1, CONF_READ_METER2, CONF_READ_METER3, 
+    SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
+    SUNSPEC_NOT_IMPL_UINT32, SUNSPEC_NOT_ACCUM_ACC32
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -187,19 +178,25 @@ class SolaredgeModbusHub:
             kwargs = {"unit": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
-    def calculate_value(self, value, sf):
-        return value * 10 ** sf
+    def scale_factor(self, value: int, sf: int):
+        try:
+            return value * (10 ** sf)
+        except ZeroDivisionError:
+            return 0
         
     def watts_to_kilowatts(self, value):
         return round(value * 0.001, 3)
 
-    def parse_modbus_string(self, s):
+    def parse_modbus_string(self, s: str) -> str:
         return s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
 
-    def update_accum(self, key, raw, current) -> None:
+    def update_accum(self, key: str, raw: int, current: int) -> None:
         try:
             last = self.data[key]
         except KeyError:
+            last = 0
+            
+        if last is None:
             last = 0
 
         if not raw > 0:
@@ -264,15 +261,29 @@ class SolaredgeModbusHub:
                 accurrentc = decoder.decode_16bit_uint()
                 accurrentsf = decoder.decode_16bit_int()
 
-                accurrent = self.calculate_value(accurrent, accurrentsf)
-                accurrenta = self.calculate_value(accurrenta, accurrentsf)
-                accurrentb = self.calculate_value(accurrentb, accurrentsf)
-                accurrentc = self.calculate_value(accurrentc, accurrentsf)
+                if (accurrent == SUNSPEC_NOT_IMPL_UINT16 or accurrentsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "accurrent"] = None
+                else:
+                    accurrent = self.scale_factor(accurrent, accurrentsf)
+                    self.data[inverter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
 
-                self.data[inverter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
-                self.data[inverter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
-                self.data[inverter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
-                self.data[inverter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
+                if (accurrenta == SUNSPEC_NOT_IMPL_UINT16 or accurrentsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "accurrenta"] = None
+                else:
+                    accurrenta = self.scale_factor(accurrenta, accurrentsf)
+                    self.data[inverter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
+                    
+                if (accurrentb == SUNSPEC_NOT_IMPL_UINT16 or accurrentsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "accurrentb"] = None
+                else:
+                    accurrentb = self.scale_factor(accurrentb, accurrentsf)
+                    self.data[inverter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
+                   
+                if  (accurrentc == SUNSPEC_NOT_IMPL_UINT16 or accurrentsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "accurrentc"] = None
+                else:
+                    accurrentc = self.scale_factor(accurrentc, accurrentsf)
+                    self.data[inverter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
 
                 acvoltageab = decoder.decode_16bit_uint()
                 acvoltagebc = decoder.decode_16bit_uint()
@@ -282,76 +293,127 @@ class SolaredgeModbusHub:
                 acvoltagecn = decoder.decode_16bit_uint()
                 acvoltagesf = decoder.decode_16bit_int()
 
-                acvoltageab = self.calculate_value(acvoltageab, acvoltagesf)
-                acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
-                acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
-                acvoltagean = self.calculate_value(acvoltagean, acvoltagesf)
-                acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
-                acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
+                if (acvoltageab == SUNSPEC_NOT_IMPL_UINT16 or acvoltagesf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acvoltageab"] = None
+                else:
+                    acvoltageab = self.scale_factor(acvoltageab, acvoltagesf)
+                    self.data[inverter_prefix + "acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
 
-                self.data[inverter_prefix + "acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-                self.data[inverter_prefix + "acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-                self.data[inverter_prefix + "acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
-                self.data[inverter_prefix + "acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-                self.data[inverter_prefix + "acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-                self.data[inverter_prefix + "acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
+                if (acvoltagebc == SUNSPEC_NOT_IMPL_UINT16 or acvoltagesf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acvoltagebc"] = None
+                else:                
+                    acvoltagebc = self.scale_factor(acvoltagebc, acvoltagesf)
+                    self.data[inverter_prefix + "acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
+
+                if (acvoltageca == SUNSPEC_NOT_IMPL_UINT16 or acvoltagesf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acvoltageca"] = None
+                else:
+                    acvoltageca = self.scale_factor(acvoltageca, acvoltagesf)
+                    self.data[inverter_prefix + "acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
+
+                if (acvoltagean == SUNSPEC_NOT_IMPL_UINT16 or acvoltagesf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acvoltagean"] = None
+                else:
+                    acvoltagean = self.scale_factor(acvoltagean, acvoltagesf)
+                    self.data[inverter_prefix + "acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
+
+                if (acvoltagebn == SUNSPEC_NOT_IMPL_UINT16 or acvoltagesf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acvoltagebn"] = None
+                else:
+                    acvoltagebn = self.scale_factor(acvoltagebn, acvoltagesf)
+                    self.data[inverter_prefix + "acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
+
+                if (acvoltagecn == SUNSPEC_NOT_IMPL_UINT16 or acvoltagesf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acvoltagecn"] = None
+                else:
+                    acvoltagecn = self.scale_factor(acvoltagecn, acvoltagesf)
+                    self.data[inverter_prefix + "acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
                 
                 acpower = decoder.decode_16bit_int()
                 acpowersf = decoder.decode_16bit_int()
-                acpower = self.calculate_value(acpower, acpowersf)
 
-                self.data[inverter_prefix + "acpower"] = round(acpower, abs(acpowersf))
+                if (acpower == SUNSPEC_NOT_IMPL_INT16 or acpowersf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acpower"] = None
+                else:
+                    acpower = self.scale_factor(acpower, acpowersf)
+                    self.data[inverter_prefix + "acpower"] = round(acpower, abs(acpowersf))
 
                 acfreq = decoder.decode_16bit_uint()
                 acfreqsf = decoder.decode_16bit_int()
-                acfreq = self.calculate_value(acfreq, acfreqsf)
-
-                self.data[inverter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
+                
+                if (acfreq == SUNSPEC_NOT_IMPL_UINT16 or acfreqsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acfreq"] = None
+                else:
+                    acfreq = self.scale_factor(acfreq, acfreqsf)
+                    self.data[inverter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
 
                 acva = decoder.decode_16bit_int()
                 acvasf = decoder.decode_16bit_int()
-                acva = self.calculate_value(acva, acvasf)
-
-                self.data[inverter_prefix + "acva"] = round(acva, abs(acvasf))
+                
+                if (acva == SUNSPEC_NOT_IMPL_INT16 or acvasf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acva"] = None
+                else:                
+                    acva = self.scale_factor(acva, acvasf)
+                    self.data[inverter_prefix + "acva"] = round(acva, abs(acvasf))
 
                 acvar = decoder.decode_16bit_int()
                 acvarsf = decoder.decode_16bit_int()
-                acvar = self.calculate_value(acvar, acvarsf)
-
-                self.data[inverter_prefix + "acvar"] = round(acvar, abs(acvarsf))
+                
+                if (acvar == SUNSPEC_NOT_IMPL_INT16 or acvarsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acvar"] = None
+                else:
+                    acvar = self.scale_factor(acvar, acvarsf)
+                    self.data[inverter_prefix + "acvar"] = round(acvar, abs(acvarsf))
 
                 acpf = decoder.decode_16bit_int()
                 acpfsf = decoder.decode_16bit_int()
-                acpf = self.calculate_value(acpf, acpfsf)
-
-                self.data[inverter_prefix + "acpf"] = round(acpf, abs(acpfsf))
+                
+                if (acpf == SUNSPEC_NOT_IMPL_INT16 or acpfsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "acpf"] = None
+                else:
+                    acpf = self.scale_factor(acpf, acpfsf)
+                    self.data[inverter_prefix + "acpf"] = round(acpf, abs(acpfsf))
 
                 acenergy = decoder.decode_32bit_uint()
-                if acenergy SUNSPEC_NOT_ACCUM_ACC32:
+                acenergysf = decoder.decode_16bit_uint()
+
+                if (
+                    acenergy == SUNSPEC_NOT_ACCUM_ACC32 or
+                    acenergy == SUNSPEC_NOT_IMPL_UINT32 or
+                    acenergysf == SUNSPEC_NOT_IMPL_UINT16
+                ):
                     self.data[inverter_prefix + "acenergy"] = None
                 else:
-                    acenergysf = decoder.decode_16bit_uint()
-                    acenergy = self.calculate_value(acenergy, acenergysf)
+                    acenergy = self.scale_factor(acenergy, acenergysf)
                     acenergy_kw = self.watts_to_kilowatts(acenergy)
                     self.update_accum(f"{inverter_prefix}acenergy", acenergy, acenergy_kw)
 
                 dccurrent = decoder.decode_16bit_uint()
                 dccurrentsf = decoder.decode_16bit_int()
-                dccurrent = self.calculate_value(dccurrent, dccurrentsf)
 
-                self.data[inverter_prefix + "dccurrent"] = round(dccurrent, abs(dccurrentsf))
+                if (dccurrent == SUNSPEC_NOT_IMPL_UINT16 or dccurrentsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "dccurrent"] = None
+                else:
+                    dccurrent = self.scale_factor(dccurrent, dccurrentsf)
+                    self.data[inverter_prefix + "dccurrent"] = round(dccurrent, abs(dccurrentsf))
 
                 dcvoltage = decoder.decode_16bit_uint()
                 dcvoltagesf = decoder.decode_16bit_int()
-                dcvoltage = self.calculate_value(dcvoltage, dcvoltagesf)
-
-                self.data[inverter_prefix + "dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
+                
+                if (dcvoltage == SUNSPEC_NOT_IMPL_UINT16 or dcvoltagesf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "dcvoltage"] = None
+                else:                    
+                    dcvoltage = self.scale_factor(dcvoltage, dcvoltagesf)
+                    self.data[inverter_prefix + "dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
 
                 dcpower = decoder.decode_16bit_int()
                 dcpowersf = decoder.decode_16bit_int()
-                dcpower = self.calculate_value(dcpower, dcpowersf)
-
-                self.data[inverter_prefix + "dcpower"] = round(dcpower, abs(dcpowersf))
+                
+                if (dcpower == SUNSPEC_NOT_IMPL_INT16 or dcpowersf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "dcpower"] = None
+                else:
+                    dcpower = self.scale_factor(dcpower, dcpowersf)
+                    self.data[inverter_prefix + "dcpower"] = round(dcpower, abs(dcpowersf))
 
                 # skip register
                 decoder.skip_bytes(2)
@@ -362,12 +424,19 @@ class SolaredgeModbusHub:
                 decoder.skip_bytes(4)
 
                 tempsf = decoder.decode_16bit_int()
-                tempsink = self.calculate_value(tempsink, tempsf)
-
-                self.data[inverter_prefix + "tempsink"] = round(tempsink, abs(tempsf))
+                
+                if (tempsink == SUNSPEC_NOT_IMPL_INT16 or tempsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "tempsink"] = None
+                else:
+                    tempsink = self.scale_factor(tempsink, tempsf)
+                    self.data[inverter_prefix + "tempsink"] = round(tempsink, abs(tempsf))
 
                 status = decoder.decode_16bit_int()
-                self.data[inverter_prefix + "status"] = status
+                
+                if (status == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "status"] = None
+                else:
+                    self.data[inverter_prefix + "status"] = status
             
                 if status in DEVICE_STATUS:
                     self.data[inverter_prefix + "status_text"] = DEVICE_STATUS[status]
@@ -375,17 +444,17 @@ class SolaredgeModbusHub:
                     self.data[inverter_prefix + "status_text"] = "Unknown"
             
                 statusvendor = decoder.decode_16bit_int()
-                self.data[inverter_prefix + "statusvendor"] = statusvendor
+                
+                if (statusvendor == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "statusvendor"] = None
+                else:
+                    self.data[inverter_prefix + "statusvendor"] = statusvendor
             
                 if statusvendor in VENDOR_STATUS:
                     self.data[inverter_prefix + "statusvendor_text"] = VENDOR_STATUS[statusvendor]
                 else:
                     self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
             
-            except ValueError as error:
-                _LOGGER.error("Bad data from inverter at id %s: %s", inverter_unit_id, error)
-                return False
-                
             except Exception as error:
                 _LOGGER.error("Error reading inverter at id %s: %s", inverter_unit_id, error)
                 return False
@@ -465,10 +534,10 @@ class SolaredgeModbusHub:
             accurrentc = decoder.decode_16bit_int()
             accurrentsf = decoder.decode_16bit_int()
 
-            accurrent = self.calculate_value(accurrent, accurrentsf)
-            accurrenta = self.calculate_value(accurrenta, accurrentsf)
-            accurrentb = self.calculate_value(accurrentb, accurrentsf)
-            accurrentc = self.calculate_value(accurrentc, accurrentsf)
+            accurrent = self.scale_factor(accurrent, accurrentsf)
+            accurrenta = self.scale_factor(accurrenta, accurrentsf)
+            accurrentb = self.scale_factor(accurrentb, accurrentsf)
+            accurrentc = self.scale_factor(accurrentc, accurrentsf)
 
             self.data[meter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
             self.data[meter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
@@ -485,14 +554,14 @@ class SolaredgeModbusHub:
             acvoltageca = decoder.decode_16bit_int()
             acvoltagesf = decoder.decode_16bit_int()
 
-            acvoltageln = self.calculate_value(acvoltageln, acvoltagesf)
-            acvoltagean = self.calculate_value(acvoltagean, acvoltagesf)
-            acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
-            acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
-            acvoltagell = self.calculate_value(acvoltagell, acvoltagesf)
-            acvoltageab = self.calculate_value(acvoltageab, acvoltagesf)
-            acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
-            acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
+            acvoltageln = self.scale_factor(acvoltageln, acvoltagesf)
+            acvoltagean = self.scale_factor(acvoltagean, acvoltagesf)
+            acvoltagebn = self.scale_factor(acvoltagebn, acvoltagesf)
+            acvoltagecn = self.scale_factor(acvoltagecn, acvoltagesf)
+            acvoltagell = self.scale_factor(acvoltagell, acvoltagesf)
+            acvoltageab = self.scale_factor(acvoltageab, acvoltagesf)
+            acvoltagebc = self.scale_factor(acvoltagebc, acvoltagesf)
+            acvoltageca = self.scale_factor(acvoltageca, acvoltagesf)
 
             self.data[meter_prefix + "acvoltageln"] = round(
                 acvoltageln, abs(acvoltagesf)
@@ -522,7 +591,7 @@ class SolaredgeModbusHub:
             acfreq = decoder.decode_16bit_int()
             acfreqsf = decoder.decode_16bit_int()
 
-            acfreq = self.calculate_value(acfreq, acfreqsf)
+            acfreq = self.scale_factor(acfreq, acfreqsf)
 
             self.data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
 
@@ -532,10 +601,10 @@ class SolaredgeModbusHub:
             acpowerc = decoder.decode_16bit_int()
             acpowersf = decoder.decode_16bit_int()
 
-            acpower = self.calculate_value(acpower, acpowersf)
-            acpowera = self.calculate_value(acpowera, acpowersf)
-            acpowerb = self.calculate_value(acpowerb, acpowersf)
-            acpowerc = self.calculate_value(acpowerc, acpowersf)
+            acpower = self.scale_factor(acpower, acpowersf)
+            acpowera = self.scale_factor(acpowera, acpowersf)
+            acpowerb = self.scale_factor(acpowerb, acpowersf)
+            acpowerc = self.scale_factor(acpowerc, acpowersf)
 
             self.data[meter_prefix + "acpower"] = round(acpower, abs(acpowersf))
             self.data[meter_prefix + "acpowera"] = round(acpowera, abs(acpowersf))
@@ -548,10 +617,10 @@ class SolaredgeModbusHub:
             acvac = decoder.decode_16bit_int()
             acvasf = decoder.decode_16bit_int()
 
-            acva = self.calculate_value(acva, acvasf)
-            acvaa = self.calculate_value(acvaa, acvasf)
-            acvab = self.calculate_value(acvab, acvasf)
-            acvac = self.calculate_value(acvac, acvasf)
+            acva = self.scale_factor(acva, acvasf)
+            acvaa = self.scale_factor(acvaa, acvasf)
+            acvab = self.scale_factor(acvab, acvasf)
+            acvac = self.scale_factor(acvac, acvasf)
 
             self.data[meter_prefix + "acva"] = round(acva, abs(acvasf))
             self.data[meter_prefix + "acvaa"] = round(acvaa, abs(acvasf))
@@ -564,10 +633,10 @@ class SolaredgeModbusHub:
             acvarc = decoder.decode_16bit_int()
             acvarsf = decoder.decode_16bit_int()
 
-            acvar = self.calculate_value(acvar, acvarsf)
-            acvara = self.calculate_value(acvara, acvarsf)
-            acvarb = self.calculate_value(acvarb, acvarsf)
-            acvarc = self.calculate_value(acvarc, acvarsf)
+            acvar = self.scale_factor(acvar, acvarsf)
+            acvara = self.scale_factor(acvara, acvarsf)
+            acvarb = self.scale_factor(acvarb, acvarsf)
+            acvarc = self.scale_factor(acvarc, acvarsf)
 
             self.data[meter_prefix + "acvar"] = round(acvar, abs(acvarsf))
             self.data[meter_prefix + "acvara"] = round(acvara, abs(acvarsf))
@@ -580,10 +649,10 @@ class SolaredgeModbusHub:
             acpfc = decoder.decode_16bit_int()
             acpfsf = decoder.decode_16bit_int()
 
-            acpf = self.calculate_value(acpf, acpfsf)
-            acpfa = self.calculate_value(acpfa, acpfsf)
-            acpfb = self.calculate_value(acpfb, acpfsf)
-            acpfc = self.calculate_value(acpfc, acpfsf)
+            acpf = self.scale_factor(acpf, acpfsf)
+            acpfa = self.scale_factor(acpfa, acpfsf)
+            acpfb = self.scale_factor(acpfb, acpfsf)
+            acpfc = self.scale_factor(acpfc, acpfsf)
 
             self.data[meter_prefix + "acpf"] = round(acpf, abs(acpfsf))
             self.data[meter_prefix + "acpfa"] = round(acpfa, abs(acpfsf))
@@ -600,118 +669,61 @@ class SolaredgeModbusHub:
             importedc = decoder.decode_32bit_uint()
             energywsf = decoder.decode_16bit_int()
 
-            exported = self.calculate_value(exported, energywsf)
-            exported_kw = self.watts_to_kilowatts(exported)
-            exporteda = self.calculate_value(exporteda, energywsf)
-            exporteda_kw = self.watts_to_kilowatts(exporteda)
-            exportedb = self.calculate_value(exportedb, energywsf)
-            exportedb_kw = self.watts_to_kilowatts(exportedb)
-            exportedc = self.calculate_value(exportedc, energywsf)
-            exportedc_kw = self.watts_to_kilowatts(exportedc)
-            imported = self.calculate_value(imported, energywsf)
-            imported_kw = self.watts_to_kilowatts(imported)
-            importeda = self.calculate_value(importeda, energywsf)
-            importeda_kw = self.watts_to_kilowatts(importeda)
-            importedb = self.calculate_value(importedb, energywsf)
-            importedb_kw = self.watts_to_kilowatts(importedb)
-            importedc = self.calculate_value(importedc, energywsf)
-            importedc_kw = self.watts_to_kilowatts(importedc)
-
-            try:
-                exported_kw_last = self.data[meter_prefix + "exported"]
-            except KeyError:
-                exported_kw_last = 0
+            if exported == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "exported"] = None
+            else:                
+                exported = self.scale_factor(exported, energywsf)
+                exported_kw = self.watts_to_kilowatts(exported)
+                self.update_accum(f"{meter_prefix}exported", exported, exported_kw)
             
-            if not exported > 0:
-                raise ValueError('Meter EXPORTED_KWH must be non-zero value.')
-            if exported_kw >= exported_kw_last:
-                self.data[meter_prefix + "exported"] = exported_kw
-            else:
-                raise ValueError('Meter EXPORTED_KWH must be an increasing value.')
-            
-            try:
-                exporteda_kw_last = self.data[meter_prefix + "exporteda"]
-            except KeyError:
-                exporteda_kw_last = 0
+            if exporteda == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "exporteda"] = None
+            else:           
+                exporteda = self.scale_factor(exporteda, energywsf)
+                exporteda_kw = self.watts_to_kilowatts(exporteda)
+                self.update_accum(f"{meter_prefix}exporteda", exporteda, exporteda_kw)
+    
+            if exportedb == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "exportedb"] = None
+            else:                   
+                exportedb = self.scale_factor(exportedb, energywsf)
+                exportedb_kw = self.watts_to_kilowatts(exportedb)
+                self.update_accum(f"{meter_prefix}exportedb", exportedb, exportedb_kw)
 
-            if not exporteda > 0:
-                raise ValueError('Meter EXPORTED_KWH_A must be non-zero value.')
-            if exporteda_kw >= exporteda_kw_last:
-                self.data[meter_prefix + "exporteda"] = exporteda_kw
-            else:
-                raise ValueError('Meter EXPORTED_KWH_A must be an increasing value.')
-            
-            try:
-                exportedb_kw_last = self.data[meter_prefix + "exportedb"]
-            except KeyError:
-                exportedb_kw_last = 0
+            if exportedc == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "exportedc"] = None
+            else:                   
+                exportedc = self.scale_factor(exportedc, energywsf)
+                exportedc_kw = self.watts_to_kilowatts(exportedc)
+                self.update_accum(f"{meter_prefix}exportedc", exportedc, exportedc_kw)
 
-            if not exportedb > 0:
-                raise ValueError('Meter EXPORTED_KWH_B must be non-zero value.')
-            if exportedb_kw >= exportedb_kw_last:
-                self.data[meter_prefix + "exportedb"] = exportedb_kw
-            else:
-                raise ValueError('Meter EXPORTED_KWH_B must be an increasing value.')
-            
-            try:
-                exportedc_kw_last = self.data[meter_prefix + "exportedc"]
-            except KeyError:
-                exportedc_kw_last = 0
+            if imported == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "imported"] = None
+            else:                            
+                imported = self.scale_factor(imported, energywsf)
+                imported_kw = self.watts_to_kilowatts(imported)
+                self.update_accum(f"{meter_prefix}imported", imported, imported_kw)
 
-            if not exportedc > 0:
-                raise ValueError('Meter EXPORTED_KWH_C must be non-zero value.')
-            if exportedc_kw >= exportedc_kw_last:
-                self.data[meter_prefix + "exportedc"] = exportedc_kw
-            else:
-                raise ValueError('Meter EXPORTED_KWH_C must be an increasing value.')
-            
-            try:
-                imported_kw_last = self.data[meter_prefix + "imported"]
-            except KeyError:
-                imported_kw_last = 0
+            if importeda == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "importeda"] = None
+            else:                            
+                importeda = self.scale_factor(importeda, energywsf)
+                importeda_kw = self.watts_to_kilowatts(importeda)
+                self.update_accum(f"{meter_prefix}importeda", importeda, importeda_kw)
 
-            if not imported > 0:
-                raise ValueError('Meter IMPORTED_KWH must be non-zero value.')
-            if imported_kw >= imported_kw_last:
-                self.data[meter_prefix + "imported"] = imported_kw
-            else:
-                raise ValueError('Meter IMPORTED_KWH must be an increasing value.')
-            
-            try:
-                importeda_kw_last = self.data[meter_prefix + "importeda"]
-            except KeyError:
-                importeda_kw_last = 0
+            if importedb == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "importedb"] = None
+            else:                            
+                importedb = self.scale_factor(importedb, energywsf)
+                importedb_kw = self.watts_to_kilowatts(importedb)
+                self.update_accum(f"{meter_prefix}importedb", importedb, importedb_kw)
 
-            if not importeda > 0:
-                raise ValueError('Meter IMPORTED_KWH_A must be non-zero value.')
-            if importeda_kw >= importeda_kw_last:
-                self.data[meter_prefix + "importeda"] = importeda_kw
-            else:
-                raise ValueError('Meter IMPORTED_KWH_A must be an increasing value.')
-            
-            try:
-                importedb_kw_last = self.data[meter_prefix + "importedb"]
-            except KeyError:
-                importedb_kw_last = 0
-
-            if not importedb > 0:
-                raise ValueError('Meter IMPORTED_KWH_B must be non-zero value.')
-            if importedb_kw >= importedb_kw_last:
-                self.data[meter_prefix + "importedb"] = importedb_kw
-            else:
-                raise ValueError('Meter IMPORTED_KWH_B must be an increasing value.')
-            
-            try:
-                importedc_kw_last = self.data[meter_prefix + "importedc"]
-            except KeyError:
-                importedc_kw_last = 0
-
-            if not importedc > 0:
-                raise ValueError('Meter IMPORTED_KWH_C must be non-zero value.')
-            if importedc_kw >= importedc_kw_last:
-                self.data[meter_prefix + "importedc"] = importedc_kw
-            else:
-                raise ValueError('Meter IMPORTED_KWH_C must be an increasing value.')
+            if importedc == SUNSPEC_NOT_ACCUM_ACC32:
+                self.data[meter_prefix + "importedc"] = None
+            else:                            
+                importedc = self.scale_factor(importedc, energywsf)
+                importedc_kw = self.watts_to_kilowatts(importedc)
+                self.update_accum(f"{meter_prefix}importedc", importedc, importedc_kw)
                         
             exportedva = decoder.decode_32bit_uint()
             exportedvaa = decoder.decode_32bit_uint()
@@ -723,35 +735,39 @@ class SolaredgeModbusHub:
             importedvac = decoder.decode_32bit_uint()
             energyvasf = decoder.decode_16bit_int()
 
-            exportedva = self.calculate_value(exportedva, energyvasf)
-            exportedvaa = self.calculate_value(exportedvaa, energyvasf)
-            exportedvab = self.calculate_value(exportedvab, energyvasf)
-            exportedvac = self.calculate_value(exportedvac, energyvasf)
-            importedva = self.calculate_value(importedva, energyvasf)
-            importedvaa = self.calculate_value(importedvaa, energyvasf)
-            importedvab = self.calculate_value(importedvab, energyvasf)
-            importedvac = self.calculate_value(importedvac, energyvasf)
+            exportedva = self.scale_factor(exportedva, energyvasf)
+            exportedvaa = self.scale_factor(exportedvaa, energyvasf)
+            exportedvab = self.scale_factor(exportedvab, energyvasf)
+            exportedvac = self.scale_factor(exportedvac, energyvasf)
+            importedva = self.scale_factor(importedva, energyvasf)
+            importedvaa = self.scale_factor(importedvaa, energyvasf)
+            importedvab = self.scale_factor(importedvab, energyvasf)
+            importedvac = self.scale_factor(importedvac, energyvasf)
 
-            self.data[meter_prefix + "exportedva"] = round(exportedva, abs(energyvasf))
+            self.data[meter_prefix + "exportedva"] = round(
+                exportedva, abs(energyvasf)
+                )
             self.data[meter_prefix + "exportedvaa"] = round(
                 exportedvaa, abs(energyvasf)
-            )
+                )
             self.data[meter_prefix + "exportedvab"] = round(
                 exportedvab, abs(energyvasf)
-            )
+                )  
             self.data[meter_prefix + "exportedvac"] = round(
                 exportedvac, abs(energyvasf)
-            )
-            self.data[meter_prefix + "importedva"] = round(importedva, abs(energyvasf))
+                )
+            self.data[meter_prefix + "importedva"] = round(
+                importedva, abs(energyvasf)
+                )
             self.data[meter_prefix + "importedvaa"] = round(
                 importedvaa, abs(energyvasf)
-            )
+                )
             self.data[meter_prefix + "importedvab"] = round(
                 importedvab, abs(energyvasf)
-            )
+                )
             self.data[meter_prefix + "importedvac"] = round(
                 importedvac, abs(energyvasf)
-            )
+                )
 
             importvarhq1 = decoder.decode_32bit_uint()
             importvarhq1a = decoder.decode_32bit_uint()
@@ -771,22 +787,22 @@ class SolaredgeModbusHub:
             importvarhq4c = decoder.decode_32bit_uint()
             energyvarsf = decoder.decode_16bit_int()
 
-            importvarhq1 = self.calculate_value(importvarhq1, energyvarsf)
-            importvarhq1a = self.calculate_value(importvarhq1a, energyvarsf)
-            importvarhq1b = self.calculate_value(importvarhq1b, energyvarsf)
-            importvarhq1c = self.calculate_value(importvarhq1c, energyvarsf)
-            importvarhq2 = self.calculate_value(importvarhq2, energyvarsf)
-            importvarhq2a = self.calculate_value(importvarhq2a, energyvarsf)
-            importvarhq2b = self.calculate_value(importvarhq2b, energyvarsf)
-            importvarhq2c = self.calculate_value(importvarhq2c, energyvarsf)
-            importvarhq3 = self.calculate_value(importvarhq3, energyvarsf)
-            importvarhq3a = self.calculate_value(importvarhq3a, energyvarsf)
-            importvarhq3b = self.calculate_value(importvarhq3b, energyvarsf)
-            importvarhq3c = self.calculate_value(importvarhq3c, energyvarsf)
-            importvarhq4 = self.calculate_value(importvarhq4, energyvarsf)
-            importvarhq4a = self.calculate_value(importvarhq4a, energyvarsf)
-            importvarhq4b = self.calculate_value(importvarhq4b, energyvarsf)
-            importvarhq4c = self.calculate_value(importvarhq4c, energyvarsf)
+            importvarhq1 = self.scale_factor(importvarhq1, energyvarsf)
+            importvarhq1a = self.scale_factor(importvarhq1a, energyvarsf)
+            importvarhq1b = self.scale_factor(importvarhq1b, energyvarsf)
+            importvarhq1c = self.scale_factor(importvarhq1c, energyvarsf)
+            importvarhq2 = self.scale_factor(importvarhq2, energyvarsf)
+            importvarhq2a = self.scale_factor(importvarhq2a, energyvarsf)
+            importvarhq2b = self.scale_factor(importvarhq2b, energyvarsf)
+            importvarhq2c = self.scale_factor(importvarhq2c, energyvarsf)
+            importvarhq3 = self.scale_factor(importvarhq3, energyvarsf)
+            importvarhq3a = self.scale_factor(importvarhq3a, energyvarsf)
+            importvarhq3b = self.scale_factor(importvarhq3b, energyvarsf)
+            importvarhq3c = self.scale_factor(importvarhq3c, energyvarsf)
+            importvarhq4 = self.scale_factor(importvarhq4, energyvarsf)
+            importvarhq4a = self.scale_factor(importvarhq4a, energyvarsf)
+            importvarhq4b = self.scale_factor(importvarhq4b, energyvarsf)
+            importvarhq4c = self.scale_factor(importvarhq4c, energyvarsf)
 
             self.data[meter_prefix + "importvarhq1"] = round(
                 importvarhq1, abs(energyvarsf)
@@ -840,10 +856,6 @@ class SolaredgeModbusHub:
             meterevents = decoder.decode_32bit_uint()
             self.data[meter_prefix + "meterevents"] = hex(meterevents)
 
-        except ValueError as error:
-            _LOGGER.error("Bad data from meter on inverter %s: %s", self.device_id, error)
-            return False
-                    
         except Exception as error:
             _LOGGER.error("Error reading meter on inverter %s: %s", self.device_id, error)
             return False

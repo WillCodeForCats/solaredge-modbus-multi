@@ -192,6 +192,14 @@ class SolarEdgeSensor(SensorEntity):
             return self._hub.data[self._key]
 
     @property
+    def available(self) -> bool:
+        if self._key in self._hub.data:
+            if self._hub.data[self._key] is None:
+                return False
+            else:
+                return True
+
+    @property
     def extra_state_attributes(self):
         if re.match('(i|m)[0-9]_sunspecdid', self._key):
             if self.state in SUNSPEC_DID:
