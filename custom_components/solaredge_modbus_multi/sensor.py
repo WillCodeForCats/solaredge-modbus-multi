@@ -130,7 +130,7 @@ async def async_setup_entry(
             )
             entities.append(sensor)
 
-    async_add_entities(entities, update_before_add=True)
+    async_add_entities(entities)
 
 class SolarEdgeSensor(SensorEntity):
     """Representation of an SolarEdge Modbus sensor."""
