@@ -4,6 +4,7 @@ import re
 from typing import Optional, Dict, Any
 from datetime import datetime
 
+from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -43,22 +44,14 @@ async def async_setup_entry(
     config_name = entry.data[CONF_NAME]  
 
     entities = []
-
+    
     for inverter_index in range(hub.number_of_inverters):
         inverter_variable_prefix = "i" + str(inverter_index + 1) + "_"
         inverter_title_prefix = "I" + str(inverter_index + 1) + " "
-        device_info = {
-            "identifiers": {(DOMAIN, config_name)},
-            "name": f"{config_name.capitalize()} Inverter {str(inverter_index + 1)}",
-            "manufacturer": ATTR_MANUFACTURER,
-            #"model": self.model,
-            #"sw_version": self.firmware_version,
-            }
         for sensor_info in SENSOR_TYPES.values():
              sensor = SolarEdgeSensor(
                  config_name,
                  hub,
-                 device_info,
                  inverter_title_prefix + sensor_info[0],
                  inverter_variable_prefix + sensor_info[1],
                  sensor_info[2],
@@ -68,18 +61,10 @@ async def async_setup_entry(
              entities.append(sensor)
 
     if hub.read_meter1 == True:
-        device_info = {
-            "identifiers": {(DOMAIN, config_name)},
-            "name": f"{config_name.capitalize()} Meter 1",
-            "manufacturer": ATTR_MANUFACTURER,
-            #"model": self.model,
-            #"sw_version": self.firmware_version,
-            }
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 config_name,
                 hub,
-                device_info,
                 "M1 " + meter_sensor_info[0],
                 "m1_" + meter_sensor_info[1],
                 meter_sensor_info[2],
@@ -89,18 +74,10 @@ async def async_setup_entry(
             entities.append(sensor)
 
     if hub.read_meter2 == True:
-        device_info = {
-            "identifiers": {(DOMAIN, config_name)},
-            "name": f"{config_name.capitalize()} Meter 2",
-            "manufacturer": ATTR_MANUFACTURER,
-            #"model": self.model,
-            #"sw_version": self.firmware_version,
-            }
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 config_name,
                 hub,
-                device_info,
                 "M2 " + meter_sensor_info[0],
                 "m2_" + meter_sensor_info[1],
                 meter_sensor_info[2],
@@ -110,18 +87,10 @@ async def async_setup_entry(
             entities.append(sensor)
 
     if hub.read_meter3 == True:
-        device_info = {
-            "identifiers": {(DOMAIN, config_name)},
-            "name": f"{config_name.capitalize()} Meter 3",
-            "manufacturer": ATTR_MANUFACTURER,
-            #"model": self.model,
-            #"sw_version": self.firmware_version,
-            }
         for meter_sensor_info in METER_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 config_name,
                 hub,
-                device_info,
                 "M3 " + meter_sensor_info[0],
                 "m3_" + meter_sensor_info[1],
                 meter_sensor_info[2],
@@ -132,19 +101,71 @@ async def async_setup_entry(
 
     async_add_entities(entities)
 
-class SolarEdgeSensor(SensorEntity):
-    """Representation of an SolarEdge Modbus sensor."""
 
-    def __init__(self, platform_name, hub, device_info, name, key, unit, icon, category):
+
+class SolarEdgeSensorBase(SensorEntity):
+
+    should_poll = False
+
+    def __init__(self, platform_name, hub, name, key):
         """Initialize the sensor."""
         self._platform_name = platform_name
         self._hub = hub
         self._key = key
         self._name = name
-        self._unit_of_measurement = unit
-        self._icon = icon
-        self._device_info = device_info
-        self._attr_entity_category = category
+
+    @property
+    def device_info(self):
+        return self.device_info
+
+    @property
+    def config_entry_id(self):
+        return self._config_entry.entry_id
+
+    @property
+    def config_entry_name(self):
+        return self._config_entry.data['name']
+
+    async def async_added_to_hass(self):
+        self._hub.async_add_solaredge_sensor(self._hub._modbus_data_updated)
+
+    async def async_will_remove_from_hass(self) -> None:
+        self._hub.async_remove_solaredge_sensor(self._hub._modbus_data_updated)
+
+
+class SolarEdgeVoltageSensor(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.VOLTAGE
+    state_class = STATE_CLASS_MEASUREMENT
+    native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
+    #entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, platform_name, hub, name, key):
+        super().__init__(platform_name, hub, name, key)
+        """Initialize the sensor."""
+
+    @property
+    def unique_id(self) -> str:
+        return f""
+
+    @property
+    def name(self) -> str:
+        return f""
+
+    @property
+    def available(self) -> bool:
+        return False
+
+    @property
+    def native_value(self):
+        return None
+
+
+
+class SolarEdgeSensor(SensorEntity):
+    """Representation of an SolarEdge Modbus sensor."""
+
+    def __init__(self, platform_name, hub, name, key, unit, icon, category):
+        """Initialize the sensor."""
 
         if self._unit_of_measurement in [
             POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
@@ -181,13 +202,6 @@ class SolarEdgeSensor(SensorEntity):
         elif self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
             self._attr_device_class = SensorDeviceClass.ENERGY
-
-    async def async_added_to_hass(self):
-        """Register callbacks."""
-        self._hub.async_add_solaredge_sensor(self._modbus_data_updated)
-
-    async def async_will_remove_from_hass(self) -> None:
-        self._hub.async_remove_solaredge_sensor(self._modbus_data_updated)
 
     @callback
     def _modbus_data_updated(self):

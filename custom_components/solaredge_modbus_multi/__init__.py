@@ -5,7 +5,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 
-from .hub import SolaredgeModbusHub
+from .hub import SolarEdgeModbusHub
 
 from .const import (
     DOMAIN,
@@ -17,7 +17,7 @@ PLATFORMS: list[str] = ["sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus from a config entry."""
-    hub = SolaredgeModbusHub(
+    hub = SolarEdgeModbusHub(
         hass,
         entry.data[CONF_NAME],
         entry.data[CONF_HOST],
