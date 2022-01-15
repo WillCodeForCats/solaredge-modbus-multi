@@ -37,12 +37,15 @@ This integration is developed on a system that consists of two inverters and one
 * Ethernet is also for SolarEdge comms - no wireless or cell options
 
 # Credits
-- https://github.com/binsentsu/home-assistant-solaredge-modbus
-- https://github.com/julezman/home-assistant-solaredge-modbus/tree/multiple_inverters
 - https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
+- https://sunspec.org/wp-content/uploads/2015/06/SunSpec-Specification-Common-Models-A12031-1.6.pdf
 
 This started as a fork but things got too messy and I wasn't sure how to clean it up to get it merged upstream, so I started a new repository.
 It's now evolved into my "learn about python and HA" project and I've started to make larger changes.
 
-Origional fork:
+Original fork:
 - https://github.com/WillCodeForCats/home-assistant-solaredge-modbus
+
+Based on work from:
+- https://github.com/binsentsu/home-assistant-solaredge-modbus
+- https://github.com/julezman/home-assistant-solaredge-modbus/tree/multiple_inverters
