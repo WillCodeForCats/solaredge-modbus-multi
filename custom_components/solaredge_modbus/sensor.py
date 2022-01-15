@@ -1,15 +1,9 @@
 import logging
 import re
+
 from typing import Optional, Dict, Any
-from .const import (
-    DOMAIN,
-    SENSOR_TYPES, METER_SENSOR_TYPES,
-    ATTR_DESCRIPTION, ATTR_MANUFACTURER,
-    DEVICE_STATUS_DESC, SUNSPEC_DID, METER_EVENTS,
-    POWER_VOLT_AMPERE_REACTIVE,
-    ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
-)
 from datetime import datetime
+
 from homeassistant.core import callback
 from homeassistant.const import (
     CONF_NAME,
@@ -24,7 +18,14 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
 )
-
+from .const import (
+    DOMAIN,
+    SENSOR_TYPES, METER_SENSOR_TYPES,
+    ATTR_DESCRIPTION, ATTR_MANUFACTURER,
+    DEVICE_STATUS_DESC, SUNSPEC_DID, METER_EVENTS,
+    POWER_VOLT_AMPERE_REACTIVE,
+    ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
+)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     hub_name = entry.data[CONF_NAME]
@@ -190,6 +191,24 @@ class SolarEdgeSensor(SensorEntity):
         """Return the state of the sensor."""
         if self._key in self._hub.data:
             return self._hub.data[self._key]
+
+    @property
+    def available(self) -> bool:
+        if self._key in self._hub.data:
+            if self._hub.data[self._key] is None:
+                return False
+            else:
+                return True
+    
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._unit_of_measurement in [
+            POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
+            ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR
+        ]:
+            return False
+        else:
+            return True
 
     @property
     def extra_state_attributes(self):

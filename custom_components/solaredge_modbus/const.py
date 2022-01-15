@@ -26,9 +26,17 @@ from homeassistant.const import (
     PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ,
 )
 # units missing in homeassistant core
-POWER_VOLT_AMPERE_REACTIVE = "VAR"
+POWER_VOLT_AMPERE_REACTIVE = "var"
 ENERGY_VOLT_AMPERE_HOUR = "VAh"
-ENERGY_VOLT_AMPERE_REACTIVE_HOUR = "VARh"
+ENERGY_VOLT_AMPERE_REACTIVE_HOUR = "varh"
+
+SUNSPEC_NOT_IMPL_INT16 = 0x8000
+SUNSPEC_NOT_IMPL_UINT16 = 0xFFFF
+SUNSPEC_NOT_ACCUM_ACC16 = 0x0000
+SUNSPEC_NOT_IMPL_INT32 = 0x80000000
+SUNSPEC_NOT_IMPL_UINT32 = 0xFFFFFFFF
+SUNSPEC_NOT_ACCUM_ACC32 = 0x00000000
+SUNSPEC_ACCUM_LIMIT = 4294967295
 
 SENSOR_TYPES = {
     "C_Manufacturer": ["Manufacturer", "manufacturer", None, None, EntityCategory.DIAGNOSTIC],
@@ -50,7 +58,7 @@ SENSOR_TYPES = {
     "AC_Power": ["AC Power", "acpower", POWER_WATT, "mdi:solar-power", None],
     "AC_Frequency": ["AC Frequency", "acfreq", FREQUENCY_HERTZ, None, None],
     "AC_VA": ["AC VA", "acva", POWER_VOLT_AMPERE, None, None],
-    "AC_VAR": ["AC VAR", "acvar", POWER_VOLT_AMPERE_REACTIVE, None, None],
+    "AC_VAR": ["AC var", "acvar", POWER_VOLT_AMPERE_REACTIVE, None, None],
     "AC_PF": ["AC PF", "acpf", PERCENTAGE, None, None],
     "AC_Energy_kWh": ["AC Energy kWh", "acenergy", ENERGY_KILO_WATT_HOUR, "mdi:solar-power", None],
     "DC_Current": ["DC Current", "dccurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-dc", None],
@@ -92,46 +100,46 @@ METER_SENSOR_TYPES = {
     "AC_VA_A": ["AC VA A", "acvaa", POWER_VOLT_AMPERE, None, None],
     "AC_VA_B": ["AC VA B", "acvab", POWER_VOLT_AMPERE, None, None],
     "AC_VA_C": ["AC VA C", "acvac", POWER_VOLT_AMPERE, None, None],
-    "AC_VAR": ["AC VAR", "acvar", POWER_VOLT_AMPERE_REACTIVE, None, None],
-    "AC_VAR_A": ["AC VAR A", "acvara", POWER_VOLT_AMPERE_REACTIVE, None, None],
-    "AC_VAR_B": ["AC VAR B", "acvarb", POWER_VOLT_AMPERE_REACTIVE, None, None],
-    "AC_VAR_C": ["AC VAR C", "acvarc", POWER_VOLT_AMPERE_REACTIVE, None, None],
+    "AC_VAR": ["AC var", "acvar", POWER_VOLT_AMPERE_REACTIVE, None, None],
+    "AC_VAR_A": ["AC var A", "acvara", POWER_VOLT_AMPERE_REACTIVE, None, None],
+    "AC_VAR_B": ["AC var B", "acvarb", POWER_VOLT_AMPERE_REACTIVE, None, None],
+    "AC_VAR_C": ["AC var C", "acvarc", POWER_VOLT_AMPERE_REACTIVE, None, None],
     "AC_PF": ["AC PF", "acpf", PERCENTAGE, None, None],
     "AC_PF_A": ["AC PF A", "acpfa", PERCENTAGE, None, None],
     "AC_PF_B": ["AC PF B", "acpfb", PERCENTAGE, None, None],
     "AC_PF_C": ["AC PF C", "acpfc", PERCENTAGE, None, None],
-    "EXPORTED_KWH": ["EXPORTED KWH", "exported", ENERGY_KILO_WATT_HOUR, None, None],
-    "EXPORTED_A_KWH": ["EXPORTED A KWH", "exporteda", ENERGY_KILO_WATT_HOUR, None, None],
-    "EXPORTED_B_KWH": ["EXPORTED B KWH", "exportedb", ENERGY_KILO_WATT_HOUR, None, None],
-    "EXPORTED_C_KWH": ["EXPORTED C KWH", "exportedc", ENERGY_KILO_WATT_HOUR, None, None],
-    "IMPORTED_KWH": ["IMPORTED KWH", "imported", ENERGY_KILO_WATT_HOUR, None, None],
-    "IMPORTED_KWH_A": ["IMPORTED A KWH", "importeda", ENERGY_KILO_WATT_HOUR, None, None],
-    "IMPORTED_KWH_B": ["IMPORTED B KWH", "importedb", ENERGY_KILO_WATT_HOUR, None, None],
-    "IMPORTED_KWH_C": ["IMPORTED C KWH", "importedc", ENERGY_KILO_WATT_HOUR, None, None],
-    "EXPORTED_VA": ["EXPORTED VAh", "exportedva", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "EXPORTED_VA_A": ["EXPORTED A VAh", "exportedvaa", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "EXPORTED_VA_B": ["EXPORTED B VAh", "exportedvab", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "EXPORTED_VA_C": ["EXPORTED C VAh", "exportedvac", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "IMPORTED_VA": ["IMPORTED VAh", "importedva", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "IMPORTED_VA_A": ["IMPORTED A VAh", "importedvaa", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "IMPORTED_VA_B": ["IMPORTED B VAh", "importedvab", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "IMPORTED_VA_C": ["IMPORTED C VAh", "importedvac", ENERGY_VOLT_AMPERE_HOUR, None, None],
-    "IMPORT_VARH_Q1": ["IMPORT VARH Q1", "importvarhq1", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q1_A": ["IMPORT VARH Q1 A", "importvarhq1a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q1_B": ["IMPORT VARH Q1 B", "importvarhq1b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q1_C": ["IMPORT VARH Q1 C", "importvarhq1c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q2": ["IMPORT VARH Q2", "importvarhq2", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q2_A": ["IMPORT VARH Q2 A", "importvarhq2a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q2_B": ["IMPORT VARH Q2 B", "importvarhq2b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q2_C": ["IMPORT VARH Q2 C", "importvarhq2c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q3": ["IMPORT VARH Q3", "importvarhq3", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q3_A": ["IMPORT VARH Q3 A", "importvarhq3a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q3_B": ["IMPORT VARH Q3 B", "importvarhq3b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q3_C": ["IMPORT VARH Q3 C", "importvarhq3c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q4": ["IMPORT VARH Q4", "importvarhq4", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q4_A": ["IMPORT VARH Q4 A", "importvarhq4a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q4_B": ["IMPORT VARH Q4 B", "importvarhq4b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-    "IMPORT_VARH_Q4_C": ["IMPORT VARH Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "EXPORTED_KWH": ["Exported kWh", "exported", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-import', None],
+    "EXPORTED_KWH_A": ["Exported A kWh", "exporteda", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-import', None],
+    "EXPORTED_KWH_B": ["Exported B kWh", "exportedb", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-import', None],
+    "EXPORTED_KWH_C": ["Exported C kWh", "exportedc", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-import', None],
+    "IMPORTED_KWH": ["Imported kWh", "imported", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-export', None],
+    "IMPORTED_KWH_A": ["Imported A kWh", "importeda", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-export', None],
+    "IMPORTED_KWH_B": ["Imported B kWh", "importedb", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-export', None],
+    "IMPORTED_KWH_C": ["Imported C kWh", "importedc", ENERGY_KILO_WATT_HOUR, 'mdi:transmission-tower-export', None],
+    "EXPORTED_VA": ["Exported VAh", "exportedva", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "EXPORTED_VA_A": ["Exported A VAh", "exportedvaa", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "EXPORTED_VA_B": ["Exported B VAh", "exportedvab", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "EXPORTED_VA_C": ["Exported C VAh", "exportedvac", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "IMPORTED_VA": ["Imported VAh", "importedva", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "IMPORTED_VA_A": ["Imported A VAh", "importedvaa", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "IMPORTED_VA_B": ["Imported B VAh", "importedvab", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "IMPORTED_VA_C": ["Imported C VAh", "importedvac", ENERGY_VOLT_AMPERE_HOUR, None, None],
+    "IMPORT_VARH_Q1": ["Import varh Q1", "importvarhq1", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q1_A": ["Import varh Q1 A", "importvarhq1a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q1_B": ["Import varh Q1 B", "importvarhq1b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q1_C": ["Import varh Q1 C", "importvarhq1c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q2": ["Import varh Q2", "importvarhq2", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q2_A": ["Import varh Q2 A", "importvarhq2a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q2_B": ["Import varh Q2 B", "importvarhq2b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q2_C": ["Import varh Q2 C", "importvarhq2c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q3": ["Import varh Q3", "importvarhq3", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q3_A": ["Import varh Q3 A", "importvarhq3a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q3_B": ["Import varh Q3 B", "importvarhq3b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q3_C": ["Import varh Q3 C", "importvarhq3c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q4": ["Import varh Q4", "importvarhq4", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q4_A": ["Import varh Q4 A", "importvarhq4a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q4_B": ["Import varh Q4 B", "importvarhq4b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+    "IMPORT_VARH_Q4_C": ["Import varh Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
     "M_Events": ["Meter Events", "meterevents", None, None, EntityCategory.DIAGNOSTIC],
 }
 
@@ -149,6 +157,7 @@ DEVICE_STATUS_DESC = {
 
 # English descriptions of parameter names
 DEVICE_STATUS = {
+    SUNSPEC_NOT_IMPL_INT16: None,
     0: "Unknown",
     1: "Off",
     2: "Sleeping (Auto-Shutdown)",
@@ -161,6 +170,7 @@ DEVICE_STATUS = {
 }
 
 VENDOR_STATUS = {
+    SUNSPEC_NOT_IMPL_INT16: None,
     0: "No Error",
     17: "Temperature too high",
     25: "Isolation faults",
