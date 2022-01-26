@@ -457,7 +457,7 @@ class SolaredgeModbusHub:
                         self.data[inverter_prefix + "status_text"] = "Unknown"
                         
                 elif self.data[inverter_prefix + "manufacturer"].lower() in ["fronius"]:
-                     if status in FR_DEVICE_STATUS:
+                    if status in FR_DEVICE_STATUS:
                         self.data[inverter_prefix + "status_text"] = FR_DEVICE_STATUS[status]
                     else:
                         self.data[inverter_prefix + "status_text"] = "Unknown"
