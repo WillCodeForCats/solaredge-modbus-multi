@@ -16,7 +16,8 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
 from .const import (
     DOMAIN,
-    DEVICE_STATUS, VENDOR_STATUS,
+    SE_DEVICE_STATUS, SE_VENDOR_STATUS,
+    FR_DEVICE_STATUS, FR_VENDOR_STATUS,
     CONF_NUMBER_INVERTERS, CONF_DEVICE_ID,
     CONF_READ_METER1, CONF_READ_METER2, CONF_READ_METER3, 
     SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
@@ -235,13 +236,21 @@ class SolaredgeModbusHub:
                 )
             
                 cmanufacturer = decoder.decode_string(32)
-                self.data[inverter_prefix + "manufacturer"] = self.parse_modbus_string(cmanufacturer)
+                cmanufacturer_str = self.parse_modbus_string(cmanufacturer)
+                self.data[inverter_prefix + "manufacturer"] = cmanufacturer_str
+                
             
                 cmodel = decoder.decode_string(32)
                 self.data[inverter_prefix + "model"] = self.parse_modbus_string(cmodel)
 
-                decoder.skip_bytes(16)
-            
+                copt = decoder.decode_string(16)
+                copt_str = self.parse_modbus_string(copt)
+                
+                if len (copt_str) == 0:
+                    self.data[inverter_prefix + "option"] = None
+                else:
+                    self.data[inverter_prefix + "option"] = copt_str
+
                 cversion = decoder.decode_string(16)
                 self.data[inverter_prefix + "version"] = self.parse_modbus_string(cversion)
 
@@ -417,21 +426,21 @@ class SolaredgeModbusHub:
                     dcpower = self.scale_factor(dcpower, dcpowersf)
                     self.data[inverter_prefix + "dcpower"] = round(dcpower, abs(dcpowersf))
 
-                # skip register
-                decoder.skip_bytes(2)
-
+                tempcab = decoder.decode_16bit_int()
                 tempsink = decoder.decode_16bit_int()
-
-                # skip 2 registers
-                decoder.skip_bytes(4)
-
+                temptrns = decoder.decode_16bit_int()
+                tempother = decoder.decode_16bit_int()
                 tempsf = decoder.decode_16bit_int()
                 
-                if (tempsink == SUNSPEC_NOT_IMPL_INT16 or tempsf == SUNSPEC_NOT_IMPL_INT16):
+                if self.data[inverter_prefix + "manufacturer"].lower() in ["fronius"]:
                     self.data[inverter_prefix + "tempsink"] = None
+                    
                 else:
-                    tempsink = self.scale_factor(tempsink, tempsf)
-                    self.data[inverter_prefix + "tempsink"] = round(tempsink, abs(tempsf))
+                    if (tempsink == SUNSPEC_NOT_IMPL_INT16 or tempsf == SUNSPEC_NOT_IMPL_INT16):
+                        self.data[inverter_prefix + "tempsink"] = None
+                    else:
+                        tempsink = self.scale_factor(tempsink, tempsf)
+                        self.data[inverter_prefix + "tempsink"] = round(tempsink, abs(tempsf))
 
                 status = decoder.decode_16bit_int()
                 
@@ -440,11 +449,22 @@ class SolaredgeModbusHub:
                 else:
                     self.data[inverter_prefix + "status"] = status
             
-                if status in DEVICE_STATUS:
-                    self.data[inverter_prefix + "status_text"] = DEVICE_STATUS[status]
-                else:
-                    self.data[inverter_prefix + "status_text"] = "Unknown"
             
+                if self.data[inverter_prefix + "manufacturer"].lower() in ["solaredge"]:
+                    if status in SE_DEVICE_STATUS:
+                        self.data[inverter_prefix + "status_text"] = SE_DEVICE_STATUS[status]
+                    else:
+                        self.data[inverter_prefix + "status_text"] = "Unknown"
+                        
+                elif self.data[inverter_prefix + "manufacturer"].lower() in ["fronius"]:
+                     if status in FR_DEVICE_STATUS:
+                        self.data[inverter_prefix + "status_text"] = FR_DEVICE_STATUS[status]
+                    else:
+                        self.data[inverter_prefix + "status_text"] = "Unknown"
+                
+                else:
+                    self.data[inverter_prefix + "status_text"] = None
+           
                 statusvendor = decoder.decode_16bit_int()
                 
                 if (statusvendor == SUNSPEC_NOT_IMPL_INT16):
@@ -452,10 +472,20 @@ class SolaredgeModbusHub:
                 else:
                     self.data[inverter_prefix + "statusvendor"] = statusvendor
             
-                if statusvendor in VENDOR_STATUS:
-                    self.data[inverter_prefix + "statusvendor_text"] = VENDOR_STATUS[statusvendor]
+                if self.data[inverter_prefix + "manufacturer"].lower() in ["solaredge"]:
+                    if statusvendor in SE_VENDOR_STATUS:
+                        self.data[inverter_prefix + "statusvendor_text"] = SE_VENDOR_STATUS[statusvendor]
+                    else:
+                        self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
+                
+                elif self.data[inverter_prefix + "manufacturer"].lower() in ["fronius"]:
+                    if statusvendor in FR_VENDOR_STATUS:
+                        self.data[inverter_prefix + "statusvendor_text"] = FR_VENDOR_STATUS[statusvendor]
+                    else:
+                        self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
+                
                 else:
-                    self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
+                    self.data[inverter_prefix + "statusvendor_text"] = None
             
             except Exception as error:
                 _LOGGER.error("Error reading inverter at id %s: %s", inverter_unit_id, error)

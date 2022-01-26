@@ -22,7 +22,7 @@ from .const import (
     DOMAIN,
     SENSOR_TYPES, METER_SENSOR_TYPES,
     ATTR_DESCRIPTION, ATTR_MANUFACTURER,
-    DEVICE_STATUS_DESC, SUNSPEC_DID, METER_EVENTS,
+    SE_DEVICE_STATUS_DESC, SUNSPEC_DID, SE_METER_EVENTS,
     POWER_VOLT_AMPERE_REACTIVE,
     ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
 )
@@ -215,9 +215,11 @@ class SolarEdgeSensor(SensorEntity):
         if re.match('(i|m)[0-9]_sunspecdid', self._key):
             if self.state in SUNSPEC_DID:
                 return {ATTR_DESCRIPTION: SUNSPEC_DID[self.state]}
+        
         elif re.match('i[0-9]_status', self._key):
-            if self.state in DEVICE_STATUS_DESC:
-                return {ATTR_DESCRIPTION: DEVICE_STATUS_DESC[self.state]}
+            if self.state in SE_DEVICE_STATUS_DESC:
+                return {ATTR_DESCRIPTION: SE_DEVICE_STATUS_DESC[self.state]}
+        
         elif re.match('m[1-3]_meterevents', self._key):
             if isinstance(self.state, str):
                 m_events_active = []
@@ -226,10 +228,11 @@ class SolarEdgeSensor(SensorEntity):
                 else:
                     for i in range(0,32):
                         if (int(self.state,16) & (1 << i)):
-                            m_events_active.append(METER_EVENTS[i])
+                            m_events_active.append(SE_METER_EVENTS[i])
                     return {ATTR_DESCRIPTION: str(m_events_active)}
         
-        return None
+        else:
+            return None
 
     @property
     def should_poll(self) -> bool:
