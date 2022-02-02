@@ -22,7 +22,7 @@ from .const import (
     DOMAIN,
     SENSOR_TYPES, METER_SENSOR_TYPES,
     ATTR_DESCRIPTION, ATTR_MANUFACTURER,
-    SE_DEVICE_STATUS_DESC, SUNSPEC_DID, SE_METER_EVENTS,
+    SE_DEVICE_STATUS, SUNSPEC_DID, SE_METER_EVENTS,
     POWER_VOLT_AMPERE_REACTIVE,
     ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
 )
@@ -217,8 +217,8 @@ class SolarEdgeSensor(SensorEntity):
                 return {ATTR_DESCRIPTION: SUNSPEC_DID[self.state]}
         
         elif re.match('i[0-9]_status', self._key):
-            if self.state in SE_DEVICE_STATUS_DESC:
-                return {ATTR_DESCRIPTION: SE_DEVICE_STATUS_DESC[self.state]}
+            if self.state in SE_DEVICE_STATUS:
+                return {ATTR_DESCRIPTION: SE_DEVICE_STATUS[self.state]}
         
         elif re.match('m[1-3]_meterevents', self._key):
             if isinstance(self.state, str):

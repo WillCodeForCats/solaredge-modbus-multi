@@ -16,8 +16,8 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
 from .const import (
     DOMAIN,
-    SE_DEVICE_STATUS, SE_VENDOR_STATUS,
-    FR_DEVICE_STATUS, FR_VENDOR_STATUS,
+    SE_DEVICE_STATUS_DESC, SE_VENDOR_STATUS,
+    FR_DEVICE_STATUS_DESC, FR_VENDOR_STATUS,
     CONF_NUMBER_INVERTERS, CONF_DEVICE_ID,
     CONF_READ_METER1, CONF_READ_METER2, CONF_READ_METER3, 
     SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
@@ -451,14 +451,14 @@ class SolaredgeModbusHub:
             
             
                 if self.data[inverter_prefix + "manufacturer"].lower() in ["solaredge"]:
-                    if status in SE_DEVICE_STATUS:
-                        self.data[inverter_prefix + "status_text"] = SE_DEVICE_STATUS[status]
+                    if status in SE_DEVICE_STATUS_DESC:
+                        self.data[inverter_prefix + "status_text"] = SE_DEVICE_STATUS_DESC[status]
                     else:
                         self.data[inverter_prefix + "status_text"] = "Unknown"
                         
                 elif self.data[inverter_prefix + "manufacturer"].lower() in ["fronius"]:
-                    if status in FR_DEVICE_STATUS:
-                        self.data[inverter_prefix + "status_text"] = FR_DEVICE_STATUS[status]
+                    if status in FR_DEVICE_STATUS_DESC:
+                        self.data[inverter_prefix + "status_text"] = FR_DEVICE_STATUS_DESC[status]
                     else:
                         self.data[inverter_prefix + "status_text"] = "Unknown"
                 
