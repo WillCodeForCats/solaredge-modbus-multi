@@ -212,26 +212,30 @@ class SolarEdgeSensor(SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        if re.match('(i|m)[0-9]_sunspecdid', self._key):
-            if self.state in SUNSPEC_DID:
-                return {ATTR_DESCRIPTION: SUNSPEC_DID[self.state]}
-        
-        elif re.match('i[0-9]_status', self._key):
-            if self.state in SE_DEVICE_STATUS:
-                return {ATTR_DESCRIPTION: SE_DEVICE_STATUS[self.state]}
-        
-        elif re.match('m[1-3]_meterevents', self._key):
-            if isinstance(self.state, str):
-                m_events_active = []
-                if int(self.state,16) == 0x0:
-                    return {ATTR_DESCRIPTION: str(m_events_active)}
-                else:
-                    for i in range(0,32):
-                        if (int(self.state,16) & (1 << i)):
-                            m_events_active.append(SE_METER_EVENTS[i])
-                    return {ATTR_DESCRIPTION: str(m_events_active)}
-        
-        else:
+        try:
+            if re.match('(i|m)[0-9]_sunspecdid', self._key):
+                if self.state in SUNSPEC_DID:
+                    return {ATTR_DESCRIPTION: SUNSPEC_DID[self.state]}
+            
+            elif re.match('i[0-9]_status', self._key):
+                if self.state in SE_DEVICE_STATUS:
+                    return {ATTR_DESCRIPTION: SE_DEVICE_STATUS[self.state]}
+            
+            elif re.match('m[1-3]_meterevents', self._key):
+                if isinstance(self.state, str):
+                    m_events_active = []
+                    if int(self.state,16) == 0x0:
+                        return {ATTR_DESCRIPTION: str(m_events_active)}
+                    else:
+                        for i in range(0,32):
+                            if (int(self.state,16) & (1 << i)):
+                                m_events_active.append(SE_METER_EVENTS[i])
+                        return {ATTR_DESCRIPTION: str(m_events_active)}
+            
+            else:
+                return None
+                
+        except KeyError:
             return None
 
     @property
