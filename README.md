@@ -5,29 +5,14 @@ A Home Assistant integration for SolarEdge inverters. Connects locally using Mod
 
 This integration is ideal for multiple inverter installations where you have a single Leader (Master) inverter connected to the network, with one or more Follower (Slave) inverters connected using the RS485 bus. This integration also supports up to three meters connected to the first inverter.
 
-# Configuration
-Important: The inverters must have sequential unit IDs (i.e. 1, 2, 3, ...). Either RS485 bus can be used for your inverter chain is on as long as it's configured as SolarEdge leader/follower (master/slave in older firmware).
-If you have meters connected to the first inverter the meter ID *can* overlap the inverter Device ID because they're on different busses (the SolarEdge meter ships with default ID 2).
-
-You can configure the starting inverter address with the "Inverter Modbus Address (Device ID)" option when setting up the integration.
-If you are using meters 1-3, the meters must be connected to the R-485 bus on the configured Device ID.
-This will be the starting device address if "Number of Inverters" is greater than 1.
-For example, if you configure the Device ID to 4 and Number of Inverters to 3, then your inverters will be addressed as IDs 4, 5, 6 with optional meters connected to ID 4.
-
-If you only have one inverter, leave "Number of Inverters" set to the default of 1.
-
 # Installation
 Copy the contents of the custom_components folder into to your Home Assistant config/custom_components folder or install through HACS.
 After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 
 NOTICE: Starting with version 1.1.0 this integration requires Home Assistant 2012.12.0 or newer.
 
-# Enabling Modbus/TCP on SolarEdge Inverter
-1. Enable WiFi Direct on the inverter by switching the red toggle switch on the inverter to "P" position for less than 5 seconds.
-2. Connect to the inverter access point like you would for a normal wifi network. The WiFi password is published at the right side of the inverter, OR scan the QR code on the side of your inverter.
-3. Open up a browser and go to http://172.16.0.1 > Site Communication. From this page you can enable Modbus/TCP.
-
-This only needs to be done on the Leader (Master) inverter with the IP (network) connection.
+# Configuration
+https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
 
 # Test Environment
 This integration is developed on a system that consists of two inverters and one meter:
