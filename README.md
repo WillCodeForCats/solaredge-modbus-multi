@@ -5,13 +5,13 @@ A Home Assistant integration for SolarEdge inverters. Connects locally using Mod
 
 This integration is ideal for multiple inverter installations where you have a single Leader (Master) inverter connected to the network, with one or more Follower (Slave) inverters connected using the RS485 bus. This integration also supports up to three meters connected to the first inverter.
 
-# Installation
+## Installation
 Copy the contents of the custom_components folder into to your Home Assistant config/custom_components folder or install through HACS.
 After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 
 NOTICE: Starting with version 1.1.0 this integration requires Home Assistant 2012.12.0 or newer.
 
-# Configuration
+## Configuration
 https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
 
 # Test Environment
