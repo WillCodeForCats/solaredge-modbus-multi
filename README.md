@@ -1,9 +1,9 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 # solaredge-modbus-multi
-A Home Assistant integration for SolarEdge inverters. Connects locally using Modbus/TCP to single or multiple inverters, including meters.
+A Home Assistant integration for SolarEdge inverters using local Modbus/TCP (no cloud). Supports multiple inverters, single inverters, meters, and extra information/error sensors.
 
-This integration is ideal for multiple inverter installations where you have a single Leader (Master) inverter connected to the network, with one or more Follower (Slave) inverters connected using the RS485 bus. This integration also supports up to three meters connected to the first inverter.
+This integration was created to address multiple inverter installations where you have a single Leader (Master) inverter connected to the network with one or more Follower (Slave) inverters connected using the RS485 bus. It also supports up to three meters connected to the first inverter. It still works with single inverter installations and can grow with you if you upgrade to multiple inverters in the future.
 
 ## Installation
 Copy the contents of the custom_components folder into to your Home Assistant config/custom_components folder or install through HACS.
