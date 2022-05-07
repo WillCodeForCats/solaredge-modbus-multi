@@ -9,7 +9,10 @@ This integration was created to address multiple inverter installations where yo
 Copy the contents of the custom_components folder into to your Home Assistant config/custom_components folder or install through HACS.
 After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 
-NOTICE: Starting with version 1.1.0 this integration requires Home Assistant 2012.12.0 or newer.
+Starting with version 1.1.0 this integration requires Home Assistant 2012.12.0 or newer.
+
+### Upgrading from v1.1.x to v1.2.x
+Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
 
 ## Configuration
 https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
