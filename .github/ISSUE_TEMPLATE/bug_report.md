@@ -23,7 +23,8 @@ If applicable, add screenshots of the problem and/or configuration.
 Copy any log messages/errors from Home Assistant from "custom_components.solaredge_modbus" and "pymodbus.client.sync".
 
 **Home Assistant (please complete the following information):**
- - Version:
+ - Home Assistant Core Version:
+ - solaredge-modbus-multi Version:
 
 **Additional context**
 Add any other context about the problem here.
