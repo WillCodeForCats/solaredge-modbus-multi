@@ -1,4 +1,4 @@
-DOMAIN = "solaredge_modbus"
+DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 60
 DEFAULT_PORT = 1502

@@ -34,13 +34,13 @@ def host_valid(host):
         return all(x and not disallowed.search(x) for x in host.split("."))
 
 @callback
-def solaredge_modbus_entries(hass: HomeAssistant):
+def solaredge_modbus_multi_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
     return set(
         entry.data[CONF_HOST] for entry in hass.config_entries.async_entries(DOMAIN)
     )
 
-class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Solaredge Modbus configflow."""
 
     VERSION = 1
@@ -48,7 +48,7 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def _host_in_configuration_exists(self, host) -> bool:
         """Return True if host exists in configuration."""
-        if host in solaredge_modbus_entries(self.hass):
+        if host in solaredge_modbus_multi_entries(self.hass):
             return True
         return False
 
