@@ -1,5 +1,5 @@
 {
-  "domain": "solaredge_modbus",
+  "domain": "solaredge_modbus_multi",
   "name": "SolarEdge Modbus Multi-Inverter",
   "documentation": "https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki",
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
