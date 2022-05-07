@@ -50,7 +50,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
-    hub = SolaredgeModbusHub(
+    hub = SolaredgeModbusMultiHub(
         hass, name, host, port, scan_interval,
         read_meter1, read_meter2, read_meter3,
         number_of_inverters, device_id
@@ -82,7 +82,7 @@ async def async_unload_entry(hass, entry):
     return True
 
 
-class SolaredgeModbusHub:
+class SolaredgeModbusMultiHub:
     """Thread safe wrapper class for pymodbus."""
 
     def __init__(
