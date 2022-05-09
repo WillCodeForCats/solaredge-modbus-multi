@@ -28,9 +28,7 @@ This integration is developed on a system that consists of two inverters and one
 This started as a fork but things got too messy and I wasn't sure how to clean it up to get it merged upstream, so I started a new repository.
 It's now evolved into my "learn about python and HA" project and I've started to make larger changes.
 
-Original fork:
-- https://github.com/WillCodeForCats/home-assistant-solaredge-modbus
-
 Based on work from:
+- https://github.com/WillCodeForCats/home-assistant-solaredge-modbus
 - https://github.com/binsentsu/home-assistant-solaredge-modbus
 - https://github.com/julezman/home-assistant-solaredge-modbus/tree/multiple_inverters
