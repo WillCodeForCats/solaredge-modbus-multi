@@ -308,7 +308,7 @@ class SolarEdgeBattery:
         self._device_info = {
             "identifiers": {(DOMAIN, self.hub.name)},
             "name": f"{hub.name.capitalize()} Battery {battery_id}",
-            "manufacturer": ATTR_MANUFACTURER,
+            "manufacturer": decoded_common['C_Manufacturer'],
             "model": self.model,
             "sw_version": self.firmware_version,
         }
