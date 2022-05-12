@@ -155,9 +155,8 @@ FR_VENDOR_STATUS = {
     13: "AFCI Event",
 }
 
-SE_METER_EVENTS = {
-    0: "undefined_0",
-    1: "undefined_1",
+
+METER_EVENTS = {
     2: "M_EVENT_Power_Failure",
     3: "M_EVENT_Under_Voltage",
     4: "M_EVENT_Low_PF",
@@ -187,5 +186,4 @@ SE_METER_EVENTS = {
     28: "M_EVENT_OEM13",
     29: "M_EVENT_OEM14",
     30: "M_EVENT_OEM15",
-    31: "undefined_31",
 }
