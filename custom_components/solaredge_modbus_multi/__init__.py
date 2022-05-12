@@ -9,7 +9,6 @@ from .hub import SolarEdgeModbusMultiHub
 
 from .const import (
     DOMAIN,
-    CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL,
     CONF_NUMBER_INVERTERS, CONF_DEVICE_ID,
 )
 
