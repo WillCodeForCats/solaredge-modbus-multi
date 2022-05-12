@@ -12,6 +12,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
+    DOMAIN
     DEVICE_STATUS, VENDOR_STATUS,
     SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
     SUNSPEC_NOT_IMPL_UINT32, SUNSPEC_NOT_ACCUM_ACC32,
@@ -20,7 +21,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-class SolarEdgeModbusHub:
+class SolarEdgeModbusMultiHub:
     """Thread safe wrapper class for pymodbus."""
 
     def __init__(
@@ -54,7 +55,7 @@ class SolarEdgeModbusHub:
         self.se_inverters = []
         self.se_meters = []
 
-    async def _async_init_solaredge(self) -> None:
+    async def async_init_solaredge(self) -> None:
         
         for inverter_index in range(self.number_of_inverters):
             inverter_unit_id = inverter_index + self.device_id
@@ -192,13 +193,20 @@ class SolarEdgeModbusHub:
                 )
             
                 cmanufacturer = decoder.decode_string(32)
-                self.data[inverter_prefix + "manufacturer"] = self.parse_modbus_string(cmanufacturer)
-            
+                cmanufacturer_str = self.parse_modbus_string(cmanufacturer)
+                self.data[inverter_prefix + "manufacturer"] = cmanufacturer_str
+                
                 cmodel = decoder.decode_string(32)
                 self.data[inverter_prefix + "model"] = self.parse_modbus_string(cmodel)
 
-                decoder.skip_bytes(16)
-            
+                copt = decoder.decode_string(16)
+                copt_str = self.parse_modbus_string(copt)
+                
+                if len (copt_str) == 0:
+                    self.data[inverter_prefix + "option"] = None
+                else:
+                    self.data[inverter_prefix + "option"] = copt_str
+
                 cversion = decoder.decode_string(16)
                 self.data[inverter_prefix + "version"] = self.parse_modbus_string(cversion)
 
@@ -207,12 +215,13 @@ class SolarEdgeModbusHub:
 
                 cdeviceaddress = decoder.decode_16bit_uint()
                 self.data[inverter_prefix + "deviceaddress"] = cdeviceaddress
-
+                
+                # # # #
+                
                 sunspecdid = decoder.decode_16bit_uint()
                 self.data[inverter_prefix + "sunspecdid"] = sunspecdid
             
-                # skip register
-                decoder.skip_bytes(2)
+                model_block_len = decoder.decode_16bit_uint()
             
                 accurrent = decoder.decode_16bit_uint()
                 accurrenta = decoder.decode_16bit_uint()
@@ -374,21 +383,35 @@ class SolarEdgeModbusHub:
                     dcpower = self.scale_factor(dcpower, dcpowersf)
                     self.data[inverter_prefix + "dcpower"] = round(dcpower, abs(dcpowersf))
 
-                # skip register
-                decoder.skip_bytes(2)
-
+                tempcab = decoder.decode_16bit_int()
                 tempsink = decoder.decode_16bit_int()
-
-                # skip 2 registers
-                decoder.skip_bytes(4)
-
+                temptrns = decoder.decode_16bit_int()
+                tempother = decoder.decode_16bit_int()
                 tempsf = decoder.decode_16bit_int()
+
+                if (tempcab == SUNSPEC_NOT_IMPL_INT16 or tempsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "tempcab"] = None
+                else:
+                    tempcab = self.scale_factor(tempcab, tempsf)
+                    self.data[inverter_prefix + "tempcab"] = round(tempcab, abs(tempsf))
                 
                 if (tempsink == SUNSPEC_NOT_IMPL_INT16 or tempsf == SUNSPEC_NOT_IMPL_INT16):
                     self.data[inverter_prefix + "tempsink"] = None
                 else:
                     tempsink = self.scale_factor(tempsink, tempsf)
                     self.data[inverter_prefix + "tempsink"] = round(tempsink, abs(tempsf))
+
+                if (temptrns == SUNSPEC_NOT_IMPL_INT16 or tempsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "temptrns"] = None
+                else:
+                    temptrns = self.scale_factor(temptrns, tempsf)
+                    self.data[inverter_prefix + "temptrns"] = round(temptrns, abs(tempsf))
+
+                if (tempother == SUNSPEC_NOT_IMPL_INT16 or tempsf == SUNSPEC_NOT_IMPL_INT16):
+                    self.data[inverter_prefix + "tempother"] = None
+                else:
+                    tempother = self.scale_factor(tempother, tempsf)
+                    self.data[inverter_prefix + "tempother"] = round(tempother, abs(tempsf))
 
                 status = decoder.decode_16bit_int()
                 
@@ -400,8 +423,8 @@ class SolarEdgeModbusHub:
                 if status in DEVICE_STATUS:
                     self.data[inverter_prefix + "status_text"] = DEVICE_STATUS[status]
                 else:
-                    self.data[inverter_prefix + "status_text"] = "Unknown"
-            
+                    self.data[inverter_prefix + "status_text"] = None
+                
                 statusvendor = decoder.decode_16bit_int()
                 
                 if (statusvendor == SUNSPEC_NOT_IMPL_INT16):
@@ -412,7 +435,7 @@ class SolarEdgeModbusHub:
                 if statusvendor in VENDOR_STATUS:
                     self.data[inverter_prefix + "statusvendor_text"] = VENDOR_STATUS[statusvendor]
                 else:
-                    self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
+                    self.data[inverter_prefix + "statusvendor_text"] = None
             
             except Exception as error:
                 _LOGGER.error("Error reading inverter at id %s: %s", inverter_unit_id, error)
@@ -449,9 +472,11 @@ class SolarEdgeModbusHub:
             decoder = BinaryPayloadDecoder.fromRegisters(
                 meter_info.registers, byteorder=Endian.Big
             )
-
-            decoder.skip_bytes(4)
-
+            
+            sunspec_did = decoder.decode_16bit_uint()
+            
+            sunspec_length = decoder.decode_16bit_uint()
+            
             cmanufacturer = decoder.decode_string(32)
             self.data[meter_prefix + "manufacturer"] = self.parse_modbus_string(cmanufacturer)
         
@@ -1041,6 +1066,7 @@ class SolarEdgeModbusHub:
 
         return True
 
+
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusHub) -> None:
 
@@ -1056,12 +1082,29 @@ class SolarEdgeInverter:
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
 
+
 class SolarEdgeMeter:
     def __init__(self, device_id: int, meter_id: int, hub: SolarEdgeModbusHub) -> None:
 
         self._device_info = {
             "identifiers": {(DOMAIN, self.hub.name)},
             "name": f"{hub.name.capitalize()} Meter {meter_id}",
+            "manufacturer": ATTR_MANUFACTURER,
+            #"model": self.model,
+            #"sw_version": self.firmware_version,
+        }
+
+    @property
+    def device_info(self) -> Optional[Dict[str, Any]]:
+        return self._device_info
+
+
+class SolarEdgeBattery:
+    def __init__(self, device_id: int, battery_id: int, hub: SolarEdgeModbusHub) -> None:
+
+        self._device_info = {
+            "identifiers": {(DOMAIN, self.hub.name)},
+            "name": f"{hub.name.capitalize()} Battery {battery_id}",
             "manufacturer": ATTR_MANUFACTURER,
             #"model": self.model,
             #"sw_version": self.firmware_version,
