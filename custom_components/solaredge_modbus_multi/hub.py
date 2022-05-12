@@ -1,7 +1,7 @@
 import logging
 import threading
 
-from typing import Optional
+from typing import Any, Callable, Optional, Dict
 from datetime import timedelta
 
 from pymodbus.client.sync import ModbusTcpClient
@@ -189,7 +189,7 @@ class SolarEdgeModbusMultiHub:
 
 
 class SolarEdgeInverter:
-    def __init__(self, device_id: int, hub: SolarEdgeModbusHub) -> None:
+    def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
 
         inverter_prefix = "i" + str(inverter_index + 1) + "_"
         inverter_unit_id = inverter_index + self.device_id
@@ -243,7 +243,7 @@ class SolarEdgeInverter:
 
 
 class SolarEdgeMeter:
-    def __init__(self, device_id: int, meter_id: int, hub: SolarEdgeModbusHub) -> None:
+    def __init__(self, device_id: int, meter_id: int, hub: SolarEdgeModbusMultiHub) -> None:
         
         if meter_id is 1:
             start_address = 40000 + 121
@@ -303,7 +303,7 @@ class SolarEdgeMeter:
 
 
 class SolarEdgeBattery:
-    def __init__(self, device_id: int, battery_id: int, hub: SolarEdgeModbusHub) -> None:
+    def __init__(self, device_id: int, battery_id: int, hub: SolarEdgeModbusMultiHub) -> None:
 
         self._device_info = {
             "identifiers": {(DOMAIN, self.hub.name)},
