@@ -72,40 +72,40 @@ class SolarEdgeModbusMultiHub:
             try:
                 self.inverters.append(SolarEdgeInverter(inverter_unit_id, self))
             except:
-                _LOGGER.warn(f"Inverter device ID {inverter_unit_id} not found.")
+                _LOGGER.error(f"Inverter device ID {inverter_unit_id} not found.")
         
             try:
-                _LOGGER.info(f"Looking for meter 1 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Looking for meter 1 on inverter ID {inverter_unit_id}")
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 1, self))
-                _LOGGER.info(f"Found meter 1 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.info(f"Looking for meter 2 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Looking for meter 2 on inverter ID {inverter_unit_id}")
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 2, self))
-                _LOGGER.info(f"Found meter 2 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.info(f"Looking for meter 3 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Looking for meter 3 on inverter ID {inverter_unit_id}")
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 3, self))
-                _LOGGER.info(f"Found meter 3 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.info(f"Looking for battery 1 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Looking for battery 1 on inverter ID {inverter_unit_id}")
                 self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
-                _LOGGER.info(f"Found battery 1 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.info(f"Looking for battery 2 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Looking for battery 2 on inverter ID {inverter_unit_id}")
                 self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
-                _LOGGER.info(f"Found battery 2 on inverter ID {inverter_unit_id}")
+                _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
@@ -261,7 +261,7 @@ class SolarEdgeInverter:
         ])
 
         for name, value in iteritems(decoded_ident):
-            _LOGGER.info("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
  
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
@@ -292,7 +292,7 @@ class SolarEdgeInverter:
         ])
         
         for name, value in iteritems(decoded_common):
-            _LOGGER.info("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
 
         self.manufacturer = decoded_common['C_Manufacturer']
         self.model = decoded_common['C_Model']
@@ -338,7 +338,7 @@ class SolarEdgeMeter:
             unit=self.inverter_unit_id, address=start_address, count=2
         )
         if meter_info.isError():
-            _LOGGER.error(meter_info)
+            _LOGGER.debug(meter_info)
             raise RuntimeError(meter_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -350,7 +350,7 @@ class SolarEdgeMeter:
         ])
         
         for name, value in iteritems(decoded_ident):
-            _LOGGER.info("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
 
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
@@ -363,7 +363,7 @@ class SolarEdgeMeter:
             unit=self.inverter_unit_id, address=start_address + 2, count=65
         )
         if meter_info.isError():
-            _LOGGER.error(meter_info)
+            _LOGGER.debug(meter_info)
             raise RuntimeError(meter_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -379,7 +379,7 @@ class SolarEdgeMeter:
         ])
 
         for name, value in iteritems(decoded_common):
-            _LOGGER.info("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
 
         self.manufacturer = decoded_common['C_Manufacturer']
         self.model = decoded_common['C_Model']
@@ -426,7 +426,7 @@ class SolarEdgeBattery:
             unit=self.inverter_unit_id, address=start_address, count=75
         )
         if battery_info.isError():
-            _LOGGER.error(battery_info)
+            _LOGGER.debug(battery_info)
             raise RuntimeError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -447,7 +447,7 @@ class SolarEdgeBattery:
         ])
 
         for name, value in iteritems(decoded_common):
-            _LOGGER.info("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
 
         self.manufacturer = decoded_ident['B_Manufacturer']
         self.model = decoded_ident['B_Model']
