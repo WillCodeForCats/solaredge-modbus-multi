@@ -45,59 +45,12 @@ async def async_setup_entry(
 
     entities = []
     
-    for inverter_index in range(hub.number_of_inverters):
-        inverter_variable_prefix = "i" + str(inverter_index + 1) + "_"
-        inverter_title_prefix = "I" + str(inverter_index + 1) + " "
-        for sensor_info in SENSOR_TYPES.values():
-             sensor = SolarEdgeSensor(
-                 config_name,
-                 hub,
-                 inverter_title_prefix + sensor_info[0],
-                 inverter_variable_prefix + sensor_info[1],
-                 sensor_info[2],
-                 sensor_info[3],
-                 sensor_info[4],
-             )
-             entities.append(sensor)
+    #for inverter_index in range(hub.se_inverters):
+    #    pass
 
-    if hub.read_meter1 == True:
-        for meter_sensor_info in METER_SENSOR_TYPES.values():
-            sensor = SolarEdgeSensor(
-                config_name,
-                hub,
-                "M1 " + meter_sensor_info[0],
-                "m1_" + meter_sensor_info[1],
-                meter_sensor_info[2],
-                meter_sensor_info[3],
-                meter_sensor_info[4],
-            )
-            entities.append(sensor)
+    #for meter_index in range(hub.se_meters):
+    #    pass
 
-    if hub.read_meter2 == True:
-        for meter_sensor_info in METER_SENSOR_TYPES.values():
-            sensor = SolarEdgeSensor(
-                config_name,
-                hub,
-                "M2 " + meter_sensor_info[0],
-                "m2_" + meter_sensor_info[1],
-                meter_sensor_info[2],
-                meter_sensor_info[3],
-                meter_sensor_info[4],
-            )
-            entities.append(sensor)
-
-    if hub.read_meter3 == True:
-        for meter_sensor_info in METER_SENSOR_TYPES.values():
-            sensor = SolarEdgeSensor(
-                config_name,
-                hub,
-                "M3 " + meter_sensor_info[0],
-                "m3_" + meter_sensor_info[1],
-                meter_sensor_info[2],
-                meter_sensor_info[3],
-                meter_sensor_info[4],
-            )
-            entities.append(sensor)
 
     async_add_entities(entities)
 
@@ -158,7 +111,6 @@ class SolarEdgeVoltageSensor(SolarEdgeSensorBase):
     @property
     def native_value(self):
         return None
-
 
 
 class SolarEdgeSensor(SensorEntity):
@@ -291,3 +243,4 @@ class SolarEdgeSensor(SensorEntity):
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
+
