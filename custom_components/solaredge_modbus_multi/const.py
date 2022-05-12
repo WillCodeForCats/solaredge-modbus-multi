@@ -4,16 +4,10 @@ DEFAULT_SCAN_INTERVAL = 60
 DEFAULT_PORT = 1502
 DEFAULT_NUMBER_INVERTERS = 1
 DEFAULT_DEVICE_ID = 1
-DEFAULT_READ_METER1 = False
-DEFAULT_READ_METER2 = False
-DEFAULT_READ_METER3 = False
 ATTR_DESCRIPTION = "description"
 ATTR_MANUFACTURER = "SolarEdge"
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_DEVICE_ID = "device_id"
-CONF_READ_METER1 = "read_meter_1"
-CONF_READ_METER2 = "read_meter_2"
-CONF_READ_METER3 = "read_meter_3"
 
 from homeassistant.helpers.entity import EntityCategory
 

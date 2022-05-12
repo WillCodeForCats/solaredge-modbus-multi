@@ -10,7 +10,6 @@ from .hub import SolarEdgeModbusMultiHub
 from .const import (
     DOMAIN,
     CONF_NUMBER_INVERTERS, CONF_DEVICE_ID,
-    CONF_READ_METER1, CONF_READ_METER2, CONF_READ_METER3, 
 )
 
 PLATFORMS: list[str] = ["sensor"]
@@ -23,9 +22,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
         entry.data[CONF_SCAN_INTERVAL],
-        entry.data.get(CONF_READ_METER1, False),
-        entry.data.get(CONF_READ_METER2, False),
-        entry.data.get(CONF_READ_METER3, False),
         entry.data.get(CONF_NUMBER_INVERTERS, 1),
         entry.data.get(CONF_DEVICE_ID, 1)
     )

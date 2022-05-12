@@ -12,14 +12,8 @@ from .const import (
     DEFAULT_PORT,
     DEFAULT_DEVICE_ID,
     DEFAULT_NUMBER_INVERTERS,
-    DEFAULT_READ_METER1,
-    DEFAULT_READ_METER2,
-    DEFAULT_READ_METER3,
     CONF_DEVICE_ID,
     CONF_NUMBER_INVERTERS,
-    CONF_READ_METER1,
-    CONF_READ_METER2,
-    CONF_READ_METER3
 )
 from homeassistant.core import HomeAssistant, callback
 
@@ -93,9 +87,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_PORT: DEFAULT_PORT,
                 CONF_NUMBER_INVERTERS: DEFAULT_NUMBER_INVERTERS,
                 CONF_DEVICE_ID: DEFAULT_DEVICE_ID,
-                CONF_READ_METER1: DEFAULT_READ_METER1,
-                CONF_READ_METER2: DEFAULT_READ_METER2,
-                CONF_READ_METER3: DEFAULT_READ_METER3,
                 CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
             }
 
@@ -118,15 +109,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_NUMBER_INVERTERS, default=user_input[CONF_NUMBER_INVERTERS]
                     ): vol.Coerce(int),
-                    vol.Optional(
-                        CONF_READ_METER1, default=user_input[CONF_READ_METER1]
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_READ_METER2, default=user_input[CONF_READ_METER2]
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_READ_METER3, default=user_input[CONF_READ_METER3]
-                    ): cv.boolean,
                     vol.Optional(
                         CONF_SCAN_INTERVAL, default=user_input[CONF_SCAN_INTERVAL]
                     ): vol.Coerce(int),
