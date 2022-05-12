@@ -44,12 +44,11 @@ async def async_setup_entry(
     entities = []
         
     for inverter in hub.inverters:
-        entities.append(SolarEdgeVoltageSensor(inverter, "test sensor", "test_sensor", config_entry))
+        entities.append(SerialNumber(inverter, config_entry))
+        entities.append(DeviceAddress(inverter, config_entry))
         
     #for inverter_index in range(hub.se_inverters):
         #"C_Model": ["Model", "model", None, None, EntityCategory.DIAGNOSTIC],
-        #"C_SerialNumber": ["Serial Number", "serialnumber", None, None, EntityCategory.DIAGNOSTIC],
-        #"C_DeviceAddress": ["Device Address", "deviceaddress", None, None, EntityCategory.DIAGNOSTIC],
         #"C_Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None, EntityCategory.DIAGNOSTIC],
         #"AC_Current": ["AC Current", "accurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
         #"AC_CurrentA": ["AC Current A", "accurrenta", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
@@ -76,11 +75,13 @@ async def async_setup_entry(
         #"Status_Vendor": ["Status Vendor", "statusvendor", None, None, EntityCategory.DIAGNOSTIC],
         #"Status_Vendor_Text": ["Status Vendor Text", "statusvendor_text", None, None, None],
 
+    for meter in hub.meters:
+        entities.append(SerialNumber(meter, config_entry))
+        entities.append(DeviceAddress(meter, config_entry))
+
     #for meter_index in range(hub.se_meters):
         #"C_Model": ["Model", "model", None, None, EntityCategory.DIAGNOSTIC],
         #"C_Option": ["Option", "option", None, None, EntityCategory.DIAGNOSTIC],
-        #"C_SerialNumber": ["Serial Number", "serialnumber", None, None, EntityCategory.DIAGNOSTIC],
-        #"C_DeviceAddress": ["Device Address", "deviceaddress", None, None, EntityCategory.DIAGNOSTIC],
         #"C_Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None, EntityCategory.DIAGNOSTIC],
         #"AC_Current": ["AC Current", "accurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
         #"AC_Current_A": ["AC Current_A", "accurrenta", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
@@ -145,6 +146,10 @@ async def async_setup_entry(
         #"IMPORT_VARH_Q4_C": ["Import varh Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
         #"M_Events": ["Meter Events", "meterevents", None, None, EntityCategory.DIAGNOSTIC],
 
+    for battery in hub.batteries:
+        entities.append(SerialNumber(battery, config_entry))
+        entities.append(DeviceAddress(battery, config_entry))
+
     if entities:
         async_add_entities(entities)
 
@@ -153,11 +158,9 @@ class SolarEdgeSensorBase(SensorEntity):
 
     should_poll = False
 
-    def __init__(self, platform, name, key, config_entry):
+    def __init__(self, platform, config_entry):
         """Initialize the sensor."""
         self._platform = platform
-        self._key = key
-        self._name = name
         self._config_entry = config_entry
 
     @property
@@ -179,11 +182,56 @@ class SolarEdgeSensorBase(SensorEntity):
     #    self._platform.async_remove_solaredge_sensor(self._platform._modbus_data_updated)
 
 
-class SolarEdgeVoltageSensor(SolarEdgeSensorBase):
+class SerialNumber(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+    
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_serial_number"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Serial Number"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.serial
+
+class DeviceAddress(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+    
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_device_address"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Device Address"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.device_address
+
+class VoltageSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
     state_class = STATE_CLASS_MEASUREMENT
     native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
-    entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, name, key, config_entry):
         super().__init__(platform, name, key, config_entry)
@@ -191,11 +239,11 @@ class SolarEdgeVoltageSensor(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.serial}_test"
+        return f"{self._platform.model}_{self._platform.serial}_voltage"
 
     @property
     def name(self) -> str:
-        return f"Test"
+        return f"{self._platform._device_info['name']} Voltage"
 
     @property
     def available(self) -> bool:
