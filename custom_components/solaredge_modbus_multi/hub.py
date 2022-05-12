@@ -245,11 +245,11 @@ class SolarEdgeInverter:
 class SolarEdgeMeter:
     def __init__(self, device_id: int, meter_id: int, hub: SolarEdgeModbusHub) -> None:
         
-        if meter_id == 1:
+        if meter_id is 1:
             start_address = 40000 + 121
-        elif meter_id == 2:
+        elif meter_id is 2:
             start_address = 40000 + 295
-        elif meter_id == 2:
+        elif meter_id is 2:
             start_address = 40000 + 469
         else:
             raise ValueError("Invalid meter_id")
