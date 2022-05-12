@@ -12,7 +12,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
-    DOMAIN
+    DOMAIN,
     DEVICE_STATUS, VENDOR_STATUS,
     SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
     SUNSPEC_NOT_IMPL_UINT32, SUNSPEC_NOT_ACCUM_ACC32,
@@ -150,7 +150,8 @@ class SolarEdgeModbusMultiHub:
         """start reading inverter data"""
         for inverter_index in range(self.number_of_inverters):
             try:
-                raise NotImplementedError            
+                raise NotImplementedError
+                            
             except Exception as error:
                 _LOGGER.error("Error reading inverter at id %s: %s", inverter_unit_id, error)
                 return False
@@ -179,6 +180,7 @@ class SolarEdgeModbusMultiHub:
         """start reading meter data"""
         try:
             raise NotImplementedError
+            
         except Exception as error:
             _LOGGER.error("Error reading meter on inverter %s: %s", self.device_id, error)
             return False
