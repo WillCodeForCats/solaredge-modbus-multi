@@ -3,11 +3,14 @@ import threading
 
 from typing import Any, Callable, Optional, Dict
 from datetime import timedelta
+from collections import OrderedDict
 
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.compat import iteritems
 
+from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
 
@@ -30,13 +33,13 @@ class SolarEdgeModbusMultiHub:
 
     def __init__(
         self,
-        hass,
-        name,
-        host,
-        port,
-        scan_interval,
-        number_of_inverters=1,
-        device_id=1,
+        hass: HomeAssistant,
+        name: str,
+        host: str,
+        port: int,
+        scan_interval: int,
+        number_of_inverters: bool = 1,
+        start_device_id: int = 1,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -47,29 +50,42 @@ class SolarEdgeModbusMultiHub:
         self.read_meter2 = False
         self.read_meter3 = False
         self.number_of_inverters = number_of_inverters
-        self.device_id = device_id
+        self.start_device_id = start_device_id
         self._scan_interval = timedelta(seconds=scan_interval)
         self._unsub_interval_method = None
         self._sensors = []
         self.data = {}
         
-        self.se_inverters = []
+        self._id = name.lower()
+        
+        self.online = False
+        
+        self.inverters = []
         self.se_meters = []
 
     async def async_init_solaredge(self) -> None:
-        
+
+        if not self.is_socket_open():        
+            self.connect()
+
         for inverter_index in range(self.number_of_inverters):
-            inverter_unit_id = inverter_index + self.device_id
-            self.se_inverters.append(SolarEdgeInverter(inverter_unit_id, self))
+            inverter_unit_id = inverter_index + self.start_device_id
+            self.inverters.append(SolarEdgeInverter(inverter_unit_id, self))
+            _LOGGER.info(f"Setting up inverter unit {inverter_unit_id}")
         
         if self.read_meter1 == True:
-            self.se_meters.append(SolarEdgeMeter(self.device_id, 1, self))
+            self.se_meters.append(SolarEdgeMeter(inverter_unit_id, 1, self))
+            _LOGGER.info(f"Setting up meter 1 on inverter unit {inverter_unit_id}")
 
         if self.read_meter2 == True:
-            self.se_meters.append(SolarEdgeMeter(self.device_id, 2, self))
+            self.se_meters.append(SolarEdgeMeter(inverter_unit_id, 2, self))
+            _LOGGER.info(f"Setting up meter 2 on inverter unit {inverter_unit_id}")
 
         if self.read_meter3 == True:
-            self.se_meters.append(SolarEdgeMeter(self.device_id, 3, self))
+            self.se_meters.append(SolarEdgeMeter(inverter_unit_id, 3, self))
+            _LOGGER.info(f"Setting up meter 3 on inverter unit {inverter_unit_id}")
+
+        self.online = True
 
     @callback
     def async_add_solaredge_sensor(self, update_callback):
@@ -117,6 +133,10 @@ class SolarEdgeModbusMultiHub:
         """Return the name of this hub."""
         return self._name
 
+    @property
+    def hub_id(self) -> str:
+        return self._id
+
     def close(self):
         """Disconnect client."""
         with self._lock:
@@ -131,6 +151,10 @@ class SolarEdgeModbusMultiHub:
         """Check client."""
         with self._lock:
             return self._client.is_socket_open()
+
+    async def shutdown(self) -> None:
+        self.online = False        
+        self.close()
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -191,11 +215,13 @@ class SolarEdgeModbusMultiHub:
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
 
-        inverter_prefix = "i" + str(inverter_index + 1) + "_"
-        inverter_unit_id = inverter_index + self.device_id
+        self.inverter_unit_id = device_id
+        self.sensor_prefix = f"i{self.inverter_unit_id}_"
+        self._id = f"inverter_{self.inverter_unit_id}"
+        self.hub = hub
         
         inverter_data = hub.read_holding_registers(
-            unit=inverter_unit_id, address=40000, count=4
+            unit=self.inverter_unit_id, address=40000, count=4
         )
         assert(not inverter_data.isError())
         
@@ -209,10 +235,17 @@ class SolarEdgeInverter:
             ('C_SunSpec_Length', decoder.decode_16bit_uint()),
         ])
         
+        for name, value in iteritems(decoded_ident):
+            _LOGGER.info("%s %s", name, hex(value) if isinstance(value, int) else value)
+        
         inverter_data = hub.read_holding_registers(
-            unit=inverter_unit_id, address=40004, count=decoded_ident['C_SunSpec_Length']
+            unit=self.inverter_unit_id, address=40004, count=decoded_ident['C_SunSpec_Length']
         )
         assert(not inverter_data.isError())
+
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            inverter_data.registers, byteorder=Endian.Big
+        )
    
         decoded_common = OrderedDict([
             ('C_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
@@ -223,19 +256,27 @@ class SolarEdgeInverter:
             ('C_Device_address', decoder.decode_16bit_uint()),
         ])
         
+        for name, value in iteritems(decoded_common):
+            _LOGGER.info("%s %s", name, hex(value) if isinstance(value, int) else value)
+
+      
         self.model = decoded_common['C_Model']
-        self.option = decoded_common['C_Opt']
+        self.option = decoded_common['C_Option']
         self.serial = decoded_common['C_SerialNumber']
         self.firmware_version = decoded_common['C_Version']
         
         self._device_info = {
-            "identifiers": {(DOMAIN, self.hub.name)},
-            "name": f"{hub.name.capitalize()} Inverter {device_id}",
+            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
+            "name": f"{hub.hub_id.capitalize()} Inverter {self.inverter_unit_id}",
             "manufacturer": decoded_common['C_Manufacturer'],
             "model": self.model,
             "sw_version": self.firmware_version,
         }
 
+    @property
+    def online(self) -> bool:
+        """Device is online."""
+        return self.hub.online
 
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
@@ -285,7 +326,7 @@ class SolarEdgeMeter:
         ])
 
         self.model = decoded_common['C_Model']
-        self.option = decoded_common['C_Opt']
+        self.option = decoded_common['C_Option']
         self.serial = decoded_common['C_SerialNumber']
         self.firmware_version = decoded_common['C_Version']
 

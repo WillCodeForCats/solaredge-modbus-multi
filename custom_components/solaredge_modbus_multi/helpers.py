@@ -1,13 +1,13 @@
-def scale_factor(self, value: int, sf: int):
+def scale_factor(value: int, sf: int):
     try:
         return value * (10 ** sf)
     except ZeroDivisionError:
         return 0
     
-def watts_to_kilowatts(self, value):
+def watts_to_kilowatts(value):
     return round(value * 0.001, 3)
 
-def parse_modbus_string(self, s: str) -> str:
+def parse_modbus_string(s: str) -> str:
     return s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
 
 def update_accum(self, key: str, raw: int, current: int) -> None:

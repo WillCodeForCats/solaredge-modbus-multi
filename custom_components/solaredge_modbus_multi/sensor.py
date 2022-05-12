@@ -5,8 +5,10 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 
 from homeassistant.core import HomeAssistant
+
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from homeassistant.const import (
@@ -33,15 +35,17 @@ from .const import (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
 
-    hub = hass.data[DOMAIN][entry.entry_id]
-    config_name = entry.data[CONF_NAME]  
+    hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
-    
+        
+    for inverter in hub.inverters:
+        entities.append(SolarEdgeVoltageSensor(inverter, "test sensor", "test_sensor", config_entry))
+        
     #for inverter_index in range(hub.se_inverters):
         #"C_Model": ["Model", "model", None, None, EntityCategory.DIAGNOSTIC],
         #"C_SerialNumber": ["Serial Number", "serialnumber", None, None, EntityCategory.DIAGNOSTIC],
@@ -141,23 +145,24 @@ async def async_setup_entry(
         #"IMPORT_VARH_Q4_C": ["Import varh Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
         #"M_Events": ["Meter Events", "meterevents", None, None, EntityCategory.DIAGNOSTIC],
 
-    async_add_entities(entities)
+    if entities:
+        async_add_entities(entities)
 
 
 class SolarEdgeSensorBase(SensorEntity):
 
     should_poll = False
 
-    def __init__(self, platform_name, hub, name, key):
+    def __init__(self, platform, name, key, config_entry):
         """Initialize the sensor."""
-        self._platform_name = platform_name
-        self._hub = hub
+        self._platform = platform
         self._key = key
         self._name = name
+        self._config_entry = config_entry
 
     @property
     def device_info(self):
-        return self.device_info
+        return self._platform.device_info
 
     @property
     def config_entry_id(self):
@@ -167,30 +172,30 @@ class SolarEdgeSensorBase(SensorEntity):
     def config_entry_name(self):
         return self._config_entry.data['name']
 
-    async def async_added_to_hass(self):
-        self._hub.async_add_solaredge_sensor(self._hub._modbus_data_updated)
+    #async def async_added_to_hass(self):
+    #    self._platform.async_add_solaredge_sensor(self._platform._modbus_data_updated)
 
-    async def async_will_remove_from_hass(self) -> None:
-        self._hub.async_remove_solaredge_sensor(self._hub._modbus_data_updated)
+    #async def async_will_remove_from_hass(self) -> None:
+    #    self._platform.async_remove_solaredge_sensor(self._platform._modbus_data_updated)
 
 
 class SolarEdgeVoltageSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
     state_class = STATE_CLASS_MEASUREMENT
     native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
-    #entity_category = EntityCategory.DIAGNOSTIC
+    entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, platform_name, hub, name, key):
-        super().__init__(platform_name, hub, name, key)
+    def __init__(self, platform, name, key, config_entry):
+        super().__init__(platform, name, key, config_entry)
         """Initialize the sensor."""
 
     @property
     def unique_id(self) -> str:
-        return f""
+        return f"{self._platform.serial}_test"
 
     @property
     def name(self) -> str:
-        return f""
+        return f"Test"
 
     @property
     def available(self) -> bool:
