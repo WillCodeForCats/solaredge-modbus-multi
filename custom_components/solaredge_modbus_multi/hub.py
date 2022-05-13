@@ -390,7 +390,7 @@ class SolarEdgeMeter:
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
-            "name": f"{hub.hub_id.capitalize()} M{self.inverter_unit_id}",
+            "name": f"{hub.hub_id.capitalize()} M{self.inverter_unit_id}-{meter_id}",
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
@@ -457,7 +457,7 @@ class SolarEdgeBattery:
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
-            "name": f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}",
+            "name": f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}-{battery_id}",
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
