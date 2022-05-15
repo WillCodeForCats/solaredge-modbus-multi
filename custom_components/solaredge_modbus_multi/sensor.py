@@ -45,7 +45,7 @@ async def async_setup_entry(
         
     for inverter in hub.inverters:
         entities.append(SerialNumber(inverter, config_entry))
-        entities.append(DeviceAddress(inverter, config_entry))
+        entities.append(DeviceID(inverter, config_entry))
         
     #for inverter_index in range(hub.se_inverters):
         #"C_Model": ["Model", "model", None, None, EntityCategory.DIAGNOSTIC],
@@ -77,8 +77,8 @@ async def async_setup_entry(
 
     for meter in hub.meters:
         entities.append(SerialNumber(meter, config_entry))
-        entities.append(DeviceAddress(meter, config_entry))
-        entities.append(ParentAddress(meter, config_entry))
+        entities.append(DeviceID(meter, config_entry))
+        entities.append(ParentDeviceID(meter, config_entry))
 
     #for meter_index in range(hub.se_meters):
         #"C_Model": ["Model", "model", None, None, EntityCategory.DIAGNOSTIC],
@@ -149,8 +149,8 @@ async def async_setup_entry(
 
     for battery in hub.batteries:
         entities.append(SerialNumber(battery, config_entry))
-        entities.append(DeviceAddress(battery, config_entry))
-        entities.append(ParentAddress(battery, config_entry))
+        entities.append(DeviceID(battery, config_entry))
+        entities.append(ParentDeviceID(battery, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -207,7 +207,7 @@ class SerialNumber(SolarEdgeSensorBase):
     def native_value(self):
         return self._platform.serial
 
-class DeviceAddress(SolarEdgeSensorBase):
+class DeviceID(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
     def __init__(self, platform, config_entry):
@@ -216,11 +216,11 @@ class DeviceAddress(SolarEdgeSensorBase):
         
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_device_address"
+        return f"{self._platform.model}_{self._platform.serial}_device_id"
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Device Address"
+        return f"{self._platform._device_info['name']} Device ID"
 
     @property
     def available(self) -> bool:
@@ -230,7 +230,7 @@ class DeviceAddress(SolarEdgeSensorBase):
     def native_value(self):
         return self._platform.device_address
 
-class ParentAddress(SolarEdgeSensorBase):
+class ParentDeviceID(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
     def __init__(self, platform, config_entry):
@@ -239,11 +239,11 @@ class ParentAddress(SolarEdgeSensorBase):
         
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_parent_address"
+        return f"{self._platform.model}_{self._platform.serial}_parent_device_id"
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Parent Address"
+        return f"{self._platform._device_info['name']} Parent Device ID"
 
     @property
     def available(self) -> bool:
