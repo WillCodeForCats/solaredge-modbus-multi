@@ -30,16 +30,6 @@ SUNSPEC_NOT_IMPL_UINT32 = 0xFFFFFFFF
 SUNSPEC_NOT_ACCUM_ACC32 = 0x00000000
 SUNSPEC_ACCUM_LIMIT = 4294967295
 
-SUNSPEC_DID = {
-    101: "Single Phase Inverter",
-    102: "Split Phase Inverter",
-    103: "Three Phase Inverter",
-    201: "Single Phase Meter",
-    202: "Split Phase Meter",
-    203: "Three Phase Wye Meter",
-    204: "Three Phase Delta Meter",
-}
-
 # parameter names per sunspec
 DEVICE_STATUS_DESC = {
     1: "I_STATUS_OFF",
@@ -52,23 +42,8 @@ DEVICE_STATUS_DESC = {
     8: "I_STATUS_STANDBY",
 }
 
-FR_DEVICE_STATUS = {
-    1: "I_STATUS_OFF",
-    2: "I_STATUS_SLEEPING",
-    3: "I_STATUS_STARTING",
-    4: "I_STATUS_MPPT",
-    5: "I_STATUS_THROTTLED",
-    6: "I_STATUS_SHUTTING_DOWN",
-    7: "I_STATUS_FAULT",
-    8: "I_STATUS_STANDBY",
-    9: "I_STATUS_NO_BUSINIT",
-    10: "I_STATUS_NO_COMM_INV",
-    11: "I_STATUS_SN_OVERCURRENT",
-    12: "I_STATUS_BOOTLOAD",
-    13: "I_STATUS_AFCI",
-}
-
-SE_DEVICE_STATUS_DESC = {
+# English descriptions of parameter names
+DEVICE_STATUS = {
     SUNSPEC_NOT_IMPL_INT16: None,
     0: "Unknown",
     1: "Off",
@@ -81,24 +56,7 @@ SE_DEVICE_STATUS_DESC = {
     8: "Maintenance",
 }
 
-FR_DEVICE_STATUS_DESC = {
-    SUNSPEC_NOT_IMPL_INT16: None,
-    1: "Off",
-    2: "Sleeping (Auto-Shutdown)",
-    3: "Starting",
-    4: "Production",
-    5: "Production (Curtailed)",
-    6: "Shutting Down",
-    7: "Fault",
-    8: "Standby",
-    9: "No SolarNet Comms",
-    10: "No Inverter Comms",
-    11: "SolarNet Overcurrent",
-    12: "Update In Progress",
-    13: "Arc Detection",
-}
-
-SE_VENDOR_STATUS = {
+VENDOR_STATUS = {
     SUNSPEC_NOT_IMPL_INT16: None,
     0: "No Error",
     17: "Temperature too high",
@@ -138,23 +96,15 @@ SE_VENDOR_STATUS = {
     153: "Hardware error",
 }
 
-FR_VENDOR_STATUS = {
-    SUNSPEC_NOT_IMPL_INT16: None,
-    1: "Off",
-    2: "Sleeping (auto-shutdown)",
-    3: "Starting up",
-    4: "Tracking power point",
-    5: "Forced power reduction",
-    6: "Shutting down",
-    7: "One or more faults exist",
-    8: "Standby (service on unit)",
-    9: "No SolarNet communication",
-    10: "No communication with inverter",
-    11: "Overcurrent on SolarNet plug detected",
-    12: "Inverter is being updated",
-    13: "AFCI Event",
+SUNSPEC_DID = {
+    101: "Single Phase Inverter",
+    102: "Split Phase Inverter",
+    103: "Three Phase Inverter",
+    201: "Single Phase Meter",
+    202: "Split Phase Meter",
+    203: "Three Phase Wye Meter",
+    204: "Three Phase Delta Meter",
 }
-
 
 METER_EVENTS = {
     2: "M_EVENT_Power_Failure",
