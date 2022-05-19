@@ -23,9 +23,11 @@ Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.co
 
 ### Features
 * Inverter support for 1 to 32 SolarEdge inverters.
-* Meter support for 1 to 3 meters (first inverter only).
-* Custom polling frequency between 10 to 86400 seconds.
-* Configurable inverter device address.
+* Meter support for 1 to 3 meters per inverter.
+* Battery support for 1 or 2 batteries per inverter.
+* Automatically detects meters and batteries.
+* Polling frequency option between 10 to 86400 seconds.
+* Configurable starting inverter device ID.
 * Connects using Modbus/TCP - no cloud dependencies.
 * Informational sensors for inverters and meters.
 * Supports status and error reporting sensors.
