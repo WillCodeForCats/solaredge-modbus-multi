@@ -9,6 +9,7 @@ Connects locally using Modbus/TCP to single or multiple inverters with support f
 
 ### Breaking Change in v1.2.x
 * Change domain and directory to `solaredge_modbus_multi`
+* Be aware that loss of entity history is possible.
 
 ### Required Steps to Upgrade to v1.2.0
 
