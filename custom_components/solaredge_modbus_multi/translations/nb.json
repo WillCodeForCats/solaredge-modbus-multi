@@ -11,8 +11,7 @@
           "device_id": "Inverter Modbus-adresse (enhets-ID)",
           "read_meter_1": "Bruk måler 1",
           "read_meter_2": "Bruk måler 2",
-          "read_meter_3": "Bruk måler 3",
-          "scan_interval": "Avstemningsfrekvens (sekunder)"
+          "read_meter_3": "Bruk måler 3"
         }
       }
     },
@@ -24,11 +23,23 @@
       "min_inverters": "Må være mellom 1 og 32 omformere.",
       "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
       "invalid_host": "Ugyldig IP-adresse.",
-      "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
-      "invalid_scan_interval": "Gyldig intervall er 10 til 86400 sekunder."
+      "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
     },
     "abort": {
       "already_configured": "Enheten er allerede konfigurert"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SolarEdge Modbus Options",
+        "data": {
+          "scan_interval": "Avstemningsfrekvens (sekunder)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Gyldig intervall er 10 til 86400 sekunder."
     }
   }
 }
