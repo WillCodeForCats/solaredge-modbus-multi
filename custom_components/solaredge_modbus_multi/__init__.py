@@ -15,7 +15,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
 from .const import (
-    DOMAIN,
+    DOMAIN, DEFAULT_SCAN_INTERVAL,
     SE_DEVICE_STATUS_DESC, SE_VENDOR_STATUS,
     FR_DEVICE_STATUS_DESC, FR_VENDOR_STATUS,
     CONF_NUMBER_INVERTERS, CONF_DEVICE_ID,
@@ -41,7 +41,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     host = entry.data[CONF_HOST]
     name = entry.data[CONF_NAME]
     port = entry.data[CONF_PORT]
-    scan_interval = entry.data[CONF_SCAN_INTERVAL]
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
@@ -49,6 +48,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     device_id = entry.data.get(CONF_DEVICE_ID, 1)
     
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
+
+    entry_updates: dict[str, Any] = {}
+    if CONF_SCAN_INTERVAL in entry.data:
+        data = {**entry.data}
+        entry_updates["data"] = data
+        entry_updates["options"] = {
+            **entry.options,
+            CONF_SCAN_INTERVAL: data.pop(CONF_SCAN_INTERVAL),
+        }
+    if entry_updates:
+        hass.config_entries.async_update_entry(entry, **entry_updates)
+
+    scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
     hub = SolaredgeModbusMultiHub(
         hass, name, host, port, scan_interval,
@@ -62,6 +74,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
+        
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
     return True
 
 
@@ -80,6 +95,11 @@ async def async_unload_entry(hass, entry):
 
     hass.data[DOMAIN].pop(entry.data["name"])
     return True
+
+
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle an options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 class SolaredgeModbusMultiHub:
