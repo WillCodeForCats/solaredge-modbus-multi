@@ -11,8 +11,7 @@
           "device_id": "Omvormer Modbus-adres (apparaat-ID)",
           "read_meter_1": "Gebruik meter 1",
           "read_meter_2": "Gebruik meter 2",
-          "read_meter_3": "Gebruik meter 3",
-          "scan_interval": "Oproepfrequentie (seconden)"
+          "read_meter_3": "Gebruik meter 3"
         }
       }
     },
@@ -24,11 +23,23 @@
       "min_inverters": "Moet tussen 1 en 32 omvormers zijn.",
       "too_many_inverters": "Aantal omvormers te hoog voor Device ID.",
       "invalid_host": "Ongeldig IP-adres.",
-      "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
-      "invalid_scan_interval": "Geldig interval is 10 tot 86400 seconden."
+      "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
     },
     "abort": {
       "already_configured": "Apparaat is al geconfigureerd"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SolarEdge Modbus Options",
+        "data": {
+          "scan_interval": "Oproepfrequentie (seconden)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Geldig interval is 10 tot 86400 seconden."
     }
   }
 }

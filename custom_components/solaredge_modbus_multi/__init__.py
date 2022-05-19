@@ -13,7 +13,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from .const import (
-    DOMAIN,
+    DOMAIN, DEFAULT_SCAN_INTERVAL,
     CONF_NUMBER_INVERTERS,
     CONF_DEVICE_ID
 )
@@ -22,12 +22,24 @@ PLATFORMS: list[str] = ["sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus from a config entry."""
+
+    entry_updates: dict[str, Any] = {}
+    if CONF_SCAN_INTERVAL in entry.data:
+        data = {**entry.data}
+        entry_updates["data"] = data
+        entry_updates["options"] = {
+            **entry.options,
+            CONF_SCAN_INTERVAL: data.pop(CONF_SCAN_INTERVAL),
+        }
+    if entry_updates:
+        hass.config_entries.async_update_entry(entry, **entry_updates)
+
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass,
         entry.data[CONF_NAME],
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
-        entry.data.get(CONF_SCAN_INTERVAL, 300),
+        entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         entry.data.get(CONF_NUMBER_INVERTERS, 1),
         entry.data.get(CONF_DEVICE_ID, 1)
     )

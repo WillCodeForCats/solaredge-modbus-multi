@@ -16,6 +16,8 @@ from .const import (
     CONF_NUMBER_INVERTERS,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.data_entry_flow import FlowResult
+from homeassistant.config_entries import ConfigEntry
 
 
 def host_valid(host):
@@ -39,6 +41,11 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry):
+        return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
     def _host_in_configuration_exists(self, host) -> bool:
         """Return True if host exists in configuration."""
@@ -70,10 +77,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_NUMBER_INVERTERS] = "min_inverters"
             elif user_input[CONF_NUMBER_INVERTERS] + user_input[CONF_DEVICE_ID] > 247:
                 errors[CONF_NUMBER_INVERTERS] = "too_many_inverters"
-            elif user_input[CONF_SCAN_INTERVAL] < 10:
-                errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
-            elif user_input[CONF_SCAN_INTERVAL] > 86400:
-                errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             else:
                 await self.async_set_unique_id(user_input[CONF_HOST])
                 self._abort_if_unique_id_configured()
@@ -87,7 +90,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_PORT: DEFAULT_PORT,
                 CONF_NUMBER_INVERTERS: DEFAULT_NUMBER_INVERTERS,
                 CONF_DEVICE_ID: DEFAULT_DEVICE_ID,
-                CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
             }
 
         return self.async_show_form(
@@ -109,10 +111,50 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_NUMBER_INVERTERS, default=user_input[CONF_NUMBER_INVERTERS]
                     ): vol.Coerce(int),
+                },
+            ),
+            errors = errors
+        )
+
+class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
+    def __init__(self, config_entry: ConfigEntry):
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input = None) -> FlowResult:
+        errors = {}
+
+        """Manage the options."""
+        if user_input is not None:
+            
+            if user_input[CONF_SCAN_INTERVAL] < 10:
+                errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
+            elif user_input[CONF_SCAN_INTERVAL] > 86400:
+                errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
+            else:
+                return self.async_create_entry(
+                    title = "",
+                    data = user_input
+                )
+        else:
+            if self.config_entry.options.get(CONF_SCAN_INTERVAL) is None:
+                user_input = {
+                    CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+                }
+            
+            else:
+                user_input = {
+                    CONF_SCAN_INTERVAL: self.config_entry.options.get(CONF_SCAN_INTERVAL),
+                }
+
+        return self.async_show_form(
+            step_id = "init",
+            data_schema = vol.Schema(
+                {
                     vol.Optional(
                         CONF_SCAN_INTERVAL, default=user_input[CONF_SCAN_INTERVAL]
                     ): vol.Coerce(int),
                 },
             ),
-            errors=errors
+            errors = errors
         )
