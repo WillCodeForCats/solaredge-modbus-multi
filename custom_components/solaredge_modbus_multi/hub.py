@@ -300,10 +300,11 @@ class SolarEdgeInverter:
         self.fw_version = decoded_common['C_Version']
         self.serial = decoded_common['C_SerialNumber']
         self.device_address = decoded_common['C_Device_address']
+        self.name = f"{hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
-            "name": f"{hub.hub_id.capitalize()} I{self.inverter_unit_id}",
+            "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
@@ -388,10 +389,11 @@ class SolarEdgeMeter:
         self.fw_version = decoded_common['C_Version']
         self.serial = decoded_common['C_SerialNumber']
         self.device_address = decoded_common['C_Device_address']
+        self.name = f"{hub.hub_id.capitalize()} M{self.inverter_unit_id}-{meter_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
-            "name": f"{hub.hub_id.capitalize()} M{self.inverter_unit_id}-{meter_id}",
+            "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
@@ -408,9 +410,7 @@ class SolarEdgeMeter:
         return self._device_info        
 
 
-class SolarEdgeBattery:
-    """Battery registers are not based on official SolarEdge specs. Use at your own risk!"""
-    
+class SolarEdgeBattery:    
     def __init__(self, device_id: int, battery_id: int, hub: SolarEdgeModbusMultiHub) -> None:
 
         self.inverter_unit_id = device_id
@@ -450,15 +450,18 @@ class SolarEdgeBattery:
         for name, value in iteritems(decoded_common):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
 
+        _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
+
         self.manufacturer = decoded_ident['B_Manufacturer']
         self.model = decoded_ident['B_Model']
         self.fw_version = decoded_ident['B_Version']
         self.serial = decoded_ident['B_SerialNumber']
         self.device_address = decoded_ident['B_Device_address']
+        self.name = f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}-{battery_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
-            "name": f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}-{battery_id}",
+            "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
