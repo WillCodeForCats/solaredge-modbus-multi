@@ -12,6 +12,7 @@ from pymodbus.compat import iteritems
 
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
@@ -72,6 +73,7 @@ class SolarEdgeModbusMultiHub:
             try:
                 self.inverters.append(SolarEdgeInverter(inverter_unit_id, self))
             except:
+                raise ConfigEntryNotReady(f"Inverter device ID {inverter_unit_id} not found.")
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id} not found.")
         
             try:
