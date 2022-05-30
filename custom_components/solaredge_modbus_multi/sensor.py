@@ -44,11 +44,14 @@ async def async_setup_entry(
     entities = []
         
     for inverter in hub.inverters:
+        entities.append(Manufacturer(inverter, config_entry))
+        entities.append(Model(inverter, config_entry))
+        entities.append(Option(inverter, config_entry))
+        entities.append(Version(inverter, config_entry))
         entities.append(SerialNumber(inverter, config_entry))
-        entities.append(DeviceID(inverter, config_entry))
+        entities.append(DeviceAddress(inverter, config_entry))
         
     #for inverter_index in range(hub.se_inverters):
-        #"C_Model": ["Model", "model", None, None, EntityCategory.DIAGNOSTIC],
         #"C_Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None, EntityCategory.DIAGNOSTIC],
         #"AC_Current": ["AC Current", "accurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
         #"AC_CurrentA": ["AC Current A", "accurrenta", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
@@ -76,13 +79,15 @@ async def async_setup_entry(
         #"Status_Vendor_Text": ["Status Vendor Text", "statusvendor_text", None, None, None],
 
     for meter in hub.meters:
+        entities.append(Manufacturer(meter, config_entry))
+        entities.append(Model(meter, config_entry))
+        entities.append(Option(meter, config_entry))
+        entities.append(Version(meter, config_entry))
         entities.append(SerialNumber(meter, config_entry))
-        entities.append(DeviceID(meter, config_entry))
-        entities.append(ParentDeviceID(meter, config_entry))
+        entities.append(DeviceAddress(meter, config_entry))
+        entities.append(DeviceAddressParent(meter, config_entry))
 
     #for meter_index in range(hub.se_meters):
-        #"C_Model": ["Model", "model", None, None, EntityCategory.DIAGNOSTIC],
-        #"C_Option": ["Option", "option", None, None, EntityCategory.DIAGNOSTIC],
         #"C_Sunspec_DID": ["Sunspec Device ID", "sunspecdid", None, None, EntityCategory.DIAGNOSTIC],
         #"AC_Current": ["AC Current", "accurrent", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
         #"AC_Current_A": ["AC Current_A", "accurrenta", ELECTRIC_CURRENT_AMPERE, "mdi:current-ac", None],
@@ -148,9 +153,12 @@ async def async_setup_entry(
         #"M_Events": ["Meter Events", "meterevents", None, None, EntityCategory.DIAGNOSTIC],
 
     for battery in hub.batteries:
+        entities.append(Manufacturer(battery, config_entry))
+        entities.append(Model(battery, config_entry))
+        entities.append(Version(battery, config_entry))
         entities.append(SerialNumber(battery, config_entry))
-        entities.append(DeviceID(battery, config_entry))
-        entities.append(ParentDeviceID(battery, config_entry))
+        entities.append(DeviceAddress(battery, config_entry))
+        entities.append(DeviceAddressParent(battery, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -207,7 +215,109 @@ class SerialNumber(SolarEdgeSensorBase):
     def native_value(self):
         return self._platform.serial
 
-class DeviceID(SolarEdgeSensorBase):
+class Manufacturer(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+    
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_manufacturer"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Manufacturer"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.manufacturer
+
+class Model(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+    
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_model"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Model"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.model
+
+class Option(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+    
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_option"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Option"
+
+    @property
+    def available(self) -> bool:
+        if len(self._platform.option) > 0:
+            return True
+        else:
+            return False
+            
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if len(self._platform.option) == 0:
+            return False
+        else:
+            return True
+
+    @property
+    def native_value(self):
+        return self._platform.option
+
+class Version(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+    
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_version"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Version"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.fw_version
+
+class DeviceAddress(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
     def __init__(self, platform, config_entry):
@@ -230,7 +340,7 @@ class DeviceID(SolarEdgeSensorBase):
     def native_value(self):
         return self._platform.device_address
 
-class ParentDeviceID(SolarEdgeSensorBase):
+class DeviceAddressParent(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
     def __init__(self, platform, config_entry):

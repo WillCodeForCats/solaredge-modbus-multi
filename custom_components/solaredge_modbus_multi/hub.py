@@ -456,6 +456,7 @@ class SolarEdgeBattery:
 
         self.manufacturer = decoded_ident['B_Manufacturer']
         self.model = decoded_ident['B_Model']
+        self.option = None
         self.fw_version = decoded_ident['B_Version']
         self.serial = decoded_ident['B_SerialNumber']
         self.device_address = decoded_ident['B_Device_address']
