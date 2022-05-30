@@ -189,56 +189,6 @@ class SolarEdgeModbusMultiHub:
             kwargs = {"unit": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
-    def read_modbus_data(self):
-        return (
-            self.read_modbus_data_inverters()
-            and self.read_modbus_data_meter1()
-            and self.read_modbus_data_meter2()
-            and self.read_modbus_data_meter3()
-        )
-
-    def read_modbus_data_inverters(self):
-        """start reading inverter data"""
-        for inverter_index in range(self.number_of_inverters):
-            try:
-                raise NotImplementedError
-                            
-            except Exception as error:
-                _LOGGER.error("Error reading inverter at id %s: %s", inverter_unit_id, error)
-                return False
-
-        return True
-
-    def read_modbus_data_meter1(self):
-        if not self.read_meter1:
-            return True
-        else:
-            return self.read_modbus_data_meter("m1_", 40000 + 121)
-
-    def read_modbus_data_meter2(self):
-        if not self.read_meter2:
-            return True
-        else:
-            return self.read_modbus_data_meter("m2_", 40000 + 295)
-
-    def read_modbus_data_meter3(self):
-        if not self.read_meter3:
-            return True
-        else:
-            return self.read_modbus_data_meter("m3_", 40000 + 469)
-
-    def read_modbus_data_meter(self, meter_prefix, start_address):
-        """start reading meter data"""
-        try:
-            raise NotImplementedError
-            
-        except Exception as error:
-            _LOGGER.error("Error reading meter on inverter %s: %s", self.device_id, error)
-            return False
-
-        return True
-
-
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
 
