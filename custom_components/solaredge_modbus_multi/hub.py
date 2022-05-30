@@ -72,9 +72,9 @@ class SolarEdgeModbusMultiHub:
             
             try:
                 self.inverters.append(SolarEdgeInverter(inverter_unit_id, self))
-            except:
+            except Exception as e:
+                _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
                 raise ConfigEntryNotReady(f"Inverter device ID {inverter_unit_id} not found.")
-                _LOGGER.error(f"Inverter device ID {inverter_unit_id} not found.")
         
             try:
                 _LOGGER.debug(f"Looking for meter 1 on inverter ID {inverter_unit_id}")
