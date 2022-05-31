@@ -17,10 +17,7 @@ from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
     DOMAIN,
-    DEVICE_STATUS, VENDOR_STATUS,
-    SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
-    SUNSPEC_NOT_IMPL_UINT32, SUNSPEC_NOT_ACCUM_ACC32,
-    SUNSPEC_ACCUM_LIMIT
+    SUNSPEC_NOT_IMPL_UINT16,
 )
 
 from .helpers import (
@@ -50,7 +47,7 @@ class SolarEdgeModbusMultiHub:
         self.number_of_inverters = number_of_inverters
         self.start_device_id = start_device_id
         self._scan_interval = timedelta(seconds=scan_interval)
-        self._unsub_interval_method = None
+        self._polling_interval = None
         self._sensors = []
         self.data = {}
         
@@ -77,82 +74,60 @@ class SolarEdgeModbusMultiHub:
                 raise ConfigEntryNotReady(f"Inverter device ID {inverter_unit_id} not found.")
         
             try:
-                _LOGGER.debug(f"Looking for meter 1 on inverter ID {inverter_unit_id}")
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 1, self))
                 _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.debug(f"Looking for meter 2 on inverter ID {inverter_unit_id}")
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 2, self))
                 _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.debug(f"Looking for meter 3 on inverter ID {inverter_unit_id}")
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 3, self))
                 _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.debug(f"Looking for battery 1 on inverter ID {inverter_unit_id}")
                 self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
                 _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
-                _LOGGER.debug(f"Looking for battery 2 on inverter ID {inverter_unit_id}")
                 self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
                 _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
+        for inverter in self.inverters:
+            inverter.read_modbus_data()
+            await inverter.publish_updates()
+
+        self.close()
+
+        self._polling_interval = async_track_time_interval(
+            self._hass, self.async_refresh_modbus_data, self._scan_interval
+        )
+
         self.online = True
-        self.close() # for dev only
-
-    @callback
-    def async_add_solaredge_sensor(self, update_callback):
-        """Listen for data updates."""
-        # This is the first sensor, set up interval.
-        if not self._sensors:
-            self._unsub_interval_method = async_track_time_interval(
-                self._hass, self.async_refresh_modbus_data, self._scan_interval
-            )
-
-        self._sensors.append(update_callback)
-
-    @callback
-    def async_remove_solaredge_sensor(self, update_callback):
-        """Remove data update."""
-        self._sensors.remove(update_callback)
-        
-        if self.is_socket_open():
-            self.close()
-
-        if not self._sensors:
-            """stop the interval timer upon removal of last sensor"""
-            self._unsub_interval_method()
-            self._unsub_interval_method = None
 
     async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> None:
         """Time to update."""
-        if not self._sensors:
-            return
 
-        self.connect()
+        if not self.is_socket_open():        
+            self.connect()
         
         if not self.is_socket_open():
-            _LOGGER.error("Could not open Modbus/TCP connection for %s", self._name)
+            _LOGGER.error(f"Could not open Modbus/TCP connection for {self._name}")
         else:
-            update_result = self.read_modbus_data()
-            if update_result:
-              for update_callback in self._sensors:
-                    update_callback()
-        
+            for inverter in self.inverters:
+                inverter.read_modbus_data()
+                await inverter.publish_updates()
+                
         self.close()
 
     @property
@@ -180,6 +155,8 @@ class SolarEdgeModbusMultiHub:
             return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
+        self._polling_interval()
+        self._polling_interval = None
         self.online = False        
         self.close()
 
@@ -194,8 +171,11 @@ class SolarEdgeInverter:
 
         self.inverter_unit_id = device_id
         self.hub = hub
-        
-        inverter_data = hub.read_holding_registers(
+        self.decoded_common = []
+        self.decoded_model = []
+        self._callbacks = set()
+   
+        inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40000, count=4
         )
         if inverter_data.isError():
@@ -222,19 +202,18 @@ class SolarEdgeInverter:
         ):
             raise RuntimeError("Inverter {self.inverter_unit_id} not usable.")
        
-        inverter_data = hub.read_holding_registers(
+        inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40004, count=65
         )
         if inverter_data.isError():
             _LOGGER.error(inverter_data)
             raise RuntimeError(inverter_data)
         
-
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
         )
-   
-        decoded_common = OrderedDict([
+        
+        self.decoded_common = OrderedDict([
             ('C_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
             ('C_Model', parse_modbus_string(decoder.decode_string(32))),
             ('C_Option', parse_modbus_string(decoder.decode_string(16))),
@@ -243,15 +222,15 @@ class SolarEdgeInverter:
             ('C_Device_address', decoder.decode_16bit_uint()),
         ])
         
-        for name, value in iteritems(decoded_common):
+        for name, value in iteritems(self.decoded_common):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
-
-        self.manufacturer = decoded_common['C_Manufacturer']
-        self.model = decoded_common['C_Model']
-        self.option = decoded_common['C_Option']
-        self.fw_version = decoded_common['C_Version']
-        self.serial = decoded_common['C_SerialNumber']
-        self.device_address = decoded_common['C_Device_address']
+        
+        self.manufacturer = self.decoded_common['C_Manufacturer']
+        self.model = self.decoded_common['C_Model']
+        self.option = self.decoded_common['C_Option']
+        self.fw_version = self.decoded_common['C_Version']
+        self.serial = self.decoded_common['C_SerialNumber']
+        self.device_address = self.decoded_common['C_Device_address']
         self.name = f"{hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         
         self._device_info = {
@@ -263,6 +242,102 @@ class SolarEdgeInverter:
             "hw_version": self.option,
         }
 
+    def register_callback(self, callback: Callable[[], None]) -> None:
+        """Register callback, called when SolarEdgeInverter changes state."""
+        self._callbacks.add(callback)
+
+    def remove_callback(self, callback: Callable[[], None]) -> None:
+        """Remove previously registered callback."""
+        self._callbacks.discard(callback)
+
+    async def publish_updates(self) -> None:
+        """Schedule call all registered callbacks."""
+        for callback in self._callbacks:
+            callback()
+
+    def read_modbus_data(self) -> None:
+        
+        inverter_data = self.hub.read_holding_registers(
+            unit=self.inverter_unit_id, address=40069, count=2
+        )
+        if inverter_data.isError():
+            _LOGGER.error(inverter_data)
+            raise RuntimeError(inverter_data)
+
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            inverter_data.registers, byteorder=Endian.Big
+        )
+        
+        decoded_ident = OrderedDict([
+            ('C_SunSpec_DID', decoder.decode_16bit_uint()),
+            ('C_SunSpec_Length', decoder.decode_16bit_uint()),
+        ])
+
+        for name, value in iteritems(decoded_ident):
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+ 
+        if (
+            decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
+            or decoded_ident['C_SunSpec_DID'] not in [101,102,103]
+            or decoded_ident['C_SunSpec_Length'] != 50
+        ):
+            raise RuntimeError("Inverter {self.inverter_unit_id} not usable.")
+
+        inverter_data = self.hub.read_holding_registers(
+            unit=self.inverter_unit_id, address=40071, count=38
+        )
+        if inverter_data.isError():
+            _LOGGER.error(inverter_data)
+            raise RuntimeError(inverter_data)
+            
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            inverter_data.registers, byteorder=Endian.Big
+        )
+        
+        self.decoded_model = OrderedDict([
+            ('C_SunSpec_DID',     decoded_ident['C_SunSpec_DID']),
+            ('I_AC_Current',      decoder.decode_16bit_uint()),
+            ('I_AC_CurrentA',     decoder.decode_16bit_uint()),
+            ('I_AC_CurrentB',     decoder.decode_16bit_uint()),
+            ('I_AC_CurrentC',     decoder.decode_16bit_uint()),
+            ('I_AC_Current_SF',   decoder.decode_16bit_int()),
+            ('I_AC_VoltageAB',    decoder.decode_16bit_uint()),
+            ('I_AC_VoltageBC',    decoder.decode_16bit_uint()),
+            ('I_AC_VoltageCA',    decoder.decode_16bit_uint()),
+            ('I_AC_VoltageAN',    decoder.decode_16bit_uint()),
+            ('I_AC_VoltageBN',    decoder.decode_16bit_uint()),
+            ('I_AC_VoltageCN',    decoder.decode_16bit_uint()),
+            ('I_AC_Voltage_SF',   decoder.decode_16bit_int()),
+            ('I_AC_Power',        decoder.decode_16bit_int()),
+            ('I_AC_Power_SF',     decoder.decode_16bit_int()),
+            ('I_AC_Frequency',    decoder.decode_16bit_uint()),
+            ('I_AC_Frequency_SF', decoder.decode_16bit_int()),
+            ('I_AC_VA',           decoder.decode_16bit_int()),
+            ('I_AC_VA_SF',        decoder.decode_16bit_int()),
+            ('I_AC_VAR',          decoder.decode_16bit_int()),
+            ('I_AC_VAR_SF',       decoder.decode_16bit_int()),
+            ('I_AC_PF',           decoder.decode_16bit_int()),
+            ('I_AC_PF_SF',        decoder.decode_16bit_int()),
+            ('I_AC_Energy_WH',    decoder.decode_32bit_uint()),
+            ('I_AC_Energy_WH_SF', decoder.decode_16bit_uint()),
+            ('I_DC_Current',      decoder.decode_16bit_uint()),
+            ('I_DC_Current_SF',   decoder.decode_16bit_int()),
+            ('I_DC_Voltage',      decoder.decode_16bit_uint()),
+            ('I_DC_Voltage_SF',   decoder.decode_16bit_int()),
+            ('I_DC_Power',        decoder.decode_16bit_int()),
+            ('I_DC_Power_SF',     decoder.decode_16bit_int()),
+            ('I_Temp_Cab',        decoder.decode_16bit_int()),
+            ('I_Temp_Sink',       decoder.decode_16bit_int()),
+            ('I_Temp_Trns',       decoder.decode_16bit_int()),
+            ('I_Temp_Other',      decoder.decode_16bit_int()),
+            ('I_Temp_SF',         decoder.decode_16bit_int()),
+            ('I_Status',          decoder.decode_16bit_int()),
+            ('I_Status_Vendor',   decoder.decode_16bit_int()),
+        ])
+
+        for name, value in iteritems(self.decoded_model):
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+ 
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -278,7 +353,8 @@ class SolarEdgeMeter:
 
         self.inverter_unit_id = device_id
         self.hub = hub
-        
+        self._callbacks = set()
+      
         if meter_id == 1:
             start_address = 40000 + 121
         elif meter_id == 2:
@@ -352,6 +428,19 @@ class SolarEdgeMeter:
             "hw_version": self.option,
         }
 
+    def register_callback(self, callback: Callable[[], None]) -> None:
+        """Register callback, called when SolarEdgeMeter changes state."""
+        self._callbacks.add(callback)
+
+    def remove_callback(self, callback: Callable[[], None]) -> None:
+        """Remove previously registered callback."""
+        self._callbacks.discard(callback)
+
+    async def publish_updates(self) -> None:
+        """Schedule call all registered callbacks."""
+        for callback in self._callbacks:
+            callback()
+
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -367,7 +456,8 @@ class SolarEdgeBattery:
 
         self.inverter_unit_id = device_id
         self.hub = hub
-        
+        self._callbacks = set()
+ 
         if battery_id == 1:
             start_address = 57600
         elif battery_id == 2:
@@ -420,6 +510,19 @@ class SolarEdgeBattery:
             "sw_version": self.fw_version,
             "hw_version": self.option,
         }
+
+    def register_callback(self, callback: Callable[[], None]) -> None:
+        """Register callback, called when SolarEdgeBattery changes state."""
+        self._callbacks.add(callback)
+
+    def remove_callback(self, callback: Callable[[], None]) -> None:
+        """Remove previously registered callback."""
+        self._callbacks.discard(callback)
+
+    async def publish_updates(self) -> None:
+        """Schedule call all registered callbacks."""
+        for callback in self._callbacks:
+            callback()
 
     @property
     def online(self) -> bool:

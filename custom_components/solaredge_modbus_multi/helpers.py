@@ -10,21 +10,18 @@ def watts_to_kilowatts(value):
 def parse_modbus_string(s: str) -> str:
     return s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
 
-def update_accum(self, key: str, raw: int, current: int) -> None:
-    try:
-        last = self.data[key]
-    except KeyError:
-        last = 0
+def update_accum(self, raw: int, current: int) -> None:
+    
+    if self.last is None:
+        self.last = 0
         
-    if last is None:
-        last = 0
-
     if not raw > 0:
-        raise ValueError(f"update_accum {key} must be non-zero value.")
+        raise ValueError(f"update_accum must be non-zero value.")
             
-    if current >= last:
+    if current >= self.last:
         # doesn't account for accumulator rollover, but it would probably take
         # several decades to roll over to 0 so we'll worry about it later
-        self.data[key] = current    
+        self.last = current
+        return current    
     else:
-        raise ValueError(f"update_accum {key} must be an increasing value.")
+        raise ValueError(f"update_accum must be an increasing value.")
