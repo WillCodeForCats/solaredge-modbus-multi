@@ -8,17 +8,7 @@ ATTR_DESCRIPTION = "description"
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_DEVICE_ID = "device_id"
 
-from homeassistant.helpers.entity import EntityCategory
-
-# units from homeassistant core
-from homeassistant.const import (
-    ENERGY_KILO_WATT_HOUR,
-    POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE,
-    ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
-    PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ,
-)
 # units missing in homeassistant core
-POWER_VOLT_AMPERE_REACTIVE = "var"
 ENERGY_VOLT_AMPERE_HOUR = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR = "varh"
 
