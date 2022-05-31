@@ -923,14 +923,14 @@ class SolaredgeModbusMultiHub:
             importvarhq2a = decoder.decode_32bit_uint()
             importvarhq2b = decoder.decode_32bit_uint()
             importvarhq2c = decoder.decode_32bit_uint()
-            importvarhq3 = decoder.decode_32bit_uint()
-            importvarhq3a = decoder.decode_32bit_uint()
-            importvarhq3b = decoder.decode_32bit_uint()
-            importvarhq3c = decoder.decode_32bit_uint()
-            importvarhq4 = decoder.decode_32bit_uint()
-            importvarhq4a = decoder.decode_32bit_uint()
-            importvarhq4b = decoder.decode_32bit_uint()
-            importvarhq4c = decoder.decode_32bit_uint()
+            exportvarhq3 = decoder.decode_32bit_uint()
+            exportvarhq3a = decoder.decode_32bit_uint()
+            exportvarhq3b = decoder.decode_32bit_uint()
+            exportvarhq3c = decoder.decode_32bit_uint()
+            exportvarhq4 = decoder.decode_32bit_uint()
+            exportvarhq4a = decoder.decode_32bit_uint()
+            exportvarhq4b = decoder.decode_32bit_uint()
+            exportvarhq4c = decoder.decode_32bit_uint()
             energyvarsf = decoder.decode_16bit_int()
 
             if (
@@ -1030,99 +1030,99 @@ class SolaredgeModbusMultiHub:
                 )
 
             if (
-                importvarhq3 == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq3 > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq3 == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq3 > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq3"] = None
+                self.data[meter_prefix + "exportvarhq3"] = None
             else:
-                importvarhq3 = self.scale_factor(importvarhq3, energyvarsf)
-                self.data[meter_prefix + "importvarhq3"] = round(
-                    importvarhq3, abs(energyvarsf)
+                exportvarhq3 = self.scale_factor(exportvarhq3, energyvarsf)
+                self.data[meter_prefix + "exportvarhq3"] = round(
+                    exportvarhq3, abs(energyvarsf)
                 )
 
             if (
-                importvarhq3a == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq3a > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq3a == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq3a > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq3a"] = None
+                self.data[meter_prefix + "exportvarhq3a"] = None
             else:
-                importvarhq3a = self.scale_factor(importvarhq3a, energyvarsf)
-                self.data[meter_prefix + "importvarhq3a"] = round(
-                    importvarhq3a, abs(energyvarsf)
+                exportvarhq3a = self.scale_factor(exportvarhq3a, energyvarsf)
+                self.data[meter_prefix + "exportvarhq3a"] = round(
+                    exportvarhq3a, abs(energyvarsf)
                 )
 
             if (
-                importvarhq3b == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq3b > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq3b == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq3b > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq3b"] = None
+                self.data[meter_prefix + "exportvarhq3b"] = None
             else:
-                importvarhq3b = self.scale_factor(importvarhq3b, energyvarsf)
-                self.data[meter_prefix + "importvarhq3b"] = round(
-                    importvarhq3b, abs(energyvarsf)
+                exportvarhq3b = self.scale_factor(exportvarhq3b, energyvarsf)
+                self.data[meter_prefix + "exportvarhq3b"] = round(
+                    exportvarhq3b, abs(energyvarsf)
                 )
 
             if (
-                importvarhq3c == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq3c > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq3c == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq3c > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq3c"] = None
+                self.data[meter_prefix + "exportvarhq3c"] = None
             else:
-                importvarhq3c = self.scale_factor(importvarhq3c, energyvarsf)
-                self.data[meter_prefix + "importvarhq3c"] = round(
-                    importvarhq3c, abs(energyvarsf)
+                exportvarhq3c = self.scale_factor(exportvarhq3c, energyvarsf)
+                self.data[meter_prefix + "exportvarhq3c"] = round(
+                    exportvarhq3c, abs(energyvarsf)
                 )
 
             if (
-                importvarhq4 == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq4 > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq4 == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq4 > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq4"] = None
+                self.data[meter_prefix + "exportvarhq4"] = None
             else:
-                importvarhq4 = self.scale_factor(importvarhq4, energyvarsf)
-                self.data[meter_prefix + "importvarhq4"] = round(
-                    importvarhq4, abs(energyvarsf)
+                exportvarhq4 = self.scale_factor(exportvarhq4, energyvarsf)
+                self.data[meter_prefix + "exportvarhq4"] = round(
+                    exportvarhq4, abs(energyvarsf)
                 )
 
             if (
-                importvarhq4a == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq4a > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq4a == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq4a > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq4a"] = None
+                self.data[meter_prefix + "exportvarhq4a"] = None
             else:
-                importvarhq4a = self.scale_factor(importvarhq4a, energyvarsf)
-                self.data[meter_prefix + "importvarhq4a"] = round(
-                    importvarhq4a, abs(energyvarsf)
+                exportvarhq4a = self.scale_factor(exportvarhq4a, energyvarsf)
+                self.data[meter_prefix + "exportvarhq4a"] = round(
+                    exportvarhq4a, abs(energyvarsf)
                 )
 
             if (
-                importvarhq4b == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq4b > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq4b == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq4b > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq4b"] = None
+                self.data[meter_prefix + "exportvarhq4b"] = None
             else:
-                importvarhq4b = self.scale_factor(importvarhq4b, energyvarsf)
-                self.data[meter_prefix + "importvarhq4b"] = round(
-                    importvarhq4b, abs(energyvarsf)
+                exportvarhq4b = self.scale_factor(exportvarhq4b, energyvarsf)
+                self.data[meter_prefix + "exportvarhq4b"] = round(
+                    exportvarhq4b, abs(energyvarsf)
                 )
 
             if (
-                importvarhq4c == SUNSPEC_NOT_ACCUM_ACC32 or 
-                importvarhq4c > SUNSPEC_ACCUM_LIMIT or
+                exportvarhq4c == SUNSPEC_NOT_ACCUM_ACC32 or 
+                exportvarhq4c > SUNSPEC_ACCUM_LIMIT or
                 energyvasf == SUNSPEC_NOT_IMPL_INT16
             ):
-                self.data[meter_prefix + "importvarhq4c"] = None
+                self.data[meter_prefix + "exportvarhq4c"] = None
             else:
-                importvarhq4c = self.scale_factor(importvarhq4c, energyvarsf)
-                self.data[meter_prefix + "importvarhq4c"] = round(
-                    importvarhq4c, abs(energyvarsf)
+                exportvarhq4c = self.scale_factor(exportvarhq4c, energyvarsf)
+                self.data[meter_prefix + "exportvarhq4c"] = round(
+                    exportvarhq4c, abs(energyvarsf)
                 )
         
             meterevents = decoder.decode_32bit_uint()
