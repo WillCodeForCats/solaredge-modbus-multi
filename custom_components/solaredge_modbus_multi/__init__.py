@@ -1,8 +1,6 @@
 """The SolarEdge Modbus Integration."""
 from .hub import SolarEdgeModbusMultiHub
 
-#import asyncio
-
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.const import (
@@ -22,7 +20,7 @@ PLATFORMS: list[str] = ["sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus from a config entry."""
-
+    
     entry_updates: dict[str, Any] = {}
     if CONF_SCAN_INTERVAL in entry.data:
         data = {**entry.data}
@@ -33,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         }
     if entry_updates:
         hass.config_entries.async_update_entry(entry, **entry_updates)
-
+    
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass,
         entry.data[CONF_NAME],
@@ -43,15 +41,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get(CONF_NUMBER_INVERTERS, 1),
         entry.data.get(CONF_DEVICE_ID, 1)
     )
-        
+    
     await solaredge_hub.async_init_solaredge()
     
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = solaredge_hub
-
+    
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
-
+    
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
+    
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
