@@ -41,7 +41,8 @@ class SolarEdgeModbusMultiHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._client = ModbusTcpClient(host=host, port=port)
+        self._host = host
+        self._port = port
         self._lock = threading.Lock()
         self._name = name
         self.number_of_inverters = number_of_inverters
@@ -50,6 +51,8 @@ class SolarEdgeModbusMultiHub:
         self._polling_interval = None
         self._sensors = []
         self.data = {}
+
+        self._client = ModbusTcpClient(host=self._host, port=self._port)
         
         self._id = name.lower()
         
@@ -75,37 +78,45 @@ class SolarEdgeModbusMultiHub:
         
             try:
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 1, self))
-                _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
+                _LOGGER.info(f"Found meter 1 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 2, self))
-                _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
+                _LOGGER.info(f"Found meter 2 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
                 self.meters.append(SolarEdgeMeter(inverter_unit_id, 3, self))
-                _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
+                _LOGGER.info(f"Found meter 3 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
                 self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
-                _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
+                _LOGGER.info(f"Found battery 1 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
             try:
                 self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
-                _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
+                _LOGGER.info(f"Found battery 2 on inverter ID {inverter_unit_id}")
             except:
                 pass
 
-        for inverter in self.inverters:
-            inverter.read_modbus_data()
-            await inverter.publish_updates()
+        try:
+            for inverter in self.inverters:
+                inverter.read_modbus_data()
+                await inverter.publish_updates()
+
+            for meter in self.meters:
+                meter.read_modbus_data()
+                await meter.publish_updates()
+
+        except:
+            raise ConfigEntryNotReady(f"Devices not ready.")
 
         self.close()
 
@@ -116,18 +127,29 @@ class SolarEdgeModbusMultiHub:
         self.online = True
 
     async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> None:
-        """Time to update."""
 
         if not self.is_socket_open():        
             self.connect()
         
         if not self.is_socket_open():
-            _LOGGER.error(f"Could not open Modbus/TCP connection for {self._name}")
+            self.online = False
+            _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
+        
         else:
-            for inverter in self.inverters:
-                inverter.read_modbus_data()
-                await inverter.publish_updates()
+            self.online = True
+            try:
+                for inverter in self.inverters:
+                    inverter.read_modbus_data()
+                    await inverter.publish_updates()
                 
+                for meter in self.meters:
+                    meter.read_modbus_data()
+                    await meter.publish_updates()
+            
+            except Exception as e:
+                self.online = False
+                _LOGGER.error(f"Failed to update devices: {e}")
+
         self.close()
 
     @property
@@ -168,13 +190,13 @@ class SolarEdgeModbusMultiHub:
 
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
-
+        
         self.inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
         self._callbacks = set()
-   
+        
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40000, count=4
         )
@@ -185,13 +207,13 @@ class SolarEdgeInverter:
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
         )
-
+        
         decoded_ident = OrderedDict([
             ('C_SunSpec_ID', decoder.decode_32bit_uint()),
             ('C_SunSpec_DID', decoder.decode_16bit_uint()),
             ('C_SunSpec_Length', decoder.decode_16bit_uint()),
         ])
-
+        
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
  
@@ -201,7 +223,7 @@ class SolarEdgeInverter:
             or decoded_ident['C_SunSpec_Length'] != 65
         ):
             raise RuntimeError("Inverter {self.inverter_unit_id} not usable.")
-       
+        
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40004, count=65
         )
@@ -263,7 +285,7 @@ class SolarEdgeInverter:
         if inverter_data.isError():
             _LOGGER.error(inverter_data)
             raise RuntimeError(inverter_data)
-
+        
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
         )
@@ -272,54 +294,54 @@ class SolarEdgeInverter:
             ('C_SunSpec_DID', decoder.decode_16bit_uint()),
             ('C_SunSpec_Length', decoder.decode_16bit_uint()),
         ])
-
+        
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
- 
+        
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
             or decoded_ident['C_SunSpec_DID'] not in [101,102,103]
             or decoded_ident['C_SunSpec_Length'] != 50
         ):
             raise RuntimeError("Inverter {self.inverter_unit_id} not usable.")
-
+        
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40071, count=38
         )
         if inverter_data.isError():
             _LOGGER.error(inverter_data)
             raise RuntimeError(inverter_data)
-            
+        
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
         )
         
         self.decoded_model = OrderedDict([
             ('C_SunSpec_DID',     decoded_ident['C_SunSpec_DID']),
-            ('I_AC_Current',      decoder.decode_16bit_uint()),
-            ('I_AC_CurrentA',     decoder.decode_16bit_uint()),
-            ('I_AC_CurrentB',     decoder.decode_16bit_uint()),
-            ('I_AC_CurrentC',     decoder.decode_16bit_uint()),
-            ('I_AC_Current_SF',   decoder.decode_16bit_int()),
-            ('I_AC_VoltageAB',    decoder.decode_16bit_uint()),
-            ('I_AC_VoltageBC',    decoder.decode_16bit_uint()),
-            ('I_AC_VoltageCA',    decoder.decode_16bit_uint()),
-            ('I_AC_VoltageAN',    decoder.decode_16bit_uint()),
-            ('I_AC_VoltageBN',    decoder.decode_16bit_uint()),
-            ('I_AC_VoltageCN',    decoder.decode_16bit_uint()),
-            ('I_AC_Voltage_SF',   decoder.decode_16bit_int()),
-            ('I_AC_Power',        decoder.decode_16bit_int()),
-            ('I_AC_Power_SF',     decoder.decode_16bit_int()),
-            ('I_AC_Frequency',    decoder.decode_16bit_uint()),
-            ('I_AC_Frequency_SF', decoder.decode_16bit_int()),
-            ('I_AC_VA',           decoder.decode_16bit_int()),
-            ('I_AC_VA_SF',        decoder.decode_16bit_int()),
-            ('I_AC_VAR',          decoder.decode_16bit_int()),
-            ('I_AC_VAR_SF',       decoder.decode_16bit_int()),
-            ('I_AC_PF',           decoder.decode_16bit_int()),
-            ('I_AC_PF_SF',        decoder.decode_16bit_int()),
-            ('I_AC_Energy_WH',    decoder.decode_32bit_uint()),
-            ('I_AC_Energy_WH_SF', decoder.decode_16bit_uint()),
+            ('AC_Current',      decoder.decode_16bit_uint()),
+            ('AC_Current_A',     decoder.decode_16bit_uint()),
+            ('AC_Current_B',     decoder.decode_16bit_uint()),
+            ('AC_Current_C',     decoder.decode_16bit_uint()),
+            ('AC_Current_SF',   decoder.decode_16bit_int()),
+            ('AC_Voltage_AB',    decoder.decode_16bit_uint()),
+            ('AC_Voltage_BC',    decoder.decode_16bit_uint()),
+            ('AC_Voltage_CA',    decoder.decode_16bit_uint()),
+            ('AC_Voltage_AN',    decoder.decode_16bit_uint()),
+            ('AC_Voltage_BN',    decoder.decode_16bit_uint()),
+            ('AC_Voltage_CN',    decoder.decode_16bit_uint()),
+            ('AC_Voltage_SF',   decoder.decode_16bit_int()),
+            ('AC_Power',        decoder.decode_16bit_int()),
+            ('AC_Power_SF',     decoder.decode_16bit_int()),
+            ('AC_Frequency',    decoder.decode_16bit_uint()),
+            ('AC_Frequency_SF', decoder.decode_16bit_int()),
+            ('AC_VA',           decoder.decode_16bit_int()),
+            ('AC_VA_SF',        decoder.decode_16bit_int()),
+            ('AC_var',          decoder.decode_16bit_int()),
+            ('AC_var_SF',       decoder.decode_16bit_int()),
+            ('AC_PF',           decoder.decode_16bit_int()),
+            ('AC_PF_SF',        decoder.decode_16bit_int()),
+            ('AC_Energy_WH',    decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_SF', decoder.decode_16bit_uint()),
             ('I_DC_Current',      decoder.decode_16bit_uint()),
             ('I_DC_Current_SF',   decoder.decode_16bit_int()),
             ('I_DC_Voltage',      decoder.decode_16bit_uint()),
@@ -334,7 +356,7 @@ class SolarEdgeInverter:
             ('I_Status',          decoder.decode_16bit_int()),
             ('I_Status_Vendor',   decoder.decode_16bit_int()),
         ])
-
+        
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
  
@@ -345,7 +367,7 @@ class SolarEdgeInverter:
 
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
-        return self._device_info        
+        return self._device_info
 
 
 class SolarEdgeMeter:
@@ -353,19 +375,22 @@ class SolarEdgeMeter:
 
         self.inverter_unit_id = device_id
         self.hub = hub
+        self.decoded_common = []
+        self.decoded_model = []
         self._callbacks = set()
+        self.start_address = None
       
         if meter_id == 1:
-            start_address = 40000 + 121
+            self.start_address = 40000 + 121
         elif meter_id == 2:
-            start_address = 40000 + 295
+            self.start_address = 40000 + 295
         elif meter_id == 3:
-            start_address = 40000 + 469
+            self.start_address = 40000 + 469
         else:
             raise ValueError("Invalid meter_id")
 
         meter_info = hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=start_address, count=2
+            unit=self.inverter_unit_id, address=self.start_address, count=2
         )
         if meter_info.isError():
             _LOGGER.debug(meter_info)
@@ -390,7 +415,7 @@ class SolarEdgeMeter:
             raise RuntimeError("Meter {meter_id} not usable.")
 
         meter_info = hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=start_address + 2, count=65
+            unit=self.inverter_unit_id, address=self.start_address + 2, count=65
         )
         if meter_info.isError():
             _LOGGER.debug(meter_info)
@@ -399,7 +424,7 @@ class SolarEdgeMeter:
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
         )
-        decoded_common = OrderedDict([
+        self.decoded_common = OrderedDict([
             ('C_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
             ('C_Model', parse_modbus_string(decoder.decode_string(32))),
             ('C_Option', parse_modbus_string(decoder.decode_string(16))),
@@ -408,15 +433,15 @@ class SolarEdgeMeter:
             ('C_Device_address', decoder.decode_16bit_uint()),
         ])
 
-        for name, value in iteritems(decoded_common):
+        for name, value in iteritems(self.decoded_common):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
 
-        self.manufacturer = decoded_common['C_Manufacturer']
-        self.model = decoded_common['C_Model']
-        self.option = decoded_common['C_Option']
-        self.fw_version = decoded_common['C_Version']
-        self.serial = decoded_common['C_SerialNumber']
-        self.device_address = decoded_common['C_Device_address']
+        self.manufacturer = self.decoded_common['C_Manufacturer']
+        self.model = self.decoded_common['C_Model']
+        self.option = self.decoded_common['C_Option']
+        self.fw_version = self.decoded_common['C_Version']
+        self.serial = self.decoded_common['C_SerialNumber']
+        self.device_address = self.decoded_common['C_Device_address']
         self.name = f"{hub.hub_id.capitalize()} M{self.inverter_unit_id}-{meter_id}"
 
         self._device_info = {
@@ -441,6 +466,124 @@ class SolarEdgeMeter:
         for callback in self._callbacks:
             callback()
 
+    def read_modbus_data(self) -> None:
+        
+        meter_data = self.hub.read_holding_registers(
+            unit=self.inverter_unit_id, address=self.start_address + 67, count=2
+        )
+        if meter_data.isError():
+            _LOGGER.error(f"Meter read error: {meter_data}")
+            raise RuntimeError(f"Meter read error: {meter_data}")
+        
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            meter_data.registers, byteorder=Endian.Big
+        )
+        
+        decoded_ident = OrderedDict([
+            ('C_SunSpec_DID', decoder.decode_16bit_uint()),
+            ('C_SunSpec_Length', decoder.decode_16bit_uint()),
+        ])
+        
+        for name, value in iteritems(decoded_ident):
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+        
+        if (
+            decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
+            or decoded_ident['C_SunSpec_DID'] not in [201,202,203,204]
+            or decoded_ident['C_SunSpec_Length'] != 105
+        ):
+            raise RuntimeError("Meter on inverter {self.inverter_unit_id} not usable.")
+
+        meter_data = self.hub.read_holding_registers(
+            unit=self.inverter_unit_id, address=self.start_address + 69, count=105
+        )
+        if meter_data.isError():
+            _LOGGER.error(f"Meter read error: {meter_data}")
+            raise RuntimeError(f"Meter read error: {meter_data}")
+        
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            meter_data.registers, byteorder=Endian.Big
+        )
+        
+        self.decoded_model = OrderedDict([
+            ('C_SunSpec_DID',           decoded_ident['C_SunSpec_DID']),
+            ('AC_Current',              decoder.decode_16bit_int()),
+            ('AC_Current_A',            decoder.decode_16bit_int()),
+            ('AC_Current_B',            decoder.decode_16bit_int()),
+            ('AC_Current_C',            decoder.decode_16bit_int()),
+            ('AC_Current_SF',           decoder.decode_16bit_int()),
+            ('AC_Voltage_LN',           decoder.decode_16bit_int()),
+            ('AC_Voltage_AN',           decoder.decode_16bit_int()),
+            ('AC_Voltage_BN',           decoder.decode_16bit_int()),
+            ('AC_Voltage_CN',           decoder.decode_16bit_int()),
+            ('AC_Voltage_LL',           decoder.decode_16bit_int()),
+            ('AC_Voltage_AB',           decoder.decode_16bit_int()),
+            ('AC_Voltage_BC',           decoder.decode_16bit_int()),
+            ('AC_Voltage_CA',           decoder.decode_16bit_int()),
+            ('AC_Voltage_SF',           decoder.decode_16bit_int()),
+            ('AC_Frequency',            decoder.decode_16bit_int()),
+            ('AC_Frequency_SF',         decoder.decode_16bit_int()),
+            ('AC_Power',                decoder.decode_16bit_int()),
+            ('AC_Power_A',              decoder.decode_16bit_int()),
+            ('AC_Power_B',              decoder.decode_16bit_int()),
+            ('AC_Power_C',              decoder.decode_16bit_int()),
+            ('AC_Power_SF',             decoder.decode_16bit_int()),
+            ('AC_VA',                   decoder.decode_16bit_int()),
+            ('AC_VA_A',                 decoder.decode_16bit_int()),
+            ('AC_VA_B',                 decoder.decode_16bit_int()),
+            ('AC_VA_C',                 decoder.decode_16bit_int()),
+            ('AC_VA_SF',                decoder.decode_16bit_int()),
+            ('AC_var',                  decoder.decode_16bit_int()),
+            ('AC_var_A',                decoder.decode_16bit_int()),
+            ('AC_var_B',                decoder.decode_16bit_int()),
+            ('AC_var_C',                decoder.decode_16bit_int()),
+            ('AC_var_SF',               decoder.decode_16bit_int()),
+            ('AC_PF',                   decoder.decode_16bit_int()),
+            ('AC_PF_A',                 decoder.decode_16bit_int()),
+            ('AC_PF_B',                 decoder.decode_16bit_int()),
+            ('AC_PF_C',                 decoder.decode_16bit_int()),
+            ('AC_PF_SF',                decoder.decode_16bit_int()),
+            ('AC_Energy_WH_Exported',   decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_Exported_A', decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_Exported_B', decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_Exported_C', decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_Imported',   decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_Imported_A', decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_Imported_B', decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_Imported_C', decoder.decode_32bit_uint()),
+            ('AC_Energy_WH_SF',         decoder.decode_16bit_int()),
+            ('M_Exported_VAh',          decoder.decode_32bit_uint()),
+            ('M_Exported_VAh_A',        decoder.decode_32bit_uint()),
+            ('M_Exported_VAh_B',        decoder.decode_32bit_uint()),
+            ('M_Exported_VAh_C',        decoder.decode_32bit_uint()),
+            ('M_Imported_VAh',          decoder.decode_32bit_uint()),
+            ('M_Imported_VAh_A',        decoder.decode_32bit_uint()),
+            ('M_Imported_VAh_B',        decoder.decode_32bit_uint()),
+            ('M_Imported_VAh_C',        decoder.decode_32bit_uint()),
+            ('M_Energy_VAh_SF',         decoder.decode_16bit_int()),
+            ('M_Import_varh_Q1',        decoder.decode_32bit_uint()),
+            ('M_Import_varh_Q1_A',      decoder.decode_32bit_uint()),
+            ('M_Import_varh_Q1_B',      decoder.decode_32bit_uint()),
+            ('M_Import_varh_Q1_C',      decoder.decode_32bit_uint()),
+            ('M_Import_varh_Q2',        decoder.decode_32bit_uint()),
+            ('M_Import_varh_Q2_A',      decoder.decode_32bit_uint()),
+            ('M_Import_varh_Q2_B',      decoder.decode_32bit_uint()),
+            ('M_Import_varh_Q2_C',      decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q3',        decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q3_A',      decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q3_B',      decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q3_C',      decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q4',        decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q4_A',      decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q4_B',      decoder.decode_32bit_uint()),
+            ('M_Export_varh_Q4_C',      decoder.decode_32bit_uint()),
+            ('M_Energy_var_SF',         decoder.decode_16bit_int()),
+            ('M_Events',                decoder.decode_32bit_uint()),
+      ])
+        
+        for name, value in iteritems(self.decoded_model):
+            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+ 
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -457,16 +600,17 @@ class SolarEdgeBattery:
         self.inverter_unit_id = device_id
         self.hub = hub
         self._callbacks = set()
+        self.start_address = None
  
         if battery_id == 1:
-            start_address = 57600
+            self.start_address = 57600
         elif battery_id == 2:
-            start_address = 57856
+            self.start_address = 57856
         else:
             raise ValueError("Invalid battery_id")
 
         battery_info = hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=start_address, count=75
+            unit=self.inverter_unit_id, address=self.start_address, count=75
         )
         if battery_info.isError():
             _LOGGER.debug(battery_info)
