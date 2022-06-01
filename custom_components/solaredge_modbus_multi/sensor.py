@@ -56,7 +56,6 @@ async def async_setup_entry(
     for inverter in hub.inverters:
         entities.append(Manufacturer(inverter, config_entry))
         entities.append(Model(inverter, config_entry))
-        entities.append(Option(inverter, config_entry))
         entities.append(Version(inverter, config_entry))
         entities.append(SerialNumber(inverter, config_entry))
         entities.append(DeviceAddress(inverter, config_entry))
@@ -275,13 +274,6 @@ class Option(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return f"{self._platform._device_info['name']} Option"
-
-    @property
-    def available(self) -> bool:
-        if len(self._platform.option) > 0:
-            return self._platform.online
-        else:
-            return False
             
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -292,7 +284,10 @@ class Option(SolarEdgeSensorBase):
 
     @property
     def native_value(self):
-        return self._platform.option
+        if len(self._platform.option) > 0:
+            return self._platform.online
+        else:
+            return None
 
 class Version(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
