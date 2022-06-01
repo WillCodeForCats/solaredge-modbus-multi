@@ -285,7 +285,7 @@ class Option(SolarEdgeSensorBase):
     @property
     def native_value(self):
         if len(self._platform.option) > 0:
-            return self._platform.online
+            return self._platform.option
         else:
             return None
 
