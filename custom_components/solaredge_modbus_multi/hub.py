@@ -71,6 +71,9 @@ class SolarEdgeModbusMultiHub:
         if not self.is_socket_open():        
             self.connect()
 
+        if self._detect_batteries:
+            _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
+
         for inverter_index in range(self.number_of_inverters):
             inverter_unit_id = inverter_index + self.start_device_id
             
@@ -100,8 +103,6 @@ class SolarEdgeModbusMultiHub:
                     pass
 
             if self._detect_batteries:
-                _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
-
                 try:
                     self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
                     _LOGGER.info(f"Found battery 1 on inverter ID {inverter_unit_id}")
