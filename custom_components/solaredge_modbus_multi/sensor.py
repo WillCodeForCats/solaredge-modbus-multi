@@ -132,32 +132,31 @@ async def async_setup_entry(
         entities.append(ACEnergy(meter, config_entry, 'Imported_B'))
         entities.append(ACEnergy(meter, config_entry, 'Imported_C'))
 
-        #"EXPORTED_VA": ["Exported VAh", "exportedva", ENERGY_VOLT_AMPERE_HOUR, None, None],
-        #"EXPORTED_VA_A": ["Exported A VAh", "exportedvaa", ENERGY_VOLT_AMPERE_HOUR, None, None],
-        #"EXPORTED_VA_B": ["Exported B VAh", "exportedvab", ENERGY_VOLT_AMPERE_HOUR, None, None],
-        #"EXPORTED_VA_C": ["Exported C VAh", "exportedvac", ENERGY_VOLT_AMPERE_HOUR, None, None],
-
-        #"IMPORTED_VA": ["Imported VAh", "importedva", ENERGY_VOLT_AMPERE_HOUR, None, None],
-        #"IMPORTED_VA_A": ["Imported A VAh", "importedvaa", ENERGY_VOLT_AMPERE_HOUR, None, None],
-        #"IMPORTED_VA_B": ["Imported B VAh", "importedvab", ENERGY_VOLT_AMPERE_HOUR, None, None],
-        #"IMPORTED_VA_C": ["Imported C VAh", "importedvac", ENERGY_VOLT_AMPERE_HOUR, None, None],
-
-        #"IMPORT_varh_Q1": ["Imported varh Q1", "importvarhq1", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"IMPORT_varh_Q1_A": ["Imported varh Q1 A", "importvarhq1a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"IMPORT_varh_Q1_B": ["Imported varh Q1 B", "importvarhq1b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"IMPORT_varh_Q1_C": ["Imported varh Q1 C", "importvarhq1c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"IMPORT_varh_Q2": ["Imported varh Q2", "importvarhq2", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"IMPORT_varh_Q2_A": ["Imported varh Q2 A", "importvarhq2a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"IMPORT_varh_Q2_B": ["Imported varh Q2 B", "importvarhq2b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"IMPORT_varh_Q2_C": ["Imported varh Q2 C", "importvarhq2c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q3": ["Imported varh Q3", "importvarhq3", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q3_A": ["Exported varh Q3 A", "importvarhq3a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q3_B": ["Exported varh Q3 B", "importvarhq3b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q3_C": ["Exported varh Q3 C", "importvarhq3c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q4": ["Exported varh Q4", "importvarhq4", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q4_A": ["Exported varh Q4 A", "importvarhq4a", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q4_B": ["Exported varh Q4 B", "importvarhq4b", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
-        #"EXPORT_varh_Q4_C": ["Exported varh Q4 C", "importvarhq4c", ENERGY_VOLT_AMPERE_REACTIVE_HOUR, None, None],
+        entities.append(MeterVAhIE(meter, config_entry, 'Exported'))
+        entities.append(MeterVAhIE(meter, config_entry, 'Exported_A'))
+        entities.append(MeterVAhIE(meter, config_entry, 'Exported_B'))
+        entities.append(MeterVAhIE(meter, config_entry, 'Exported_C'))
+        entities.append(MeterVAhIE(meter, config_entry, 'Imported'))
+        entities.append(MeterVAhIE(meter, config_entry, 'Imported_A'))
+        entities.append(MeterVAhIE(meter, config_entry, 'Imported_B'))
+        entities.append(MeterVAhIE(meter, config_entry, 'Imported_C'))
+        
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1'))
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_A'))
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_B'))
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_C'))
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2'))
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2_A'))
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2_B'))
+        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2_C'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3_A'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3_B'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3_C'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4_A'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4_B'))
+        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4_C'))
 
     for battery in hub.batteries:
         entities.append(Manufacturer(battery, config_entry))
@@ -753,7 +752,7 @@ class ACEnergy(SolarEdgeSensorBase):
         if self._phase == None:
             return f"{self._platform._device_info['name']} AC Energy kWh"
         else:
-            return f"{self._platform._device_info['name']} {self._phase} kWh"
+            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} kWh"
     
     @property
     def native_value(self):
@@ -1098,4 +1097,140 @@ class MeterEvents(SolarEdgeSensorBase):
                 return {"description": str(m_events_active)}
         
         except KeyError:
+            return None
+
+class MeterVAhIE(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.ENERGY
+    state_class = STATE_CLASS_TOTAL_INCREASING
+    native_unit_of_measurement = ENERGY_VOLT_AMPERE_HOUR
+
+    def __init__(self, platform, config_entry, phase: str = None):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        self._phase = phase
+        self.last = None
+
+    @property
+    def icon(self) -> str:
+        if self._phase is None:
+            return None
+            
+        elif re.match('import', self._phase.lower()):
+            return 'mdi:transmission-tower-export'
+            
+        elif re.match('export', self._phase.lower()):
+            return 'mdi:transmission-tower-import'
+        
+        else:
+            return None
+
+    @property
+    def unique_id(self) -> str:
+        if self._phase == None:
+            raise NotImplementedError
+        else:
+            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_vah"
+    
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def name(self) -> str:
+        if self._phase == None:
+            raise NotImplementedError
+        else:
+            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} VAh"
+    
+    @property
+    def native_value(self):
+        if self._phase == None:
+            raise NotImplementedError
+        else:
+            model_key = f"M_VAh_{self._phase}"
+
+        try:
+            if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32 or
+                self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT or
+                self._platform.decoded_model['M_VAh_SF'] == SUNSPEC_NOT_IMPL_INT16
+            ):
+                return None
+    
+            else:
+                value = scale_factor(self._platform.decoded_model[model_key], self._platform.decoded_model['M_VAh_SF'])
+                
+                try:
+                    return update_accum(self, value, value)
+                except:
+                    return None
+                
+        except TypeError:
+            return None
+
+class MetervarhIE(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.ENERGY
+    state_class = STATE_CLASS_TOTAL_INCREASING
+    native_unit_of_measurement = ENERGY_VOLT_AMPERE_REACTIVE_HOUR
+
+    def __init__(self, platform, config_entry, phase: str = None):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        self._phase = phase
+        self.last = None
+
+    @property
+    def icon(self) -> str:
+        if self._phase is None:
+            return None
+            
+        elif re.match('import', self._phase.lower()):
+            return 'mdi:transmission-tower-export'
+            
+        elif re.match('export', self._phase.lower()):
+            return 'mdi:transmission-tower-import'
+        
+        else:
+            return None
+
+    @property
+    def unique_id(self) -> str:
+        if self._phase == None:
+            raise NotImplementedError
+        else:
+            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_varh"
+        
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+    
+    @property
+    def name(self) -> str:
+        if self._phase == None:
+            raise NotImplementedError
+        else:
+            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} varh"
+    
+    @property
+    def native_value(self):
+        if self._phase == None:
+            raise NotImplementedError
+        else:
+            model_key = f"M_varh_{self._phase}"
+
+        try:
+            if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32 or
+                self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT or
+                self._platform.decoded_model['M_varh_SF'] == SUNSPEC_NOT_IMPL_INT16
+            ):
+                return None
+    
+            else:
+                value = scale_factor(self._platform.decoded_model[model_key], self._platform.decoded_model['M_varh_SF'])
+                
+                try:
+                    return update_accum(self, value, value)
+                except:
+                    return None
+                
+        except TypeError:
             return None
