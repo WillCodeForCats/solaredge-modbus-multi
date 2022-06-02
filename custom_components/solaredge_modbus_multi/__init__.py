@@ -13,7 +13,9 @@ from homeassistant.core import HomeAssistant
 from .const import (
     DOMAIN, DEFAULT_SCAN_INTERVAL,
     CONF_NUMBER_INVERTERS,
-    CONF_DEVICE_ID
+    CONF_DEVICE_ID,
+    CONF_DETECT_METERS, DEFAULT_DETECT_METERS,
+    CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES,
 )
 
 PLATFORMS: list[str] = ["sensor"]
@@ -39,7 +41,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data[CONF_PORT],
         entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         entry.data.get(CONF_NUMBER_INVERTERS, 1),
-        entry.data.get(CONF_DEVICE_ID, 1)
+        entry.data.get(CONF_DEVICE_ID, 1),
+        entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
+        entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
     )
     
     await solaredge_hub.async_init_solaredge()

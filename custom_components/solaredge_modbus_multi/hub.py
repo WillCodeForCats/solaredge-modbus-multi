@@ -36,8 +36,10 @@ class SolarEdgeModbusMultiHub:
         host: str,
         port: int,
         scan_interval: int,
-        number_of_inverters: bool = 1,
+        number_of_inverters: int = 1,
         start_device_id: int = 1,
+        detect_meters: bool = True,
+        detect_batteries: bool = False,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -49,6 +51,8 @@ class SolarEdgeModbusMultiHub:
         self.start_device_id = start_device_id
         self._scan_interval = timedelta(seconds=scan_interval)
         self._polling_interval = None
+        self._detect_meters = detect_meters
+        self._detect_batteries = detect_batteries
         self._sensors = []
         self.data = {}
 
@@ -76,35 +80,39 @@ class SolarEdgeModbusMultiHub:
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
                 raise ConfigEntryNotReady(f"Inverter device ID {inverter_unit_id} not found.")
         
-            try:
-                self.meters.append(SolarEdgeMeter(inverter_unit_id, 1, self))
-                _LOGGER.info(f"Found meter 1 on inverter ID {inverter_unit_id}")
-            except:
-                pass
+            if self._detect_meters:
+                try:
+                    self.meters.append(SolarEdgeMeter(inverter_unit_id, 1, self))
+                    _LOGGER.info(f"Found meter 1 on inverter ID {inverter_unit_id}")
+                except:
+                    pass
 
-            try:
-                self.meters.append(SolarEdgeMeter(inverter_unit_id, 2, self))
-                _LOGGER.info(f"Found meter 2 on inverter ID {inverter_unit_id}")
-            except:
-                pass
+                try:
+                    self.meters.append(SolarEdgeMeter(inverter_unit_id, 2, self))
+                    _LOGGER.info(f"Found meter 2 on inverter ID {inverter_unit_id}")
+                except:
+                    pass
 
-            try:
-                self.meters.append(SolarEdgeMeter(inverter_unit_id, 3, self))
-                _LOGGER.info(f"Found meter 3 on inverter ID {inverter_unit_id}")
-            except:
-                pass
+                try:
+                    self.meters.append(SolarEdgeMeter(inverter_unit_id, 3, self))
+                    _LOGGER.info(f"Found meter 3 on inverter ID {inverter_unit_id}")
+                except:
+                    pass
 
-            try:
-                self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
-                _LOGGER.info(f"Found battery 1 on inverter ID {inverter_unit_id}")
-            except:
-                pass
+            if self._detect_batteries:
+                _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
 
-            try:
-                self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
-                _LOGGER.info(f"Found battery 2 on inverter ID {inverter_unit_id}")
-            except:
-                pass
+                try:
+                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
+                    _LOGGER.info(f"Found battery 1 on inverter ID {inverter_unit_id}")
+                except:
+                    pass
+
+                try:
+                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
+                    _LOGGER.info(f"Found battery 2 on inverter ID {inverter_unit_id}")
+                except:
+                    pass
 
         try:
             for inverter in self.inverters:
@@ -114,6 +122,10 @@ class SolarEdgeModbusMultiHub:
             for meter in self.meters:
                 meter.read_modbus_data()
                 await meter.publish_updates()
+
+            for battery in self.batteries:
+                battery.read_modbus_data()
+                await battery.publish_updates()
 
         except:
             raise ConfigEntryNotReady(f"Devices not ready.")
@@ -145,6 +157,10 @@ class SolarEdgeModbusMultiHub:
                 for meter in self.meters:
                     meter.read_modbus_data()
                     await meter.publish_updates()
+                
+                for battery in self.batteries:
+                    battery.read_modbus_data()
+                    await battery.publish_updates()
             
             except Exception as e:
                 self.online = False
@@ -635,9 +651,7 @@ class SolarEdgeBattery:
 
         for name, value in iteritems(decoded_common):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
-
-        _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
-
+        
         self.manufacturer = decoded_ident['B_Manufacturer']
         self.model = decoded_ident['B_Model']
         self.option = None
