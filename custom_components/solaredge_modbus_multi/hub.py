@@ -218,7 +218,7 @@ class SolarEdgeInverter:
             unit=self.inverter_unit_id, address=40000, count=4
         )
         if inverter_data.isError():
-            _LOGGER.error(inverter_data)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
             raise RuntimeError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -245,7 +245,7 @@ class SolarEdgeInverter:
             unit=self.inverter_unit_id, address=40004, count=65
         )
         if inverter_data.isError():
-            _LOGGER.error(inverter_data)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
             raise RuntimeError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -262,7 +262,7 @@ class SolarEdgeInverter:
         ])
         
         for name, value in iteritems(self.decoded_common):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
         self.manufacturer = self.decoded_common['C_Manufacturer']
         self.model = self.decoded_common['C_Model']
@@ -300,7 +300,7 @@ class SolarEdgeInverter:
             unit=self.inverter_unit_id, address=40069, count=2
         )
         if inverter_data.isError():
-            _LOGGER.error(inverter_data)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
             raise RuntimeError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -313,20 +313,20 @@ class SolarEdgeInverter:
         ])
         
         for name, value in iteritems(decoded_ident):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
             or decoded_ident['C_SunSpec_DID'] not in [101,102,103]
             or decoded_ident['C_SunSpec_Length'] != 50
         ):
-            raise RuntimeError("Inverter {self.inverter_unit_id} not usable.")
+            raise RuntimeError(f"Inverter {self.inverter_unit_id} not usable.")
         
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40071, count=38
         )
         if inverter_data.isError():
-            _LOGGER.error(inverter_data)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
             raise RuntimeError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -375,7 +375,7 @@ class SolarEdgeInverter:
         ])
         
         for name, value in iteritems(self.decoded_model):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {hex(value) if isinstance(value, int) else value}")
  
     @property
     def online(self) -> bool:
@@ -396,21 +396,22 @@ class SolarEdgeMeter:
         self.decoded_model = []
         self._callbacks = set()
         self.start_address = None
+        self.meter_id = meter_id
       
-        if meter_id == 1:
+        if self.meter_id == 1:
             self.start_address = 40000 + 121
-        elif meter_id == 2:
+        elif self.meter_id == 2:
             self.start_address = 40000 + 295
-        elif meter_id == 3:
+        elif self.meter_id == 3:
             self.start_address = 40000 + 469
         else:
-            raise ValueError("Invalid meter_id")
+            raise ValueError(f"Invalid meter_id {self.meter_id}")
 
         meter_info = hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address, count=2
         )
         if meter_info.isError():
-            _LOGGER.debug(meter_info)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {meter_info}")
             raise RuntimeError(meter_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -422,7 +423,7 @@ class SolarEdgeMeter:
         ])
         
         for name, value in iteritems(decoded_ident):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {name} {hex(value) if isinstance(value, int) else value}")
 
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
@@ -451,7 +452,7 @@ class SolarEdgeMeter:
         ])
 
         for name, value in iteritems(self.decoded_common):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {name} {hex(value) if isinstance(value, int) else value}")
 
         self.manufacturer = self.decoded_common['C_Manufacturer']
         self.model = self.decoded_common['C_Model']
@@ -489,7 +490,7 @@ class SolarEdgeMeter:
             unit=self.inverter_unit_id, address=self.start_address + 67, count=2
         )
         if meter_data.isError():
-            _LOGGER.error(f"Meter read error: {meter_data}")
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {meter_data}")
             raise RuntimeError(f"Meter read error: {meter_data}")
         
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -502,14 +503,14 @@ class SolarEdgeMeter:
         ])
         
         for name, value in iteritems(decoded_ident):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
             or decoded_ident['C_SunSpec_DID'] not in [201,202,203,204]
             or decoded_ident['C_SunSpec_Length'] != 105
         ):
-            raise RuntimeError("Meter on inverter {self.inverter_unit_id} not usable.")
+            raise RuntimeError(f"Meter on inverter {self.inverter_unit_id} not usable.")
 
         meter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 69, count=105
@@ -578,29 +579,29 @@ class SolarEdgeMeter:
             ('M_VAh_Imported_B',        decoder.decode_32bit_uint()),
             ('M_VAh_Imported_C',        decoder.decode_32bit_uint()),
             ('M_VAh_SF',                decoder.decode_16bit_int()),
-            ('M_varh_Import_Q1',      decoder.decode_32bit_uint()),
-            ('M_varh_Import_Q1_A',    decoder.decode_32bit_uint()),
-            ('M_varh_Import_Q1_B',    decoder.decode_32bit_uint()),
-            ('M_varh_Import_Q1_C',    decoder.decode_32bit_uint()),
-            ('M_varh_Import_Q2',      decoder.decode_32bit_uint()),
-            ('M_varh_Import_Q2_A',    decoder.decode_32bit_uint()),
-            ('M_varh_Import_Q2_B',    decoder.decode_32bit_uint()),
-            ('M_varh_Import_Q2_C',    decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q3',      decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q3_A',    decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q3_B',    decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q3_C',    decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q4',      decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q4_A',    decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q4_B',    decoder.decode_32bit_uint()),
-            ('M_varh_Export_Q4_C',  decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q1',        decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q1_A',      decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q1_B',      decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q1_C',      decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q2',        decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q2_A',      decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q2_B',      decoder.decode_32bit_uint()),
+            ('M_varh_Import_Q2_C',      decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q3',        decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q3_A',      decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q3_B',      decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q3_C',      decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q4',        decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q4_A',      decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q4_B',      decoder.decode_32bit_uint()),
+            ('M_varh_Export_Q4_C',      decoder.decode_32bit_uint()),
             ('M_varh_SF',               decoder.decode_16bit_int()),
             ('M_Events',                decoder.decode_32bit_uint()),
       ])
         
         for name, value in iteritems(self.decoded_model):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
- 
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {name} {hex(value) if isinstance(value, int) else value}")
+    
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -618,19 +619,20 @@ class SolarEdgeBattery:
         self.hub = hub
         self._callbacks = set()
         self.start_address = None
+        self.battery_id = battery_id
  
-        if battery_id == 1:
+        if self.battery_id == 1:
             self.start_address = 57600
-        elif battery_id == 2:
+        elif self.battery_id == 2:
             self.start_address = 57856
         else:
-            raise ValueError("Invalid battery_id")
+            raise ValueError("Invalid battery_id {self.battery_id}")
 
         battery_info = hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address, count=75
         )
         if battery_info.isError():
-            _LOGGER.debug(battery_info)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {battery_info}")
             raise RuntimeError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
@@ -651,7 +653,7 @@ class SolarEdgeBattery:
         ])
 
         for name, value in iteritems(decoded_common):
-            _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
         self.manufacturer = decoded_ident['B_Manufacturer']
         self.model = decoded_ident['B_Model']
@@ -659,7 +661,7 @@ class SolarEdgeBattery:
         self.fw_version = decoded_ident['B_Version']
         self.serial = decoded_ident['B_SerialNumber']
         self.device_address = decoded_ident['B_Device_address']
-        self.name = f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}-{battery_id}"
+        self.name = f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}-{self.battery_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
