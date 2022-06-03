@@ -620,11 +620,15 @@ class SolarEdgeBattery:
         self._callbacks = set()
         self.start_address = None
         self.battery_id = battery_id
+        self.decoded_ident = []
  
         if self.battery_id == 1:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
+        #elif self.battery_id == 0:
+        # mirror of 57600?
+        #    self.start_address = 62720 
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
@@ -638,7 +642,7 @@ class SolarEdgeBattery:
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers, byteorder=Endian.Big
         )
-        decoded_ident = OrderedDict([
+        self.decoded_ident = OrderedDict([
             ('B_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
             ('B_Model', parse_modbus_string(decoder.decode_string(32))),
             ('B_Version', parse_modbus_string(decoder.decode_string(32))),
@@ -655,12 +659,12 @@ class SolarEdgeBattery:
         for name, value in iteritems(decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
-        self.manufacturer = decoded_ident['B_Manufacturer']
-        self.model = decoded_ident['B_Model']
+        self.manufacturer = self.decoded_ident['B_Manufacturer']
+        self.model = self.decoded_ident['B_Model']
         self.option = None
-        self.fw_version = decoded_ident['B_Version']
-        self.serial = decoded_ident['B_SerialNumber']
-        self.device_address = decoded_ident['B_Device_address']
+        self.fw_version = self.decoded_ident['B_Version']
+        self.serial = self.decoded_ident['B_SerialNumber']
+        self.device_address = self.decoded_ident['B_Device_address']
         self.name = f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}-{self.battery_id}"
 
         self._device_info = {
