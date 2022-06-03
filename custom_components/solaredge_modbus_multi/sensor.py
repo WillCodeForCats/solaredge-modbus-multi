@@ -131,7 +131,6 @@ async def async_setup_entry(
         entities.append(ACEnergy(meter, config_entry, 'Imported_A'))
         entities.append(ACEnergy(meter, config_entry, 'Imported_B'))
         entities.append(ACEnergy(meter, config_entry, 'Imported_C'))
-
         entities.append(MeterVAhIE(meter, config_entry, 'Exported'))
         entities.append(MeterVAhIE(meter, config_entry, 'Exported_A'))
         entities.append(MeterVAhIE(meter, config_entry, 'Exported_B'))
@@ -140,7 +139,6 @@ async def async_setup_entry(
         entities.append(MeterVAhIE(meter, config_entry, 'Imported_A'))
         entities.append(MeterVAhIE(meter, config_entry, 'Imported_B'))
         entities.append(MeterVAhIE(meter, config_entry, 'Imported_C'))
-        
         entities.append(MetervarhIE(meter, config_entry, 'Import_Q1'))
         entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_A'))
         entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_B'))
@@ -165,6 +163,13 @@ async def async_setup_entry(
         entities.append(SerialNumber(battery, config_entry))
         entities.append(DeviceAddress(battery, config_entry))
         entities.append(DeviceAddressParent(battery, config_entry))
+
+        #('B_RatedEnergy', decoder.decode_32bit_float()),
+        #('B_MaxChargePower', decoder.decode_32bit_float()),
+        #('B_MaxDischargePower', decoder.decode_32bit_float()),
+        #('B_MaxChargePeakPower', decoder.decode_32bit_float()),
+        #('B_MaxDischargePeakPower', decoder.decode_32bit_float()),
+
 
     if entities:
         async_add_entities(entities)
