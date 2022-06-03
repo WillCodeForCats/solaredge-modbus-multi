@@ -86,32 +86,32 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 try:
                     self.meters.append(SolarEdgeMeter(inverter_unit_id, 1, self))
-                    _LOGGER.info(f"Found meter 1 on inverter ID {inverter_unit_id}")
+                    _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
                 try:
                     self.meters.append(SolarEdgeMeter(inverter_unit_id, 2, self))
-                    _LOGGER.info(f"Found meter 2 on inverter ID {inverter_unit_id}")
+                    _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
                 try:
                     self.meters.append(SolarEdgeMeter(inverter_unit_id, 3, self))
-                    _LOGGER.info(f"Found meter 3 on inverter ID {inverter_unit_id}")
+                    _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
             if self._detect_batteries:
                 try:
                     self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
-                    _LOGGER.info(f"Found battery 1 on inverter ID {inverter_unit_id}")
+                    _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
                 try:
                     self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
-                    _LOGGER.info(f"Found battery 2 on inverter ID {inverter_unit_id}")
+                    _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
