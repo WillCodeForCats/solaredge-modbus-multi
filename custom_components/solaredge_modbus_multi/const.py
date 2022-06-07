@@ -6,10 +6,12 @@ DEFAULT_NUMBER_INVERTERS = 1
 DEFAULT_DEVICE_ID = 1
 DEFAULT_DETECT_METERS = True
 DEFAULT_DETECT_BATTERIES = False
+DEFAULT_SINGLE_DEVICE_ENTITY = True
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_DEVICE_ID = "device_id"
 CONF_DETECT_METERS = "detect_meters"
 CONF_DETECT_BATTERIES = "detect_batteries"
+CONF_SINGLE_DEVICE_ENTITY = "single_device_entity"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR = "VAh"

@@ -54,12 +54,20 @@ async def async_setup_entry(
     entities = []
         
     for inverter in hub.inverters:
-        entities.append(Manufacturer(inverter, config_entry))
-        entities.append(Model(inverter, config_entry))
+        if inverter.single_device_entity:
+            entities.append(SolarEdgeDevice(inverter, config_entry))
+        else:
+            entities.append(SolarEdgeDevice(inverter, config_entry))
+            entities.append(Manufacturer(inverter, config_entry))
+            entities.append(Model(inverter, config_entry))
+            entities.append(SerialNumber(inverter, config_entry))
+            entities.append(DeviceAddress(inverter, config_entry))
+            entities.append(SunspecDID(inverter, config_entry))
         entities.append(Version(inverter, config_entry))
-        entities.append(SerialNumber(inverter, config_entry))
-        entities.append(DeviceAddress(inverter, config_entry))
-        entities.append(SunspecDID(inverter, config_entry))
+        entities.append(Status(inverter,config_entry))
+        entities.append(StatusText(inverter,config_entry))
+        entities.append(StatusVendor(inverter, config_entry))
+        entities.append(StatusVendorText(inverter, config_entry))
         entities.append(ACCurrentSensor(inverter, config_entry))
         entities.append(ACCurrentSensor(inverter, config_entry, 'A'))
         entities.append(ACCurrentSensor(inverter, config_entry, 'B'))
@@ -80,19 +88,22 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry))
         entities.append(DCPower(inverter, config_entry))
         entities.append(HeatSinkTemperature(inverter, config_entry))
-        entities.append(Status(inverter,config_entry))
-        entities.append(StatusText(inverter,config_entry))
-        entities.append(StatusVendor(inverter, config_entry))
+        
+ 
 
     for meter in hub.meters:
-        entities.append(Manufacturer(meter, config_entry))
-        entities.append(Model(meter, config_entry))
-        entities.append(Option(meter, config_entry))
+        if meter.single_device_entity:
+            entities.append(SolarEdgeDevice(meter, config_entry))
+        else:
+            entities.append(SolarEdgeDevice(meter, config_entry))
+            entities.append(Manufacturer(meter, config_entry))
+            entities.append(Model(meter, config_entry))
+            entities.append(Option(meter, config_entry))
+            entities.append(SerialNumber(meter, config_entry))
+            entities.append(DeviceAddress(meter, config_entry))
+            entities.append(DeviceAddressParent(meter, config_entry))
+            entities.append(SunspecDID(meter, config_entry))
         entities.append(Version(meter, config_entry))
-        entities.append(SerialNumber(meter, config_entry))
-        entities.append(DeviceAddress(meter, config_entry))
-        entities.append(DeviceAddressParent(meter, config_entry))
-        entities.append(SunspecDID(meter, config_entry))
         entities.append(MeterEvents(meter, config_entry))
         entities.append(ACCurrentSensor(meter, config_entry))
         entities.append(ACCurrentSensor(meter, config_entry, 'A'))
@@ -157,19 +168,16 @@ async def async_setup_entry(
         entities.append(MetervarhIE(meter, config_entry, 'Export_Q4_C'))
 
     for battery in hub.batteries:
-        entities.append(Manufacturer(battery, config_entry))
-        entities.append(Model(battery, config_entry))
-        entities.append(Version(battery, config_entry))
-        entities.append(SerialNumber(battery, config_entry))
-        entities.append(DeviceAddress(battery, config_entry))
-        entities.append(DeviceAddressParent(battery, config_entry))
-
-        #('B_RatedEnergy', decoder.decode_32bit_float()),
-        #('B_MaxChargePower', decoder.decode_32bit_float()),
-        #('B_MaxDischargePower', decoder.decode_32bit_float()),
-        #('B_MaxChargePeakPower', decoder.decode_32bit_float()),
-        #('B_MaxDischargePeakPower', decoder.decode_32bit_float()),
-
+        if battery.single_device_entity:
+            entities.append(SolarEdgeDevice(battery, config_entry))
+        else:
+            entities.append(SolarEdgeDevice(battery, config_entry))
+            entities.append(Manufacturer(battery, config_entry))
+            entities.append(Model(battery, config_entry))
+            entities.append(Version(battery, config_entry))
+            entities.append(SerialNumber(battery, config_entry))
+            entities.append(DeviceAddress(battery, config_entry))
+            entities.append(DeviceAddressParent(battery, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -206,6 +214,65 @@ class SolarEdgeSensorBase(SensorEntity):
     async def async_will_remove_from_hass(self):
         self._platform.remove_callback(self.async_write_ha_state)
 
+class SolarEdgeDevice(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+    
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+        
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_device"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Device"
+
+    @property
+    def native_value(self):
+        return self._platform.model
+
+    @property
+    def extra_state_attributes(self):
+        attrs = {}
+
+        try:
+            attrs["batt_charge_peak"] = self._platform.decoded_common["B_MaxChargePeakPower"] 
+            attrs["batt_discharge_peak"] = self._platform.decoded_common["B_MaxDischargePeakPower"] 
+            attrs["batt_max_charge"] = self._platform.decoded_common["B_MaxChargePower"] 
+            attrs["batt_max_discharge"] = self._platform.decoded_common["B_MaxDischargePower"] 
+            attrs["batt_rated_energy"] = self._platform.decoded_common["B_RatedEnergy"] 
+        
+        except KeyError:
+            pass
+
+
+        attrs["device_id"] = self._platform.device_address        
+        attrs["manufacturer"] = self._platform.manufacturer
+        attrs["model"] = self._platform.model
+        
+        if len(self._platform.option) > 0:
+            attrs["option"] = self._platform.option
+            
+        if self._platform.has_parent:
+            attrs["parent_device_id"] = self._platform.inverter_unit_id
+        
+        attrs["serial_number"] = self._platform.serial
+        
+        try:
+            if self._platform.decoded_model['C_SunSpec_DID'] in SUNSPEC_DID:
+                attrs["sunspec_device"] = SUNSPEC_DID[self._platform.decoded_model['C_SunSpec_DID']]
+            
+            else:
+                attrs["sunspec_device"] = "unknown"
+        
+        except KeyError:
+            attrs["sunspec_device"] = "unknown"
+        
+        attrs["sunspec_did"] = self._platform.decoded_model['C_SunSpec_DID']
+        
+        return attrs
 
 class SerialNumber(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
@@ -1032,11 +1099,11 @@ class StatusVendorText(SolarEdgeSensorBase):
         
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_status_vendor"
+        return f"{self._platform.model}_{self._platform.serial}_status_vendor_text"
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Status Vendor"
+        return f"{self._platform._device_info['name']} Status Vendor Text"
 
     @property
     def native_value(self):

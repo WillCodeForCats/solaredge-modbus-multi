@@ -14,10 +14,12 @@ from .const import (
     DEFAULT_NUMBER_INVERTERS,
     DEFAULT_DETECT_METERS,
     DEFAULT_DETECT_BATTERIES,
+    DEFAULT_SINGLE_DEVICE_ENTITY,
     CONF_DEVICE_ID,
     CONF_NUMBER_INVERTERS,
     CONF_DETECT_METERS,
     CONF_DETECT_BATTERIES,
+    CONF_SINGLE_DEVICE_ENTITY,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
@@ -143,6 +145,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         else:
             user_input = {
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                CONF_SINGLE_DEVICE_ENTITY: self.config_entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
                 CONF_DETECT_METERS: self.config_entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
                 CONF_DETECT_BATTERIES: self.config_entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
             }
@@ -154,6 +157,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_SCAN_INTERVAL, default=user_input[CONF_SCAN_INTERVAL]
                     ): vol.Coerce(int),
+                    vol.Optional(
+                        CONF_SINGLE_DEVICE_ENTITY, default=user_input[CONF_SINGLE_DEVICE_ENTITY]
+                    ): cv.boolean,
                     vol.Optional(
                         CONF_DETECT_METERS, default=user_input[CONF_DETECT_METERS]
                     ): cv.boolean,

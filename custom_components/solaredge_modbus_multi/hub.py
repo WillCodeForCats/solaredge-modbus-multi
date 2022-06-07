@@ -40,6 +40,7 @@ class SolarEdgeModbusMultiHub:
         start_device_id: int = 1,
         detect_meters: bool = True,
         detect_batteries: bool = False,
+        single_device_entity: bool = True,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -53,6 +54,7 @@ class SolarEdgeModbusMultiHub:
         self._polling_interval = None
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
+        self._single_device_entity = single_device_entity
         self._sensors = []
         self.data = {}
 
@@ -213,7 +215,8 @@ class SolarEdgeInverter:
         self.decoded_common = []
         self.decoded_model = []
         self._callbacks = set()
-        
+        self.has_parent = False
+
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40000, count=4
         )
@@ -280,7 +283,7 @@ class SolarEdgeInverter:
             "sw_version": self.fw_version,
             "hw_version": self.option,
         }
-
+    
     def register_callback(self, callback: Callable[[], None]) -> None:
         """Register callback, called when SolarEdgeInverter changes state."""
         self._callbacks.add(callback)
@@ -386,6 +389,10 @@ class SolarEdgeInverter:
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
 
+    @property
+    def single_device_entity(self) -> bool:
+        return self.hub._single_device_entity
+    
 
 class SolarEdgeMeter:
     def __init__(self, device_id: int, meter_id: int, hub: SolarEdgeModbusMultiHub) -> None:
@@ -397,7 +404,8 @@ class SolarEdgeMeter:
         self._callbacks = set()
         self.start_address = None
         self.meter_id = meter_id
-      
+        self.has_parent = True
+     
         if self.meter_id == 1:
             self.start_address = 40000 + 121
         elif self.meter_id == 2:
@@ -610,6 +618,9 @@ class SolarEdgeMeter:
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
+    @property
+    def single_device_entity(self) -> bool:
+        return self.hub._single_device_entity
 
 
 class SolarEdgeBattery:    
@@ -620,7 +631,8 @@ class SolarEdgeBattery:
         self._callbacks = set()
         self.start_address = None
         self.battery_id = battery_id
-        self.decoded_ident = []
+        self.decoded_common = []
+        self.has_parent = True
  
         if self.battery_id == 1:
             self.start_address = 57600
@@ -642,7 +654,7 @@ class SolarEdgeBattery:
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers, byteorder=Endian.Big
         )
-        self.decoded_ident = OrderedDict([
+        self.decoded_common = OrderedDict([
             ('B_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
             ('B_Model', parse_modbus_string(decoder.decode_string(32))),
             ('B_Version', parse_modbus_string(decoder.decode_string(32))),
@@ -659,12 +671,12 @@ class SolarEdgeBattery:
         for name, value in iteritems(decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
-        self.manufacturer = self.decoded_ident['B_Manufacturer']
-        self.model = self.decoded_ident['B_Model']
+        self.manufacturer = self.decoded_common['B_Manufacturer']
+        self.model = self.decoded_common['B_Model']
         self.option = None
-        self.fw_version = self.decoded_ident['B_Version']
-        self.serial = self.decoded_ident['B_SerialNumber']
-        self.device_address = self.decoded_ident['B_Device_address']
+        self.fw_version = self.decoded_common['B_Version']
+        self.serial = self.decoded_common['B_SerialNumber']
+        self.device_address = self.decoded_common['B_Device_address']
         self.name = f"{hub.hub_id.capitalize()} B{self.inverter_unit_id}-{self.battery_id}"
 
         self._device_info = {

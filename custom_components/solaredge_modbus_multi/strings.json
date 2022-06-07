@@ -35,6 +35,7 @@
         "title": "SolarEdge Modbus Options",
         "data": {
           "scan_interval": "Polling Frequency (seconds)",
+          "single_device_entity": "Single Device Entity",
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries"
         }
