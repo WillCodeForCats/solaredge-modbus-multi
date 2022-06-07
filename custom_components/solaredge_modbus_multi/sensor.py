@@ -1011,16 +1011,20 @@ class Status(SolarEdgeSensorBase):
                 
     @property
     def extra_state_attributes(self):
+        attrs = {}
+        
         try:
             if self._platform.decoded_model['I_Status'] in DEVICE_STATUS_DESC:
-                return {"description": DEVICE_STATUS_DESC[self._platform.decoded_model['I_Status']]}
-            
-            else:
-                return None
+                attrs["description"] = DEVICE_STATUS_DESC[self._platform.decoded_model['I_Status']]
         
+            if self._platform.decoded_model['I_Status'] in DEVICE_STATUS:
+                attrs["status_text"] = DEVICE_STATUS[self._platform.decoded_model['I_Status']]
+                
         except KeyError:
-            return None
+            pass
 
+        return attrs
+        
 class StatusText(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
