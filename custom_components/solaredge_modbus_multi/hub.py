@@ -632,6 +632,7 @@ class SolarEdgeBattery:
         self.start_address = None
         self.battery_id = battery_id
         self.decoded_common = []
+        self.decoded_model = []
         self.has_parent = True
  
         if self.battery_id == 1:
@@ -700,6 +701,54 @@ class SolarEdgeBattery:
         """Schedule call all registered callbacks."""
         for callback in self._callbacks:
             callback()
+
+    def read_modbus_data(self) -> None:
+        
+        battery_data = self.hub.read_holding_registers(
+            unit=self.inverter_unit_id, address=self.start_address + 108, count=46
+        )
+        if battery_data.isError():
+            _LOGGER.error(f"Battery read error: {battery_data}")
+            raise RuntimeError(f"Battery read error: {battery_data}")
+        
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            battery_data.registers, byteorder=Endian.Big
+        )
+        
+        self.decoded_model = OrderedDict([
+            ('B_Temp_Average',      decoder.decode_32bit_float()),
+            ('B_Temp_Max',          decoder.decode_32bit_float()),
+            ('B_Voltage',           decoder.decode_32bit_float()),
+            ('B_Current',           decoder.decode_32bit_float()),
+            ('B_Power',             decoder.decode_32bit_float()),
+            ('B_Export_Energy_WH',  decoder.decode_64bit_uint()),
+            ('B_Import_Energy_WH',  decoder.decode_64bit_uint()),
+            ('B_Energy_Max',        decoder.decode_32bit_float()),
+            ('B_Energy_Available',  decoder.decode_32bit_float()),
+            ('B_SOH',               decoder.decode_32bit_float()),
+            ('B_SOE',               decoder.decode_32bit_float()),
+            ('B_Status',            decoder.decode_32bit_uint()),
+            ('B_Status_Vendor',     decoder.decode_32bit_uint()),
+            ('B_Event_Log1',        decoder.decode_16bit_uint()),
+            ('B_Event_Log2',        decoder.decode_16bit_uint()),
+            ('B_Event_Log3',        decoder.decode_16bit_uint()),
+            ('B_Event_Log4',        decoder.decode_16bit_uint()),
+            ('B_Event_Log5',        decoder.decode_16bit_uint()),
+            ('B_Event_Log6',        decoder.decode_16bit_uint()),
+            ('B_Event_Log7',        decoder.decode_16bit_uint()),
+            ('B_Event_Log8',        decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor1', decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor2', decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor3', decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor4', decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor5', decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor6', decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor7', decoder.decode_16bit_uint()),
+            ('B_Event_Log_Vendor8', decoder.decode_16bit_uint()),
+      ])
+        
+        for name, value in iteritems(self.decoded_model):
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
 
     @property
     def online(self) -> bool:

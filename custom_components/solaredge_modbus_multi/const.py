@@ -132,3 +132,13 @@ METER_EVENTS = {
     29: "M_EVENT_OEM14",
     30: "M_EVENT_OEM15",
 }
+
+BATTERY_STATUS = {
+    0: "Off",
+    1: "Standby",
+    2: "Init",
+    3: "Charge",
+    4: "Discharge",
+    5: "Fault",
+    7: "Idle",
+}
