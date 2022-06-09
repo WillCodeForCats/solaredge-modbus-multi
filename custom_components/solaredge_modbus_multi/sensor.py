@@ -65,9 +65,7 @@ async def async_setup_entry(
             entities.append(SunspecDID(inverter, config_entry))
         entities.append(Version(inverter, config_entry))
         entities.append(Status(inverter,config_entry))
-        entities.append(StatusText(inverter,config_entry))
         entities.append(StatusVendor(inverter, config_entry))
-        entities.append(StatusVendorText(inverter, config_entry))
         entities.append(ACCurrentSensor(inverter, config_entry))
         entities.append(ACCurrentSensor(inverter, config_entry, 'A'))
         entities.append(ACCurrentSensor(inverter, config_entry, 'B'))
@@ -1024,36 +1022,6 @@ class Status(SolarEdgeSensorBase):
             pass
 
         return attrs
-        
-class StatusText(SolarEdgeSensorBase):
-    entity_category = EntityCategory.DIAGNOSTIC
-    
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
-        """Initialize the sensor."""
-        
-    @property
-    def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_status_text"
-
-    @property
-    def name(self) -> str:
-        return f"{self._platform._device_info['name']} Status Text"
-
-    @property
-    def native_value(self):
-        try:
-            if (self._platform.decoded_model['I_Status'] == SUNSPEC_NOT_IMPL_INT16):
-                return None
-            
-            else:
-                return DEVICE_STATUS[self._platform.decoded_model['I_Status']]
-        
-        except TypeError:
-            return None
-        
-        except KeyError:
-            return None
 
 class StatusVendor(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
@@ -1069,45 +1037,6 @@ class StatusVendor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return f"{self._platform._device_info['name']} Status Vendor"
-
-    @property
-    def native_value(self):
-        try:
-            if (self._platform.decoded_model['I_Status_Vendor'] == SUNSPEC_NOT_IMPL_INT16):
-                return None
-            
-            else:
-                return self._platform.decoded_model['I_Status_Vendor']
-        
-        except TypeError:
-            return None
-                
-    @property
-    def extra_state_attributes(self):
-        try:
-            if self._platform.decoded_model['I_Status_Vendor'] in VENDOR_STATUS:
-                return {"description": VENDOR_STATUS[self._platform.decoded_model['I_Status_Vendor']]}
-            
-            else:
-                return None
-        
-        except KeyError:
-            return None
-
-class StatusVendorText(SolarEdgeSensorBase):
-    entity_category = EntityCategory.DIAGNOSTIC
-    
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
-        """Initialize the sensor."""
-        
-    @property
-    def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_status_vendor_text"
-
-    @property
-    def name(self) -> str:
-        return f"{self._platform._device_info['name']} Status Vendor Text"
 
     @property
     def native_value(self):
