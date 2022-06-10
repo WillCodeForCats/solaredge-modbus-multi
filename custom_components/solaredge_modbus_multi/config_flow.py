@@ -12,14 +12,14 @@ from .const import (
     DEFAULT_PORT,
     DEFAULT_DEVICE_ID,
     DEFAULT_NUMBER_INVERTERS,
-    DEFAULT_READ_METER1,
-    DEFAULT_READ_METER2,
-    DEFAULT_READ_METER3,
+    DEFAULT_DETECT_METERS,
+    DEFAULT_DETECT_BATTERIES,
+    DEFAULT_SINGLE_DEVICE_ENTITY,
     CONF_DEVICE_ID,
     CONF_NUMBER_INVERTERS,
-    CONF_READ_METER1,
-    CONF_READ_METER2,
-    CONF_READ_METER3
+    CONF_DETECT_METERS,
+    CONF_DETECT_BATTERIES,
+    CONF_SINGLE_DEVICE_ENTITY,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
@@ -96,9 +96,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_PORT: DEFAULT_PORT,
                 CONF_NUMBER_INVERTERS: DEFAULT_NUMBER_INVERTERS,
                 CONF_DEVICE_ID: DEFAULT_DEVICE_ID,
-                CONF_READ_METER1: DEFAULT_READ_METER1,
-                CONF_READ_METER2: DEFAULT_READ_METER2,
-                CONF_READ_METER3: DEFAULT_READ_METER3,
             }
 
         return self.async_show_form(
@@ -120,15 +117,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_NUMBER_INVERTERS, default=user_input[CONF_NUMBER_INVERTERS]
                     ): vol.Coerce(int),
-                    vol.Optional(
-                        CONF_READ_METER1, default=user_input[CONF_READ_METER1]
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_READ_METER2, default=user_input[CONF_READ_METER2]
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_READ_METER3, default=user_input[CONF_READ_METER3]
-                    ): cv.boolean,
                 },
             ),
             errors = errors
@@ -155,15 +143,12 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     data = user_input
                 )
         else:
-            if self.config_entry.options.get(CONF_SCAN_INTERVAL) is None:
-                user_input = {
-                    CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
-                }
-            
-            else:
-                user_input = {
-                    CONF_SCAN_INTERVAL: self.config_entry.options.get(CONF_SCAN_INTERVAL),
-                }
+            user_input = {
+                CONF_SCAN_INTERVAL: self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                CONF_SINGLE_DEVICE_ENTITY: self.config_entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
+                CONF_DETECT_METERS: self.config_entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
+                CONF_DETECT_BATTERIES: self.config_entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
+            }
 
         return self.async_show_form(
             step_id = "init",
@@ -172,6 +157,15 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_SCAN_INTERVAL, default=user_input[CONF_SCAN_INTERVAL]
                     ): vol.Coerce(int),
+                    vol.Optional(
+                        CONF_SINGLE_DEVICE_ENTITY, default=user_input[CONF_SINGLE_DEVICE_ENTITY]
+                    ): cv.boolean,
+                    vol.Optional(
+                        CONF_DETECT_METERS, default=user_input[CONF_DETECT_METERS]
+                    ): cv.boolean,
+                    vol.Optional(
+                        CONF_DETECT_BATTERIES, default=user_input[CONF_DETECT_BATTERIES]
+                    ): cv.boolean,
                 },
             ),
             errors = errors

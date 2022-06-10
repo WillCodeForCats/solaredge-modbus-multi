@@ -34,7 +34,10 @@
       "init": {
         "title": "SolarEdge Modbus Options",
         "data": {
-          "scan_interval": "Oproepfrequentie (seconden)"
+          "scan_interval": "Oproepfrequentie (seconden)",
+          "single_device_entity": "Entiteit met één apparaat",
+          "detect_meters": "Meters automatisch detecteren",
+          "detect_batteries": "Batterijen automatisch detecteren"
         }
       }
     },
