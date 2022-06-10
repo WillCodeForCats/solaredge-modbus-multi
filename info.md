@@ -28,11 +28,11 @@ Make sure you have a full backup before making changes - backups are always best
 * Meter support for 1 to 3 meters per inverter.
 * Battery support for 1 or 2 batteries per inverter.
 * Automatically detects meters and batteries.
-* Polling frequency option between 10 to 86400 seconds.
+* Polling frequency configuration option (10 to 86400 seconds).
 * Configurable starting inverter device ID.
 * Connects using Modbus/TCP - no cloud dependencies.
-* Informational sensors for inverters and meters.
+* Informational sensor for device and its attributes
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
 
-Requires Home Assistant 2021.12.0 and newer.
+Requires Home Assistant 2022.2.0 and newer.
