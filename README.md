@@ -3,7 +3,7 @@
 # solaredge-modbus-multi
 _Note: readme has been updated for version 2.0.0 (currently in pre-release)_
 
-A Home Assistant integration for SolarEdge inverters using Modbus/TCP. It supports single inverters, multiple inverters, meters, batteries, and many of improvements over other integrations that didn't work well with a multi-device setup.
+A Home Assistant integration for SolarEdge inverters using Modbus/TCP. It supports single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
 
 It is designed to communicate locally using Modbus/TCP where you have a single Leader (Master) inverter connected with one or more Follower (Slave) inverters chained using the RS485 bus. Inverters can have up to three meters and two batteries.
 
