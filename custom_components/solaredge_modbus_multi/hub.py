@@ -448,7 +448,7 @@ class SolarEdgeMeter:
             or decoded_ident['C_SunSpec_DID'] != 0x0001
             or decoded_ident['C_SunSpec_Length'] != 65
         ):
-            raise RuntimeError("Meter {meter_id} not usable.")
+            raise RuntimeError("Meter {self.meter_id} not usable.")
 
         meter_info = hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 2, count=65
@@ -478,7 +478,7 @@ class SolarEdgeMeter:
         self.fw_version = self.decoded_common['C_Version']
         self.serial = self.decoded_common['C_SerialNumber']
         self.device_address = self.decoded_common['C_Device_address']
-        self.name = f"{hub.hub_id.capitalize()} M{self.inverter_unit_id}-{meter_id}"
+        self.name = f"{hub.hub_id.capitalize()} M{self.meter_id}-{self.inverter_unit_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
