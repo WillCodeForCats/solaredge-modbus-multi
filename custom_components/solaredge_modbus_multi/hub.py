@@ -148,26 +148,36 @@ class SolarEdgeModbusMultiHub:
         
         if not self.is_socket_open():
             self.online = False
+            for inverter in self.inverters:
+                await inverter.publish_updates()
+            for meter in self.meters:
+                await meter.publish_updates()
+            for battery in self.batteries:
+                await battery.publish_updates()
             _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
-        
+            
         else:
             self.online = True
+            
             try:
                 for inverter in self.inverters:
                     inverter.read_modbus_data()
-                    await inverter.publish_updates()
-                
                 for meter in self.meters:
                     meter.read_modbus_data()
-                    await meter.publish_updates()
-                
                 for battery in self.batteries:
                     battery.read_modbus_data()
-                    await battery.publish_updates()
             
             except Exception as e:
                 self.online = False
                 _LOGGER.error(f"Failed to update devices: {e}")
+                
+            finally:
+                for inverter in self.inverters:
+                    await inverter.publish_updates()
+                for meter in self.meters:
+                    await meter.publish_updates()
+                for battery in self.batteries:
+                    await battery.publish_updates()
 
         self.close()
 
@@ -718,9 +728,9 @@ class SolarEdgeBattery:
         self.decoded_model = OrderedDict([
             ('B_Temp_Average',      decoder.decode_32bit_float()),
             ('B_Temp_Max',          decoder.decode_32bit_float()),
-            ('B_Voltage',           decoder.decode_32bit_float()),
-            ('B_Current',           decoder.decode_32bit_float()),
-            ('B_Power',             decoder.decode_32bit_float()),
+            ('B_DC_Voltage',        decoder.decode_32bit_float()),
+            ('B_DC_Current',        decoder.decode_32bit_float()),
+            ('B_DC_Power',          decoder.decode_32bit_float()),
             ('B_Export_Energy_WH',  decoder.decode_64bit_uint()),
             ('B_Import_Energy_WH',  decoder.decode_64bit_uint()),
             ('B_Energy_Max',        decoder.decode_32bit_float()),
