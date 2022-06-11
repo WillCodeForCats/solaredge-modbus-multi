@@ -4,9 +4,9 @@
       "user": {
         "title": "SolarEdge Modbus-configuratie",
         "data": {
-          "name": "Sensorprefiks",
-          "host": "Inverter IP-adresse",
-          "port": "Modbus/TCP-port",
+          "name": "Sensor prefix",
+          "host": "omvormer IP-adres",
+          "port": "Modbus/TCP Port",
           "number_of_inverters": "Aantal aangesloten omvormers",
           "device_id": "Omvormer Modbus-adres (apparaat-ID)",
           "read_meter_1": "Gebruik meter 1",
@@ -32,7 +32,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "SolarEdge Modbus Options",
+        "title": "SolarEdge Modbus Instellingen",
         "data": {
           "scan_interval": "Oproepfrequentie (seconden)",
           "single_device_entity": "Entiteit met één apparaat",
