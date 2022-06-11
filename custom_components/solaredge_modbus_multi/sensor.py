@@ -20,8 +20,7 @@ from homeassistant.const import (
 )
 
 from homeassistant.components.sensor import (
-    STATE_CLASS_TOTAL_INCREASING,
-    STATE_CLASS_MEASUREMENT,
+    SensorStateClass,
     SensorDeviceClass,
     SensorEntity,
 )
@@ -456,7 +455,7 @@ class SunspecDID(SolarEdgeSensorBase):
 
 class ACCurrentSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.CURRENT
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
 
     def __init__(self, platform, config_entry, phase: str = None):
@@ -506,7 +505,7 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
 class VoltageSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
 
     def __init__(self, platform, config_entry, phase: str = None):
@@ -559,7 +558,7 @@ class VoltageSensor(SolarEdgeSensorBase):
 
 class ACPower(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.POWER
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = POWER_WATT
     icon = 'mdi:solar-power'
 
@@ -604,7 +603,7 @@ class ACPower(SolarEdgeSensorBase):
 
 class ACFrequency(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.FREQUENCY
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = FREQUENCY_HERTZ
 
     def __init__(self, platform, config_entry):
@@ -636,7 +635,7 @@ class ACFrequency(SolarEdgeSensorBase):
 
 class ACVoltAmp(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.APPARENT_POWER
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = POWER_VOLT_AMPERE
 
     def __init__(self, platform, config_entry, phase: str = None):
@@ -684,7 +683,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
 
 class ACVoltAmpReactive(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.REACTIVE_POWER
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = POWER_VOLT_AMPERE_REACTIVE
 
     def __init__(self, platform, config_entry, phase: str = None):
@@ -732,7 +731,7 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
 
 class ACPowerFactor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.POWER_FACTOR
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
 
     def __init__(self, platform, config_entry, phase: str = None):
@@ -780,7 +779,7 @@ class ACPowerFactor(SolarEdgeSensorBase):
 
 class ACEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
-    state_class = STATE_CLASS_TOTAL_INCREASING
+    state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
 
     def __init__(self, platform, config_entry, phase: str = None):
@@ -852,7 +851,7 @@ class ACEnergy(SolarEdgeSensorBase):
 
 class DCCurrent(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.CURRENT
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
     icon = 'mdi:current-dc'
 
@@ -885,7 +884,7 @@ class DCCurrent(SolarEdgeSensorBase):
 
 class DCVoltage(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
 
     def __init__(self, platform, config_entry):
@@ -917,7 +916,7 @@ class DCVoltage(SolarEdgeSensorBase):
 
 class DCPower(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.POWER
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = POWER_WATT
     icon = 'mdi:solar-power'
 
@@ -950,7 +949,7 @@ class DCPower(SolarEdgeSensorBase):
 
 class HeatSinkTemperature(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
 
     def __init__(self, platform, config_entry):
@@ -1106,7 +1105,7 @@ class MeterEvents(SolarEdgeSensorBase):
 
 class MeterVAhIE(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
-    state_class = STATE_CLASS_TOTAL_INCREASING
+    state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_VOLT_AMPERE_HOUR
 
     def __init__(self, platform, config_entry, phase: str = None):
@@ -1174,7 +1173,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
 
 class MetervarhIE(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
-    state_class = STATE_CLASS_TOTAL_INCREASING
+    state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_VOLT_AMPERE_REACTIVE_HOUR
 
     def __init__(self, platform, config_entry, phase: str = None):
