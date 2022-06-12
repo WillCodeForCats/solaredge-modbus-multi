@@ -28,7 +28,7 @@ from homeassistant.components.sensor import (
 from .const import (
     DOMAIN,
     SUNSPEC_NOT_IMPL_UINT16, SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT32,
-    SUNSPEC_NOT_ACCUM_ACC32, SUNSPEC_ACCUM_LIMIT, 
+    SUNSPEC_NOT_ACCUM_ACC32, SUNSPEC_ACCUM_LIMIT, SUNSPEC_SF_RANGE,
     DEVICE_STATUS, DEVICE_STATUS_DESC,
     VENDOR_STATUS, SUNSPEC_DID, METER_EVENTS,
     ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
@@ -493,7 +493,8 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
         try:
             if (self._platform.decoded_model[model_key] == self.SUNSPEC_NOT_IMPL or
-                self._platform.decoded_model['AC_Current_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['AC_Current_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['AC_Current_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
             
@@ -545,7 +546,8 @@ class VoltageSensor(SolarEdgeSensorBase):
                 
         try:
             if (self._platform.decoded_model[model_key] == self.SUNSPEC_NOT_IMPL or
-                self._platform.decoded_model['AC_Voltage_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['AC_Voltage_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['AC_Voltage_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
             
@@ -622,7 +624,8 @@ class ACFrequency(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (self._platform.decoded_model['AC_Frequency'] == SUNSPEC_NOT_IMPL_UINT16 or
-                self._platform.decoded_model['AC_Frequency_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['AC_Frequency_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['AC_Frequency_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -670,7 +673,8 @@ class ACVoltAmp(SolarEdgeSensorBase):
 
         try:
             if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_IMPL_INT16 or
-                self._platform.decoded_model['AC_VA_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['AC_VA_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['AC_VA_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -718,7 +722,8 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
 
         try:
             if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_IMPL_INT16 or
-                self._platform.decoded_model['AC_var_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['AC_var_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['AC_var_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -766,7 +771,8 @@ class ACPowerFactor(SolarEdgeSensorBase):
 
         try:
             if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_IMPL_INT16 or
-                self._platform.decoded_model['AC_PF_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['AC_PF_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['AC_PF_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -833,7 +839,8 @@ class ACEnergy(SolarEdgeSensorBase):
         try:
             if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32 or
                 self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT or
-                self._platform.decoded_model['AC_Energy_WH_SF'] == self.SUNSPEC_NOT_IMPL
+                self._platform.decoded_model['AC_Energy_WH_SF'] == self.SUNSPEC_NOT_IMPL or
+                self._platform.decoded_model['AC_Energy_WH_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -870,7 +877,8 @@ class DCCurrent(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (self._platform.decoded_model['I_DC_Current'] == SUNSPEC_NOT_IMPL_UINT16 or
-                self._platform.decoded_model['I_DC_Current_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['I_DC_Current_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['I_DC_Current_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -902,7 +910,8 @@ class DCVoltage(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (self._platform.decoded_model['I_DC_Voltage'] == SUNSPEC_NOT_IMPL_UINT16 or
-                self._platform.decoded_model['I_DC_Voltage_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['I_DC_Voltage_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['I_DC_Voltage_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -935,7 +944,8 @@ class DCPower(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (self._platform.decoded_model['I_DC_Power'] == SUNSPEC_NOT_IMPL_INT16 or
-                self._platform.decoded_model['I_DC_Power_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['I_DC_Power_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['I_DC_Power_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -968,7 +978,8 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
         try:
             if (self._platform.decoded_model['I_Temp_Sink'] == 0x0 or
                 self._platform.decoded_model['I_Temp_Sink'] == SUNSPEC_NOT_IMPL_INT16 or
-                self._platform.decoded_model['I_Temp_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['I_Temp_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['I_Temp_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -1156,7 +1167,8 @@ class MeterVAhIE(SolarEdgeSensorBase):
         try:
             if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32 or
                 self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT or
-                self._platform.decoded_model['M_VAh_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['M_VAh_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['M_VAh_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
@@ -1224,7 +1236,8 @@ class MetervarhIE(SolarEdgeSensorBase):
         try:
             if (self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32 or
                 self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT or
-                self._platform.decoded_model['M_varh_SF'] == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model['M_varh_SF'] == SUNSPEC_NOT_IMPL_INT16 or
+                self._platform.decoded_model['M_varh_SF'] not in SUNSPEC_SF_RANGE
             ):
                 return None
     
