@@ -966,7 +966,8 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if (self._platform.decoded_model['I_Temp_Sink'] == SUNSPEC_NOT_IMPL_INT16 or
+            if (self._platform.decoded_model['I_Temp_Sink'] == 0x0 or
+                self._platform.decoded_model['I_Temp_Sink'] == SUNSPEC_NOT_IMPL_INT16 or
                 self._platform.decoded_model['I_Temp_SF'] == SUNSPEC_NOT_IMPL_INT16
             ):
                 return None
