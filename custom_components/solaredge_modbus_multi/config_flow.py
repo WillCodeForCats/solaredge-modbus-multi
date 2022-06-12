@@ -112,10 +112,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_PORT, default=user_input[CONF_PORT]
                     ): vol.Coerce(int),
                     vol.Required(
-                        CONF_DEVICE_ID, default=user_input[CONF_DEVICE_ID]
+                        CONF_NUMBER_INVERTERS, default=user_input[CONF_NUMBER_INVERTERS]
                     ): vol.Coerce(int),
                     vol.Required(
-                        CONF_NUMBER_INVERTERS, default=user_input[CONF_NUMBER_INVERTERS]
+                        CONF_DEVICE_ID, default=user_input[CONF_DEVICE_ID]
                     ): vol.Coerce(int),
                 },
             ),
