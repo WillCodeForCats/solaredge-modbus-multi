@@ -839,10 +839,9 @@ class ACEnergy(SolarEdgeSensorBase):
     
             else:
                 value = scale_factor(self._platform.decoded_model[model_key], self._platform.decoded_model['AC_Energy_WH_SF'])
-                value_kw = watts_to_kilowatts(value)
                 
                 try:
-                    return update_accum(self, value, value_kw)
+                    return watts_to_kilowatts(update_accum(self, value))
                 except:
                     return None
                 
