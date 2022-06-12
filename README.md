@@ -22,32 +22,31 @@ It is designed to communicate locally using Modbus/TCP where you have a single L
 Requires Home Assistant 2022.2.0 and newer.
 
 ## Installation
-Copy the contents of the custom_components folder into to your Home Assistant config/custom_components folder or install through HACS.
+Copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder,
+
+OR
+
+Install with HACS: Search for "SolarEdge Modbus Multi" in the default repository.
+
 After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 
-Starting with version 2.0.0 this integration requires Home Assistant 2022.2.0 or newer.
+### Configuration
+[WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
+
+### Documentation
+
+[WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
+
+### Upgrading from v1.2.x to v2.x.x
+1.  Delete integration from Settings -> Devices & Services.
+2. Update to 2.x release.
+3. Add the integration again.
+
+Fixing #21 causes HA to recreate entities. Updating in place will cause existing entities will be seen as duplicates and HA will suffix them with `_2`. If this happens you can either update everything to use the new names, or follow the update procedure to avoid renaming. This assumes the default entity names; custom names will have to be handled manually in any case.
 
 ### Upgrading from v1.1.x to v1.2.x
 Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
 
-## Configuration
-https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
-
-# Test Environment
-This integration is developed on a system that consists of two inverters and one meter:
-* Inverters (addressed 1 and 2) on RS485-1
-* Ethernet connected to inverter 1 with modbus/tcp enabled
-* E+I meter (address 2) connected to inverter 1 on RS485-2.
-* Ethernet is also for SolarEdge comms - no wireless or cell options
-
-# Credits
+## Specifications
 - https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
 - https://sunspec.org/wp-content/uploads/2015/06/SunSpec-Specification-Common-Models-A12031-1.6.pdf
-
-This started as a fork but things got too messy and I wasn't sure how to clean it up to get it merged upstream, so I started a new repository.
-It's now evolved into my "learn about python and HA" project and I've started to make larger changes.
-
-Based on work from:
-- https://github.com/WillCodeForCats/home-assistant-solaredge-modbus
-- https://github.com/binsentsu/home-assistant-solaredge-modbus
-- https://github.com/julezman/home-assistant-solaredge-modbus/tree/multiple_inverters
