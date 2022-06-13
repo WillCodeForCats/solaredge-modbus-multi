@@ -1,4 +1,4 @@
-## Solaredge Modbus Multi-Inverter
+## SolarEdge Modbus Multi-Inverter
 
 A Home Assistant integration for SolarEdge inverters.
 
