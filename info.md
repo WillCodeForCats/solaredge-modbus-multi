@@ -5,7 +5,10 @@ A Home Assistant integration for SolarEdge inverters.
 Connects locally using Modbus/TCP to single or multiple inverters with support for meters.
 
 {% if installed %}
-{% if version_installed.replace("v", "").replace(".","").replace("pre","") | int < 120  %}
+{% if prerelease %}
+
+{% else %}
+{% if version_installed.replace("v", "").replace(".","") | int < 120 %}
 
 ### Breaking Change in v1.2.x
 * Change domain and directory to `solaredge_modbus_multi`
@@ -20,6 +23,7 @@ Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.co
 Make sure you have a full backup before making changes - backups are always best practice.
 
 ---
+{% endif %}
 {% endif %}
 {% endif %}
 
