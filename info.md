@@ -4,6 +4,10 @@ A Home Assistant integration for SolarEdge inverters.
 
 Connects locally using Modbus/TCP to single or multiple inverters with support for meters.
 
+{% if prerelease %}
+**v2.0.0 Pre-Release Notes**: [Release v2.0.0-pre.1](https://github.com/WillCodeForCats/solaredge-modbus-multi/releases/tag/v2.0.0-pre.1)
+{% endif %}
+
 {% if installed %}
 {% if version_installed.replace("v", "").replace(".","") | int < 120 %}
 
@@ -17,7 +21,7 @@ Make sure you have a full backup before making changes - backups are always best
 {% endif %}
 {% endif %}
 
-### Features
+## Features
 * Inverter support for 1 to 32 SolarEdge inverters.
 * Meter support for 1 to 3 meters per inverter.
 * Battery support for 1 or 2 batteries per inverter.
