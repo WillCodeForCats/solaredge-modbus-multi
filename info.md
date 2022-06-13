@@ -16,7 +16,6 @@ Make sure you have a full backup before making changes - backups are always best
 ---
 {% endif %}
 {% endif %}
-{% endif %}
 
 ### Features
 * Inverter support for 1 to 32 SolarEdge inverters.
