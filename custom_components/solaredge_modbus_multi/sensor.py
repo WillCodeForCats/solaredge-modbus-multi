@@ -1012,7 +1012,7 @@ class Status(SolarEdgeSensorBase):
                 return None
             
             else:
-                return self._platform.decoded_model['I_Status']
+                return str(self._platform.decoded_model['I_Status'])
         
         except TypeError:
             return None
@@ -1055,7 +1055,7 @@ class StatusVendor(SolarEdgeSensorBase):
                 return None
             
             else:
-                return self._platform.decoded_model['I_Status_Vendor']
+                return str(self._platform.decoded_model['I_Status_Vendor'])
         
         except TypeError:
             return None
