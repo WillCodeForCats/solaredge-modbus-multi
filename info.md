@@ -12,8 +12,6 @@ Connects locally using Modbus/TCP to single or multiple inverters with support f
 Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
 
 Make sure you have a full backup before making changes - backups are always best practice.
-
----
 {% endif %}
 {% endif %}
 
