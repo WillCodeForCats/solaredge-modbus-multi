@@ -656,7 +656,7 @@ class SolarEdgeBattery:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
         battery_info = hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=self.start_address, count=75
+            unit=self.inverter_unit_id, address=self.start_address, count=76
         )
         if battery_info.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {battery_info}")
@@ -670,7 +670,7 @@ class SolarEdgeBattery:
             ('B_Model', parse_modbus_string(decoder.decode_string(32))),
             ('B_Version', parse_modbus_string(decoder.decode_string(32))),
             ('B_SerialNumber', parse_modbus_string(decoder.decode_string(32))),
-            ('B_Device_address', decoder.decode_16bit_uint()),
+            ('B_Device_Address', decoder.decode_16bit_uint()),
             ('Reserved', decoder.decode_16bit_uint()),
             ('B_RatedEnergy', decoder.decode_32bit_float()),
             ('B_MaxChargePower', decoder.decode_32bit_float()),
