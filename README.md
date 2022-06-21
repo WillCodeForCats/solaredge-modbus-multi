@@ -35,7 +35,7 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
-### Upgrading from v1.x.x to v2.x.x
+### Recommended Update Procedure from v1.x.x
 1. Delete integration from Settings -> Devices & Services.
 2. Update to 2.x.x release.
 3. Add the integration under Settings -> Devices & Services.
