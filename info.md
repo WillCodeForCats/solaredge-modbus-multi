@@ -16,7 +16,7 @@ Make sure you have a full backup before making changes - backups are always best
 
 1. Delete integration from Settings -> Devices & Services.
 2. Update to 2.x.x release.
-3. Add the integration again.
+3. Add the integration under Settings -> Devices & Services.
 {% endif %}
 {% endif %}
 
