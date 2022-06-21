@@ -28,4 +28,4 @@ Make sure you have a full backup before making changes - backups are always best
 Requires Home Assistant 2022.2.0 and newer.
 
 ## Help Wanted
-* Battery support is untested: see issue [#21](https://github.com/WillCodeForCats/solaredge-modbus-multi/issues/22)
+* Battery support is untested: see issue [#22](https://github.com/WillCodeForCats/solaredge-modbus-multi/issues/22)
