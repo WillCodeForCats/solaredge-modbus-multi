@@ -11,6 +11,13 @@ Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.co
 
 Make sure you have a full backup before making changes - backups are always best practice.
 {% endif %}
+{% if version_installed.replace("v", "").replace(".","") | int < 200 %}
+### Recommended Update Procedure from v1.x.x
+
+1. Delete integration from Settings -> Devices & Services.
+2. Update to 2.x.x release.
+3. Add the integration again.
+{% endif %}
 {% endif %}
 
 ## Features
