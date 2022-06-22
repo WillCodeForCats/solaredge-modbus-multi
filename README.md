@@ -26,7 +26,11 @@ OR
 
 Install with HACS: Search for "SolarEdge Modbus Multi" in the default repository.
 
-After rebooting Home Assistant, this integration can be configured through the integration setup UI.
+After rebooting Home Assistant, this integration can be configured through the integration setup UI. If the integartion does not appear in Home Assistant after restarting, you may need to do one or more of the following:
+
+* Reload the Home Assistant page
+* Restart your browser
+* Clear your browser cache
 
 ### Configuration
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
