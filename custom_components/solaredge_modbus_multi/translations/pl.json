@@ -1,0 +1,48 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfiguracja SolarEdge Modbus",
+        "data": {
+          "name": "Prefix sensora",
+          "host": "Adres IP inwertera",
+          "port": "Modbus/TCP Port",
+          "device_id": "Adres Modbus Inwertera (Device ID)",
+          "number_of_inverters": "Ilość inwerterów",
+          "read_meter_1": "Użyj licznika 1",
+          "read_meter_2": "Użyj licznika 2",
+          "read_meter_3": "Użyj licznika 3"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Urządzenie jest już skonfigurowane!",
+      "max_device_id": "Device ID musi być pomiędzy  1 i 247.",
+      "min_device_id": "Device ID musi być pomiędzy  1 i 247.",
+      "max_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
+      "min_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
+      "too_many_inverters": "Liczba inwerterów za duża dla Device ID.",
+      "invalid_host": "Błędny adres IP.",
+      "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535."
+    },
+    "abort": {
+      "already_configured": "Urządzenie jest już skonfigurowane!"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje SolarEdge Modbus",
+        "data": {
+          "scan_interval": "Częstotliwość odczytu (sekundy)",
+          "single_device_entity": "Użyj jednej encji dla urządzenia",
+          "detect_meters": "Automatycznie wykryj liczniki",
+          "detect_batteries": "Automatycznie wykryj baterie"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Próbkowanie musi być w zakresie od 10 do 86400 sekund."
+    }
+  }
+}
