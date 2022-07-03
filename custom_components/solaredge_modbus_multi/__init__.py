@@ -17,6 +17,7 @@ from .const import (
     CONF_DETECT_METERS, DEFAULT_DETECT_METERS,
     CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES,
     CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY,
+    CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN,
 )
 
 PLATFORMS: list[str] = ["sensor"]
@@ -46,6 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
         entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
         entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
+        entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
     )
     
     await solaredge_hub.async_init_solaredge()

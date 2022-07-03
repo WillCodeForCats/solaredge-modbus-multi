@@ -36,13 +36,14 @@
         "data": {
           "scan_interval": "Oproepfrequentie (seconden)",
           "single_device_entity": "Entiteit met één apparaat",
+          "keep_modbus_open": "Houd Modbus-verbinding open",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren"
         }
       }
     },
     "error": {
-      "invalid_scan_interval": "Geldig interval is 10 tot 86400 seconden."
+      "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden."
     }
   }
 }

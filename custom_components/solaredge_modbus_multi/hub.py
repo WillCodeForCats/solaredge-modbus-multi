@@ -41,6 +41,7 @@ class SolarEdgeModbusMultiHub:
         detect_meters: bool = True,
         detect_batteries: bool = False,
         single_device_entity: bool = True,
+        keep_modbus_open: bool = False,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -55,8 +56,16 @@ class SolarEdgeModbusMultiHub:
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
+        self._keep_modbus_open = keep_modbus_open
         self._sensors = []
         self.data = {}
+
+        if (
+            scan_interval < 10 and
+            not self._keep_modbus_open
+        ):
+            _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
+            self._keep_modbus_open = True
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
         
@@ -151,7 +160,8 @@ class SolarEdgeModbusMultiHub:
         except:
             raise ConfigEntryNotReady(f"Devices not ready.")
 
-        self.close()
+        if not self._keep_modbus_open:
+            self.close()
 
         self._polling_interval = async_track_time_interval(
             self._hass, self.async_refresh_modbus_data, self._scan_interval
@@ -197,7 +207,8 @@ class SolarEdgeModbusMultiHub:
                 for battery in self.batteries:
                     await battery.publish_updates()
 
-        self.close()
+        if not self._keep_modbus_open:
+            self.close()
 
     @property
     def name(self):
