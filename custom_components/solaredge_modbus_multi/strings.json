@@ -43,7 +43,7 @@
       }
     },
     "error": {
-      "invalid_scan_interval": "Valid interval is 10 to 86400 seconds."
+      "invalid_scan_interval": "Valid interval is 1 to 86400 seconds."
     }
   }
 }
