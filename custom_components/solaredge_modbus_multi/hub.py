@@ -61,8 +61,8 @@ class SolarEdgeModbusMultiHub:
         self.data = {}
 
         if (
-            not self._keep_modbus_open and
-            self._polling_interval < 10
+            scan_interval < 10 and
+            not self._keep_modbus_open
         ):
             _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
             self._keep_modbus_open = True
