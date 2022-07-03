@@ -90,7 +90,7 @@ class SolarEdgeModbusMultiHub:
                     new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
                     for meter in self.meters:
                         if new_meter_1.serial == meter.serial:
-                            _LOGGER.error(f"Duplicate serial {new_meter_1.serial}. Ignoring meter 1 on inverter ID {inverter_unit_id}")
+                            _LOGGER.warning(f"Duplicate serial {new_meter_1.serial}. Ignoring meter 1 on inverter ID {inverter_unit_id}")
                             raise RuntimeError(f"Duplicate meter 1 serial {new_meter_1.serial}")
                     
                     self.meters.append(new_meter_1)
@@ -102,7 +102,7 @@ class SolarEdgeModbusMultiHub:
                     new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
                     for meter in self.meters:
                         if new_meter_2.serial == meter.serial:
-                            _LOGGER.error(f"Duplicate serial {new_meter_2.serial}. Ignoring meter 2 on inverter ID {inverter_unit_id}")
+                            _LOGGER.warning(f"Duplicate serial {new_meter_2.serial}. Ignoring meter 2 on inverter ID {inverter_unit_id}")
                             raise RuntimeError(f"Duplicate meter 2 serial {new_meter_2.serial}")
                     
                     self.meters.append(new_meter_2)
@@ -114,7 +114,7 @@ class SolarEdgeModbusMultiHub:
                     new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
                     for meter in self.meters:
                         if new_meter_3.serial == meter.serial:
-                            _LOGGER.error(f"Duplicate serial {new_meter_3.serial}. Ignoring meter 3 on inverter ID {inverter_unit_id}")
+                            _LOGGER.warning(f"Duplicate serial {new_meter_3.serial}. Ignoring meter 3 on inverter ID {inverter_unit_id}")
                             raise RuntimeError(f"Duplicate meter 3 serial {new_meter_3.serial}")
                     
                     self.meters.append(new_meter_3)
