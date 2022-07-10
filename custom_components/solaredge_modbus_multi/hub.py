@@ -41,6 +41,7 @@ class SolarEdgeModbusMultiHub:
         detect_meters: bool = True,
         detect_batteries: bool = False,
         single_device_entity: bool = True,
+        keep_modbus_open: bool = False,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -55,8 +56,16 @@ class SolarEdgeModbusMultiHub:
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
+        self._keep_modbus_open = keep_modbus_open
         self._sensors = []
         self.data = {}
+
+        if (
+            scan_interval < 10 and
+            not self._keep_modbus_open
+        ):
+            _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
+            self._keep_modbus_open = True
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
         
@@ -90,7 +99,7 @@ class SolarEdgeModbusMultiHub:
                     new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
                     for meter in self.meters:
                         if new_meter_1.serial == meter.serial:
-                            _LOGGER.error(f"Duplicate serial {new_meter_1.serial}. Ignoring meter 1 on inverter ID {inverter_unit_id}")
+                            _LOGGER.warning(f"Duplicate serial {new_meter_1.serial}. Ignoring meter 1 on inverter ID {inverter_unit_id}")
                             raise RuntimeError(f"Duplicate meter 1 serial {new_meter_1.serial}")
                     
                     self.meters.append(new_meter_1)
@@ -102,7 +111,7 @@ class SolarEdgeModbusMultiHub:
                     new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
                     for meter in self.meters:
                         if new_meter_2.serial == meter.serial:
-                            _LOGGER.error(f"Duplicate serial {new_meter_2.serial}. Ignoring meter 2 on inverter ID {inverter_unit_id}")
+                            _LOGGER.warning(f"Duplicate serial {new_meter_2.serial}. Ignoring meter 2 on inverter ID {inverter_unit_id}")
                             raise RuntimeError(f"Duplicate meter 2 serial {new_meter_2.serial}")
                     
                     self.meters.append(new_meter_2)
@@ -114,7 +123,7 @@ class SolarEdgeModbusMultiHub:
                     new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
                     for meter in self.meters:
                         if new_meter_3.serial == meter.serial:
-                            _LOGGER.error(f"Duplicate serial {new_meter_3.serial}. Ignoring meter 3 on inverter ID {inverter_unit_id}")
+                            _LOGGER.warning(f"Duplicate serial {new_meter_3.serial}. Ignoring meter 3 on inverter ID {inverter_unit_id}")
                             raise RuntimeError(f"Duplicate meter 3 serial {new_meter_3.serial}")
                     
                     self.meters.append(new_meter_3)
@@ -151,7 +160,8 @@ class SolarEdgeModbusMultiHub:
         except:
             raise ConfigEntryNotReady(f"Devices not ready.")
 
-        self.close()
+        if not self._keep_modbus_open:
+            self.close()
 
         self._polling_interval = async_track_time_interval(
             self._hass, self.async_refresh_modbus_data, self._scan_interval
@@ -197,7 +207,8 @@ class SolarEdgeModbusMultiHub:
                 for battery in self.batteries:
                     await battery.publish_updates()
 
-        self.close()
+        if not self._keep_modbus_open:
+            self.close()
 
     @property
     def name(self):

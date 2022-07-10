@@ -36,13 +36,14 @@
         "data": {
           "scan_interval": "Częstotliwość odczytu (sekundy)",
           "single_device_entity": "Użyj jednej encji dla urządzenia",
+          "keep_modbus_open": "Pozostaw połączenie Modbus otwarte",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie"
         }
       }
     },
     "error": {
-      "invalid_scan_interval": "Próbkowanie musi być w zakresie od 10 do 86400 sekund."
+      "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund."
     }
   }
 }

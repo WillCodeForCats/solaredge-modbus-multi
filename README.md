@@ -10,7 +10,7 @@ It is designed to communicate locally using Modbus/TCP where you have a single L
 * Meter support for 1 to 3 meters per inverter.
 * Battery support for 1 or 2 batteries per inverter.
 * Automatically detects meters and batteries.
-* Polling frequency configuration option (10 to 86400 seconds).
+* Polling frequency configuration option (1 to 86400 seconds).
 * Configurable starting inverter device ID.
 * Connects using Modbus/TCP - no cloud dependencies.
 * Informational sensor for device and its attributes
@@ -36,7 +36,6 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
 
 ### Documentation
-
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ### Recommended Update Procedure from v1.x.x
@@ -48,6 +47,9 @@ Fixing #21 causes HA to recreate entities. Updating in place will cause existing
 
 ### Upgrading from v1.1.x to v1.2.x
 Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
+
+## Help Wanted
+* Battery support is untested: see issue [#22](https://github.com/WillCodeForCats/solaredge-modbus-multi/issues/22)
 
 ## Specifications
 - https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf

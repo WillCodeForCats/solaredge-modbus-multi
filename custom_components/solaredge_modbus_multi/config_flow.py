@@ -15,11 +15,13 @@ from .const import (
     DEFAULT_DETECT_METERS,
     DEFAULT_DETECT_BATTERIES,
     DEFAULT_SINGLE_DEVICE_ENTITY,
+    DEFAULT_KEEP_MODBUS_OPEN,
     CONF_DEVICE_ID,
     CONF_NUMBER_INVERTERS,
     CONF_DETECT_METERS,
     CONF_DETECT_BATTERIES,
     CONF_SINGLE_DEVICE_ENTITY,
+    CONF_KEEP_MODBUS_OPEN,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
@@ -133,7 +135,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options."""
         if user_input is not None:
             
-            if user_input[CONF_SCAN_INTERVAL] < 10:
+            if user_input[CONF_SCAN_INTERVAL] < 1:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
@@ -146,6 +148,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
             user_input = {
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                 CONF_SINGLE_DEVICE_ENTITY: self.config_entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
+                CONF_KEEP_MODBUS_OPEN: self.config_entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
                 CONF_DETECT_METERS: self.config_entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
                 CONF_DETECT_BATTERIES: self.config_entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
             }
@@ -159,6 +162,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     ): vol.Coerce(int),
                     vol.Optional(
                         CONF_SINGLE_DEVICE_ENTITY, default=user_input[CONF_SINGLE_DEVICE_ENTITY]
+                    ): cv.boolean,
+                    vol.Optional(
+                        CONF_KEEP_MODBUS_OPEN, default=user_input[CONF_KEEP_MODBUS_OPEN]
                     ): cv.boolean,
                     vol.Optional(
                         CONF_DETECT_METERS, default=user_input[CONF_DETECT_METERS]
