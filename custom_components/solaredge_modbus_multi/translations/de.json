@@ -32,7 +32,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "SolarEdge Modbus Options",
+        "title": "SolarEdge Modbus Optionen",
         "data": {
           "scan_interval": "Abfragehäufigkeit (Sekunden)",
           "single_device_entity": "Einzelne Geräteeinheit",
