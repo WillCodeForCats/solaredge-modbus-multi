@@ -667,11 +667,11 @@ class SolarEdgeBattery:
 
         self.inverter_unit_id = device_id
         self.hub = hub
+        self.decoded_common = []
+        self.decoded_model = []
         self._callbacks = set()
         self.start_address = None
         self.battery_id = battery_id
-        self.decoded_common = []
-        self.decoded_model = []
         self.has_parent = True
  
         if self.battery_id == 1:
