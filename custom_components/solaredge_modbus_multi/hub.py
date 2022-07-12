@@ -708,7 +708,7 @@ class SolarEdgeBattery:
             ('B_MaxDischargePeakPower', decoder.decode_32bit_float()),
         ])
 
-        for name, value in iteritems(decoded_common):
+        for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
         self.manufacturer = self.decoded_common['B_Manufacturer']
@@ -718,7 +718,7 @@ class SolarEdgeBattery:
         self.serial = self.decoded_common['B_SerialNumber']
         self.device_address = self.decoded_common['B_Device_address']
         self.name = f"{hub.hub_id.capitalize()} B{self.battery_id}"
-
+        
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
             "name": self.name,
