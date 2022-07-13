@@ -720,6 +720,14 @@ class SolarEdgeBattery:
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
         
+        
+        if (
+            len(self.decoded_common['B_Manufacturer']) == 0
+            or len(self.decoded_common['B_Model']) == 0
+            or len(self.decoded_common['B_SerialNumber']) == 0
+        ):
+            raise RuntimeError("Battery {self.battery_id} not usable.")
+
         self.manufacturer = self.decoded_common['B_Manufacturer']
         self.model = self.decoded_common['B_Model']
         self.option = ''
