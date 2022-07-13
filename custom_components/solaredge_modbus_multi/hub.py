@@ -722,10 +722,10 @@ class SolarEdgeBattery:
         
         self.manufacturer = self.decoded_common['B_Manufacturer']
         self.model = self.decoded_common['B_Model']
-        self.option = None
+        self.option = ''
         self.fw_version = self.decoded_common['B_Version']
         self.serial = self.decoded_common['B_SerialNumber']
-        self.device_address = self.decoded_common['B_Device_address']
+        self.device_address = self.decoded_common['B_Device_Address']
         self.name = f"{hub.hub_id.capitalize()} B{self.battery_id}"
         
         self._device_info = {
@@ -806,3 +806,7 @@ class SolarEdgeBattery:
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
+
+    @property
+    def single_device_entity(self) -> bool:
+        return self.hub._single_device_entity
