@@ -690,9 +690,6 @@ class SolarEdgeBattery:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
-        #elif self.battery_id == 0:
-        # mirror of 57600?
-        #    self.start_address = 62720 
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
@@ -796,7 +793,7 @@ class SolarEdgeBattery:
             ('B_Event_Log_Vendor6', decoder.decode_16bit_uint()),
             ('B_Event_Log_Vendor7', decoder.decode_16bit_uint()),
             ('B_Event_Log_Vendor8', decoder.decode_16bit_uint()),
-      ])
+        ])
         
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
