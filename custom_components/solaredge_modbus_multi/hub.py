@@ -701,7 +701,7 @@ class SolarEdgeBattery:
             raise RuntimeError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_info.registers, byteorder=Endian.Big
+            battery_info.registers, byteorder=Endian.Big, wordorder=Endian.Little
         )
         self.decoded_common = OrderedDict([
             ('B_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
@@ -719,7 +719,6 @@ class SolarEdgeBattery:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
-        
         
         if (
             len(self.decoded_common['B_Manufacturer']) == 0
@@ -768,7 +767,7 @@ class SolarEdgeBattery:
             raise RuntimeError(f"Battery read error: {battery_data}")
         
         decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_data.registers, byteorder=Endian.Big
+            battery_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
         )
         
         self.decoded_model = OrderedDict([
