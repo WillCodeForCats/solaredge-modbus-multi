@@ -719,14 +719,20 @@ class SolarEdgeBattery:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
+
+        self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].removesuffix(self.decoded_common['B_SerialNumber'])
+        self.decoded_common['B_Model'] = self.decoded_common['B_Model'].removesuffix(self.decoded_common['B_SerialNumber'])
         
+        ascii_ctrl_chars =  dict.fromkeys(range(32))
+        self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].translate(ascii_ctrl_chars)
+
         if (
             len(self.decoded_common['B_Manufacturer']) == 0
             or len(self.decoded_common['B_Model']) == 0
             or len(self.decoded_common['B_SerialNumber']) == 0
         ):
             raise RuntimeError("Battery {self.battery_id} not usable.")
-
+        
         self.manufacturer = self.decoded_common['B_Manufacturer']
         self.model = self.decoded_common['B_Model']
         self.option = ''
@@ -741,7 +747,6 @@ class SolarEdgeBattery:
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
-            "hw_version": self.option,
         }
 
     def register_callback(self, callback: Callable[[], None]) -> None:
