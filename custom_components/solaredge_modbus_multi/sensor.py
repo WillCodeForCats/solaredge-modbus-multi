@@ -186,8 +186,9 @@ async def async_setup_entry(
         entities.append(SolarEdgeBatteryAvailableEnergy(battery, config_entry))
         entities.append(SolarEdgeBatterySOH(battery, config_entry))
         entities.append(SolarEdgeBatterySOE(battery, config_entry))
+        entities.append(SolarEdgeBatterySOC(battery, config_entry))
         entities.append(SolarEdgeBatteryStatus(battery, config_entry))
-
+    
     if entities:
         async_add_entities(entities)
 
@@ -1564,6 +1565,43 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return None
         else:
             return round(self._platform.decoded_model['B_SOE'], 0)
+
+
+class SolarEdgeBatterySOC(SolarEdgeSensorBase):
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = PERCENTAGE
+
+    def __init__(self, platform, config_entry):
+        super().__init__(platform, config_entry)
+        """Initialize the sensor."""
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_battery_soc"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} State of Charge"
+
+    @property
+    def native_value(self):
+        if (
+            self._platform.decoded_model['B_Energy_Available']== SUNSPEC_NOT_IMPL_FLOAT32
+            or self._platform.decoded_model['B_Energy_Available'] == 0xFF7FFFFF
+            or self._platform.decoded_model['B_Energy_Available'] == 0x7F7FFFFF
+            or self._platform.decoded_model['B_Energy_Max']== SUNSPEC_NOT_IMPL_FLOAT32
+            or self._platform.decoded_model['B_Energy_Max'] == 0xFF7FFFFF
+            or self._platform.decoded_model['B_Energy_Max'] == 0x7F7FFFFF
+        ):
+            return None
+        
+        else:
+            try:
+                soc = self._platform.decoded_model['B_Energy_Available'] / self._platform.decoded_model['B_Energy_Max']
+                return round(soc * 100, 1)
+            
+            except ZeroDivisionError:
+                return None
 
 class SolarEdgeBatteryStatus(Status):
     def __init__(self, platform, config_entry):
