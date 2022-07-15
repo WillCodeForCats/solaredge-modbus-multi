@@ -1528,6 +1528,8 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
             self._platform.decoded_model['B_SOH']== SUNSPEC_NOT_IMPL_FLOAT32
             or self._platform.decoded_model['B_SOH'] == 0xFF7FFFFF
             or self._platform.decoded_model['B_SOH'] == 0x7F7FFFFF
+            or self._platform.decoded_model['B_SOH'] < 0
+            or self._platform.decoded_model['B_SOH'] > 100
         ):
             return None
         else:
@@ -1556,13 +1558,14 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             self._platform.decoded_model['B_SOE']== SUNSPEC_NOT_IMPL_FLOAT32
             or self._platform.decoded_model['B_SOE'] == 0xFF7FFFFF
             or self._platform.decoded_model['B_SOE'] == 0x7F7FFFFF
+            or self._platform.decoded_model['B_SOE'] < 0
+            or self._platform.decoded_model['B_SOE'] > 100
         ):
             return None
         else:
             return round(self._platform.decoded_model['B_SOE'], 0)
 
 class SolarEdgeBatteryStatus(Status):
-
     def __init__(self, platform, config_entry):
         super().__init__(platform, config_entry)
         """Initialize the sensor."""
