@@ -1388,6 +1388,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     def __init__(self, platform, config_entry):
         super().__init__(platform, config_entry)
         """Initialize the sensor."""
+        self.last = None
 
     @property
     def unique_id(self) -> str:
@@ -1421,6 +1422,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     def __init__(self, platform, config_entry):
         super().__init__(platform, config_entry)
         """Initialize the sensor."""
+        self.last = None
 
     @property
     def unique_id(self) -> str:
