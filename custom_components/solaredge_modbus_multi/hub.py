@@ -1,9 +1,7 @@
-import asyncio
 import logging
 import threading
 
 from typing import Any, Callable, Optional, Dict
-from datetime import timedelta
 from collections import OrderedDict
 
 from pymodbus.client.sync import ModbusTcpClient
@@ -14,7 +12,6 @@ from pymodbus.compat import iteritems
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
     DOMAIN,
@@ -36,7 +33,6 @@ class SolarEdgeModbusMultiHub:
         name: str,
         host: str,
         port: int,
-        scan_interval: int,
         number_of_inverters: int = 1,
         start_device_id: int = 1,
         detect_meters: bool = True,
@@ -52,8 +48,6 @@ class SolarEdgeModbusMultiHub:
         self._name = name
         self.number_of_inverters = number_of_inverters
         self.start_device_id = start_device_id
-        self._scan_interval = timedelta(seconds=scan_interval)
-        self._polling_interval = None
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
@@ -61,30 +55,28 @@ class SolarEdgeModbusMultiHub:
         self._sensors = []
         self.data = {}
 
-        if (
-            scan_interval < 10 and
-            not self._keep_modbus_open
-        ):
-            _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
-            self._keep_modbus_open = True
-
-        if scan_interval < 30:
-            _LOGGER.warning("Polling frequency < 30 is not recommended.")
+        #if (
+        #    scan_interval < 10 and
+        #    not self._keep_modbus_open
+        #):
+        #    _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
+        #    self._keep_modbus_open = True
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
         
         self._id = name.lower()
         
+        self.initalized = False
         self.online = False
         
         self.inverters = []
         self.meters = []
         self.batteries = []
 
-    async def async_init_solaredge(self) -> None:
+    async def _async_init_solaredge(self) -> None:
 
-        if not self.is_socket_open():        
-            self.connect()
+        if not self.is_socket_open():
+            raise ConfigEntryNotReady(f"Socket not open.")
 
         if self._detect_batteries:
             _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
@@ -137,25 +129,13 @@ class SolarEdgeModbusMultiHub:
 
             if self._detect_batteries:
                 try:
-                    new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
-                    for battery in self.batteries:
-                        if new_battery_1.serial == battery.serial:
-                            _LOGGER.warning(f"Duplicate serial {new_battery_1.serial}. Ignoring battery 1 on inverter ID {inverter_unit_id}")
-                            raise RuntimeError(f"Duplicate battery 1 serial {new_battery_1.serial}")
-                            
-                    self.batteries.append(new_battery_1)
+                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
                     _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
                 try:
-                    new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
-                    for battery in self.batteries:
-                        if new_battery_2.serial == battery.serial:
-                            _LOGGER.warning(f"Duplicate serial {new_battery_2.serial}. Ignoring battery 2 on inverter ID {inverter_unit_id}")
-                            raise RuntimeError(f"Duplicate battery 2 serial {new_battery_1.serial}")
-                            
-                    self.batteries.append(new_battery_2)
+                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
                     _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
                 except:
                     pass
@@ -176,19 +156,15 @@ class SolarEdgeModbusMultiHub:
         except:
             raise ConfigEntryNotReady(f"Devices not ready.")
 
-        if not self._keep_modbus_open:
-            self.close()
+        self.initalized = True
 
-        self._polling_interval = async_track_time_interval(
-            self._hass, self.async_refresh_modbus_data, self._scan_interval
-        )
-
-        self.online = True
-
-    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> None:
-
+    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> bool:
+        
         if not self.is_socket_open():        
             self.connect()
+
+        if not self.initalized:
+            await self._async_init_solaredge()
         
         if not self.is_socket_open():
             self.online = False
@@ -199,10 +175,10 @@ class SolarEdgeModbusMultiHub:
             for battery in self.batteries:
                 await battery.publish_updates()
             _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
+            return False
             
         else:
-            self.online = True
-            
+            self.online = True            
             try:
                 for inverter in self.inverters:
                     inverter.read_modbus_data()
@@ -214,7 +190,8 @@ class SolarEdgeModbusMultiHub:
             except Exception as e:
                 self.online = False
                 _LOGGER.error(f"Failed to update devices: {e}")
-            
+                return False
+                
             finally:
                 for inverter in self.inverters:
                     await inverter.publish_updates()
@@ -222,44 +199,40 @@ class SolarEdgeModbusMultiHub:
                     await meter.publish_updates()
                 for battery in self.batteries:
                     await battery.publish_updates()
-        
+
         if not self._keep_modbus_open:
-            self.disconnect()
-        
+            self.close()
+            
         return True
-    
+
     @property
     def name(self):
         """Return the name of this hub."""
         return self._name
-    
+
     @property
     def hub_id(self) -> str:
         return self._id
-    
-    def disconnect(self):
+
+    def close(self):
         """Disconnect client."""
         with self._lock:
             self._client.close()
-    
+
     def connect(self):
         """Connect client."""
         with self._lock:
             self._client.connect()
-    
+
     def is_socket_open(self):
         """Check client."""
         with self._lock:
             return self._client.is_socket_open()
-    
+
     async def shutdown(self) -> None:
-        self._polling_interval()
-        self._polling_interval = None
         self.online = False        
-        self.disconnect()
-        self._client = None
-        await asyncio.sleep(5)
-    
+        self.close()
+
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
         with self._lock:
@@ -687,17 +660,20 @@ class SolarEdgeBattery:
 
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = []
-        self.decoded_model = []
         self._callbacks = set()
         self.start_address = None
         self.battery_id = battery_id
+        self.decoded_common = []
+        self.decoded_model = []
         self.has_parent = True
  
         if self.battery_id == 1:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
+        #elif self.battery_id == 0:
+        # mirror of 57600?
+        #    self.start_address = 62720 
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
@@ -709,7 +685,7 @@ class SolarEdgeBattery:
             raise RuntimeError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_info.registers, byteorder=Endian.Big, wordorder=Endian.Little
+            battery_info.registers, byteorder=Endian.Big
         )
         self.decoded_common = OrderedDict([
             ('B_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
@@ -727,26 +703,13 @@ class SolarEdgeBattery:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
-
-        self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].removesuffix(self.decoded_common['B_SerialNumber'])
-        self.decoded_common['B_Model'] = self.decoded_common['B_Model'].removesuffix(self.decoded_common['B_SerialNumber'])
-        
-        ascii_ctrl_chars =  dict.fromkeys(range(32))
-        self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].translate(ascii_ctrl_chars)
-
-        if (
-            len(self.decoded_common['B_Manufacturer']) == 0
-            or len(self.decoded_common['B_Model']) == 0
-            or len(self.decoded_common['B_SerialNumber']) == 0
-        ):
-            raise RuntimeError("Battery {self.battery_id} not usable.")
         
         self.manufacturer = self.decoded_common['B_Manufacturer']
         self.model = self.decoded_common['B_Model']
-        self.option = ''
+        self.option = None
         self.fw_version = self.decoded_common['B_Version']
         self.serial = self.decoded_common['B_SerialNumber']
-        self.device_address = self.decoded_common['B_Device_Address']
+        self.device_address = self.decoded_common['B_Device_address']
         self.name = f"{hub.hub_id.capitalize()} B{self.battery_id}"
         
         self._device_info = {
@@ -755,6 +718,7 @@ class SolarEdgeBattery:
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
+            "hw_version": self.option,
         }
 
     def register_callback(self, callback: Callable[[], None]) -> None:
@@ -780,7 +744,7 @@ class SolarEdgeBattery:
             raise RuntimeError(f"Battery read error: {battery_data}")
         
         decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
+            battery_data.registers, byteorder=Endian.Big
         )
         
         self.decoded_model = OrderedDict([
@@ -813,7 +777,7 @@ class SolarEdgeBattery:
             ('B_Event_Log_Vendor6', decoder.decode_16bit_uint()),
             ('B_Event_Log_Vendor7', decoder.decode_16bit_uint()),
             ('B_Event_Log_Vendor8', decoder.decode_16bit_uint()),
-        ])
+      ])
         
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
@@ -826,7 +790,3 @@ class SolarEdgeBattery:
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
-
-    @property
-    def single_device_entity(self) -> bool:
-        return self.hub._single_device_entity
