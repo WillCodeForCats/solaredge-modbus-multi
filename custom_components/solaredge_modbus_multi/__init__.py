@@ -1,6 +1,9 @@
 """The SolarEdge Modbus Integration."""
-from .hub import SolarEdgeModbusMultiHub
+import async_timeout
+import logging
 
+from .hub import SolarEdgeModbusMultiHub
+from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.const import (
@@ -19,6 +22,14 @@ from .const import (
     CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY,
     CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN,
 )
+
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = ["sensor"]
 
@@ -41,7 +52,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data[CONF_NAME],
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
-        entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         entry.data.get(CONF_NUMBER_INVERTERS, 1),
         entry.data.get(CONF_DEVICE_ID, 1),
         entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
@@ -49,10 +59,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
         entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
     )
-    
-    await solaredge_hub.async_init_solaredge()
-    
+
+    coordinator = SolarEdgeCoordinator(
+        hass,
+        solaredge_hub,
+        entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    )
+
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = solaredge_hub
+
+    await coordinator.async_config_entry_first_refresh()
     
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
     
@@ -74,3 +90,27 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle an options update."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+class SolarEdgeCoordinator(DataUpdateCoordinator):
+    def __init__(self, hass, hub, scan_interval):
+        """Initialize my coordinator."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="SolarEdgeCoordinator",
+            update_interval=timedelta(seconds=scan_interval),
+        )
+        self.hub = hub
+    
+    async def _async_update_data(self):
+        """Fetch data from API endpoint.
+
+        This is the place to pre-process the data to lookup tables
+        so entities can quickly look up their data.
+        """
+        try:
+            async with async_timeout.timeout(3):
+                return await self.hub.async_refresh_modbus_data()
+        
+        except Exception as e:
+            raise UpdateFailed(f"Error updating modbus data: {e}")

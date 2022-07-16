@@ -2,7 +2,6 @@ import logging
 import threading
 
 from typing import Any, Callable, Optional, Dict
-from datetime import timedelta
 from collections import OrderedDict
 
 from pymodbus.client.sync import ModbusTcpClient
@@ -13,7 +12,6 @@ from pymodbus.compat import iteritems
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
     DOMAIN,
@@ -35,7 +33,6 @@ class SolarEdgeModbusMultiHub:
         name: str,
         host: str,
         port: int,
-        scan_interval: int,
         number_of_inverters: int = 1,
         start_device_id: int = 1,
         detect_meters: bool = True,
@@ -51,8 +48,6 @@ class SolarEdgeModbusMultiHub:
         self._name = name
         self.number_of_inverters = number_of_inverters
         self.start_device_id = start_device_id
-        self._scan_interval = timedelta(seconds=scan_interval)
-        self._polling_interval = None
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
@@ -60,27 +55,28 @@ class SolarEdgeModbusMultiHub:
         self._sensors = []
         self.data = {}
 
-        if (
-            scan_interval < 10 and
-            not self._keep_modbus_open
-        ):
-            _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
-            self._keep_modbus_open = True
+        #if (
+        #    scan_interval < 10 and
+        #    not self._keep_modbus_open
+        #):
+        #    _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
+        #    self._keep_modbus_open = True
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
         
         self._id = name.lower()
         
+        self.initalized = False
         self.online = False
         
         self.inverters = []
         self.meters = []
         self.batteries = []
 
-    async def async_init_solaredge(self) -> None:
+    async def _async_init_solaredge(self) -> None:
 
-        if not self.is_socket_open():        
-            self.connect()
+        if not self.is_socket_open():
+            raise ConfigEntryNotReady(f"Socket not open.")
 
         if self._detect_batteries:
             _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
@@ -160,19 +156,15 @@ class SolarEdgeModbusMultiHub:
         except:
             raise ConfigEntryNotReady(f"Devices not ready.")
 
-        if not self._keep_modbus_open:
-            self.close()
+        self.initalized = True
 
-        self._polling_interval = async_track_time_interval(
-            self._hass, self.async_refresh_modbus_data, self._scan_interval
-        )
-
-        self.online = True
-
-    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> None:
-
+    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> bool:
+        
         if not self.is_socket_open():        
             self.connect()
+
+        if not self.initalized:
+            await self._async_init_solaredge()
         
         if not self.is_socket_open():
             self.online = False
@@ -183,10 +175,10 @@ class SolarEdgeModbusMultiHub:
             for battery in self.batteries:
                 await battery.publish_updates()
             _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
+            return False
             
         else:
-            self.online = True
-            
+            self.online = True            
             try:
                 for inverter in self.inverters:
                     inverter.read_modbus_data()
@@ -198,6 +190,7 @@ class SolarEdgeModbusMultiHub:
             except Exception as e:
                 self.online = False
                 _LOGGER.error(f"Failed to update devices: {e}")
+                return False
                 
             finally:
                 for inverter in self.inverters:
@@ -209,6 +202,8 @@ class SolarEdgeModbusMultiHub:
 
         if not self._keep_modbus_open:
             self.close()
+            
+        return True
 
     @property
     def name(self):
@@ -235,8 +230,6 @@ class SolarEdgeModbusMultiHub:
             return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
-        self._polling_interval()
-        self._polling_interval = None
         self.online = False        
         self.close()
 
