@@ -24,7 +24,6 @@ from .const import (
 )
 
 from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
     DataUpdateCoordinator,
     UpdateFailed,
 )
@@ -101,6 +100,10 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
         self.hub = hub
+        
+        if scan_interval < 10:
+            _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
+            hub.keep_modbus_open = True
     
     async def _async_update_data(self):
         """Fetch data from API endpoint.

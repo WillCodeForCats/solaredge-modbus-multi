@@ -25,6 +25,10 @@ from homeassistant.components.sensor import (
     SensorEntity,
 )
 
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+)
+
 from .const import (
     DOMAIN,
     SUNSPEC_NOT_IMPL_UINT16, SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT32,
@@ -85,9 +89,7 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry))
         entities.append(DCPower(inverter, config_entry))
         entities.append(HeatSinkTemperature(inverter, config_entry))
-        
- 
-
+    
     for meter in hub.meters:
         if meter.single_device_entity:
             entities.append(SolarEdgeDevice(meter, config_entry))

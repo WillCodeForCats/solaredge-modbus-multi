@@ -51,16 +51,9 @@ class SolarEdgeModbusMultiHub:
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
-        self._keep_modbus_open = keep_modbus_open
+        self.keep_modbus_open = keep_modbus_open
         self._sensors = []
         self.data = {}
-
-        #if (
-        #    scan_interval < 10 and
-        #    not self._keep_modbus_open
-        #):
-        #    _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
-        #    self._keep_modbus_open = True
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
         
@@ -76,7 +69,7 @@ class SolarEdgeModbusMultiHub:
     async def _async_init_solaredge(self) -> None:
 
         if not self.is_socket_open():
-            raise ConfigEntryNotReady(f"Socket not open.")
+            raise ConfigEntryNotReady(f"Could not open Modbus/TCP connection to {self._host}")
 
         if self._detect_batteries:
             _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
@@ -200,7 +193,7 @@ class SolarEdgeModbusMultiHub:
                 for battery in self.batteries:
                     await battery.publish_updates()
 
-        if not self._keep_modbus_open:
+        if not self.keep_modbus_open:
             self.close()
             
         return True
