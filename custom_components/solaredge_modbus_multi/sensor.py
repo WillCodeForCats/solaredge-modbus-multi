@@ -1388,7 +1388,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
-    icon = 'mdi:transmission-tower-export'
+    icon = 'mdi:mdi:battery-charging-20'
 
     def __init__(self, platform, config_entry):
         super().__init__(platform, config_entry)
@@ -1422,7 +1422,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
-    icon = 'mdi:transmission-tower-import'
+    icon = 'mdi:battery-charging-100'
 
     def __init__(self, platform, config_entry):
         super().__init__(platform, config_entry)
