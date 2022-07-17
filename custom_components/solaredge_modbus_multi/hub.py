@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 
@@ -198,7 +199,7 @@ class SolarEdgeModbusMultiHub:
             except Exception as e:
                 self.online = False
                 _LOGGER.error(f"Failed to update devices: {e}")
-                
+            
             finally:
                 for inverter in self.inverters:
                     await inverter.publish_updates()
@@ -206,40 +207,44 @@ class SolarEdgeModbusMultiHub:
                     await meter.publish_updates()
                 for battery in self.batteries:
                     await battery.publish_updates()
-
+        
         if not self._keep_modbus_open:
-            self.close()
-
+            self.disconnect()
+        
+        return True
+    
     @property
     def name(self):
         """Return the name of this hub."""
         return self._name
-
+    
     @property
     def hub_id(self) -> str:
         return self._id
-
-    def close(self):
+    
+    def disconnect(self):
         """Disconnect client."""
         with self._lock:
             self._client.close()
-
+    
     def connect(self):
         """Connect client."""
         with self._lock:
             self._client.connect()
-
+    
     def is_socket_open(self):
         """Check client."""
         with self._lock:
             return self._client.is_socket_open()
-
+    
     async def shutdown(self) -> None:
         self._polling_interval()
         self._polling_interval = None
         self.online = False        
-        self.close()
-
+        self.disconnect()
+        self._client = None
+        await asyncio.sleep(5)
+    
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
         with self._lock:
