@@ -1301,6 +1301,10 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
     @property
     def name(self) -> str:
         return f"{self._platform._device_info['name']} Max Temperature"
+        
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
 
     @property
     def native_value(self):
