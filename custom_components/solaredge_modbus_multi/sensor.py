@@ -1317,7 +1317,7 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
                 return None
     
             else:
-                return round(self._platform.decoded_model['B_DC_Voltage'], 1)
+                return round(self._platform.decoded_model['B_Temp_Max'], 1)
         
         except TypeError:
             return None  
