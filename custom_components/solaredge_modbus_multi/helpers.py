@@ -8,7 +8,9 @@ def watts_to_kilowatts(value):
     return round(value * 0.001, 3)
 
 def parse_modbus_string(s: str) -> str:
-    return s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
+    s = s.decode(encoding="utf-8", errors="ignore")
+    s = s.replace("\x00", "").rstrip()
+    return str(s)
 
 def update_accum(self, accum_value: int) -> None:
     
