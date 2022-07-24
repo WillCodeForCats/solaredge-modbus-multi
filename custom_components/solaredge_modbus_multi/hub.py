@@ -68,6 +68,9 @@ class SolarEdgeModbusMultiHub:
             _LOGGER.warning("Polling frequency < 10, enabling keep modbus open option.")
             self._keep_modbus_open = True
 
+        if scan_interval < 30:
+            _LOGGER.warning("Polling frequency < 30 is not recommended.")
+
         self._client = ModbusTcpClient(host=self._host, port=self._port)
         
         self._id = name.lower()
