@@ -2,7 +2,7 @@
 
 A Home Assistant integration for SolarEdge inverters using Modbus/TCP.
 
-It supports single inverters, multiple inverters, meters, and batteries.
+It supports single inverters, multiple inverters, meters, and batteries (see "help wanted").
 
 Many improvements over other integrations that didn't work well with a multi-device setup.
 
@@ -37,3 +37,6 @@ Make sure you have a full backup before making changes - backups are always best
 * User friendly configuration through Config Flow.
 
 Requires Home Assistant 2022.2.0 and newer.
+
+## Help Wanted
+* Battery support is untested: see issue [#22](https://github.com/WillCodeForCats/solaredge-modbus-multi/issues/22)
