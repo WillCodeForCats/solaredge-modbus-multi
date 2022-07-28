@@ -162,7 +162,7 @@ class SolarEdgeModbusMultiHub:
             raise ConfigEntryNotReady(f"Devices not ready.")
 
         if not self._keep_modbus_open:
-            self.close()
+            self.disconnect()
 
         self._polling_interval = async_track_time_interval(
             self._hass, self.async_refresh_modbus_data, self._scan_interval
