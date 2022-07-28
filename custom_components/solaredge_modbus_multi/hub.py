@@ -235,8 +235,12 @@ class SolarEdgeModbusMultiHub:
             return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
+        self._polling_interval()
+        self._polling_interval = None
         self.online = False        
-        self.close()
+        self.disconnect()
+        self._client = None
+        await asyncio.sleep(5)
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
