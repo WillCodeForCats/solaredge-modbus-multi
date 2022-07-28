@@ -194,7 +194,7 @@ class SolarEdgeModbusMultiHub:
                     await battery.publish_updates()
 
         if not self.keep_modbus_open:
-            self.close()
+            self.disconnect()
             
         return True
 
