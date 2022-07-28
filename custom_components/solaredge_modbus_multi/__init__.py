@@ -58,15 +58,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
         entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
     )
-
+    
     coordinator = SolarEdgeCoordinator(
         hass,
         solaredge_hub,
         entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     )
-
+    
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = solaredge_hub
-
+    
     await coordinator.async_config_entry_first_refresh()
     
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
@@ -107,7 +107,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
     
     async def _async_update_data(self):
         """Fetch data from API endpoint.
-
+        
         This is the place to pre-process the data to lookup tables
         so entities can quickly look up their data.
         """
