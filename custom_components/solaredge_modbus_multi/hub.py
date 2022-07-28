@@ -194,7 +194,7 @@ class SolarEdgeModbusMultiHub:
                     await battery.publish_updates()
 
         if not self.keep_modbus_open:
-            self.close()
+            self.disconnect()
             
         return True
 
@@ -664,9 +664,6 @@ class SolarEdgeBattery:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
-        #elif self.battery_id == 0:
-        # mirror of 57600?
-        #    self.start_address = 62720 
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
