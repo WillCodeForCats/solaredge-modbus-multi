@@ -147,15 +147,15 @@ class SolarEdgeModbusMultiHub:
         
         try:
             for inverter in self.inverters:
-                inverter.read_modbus_data()
+                await hass.async_add_executor_job(inverter.read_modbus_data)
                 await inverter.publish_updates()
             
             for meter in self.meters:
-                meter.read_modbus_data()
+                await hass.async_add_executor_job(meter.read_modbus_data)
                 await meter.publish_updates()
             
             for battery in self.batteries:
-                battery.read_modbus_data()
+                await hass.async_add_executor_job(battery.read_modbus_data)
                 await battery.publish_updates()
         
         except:
@@ -186,11 +186,11 @@ class SolarEdgeModbusMultiHub:
             self.online = True            
             try:
                 for inverter in self.inverters:
-                    inverter.read_modbus_data()
+                    await hass.async_add_executor_job(inverter.read_modbus_data)
                 for meter in self.meters:
-                    meter.read_modbus_data()
+                    await hass.async_add_executor_job(meter.read_modbus_data)
                 for battery in self.batteries:
-                    battery.read_modbus_data()
+                    await hass.async_add_executor_job(battery.read_modbus_data)
             
             except Exception as e:
                 self.online = False
