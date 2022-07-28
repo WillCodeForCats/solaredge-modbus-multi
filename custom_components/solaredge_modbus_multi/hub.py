@@ -137,13 +137,25 @@ class SolarEdgeModbusMultiHub:
 
             if self._detect_batteries:
                 try:
-                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
+                    new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
+                    for battery in self.batteries:
+                        if new_battery_1.serial == battery.serial:
+                            _LOGGER.warning(f"Duplicate serial {new_battery_1.serial}. Ignoring battery 1 on inverter ID {inverter_unit_id}")
+                            raise RuntimeError(f"Duplicate battery 1 serial {new_battery_1.serial}")
+                            
+                    self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
                 try:
-                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
+                    new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
+                    for battery in self.batteries:
+                        if new_battery_2.serial == battery.serial:
+                            _LOGGER.warning(f"Duplicate serial {new_battery_2.serial}. Ignoring battery 2 on inverter ID {inverter_unit_id}")
+                            raise RuntimeError(f"Duplicate battery 2 serial {new_battery_1.serial}")
+                            
+                    self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
                 except:
                     pass
@@ -675,20 +687,17 @@ class SolarEdgeBattery:
 
         self.inverter_unit_id = device_id
         self.hub = hub
+        self.decoded_common = []
+        self.decoded_model = []
         self._callbacks = set()
         self.start_address = None
         self.battery_id = battery_id
-        self.decoded_common = []
-        self.decoded_model = []
         self.has_parent = True
  
         if self.battery_id == 1:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
-        #elif self.battery_id == 0:
-        # mirror of 57600?
-        #    self.start_address = 62720 
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
@@ -700,7 +709,7 @@ class SolarEdgeBattery:
             raise RuntimeError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_info.registers, byteorder=Endian.Big
+            battery_info.registers, byteorder=Endian.Big, wordorder=Endian.Little
         )
         self.decoded_common = OrderedDict([
             ('B_Manufacturer', parse_modbus_string(decoder.decode_string(32))),
@@ -718,13 +727,26 @@ class SolarEdgeBattery:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
+
+        self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].removesuffix(self.decoded_common['B_SerialNumber'])
+        self.decoded_common['B_Model'] = self.decoded_common['B_Model'].removesuffix(self.decoded_common['B_SerialNumber'])
+        
+        ascii_ctrl_chars =  dict.fromkeys(range(32))
+        self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].translate(ascii_ctrl_chars)
+
+        if (
+            len(self.decoded_common['B_Manufacturer']) == 0
+            or len(self.decoded_common['B_Model']) == 0
+            or len(self.decoded_common['B_SerialNumber']) == 0
+        ):
+            raise RuntimeError("Battery {self.battery_id} not usable.")
         
         self.manufacturer = self.decoded_common['B_Manufacturer']
         self.model = self.decoded_common['B_Model']
-        self.option = None
+        self.option = ''
         self.fw_version = self.decoded_common['B_Version']
         self.serial = self.decoded_common['B_SerialNumber']
-        self.device_address = self.decoded_common['B_Device_address']
+        self.device_address = self.decoded_common['B_Device_Address']
         self.name = f"{hub.hub_id.capitalize()} B{self.battery_id}"
         
         self._device_info = {
@@ -733,7 +755,6 @@ class SolarEdgeBattery:
             "manufacturer": self.manufacturer,
             "model": self.model,
             "sw_version": self.fw_version,
-            "hw_version": self.option,
         }
 
     def register_callback(self, callback: Callable[[], None]) -> None:
@@ -759,7 +780,7 @@ class SolarEdgeBattery:
             raise RuntimeError(f"Battery read error: {battery_data}")
         
         decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_data.registers, byteorder=Endian.Big
+            battery_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
         )
         
         self.decoded_model = OrderedDict([
@@ -792,7 +813,7 @@ class SolarEdgeBattery:
             ('B_Event_Log_Vendor6', decoder.decode_16bit_uint()),
             ('B_Event_Log_Vendor7', decoder.decode_16bit_uint()),
             ('B_Event_Log_Vendor8', decoder.decode_16bit_uint()),
-      ])
+        ])
         
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
@@ -805,3 +826,7 @@ class SolarEdgeBattery:
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
+
+    @property
+    def single_device_entity(self) -> bool:
+        return self.hub._single_device_entity
