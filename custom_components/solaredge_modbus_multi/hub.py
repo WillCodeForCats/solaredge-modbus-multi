@@ -122,13 +122,25 @@ class SolarEdgeModbusMultiHub:
 
             if self._detect_batteries:
                 try:
-                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 1, self))
+                    new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
+                    for battery in self.batteries:
+                        if new_battery_1.serial == battery.serial:
+                            _LOGGER.warning(f"Duplicate serial {new_battery_1.serial}. Ignoring battery 1 on inverter ID {inverter_unit_id}")
+                            raise RuntimeError(f"Duplicate battery 1 serial {new_battery_1.serial}")
+                            
+                    self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
                 except:
                     pass
 
                 try:
-                    self.batteries.append(SolarEdgeBattery(inverter_unit_id, 2, self))
+                    new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
+                    for battery in self.batteries:
+                        if new_battery_2.serial == battery.serial:
+                            _LOGGER.warning(f"Duplicate serial {new_battery_2.serial}. Ignoring battery 2 on inverter ID {inverter_unit_id}")
+                            raise RuntimeError(f"Duplicate battery 2 serial {new_battery_1.serial}")
+                            
+                    self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
                 except:
                     pass
