@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 
@@ -147,16 +148,13 @@ class SolarEdgeModbusMultiHub:
         
         try:
             for inverter in self.inverters:
-                await hass.async_add_executor_job(inverter.read_modbus_data)
-                await inverter.publish_updates()
+                await self._hass.async_add_executor_job(inverter.read_modbus_data)
             
             for meter in self.meters:
-                await hass.async_add_executor_job(meter.read_modbus_data)
-                await meter.publish_updates()
+                await self._hass.async_add_executor_job(meter.read_modbus_data)
             
             for battery in self.batteries:
-                await hass.async_add_executor_job(battery.read_modbus_data)
-                await battery.publish_updates()
+                await self._hass.async_add_executor_job(battery.read_modbus_data)
         
         except:
             raise ConfigEntryNotReady(f"Devices not ready.")
@@ -166,44 +164,30 @@ class SolarEdgeModbusMultiHub:
     async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> bool:
         
         if not self.is_socket_open():        
-            self.connect()
+            await self.connect()
         
         if not self.initalized:
             await self._async_init_solaredge()
         
         if not self.is_socket_open():
             self.online = False
-            for inverter in self.inverters:
-                await inverter.publish_updates()
-            for meter in self.meters:
-                await meter.publish_updates()
-            for battery in self.batteries:
-                await battery.publish_updates()
             _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
-            return False
+            raise UpdateFailed(f"Could not open Modbus/TCP connection to {self._host}")
             
         else:
             self.online = True            
             try:
                 for inverter in self.inverters:
-                    await hass.async_add_executor_job(inverter.read_modbus_data)
+                    await self._hass.async_add_executor_job(inverter.read_modbus_data)
                 for meter in self.meters:
-                    await hass.async_add_executor_job(meter.read_modbus_data)
+                    await self._hass.async_add_executor_job(meter.read_modbus_data)
                 for battery in self.batteries:
-                    await hass.async_add_executor_job(battery.read_modbus_data)
+                    await self._hass.async_add_executor_job(battery.read_modbus_data)
             
             except Exception as e:
                 self.online = False
                 _LOGGER.error(f"Failed to update devices: {e}")
-                return False
-            
-            finally:
-                for inverter in self.inverters:
-                    await inverter.publish_updates()
-                for meter in self.meters:
-                    await meter.publish_updates()
-                for battery in self.batteries:
-                    await battery.publish_updates()
+                raise UpdateFailed(f"Failed to update devices: {e}")
         
         if not self.keep_modbus_open:
             self.disconnect()
@@ -219,15 +203,15 @@ class SolarEdgeModbusMultiHub:
     def hub_id(self) -> str:
         return self._id
     
-    def close(self):
+    def disconnect(self):
         """Disconnect client."""
         with self._lock:
             self._client.close()
     
-    def connect(self):
+    async def connect(self):
         """Connect client."""
         with self._lock:
-            self._client.connect()
+            await self._hass.async_add_executor_job(self._client.connect)
     
     def is_socket_open(self):
         """Check client."""
@@ -235,8 +219,6 @@ class SolarEdgeModbusMultiHub:
             return self._client.is_socket_open()
     
     async def shutdown(self) -> None:
-        self._polling_interval()
-        self._polling_interval = None
         self.online = False        
         self.disconnect()
         self._client = None
@@ -325,19 +307,6 @@ class SolarEdgeInverter:
             "hw_version": self.option,
         }
     
-    def register_callback(self, callback: Callable[[], None]) -> None:
-        """Register callback, called when SolarEdgeInverter changes state."""
-        self._callbacks.add(callback)
-
-    def remove_callback(self, callback: Callable[[], None]) -> None:
-        """Remove previously registered callback."""
-        self._callbacks.discard(callback)
-
-    async def publish_updates(self) -> None:
-        """Schedule call all registered callbacks."""
-        for callback in self._callbacks:
-            callback()
-
     def read_modbus_data(self) -> None:
         
         inverter_data = self.hub.read_holding_registers(
@@ -519,20 +488,7 @@ class SolarEdgeMeter:
             "sw_version": self.fw_version,
             "hw_version": self.option,
         }
-
-    def register_callback(self, callback: Callable[[], None]) -> None:
-        """Register callback, called when SolarEdgeMeter changes state."""
-        self._callbacks.add(callback)
-
-    def remove_callback(self, callback: Callable[[], None]) -> None:
-        """Remove previously registered callback."""
-        self._callbacks.discard(callback)
-
-    async def publish_updates(self) -> None:
-        """Schedule call all registered callbacks."""
-        for callback in self._callbacks:
-            callback()
-
+    
     def read_modbus_data(self) -> None:
         
         meter_data = self.hub.read_holding_registers(
@@ -738,20 +694,7 @@ class SolarEdgeBattery:
             "model": self.model,
             "sw_version": self.fw_version,
         }
-
-    def register_callback(self, callback: Callable[[], None]) -> None:
-        """Register callback, called when SolarEdgeBattery changes state."""
-        self._callbacks.add(callback)
-
-    def remove_callback(self, callback: Callable[[], None]) -> None:
-        """Remove previously registered callback."""
-        self._callbacks.discard(callback)
-
-    async def publish_updates(self) -> None:
-        """Schedule call all registered callbacks."""
-        for callback in self._callbacks:
-            callback()
-
+    
     def read_modbus_data(self) -> None:
         
         battery_data = self.hub.read_holding_registers(

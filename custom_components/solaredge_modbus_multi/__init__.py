@@ -2,7 +2,6 @@
 import async_timeout
 import logging
 
-from .hub import SolarEdgeModbusMultiHub
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 
@@ -13,6 +12,12 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL
 )
 from homeassistant.core import HomeAssistant
+
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
+
 from .const import (
     DOMAIN, DEFAULT_SCAN_INTERVAL,
     CONF_NUMBER_INVERTERS,
@@ -22,11 +27,8 @@ from .const import (
     CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY,
     CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN,
 )
+from .hub import SolarEdgeModbusMultiHub
 
-from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,7 +67,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     )
     
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = solaredge_hub
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = {
+        "hub": solaredge_hub,
+        "coordinator": coordinator,
+    }
     
     await coordinator.async_config_entry_first_refresh()
     
@@ -77,7 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    solaredge_hub = hass.data[DOMAIN][entry.entry_id]    
+    solaredge_hub = hass.data[DOMAIN][entry.entry_id]['hub']  
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     
     if unload_ok:

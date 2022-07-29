@@ -27,6 +27,7 @@ from homeassistant.components.sensor import (
 
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
+    UpdateFailed
 )
 
 from .const import (
@@ -37,7 +38,6 @@ from .const import (
     VENDOR_STATUS, SUNSPEC_DID, METER_EVENTS,
     ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
 )
-
 from .helpers import (
     update_accum,
     scale_factor,
@@ -52,153 +52,156 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
 
-    hub = hass.data[DOMAIN][config_entry.entry_id]
+    hub = hass.data[DOMAIN][config_entry.entry_id]['hub']
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]['coordinator']
 
     entities = []
         
     for inverter in hub.inverters:
         if inverter.single_device_entity:
-            entities.append(SolarEdgeDevice(inverter, config_entry))
+            entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
         else:
-            entities.append(SolarEdgeDevice(inverter, config_entry))
-            entities.append(Manufacturer(inverter, config_entry))
-            entities.append(Model(inverter, config_entry))
-            entities.append(SerialNumber(inverter, config_entry))
-            entities.append(DeviceAddress(inverter, config_entry))
-            entities.append(SunspecDID(inverter, config_entry))
-        entities.append(Version(inverter, config_entry))
-        entities.append(Status(inverter,config_entry))
-        entities.append(StatusVendor(inverter, config_entry))
-        entities.append(ACCurrentSensor(inverter, config_entry))
-        entities.append(ACCurrentSensor(inverter, config_entry, 'A'))
-        entities.append(ACCurrentSensor(inverter, config_entry, 'B'))
-        entities.append(ACCurrentSensor(inverter, config_entry, 'C'))
-        entities.append(VoltageSensor(inverter, config_entry, 'AB'))
-        entities.append(VoltageSensor(inverter, config_entry, 'BC'))
-        entities.append(VoltageSensor(inverter, config_entry, 'CA'))
-        entities.append(VoltageSensor(inverter, config_entry, 'AN'))
-        entities.append(VoltageSensor(inverter, config_entry, 'BN'))
-        entities.append(VoltageSensor(inverter, config_entry, 'CN'))
-        entities.append(ACPower(inverter, config_entry))
-        entities.append(ACFrequency(inverter, config_entry))
-        entities.append(ACVoltAmp(inverter, config_entry))
-        entities.append(ACVoltAmpReactive(inverter, config_entry))
-        entities.append(ACPowerFactor(inverter, config_entry))
-        entities.append(ACEnergy(inverter, config_entry))
-        entities.append(DCCurrent(inverter, config_entry))
-        entities.append(DCVoltage(inverter, config_entry))
-        entities.append(DCPower(inverter, config_entry))
-        entities.append(HeatSinkTemperature(inverter, config_entry))
+            entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
+            entities.append(Manufacturer(inverter, config_entry, coordinator))
+            entities.append(Model(inverter, config_entry, coordinator))
+            entities.append(SerialNumber(inverter, config_entry, coordinator))
+            entities.append(DeviceAddress(inverter, config_entry, coordinator))
+            entities.append(SunspecDID(inverter, config_entry, coordinator))
+        entities.append(Version(inverter, config_entry, coordinator))
+        entities.append(Status(inverter,config_entry, coordinator))
+        entities.append(StatusVendor(inverter, config_entry, coordinator))
+        entities.append(ACCurrentSensor(inverter, config_entry, coordinator))
+        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, 'A'))
+        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, 'B'))
+        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, 'C'))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, 'AB'))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, 'BC'))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, 'CA'))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, 'AN'))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, 'BN'))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, 'CN'))
+        entities.append(ACPower(inverter, config_entry, coordinator))
+        entities.append(ACFrequency(inverter, config_entry, coordinator))
+        entities.append(ACVoltAmp(inverter, config_entry, coordinator))
+        entities.append(ACVoltAmpReactive(inverter, config_entry, coordinator))
+        entities.append(ACPowerFactor(inverter, config_entry, coordinator))
+        entities.append(ACEnergy(inverter, config_entry, coordinator))
+        entities.append(DCCurrent(inverter, config_entry, coordinator))
+        entities.append(DCVoltage(inverter, config_entry, coordinator))
+        entities.append(DCPower(inverter, config_entry, coordinator))
+        entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
     
     for meter in hub.meters:
         if meter.single_device_entity:
-            entities.append(SolarEdgeDevice(meter, config_entry))
+            entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
         else:
-            entities.append(SolarEdgeDevice(meter, config_entry))
-            entities.append(Manufacturer(meter, config_entry))
-            entities.append(Model(meter, config_entry))
-            entities.append(Option(meter, config_entry))
-            entities.append(SerialNumber(meter, config_entry))
-            entities.append(DeviceAddress(meter, config_entry))
-            entities.append(DeviceAddressParent(meter, config_entry))
-            entities.append(SunspecDID(meter, config_entry))
-        entities.append(Version(meter, config_entry))
-        entities.append(MeterEvents(meter, config_entry))
-        entities.append(ACCurrentSensor(meter, config_entry))
-        entities.append(ACCurrentSensor(meter, config_entry, 'A'))
-        entities.append(ACCurrentSensor(meter, config_entry, 'B'))
-        entities.append(ACCurrentSensor(meter, config_entry, 'C'))
-        entities.append(VoltageSensor(meter, config_entry, 'LN'))
-        entities.append(VoltageSensor(meter, config_entry, 'AN'))
-        entities.append(VoltageSensor(meter, config_entry, 'BN'))
-        entities.append(VoltageSensor(meter, config_entry, 'CN'))
-        entities.append(VoltageSensor(meter, config_entry, 'LL'))
-        entities.append(VoltageSensor(meter, config_entry, 'AB'))
-        entities.append(VoltageSensor(meter, config_entry, 'BC'))
-        entities.append(VoltageSensor(meter, config_entry, 'CA'))
-        entities.append(ACFrequency(meter, config_entry))
-        entities.append(ACPower(meter, config_entry))
-        entities.append(ACPower(meter, config_entry, 'A'))
-        entities.append(ACPower(meter, config_entry, 'B'))
-        entities.append(ACPower(meter, config_entry, 'C'))
-        entities.append(ACVoltAmp(meter, config_entry))
-        entities.append(ACVoltAmp(meter, config_entry, 'A'))
-        entities.append(ACVoltAmp(meter, config_entry, 'B'))
-        entities.append(ACVoltAmp(meter, config_entry, 'C'))
-        entities.append(ACVoltAmpReactive(meter, config_entry))
-        entities.append(ACVoltAmpReactive(meter, config_entry, 'A'))
-        entities.append(ACVoltAmpReactive(meter, config_entry, 'B'))
-        entities.append(ACVoltAmpReactive(meter, config_entry, 'C'))
-        entities.append(ACPowerFactor(meter, config_entry))
-        entities.append(ACPowerFactor(meter, config_entry, 'A'))
-        entities.append(ACPowerFactor(meter, config_entry, 'B'))
-        entities.append(ACPowerFactor(meter, config_entry, 'C'))
-        entities.append(ACEnergy(meter, config_entry, 'Exported'))
-        entities.append(ACEnergy(meter, config_entry, 'Exported_A'))
-        entities.append(ACEnergy(meter, config_entry, 'Exported_B'))
-        entities.append(ACEnergy(meter, config_entry, 'Exported_C'))
-        entities.append(ACEnergy(meter, config_entry, 'Imported'))
-        entities.append(ACEnergy(meter, config_entry, 'Imported_A'))
-        entities.append(ACEnergy(meter, config_entry, 'Imported_B'))
-        entities.append(ACEnergy(meter, config_entry, 'Imported_C'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Exported'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Exported_A'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Exported_B'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Exported_C'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Imported'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Imported_A'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Imported_B'))
-        entities.append(MeterVAhIE(meter, config_entry, 'Imported_C'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_A'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_B'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q1_C'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2_A'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2_B'))
-        entities.append(MetervarhIE(meter, config_entry, 'Import_Q2_C'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3_A'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3_B'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q3_C'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4_A'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4_B'))
-        entities.append(MetervarhIE(meter, config_entry, 'Export_Q4_C'))
+            entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
+            entities.append(Manufacturer(meter, config_entry, coordinator))
+            entities.append(Model(meter, config_entry, coordinator))
+            entities.append(Option(meter, config_entry, coordinator))
+            entities.append(SerialNumber(meter, config_entry, coordinator))
+            entities.append(DeviceAddress(meter, config_entry, coordinator))
+            entities.append(DeviceAddressParent(meter, config_entry, coordinator))
+            entities.append(SunspecDID(meter, config_entry, coordinator))
+        entities.append(Version(meter, config_entry, coordinator))
+        entities.append(MeterEvents(meter, config_entry, coordinator))
+        entities.append(ACCurrentSensor(meter, config_entry, coordinator))
+        entities.append(ACCurrentSensor(meter, config_entry, coordinator, 'A'))
+        entities.append(ACCurrentSensor(meter, config_entry, coordinator, 'B'))
+        entities.append(ACCurrentSensor(meter, config_entry, coordinator, 'C'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'LN'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'AN'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'BN'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'CN'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'LL'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'AB'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'BC'))
+        entities.append(VoltageSensor(meter, config_entry, coordinator, 'CA'))
+        entities.append(ACFrequency(meter, config_entry, coordinator))
+        entities.append(ACPower(meter, config_entry, coordinator))
+        entities.append(ACPower(meter, config_entry, coordinator, 'A'))
+        entities.append(ACPower(meter, config_entry, coordinator, 'B'))
+        entities.append(ACPower(meter, config_entry, coordinator, 'C'))
+        entities.append(ACVoltAmp(meter, config_entry, coordinator))
+        entities.append(ACVoltAmp(meter, config_entry, coordinator, 'A'))
+        entities.append(ACVoltAmp(meter, config_entry, coordinator, 'B'))
+        entities.append(ACVoltAmp(meter, config_entry, coordinator, 'C'))
+        entities.append(ACVoltAmpReactive(meter, config_entry, coordinator))
+        entities.append(ACVoltAmpReactive(meter, config_entry, coordinator, 'A'))
+        entities.append(ACVoltAmpReactive(meter, config_entry, coordinator, 'B'))
+        entities.append(ACVoltAmpReactive(meter, config_entry, coordinator, 'C'))
+        entities.append(ACPowerFactor(meter, config_entry, coordinator))
+        entities.append(ACPowerFactor(meter, config_entry, coordinator, 'A'))
+        entities.append(ACPowerFactor(meter, config_entry, coordinator, 'B'))
+        entities.append(ACPowerFactor(meter, config_entry, coordinator, 'C'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Exported'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Exported_A'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Exported_B'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Exported_C'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Imported'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Imported_A'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Imported_B'))
+        entities.append(ACEnergy(meter, config_entry, coordinator, 'Imported_C'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Exported'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Exported_A'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Exported_B'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Exported_C'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Imported'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Imported_A'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Imported_B'))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, 'Imported_C'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q1'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q1_A'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q1_B'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q1_C'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q2'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q2_A'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q2_B'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Import_Q2_C'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q3'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q3_A'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q3_B'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q3_C'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q4'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q4_A'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q4_B'))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, 'Export_Q4_C'))
 
     for battery in hub.batteries:
         if battery.single_device_entity:
-            entities.append(SolarEdgeDevice(battery, config_entry))
+            entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
         else:
-            entities.append(SolarEdgeDevice(battery, config_entry))
-            entities.append(Manufacturer(battery, config_entry))
-            entities.append(Model(battery, config_entry))
-            entities.append(SerialNumber(battery, config_entry))
-            entities.append(DeviceAddress(battery, config_entry))
-            entities.append(DeviceAddressParent(battery, config_entry))
-        entities.append(Version(battery, config_entry))
-        entities.append(SolarEdgeBatteryAvgTemp(battery, config_entry))
-        entities.append(SolarEdgeBatteryMaxTemp(battery, config_entry))
-        entities.append(SolarEdgeBatteryVoltage(battery, config_entry))
-        entities.append(SolarEdgeBatteryCurrent(battery, config_entry))
-        entities.append(SolarEdgeBatteryPower(battery, config_entry))
-        entities.append(SolarEdgeBatteryEnergyExport(battery, config_entry))
-        entities.append(SolarEdgeBatteryEnergyImport(battery, config_entry))
-        entities.append(SolarEdgeBatteryMaxEnergy(battery, config_entry))
-        entities.append(SolarEdgeBatteryAvailableEnergy(battery, config_entry))
-        entities.append(SolarEdgeBatterySOH(battery, config_entry))
-        entities.append(SolarEdgeBatterySOE(battery, config_entry))
-        entities.append(SolarEdgeBatteryStatus(battery, config_entry))
+            entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
+            entities.append(Manufacturer(battery, config_entry, coordinator))
+            entities.append(Model(battery, config_entry, coordinator))
+            entities.append(SerialNumber(battery, config_entry, coordinator))
+            entities.append(DeviceAddress(battery, config_entry, coordinator))
+            entities.append(DeviceAddressParent(battery, config_entry, coordinator))
+        entities.append(Version(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryAvgTemp(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryMaxTemp(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryVoltage(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryCurrent(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryPower(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryEnergyExport(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryEnergyImport(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryMaxEnergy(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryAvailableEnergy(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatterySOH(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatterySOE(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryStatus(battery, config_entry, coordinator))
     
     if entities:
         async_add_entities(entities)
 
 
-class SolarEdgeSensorBase(SensorEntity):
+class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
 
     should_poll = False
 
-    def __init__(self, platform, config_entry):
+    def __init__(self, platform, config_entry, coordinator):
+        """Pass coordinator to CoordinatorEntity."""
+        super().__init__(coordinator)
         """Initialize the sensor."""
         self._platform = platform
         self._config_entry = config_entry
@@ -218,18 +221,16 @@ class SolarEdgeSensorBase(SensorEntity):
     @property
     def available(self) -> bool:
         return self._platform.online
-
-    async def async_added_to_hass(self):
-        self._platform.register_callback(self.async_write_ha_state)
-
-    async def async_will_remove_from_hass(self):
-        self._platform.remove_callback(self.async_write_ha_state)
+    
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self.async_write_ha_state()
 
 class SolarEdgeDevice(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -291,8 +292,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 class SerialNumber(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -310,8 +311,8 @@ class SerialNumber(SolarEdgeSensorBase):
 class Manufacturer(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -329,8 +330,8 @@ class Manufacturer(SolarEdgeSensorBase):
 class Model(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -348,8 +349,8 @@ class Model(SolarEdgeSensorBase):
 class Option(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -377,8 +378,8 @@ class Option(SolarEdgeSensorBase):
 class Version(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -396,8 +397,8 @@ class Version(SolarEdgeSensorBase):
 class DeviceAddress(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -415,8 +416,8 @@ class DeviceAddress(SolarEdgeSensorBase):
 class DeviceAddressParent(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -434,8 +435,8 @@ class DeviceAddressParent(SolarEdgeSensorBase):
 class SunspecDID(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -475,8 +476,8 @@ class ACCurrentSensor(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
         
@@ -526,8 +527,8 @@ class VoltageSensor(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
 
@@ -581,8 +582,8 @@ class ACPower(SolarEdgeSensorBase):
     native_unit_of_measurement = POWER_WATT
     icon = 'mdi:solar-power'
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
 
@@ -625,8 +626,8 @@ class ACFrequency(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = FREQUENCY_HERTZ
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -658,8 +659,8 @@ class ACVoltAmp(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = POWER_VOLT_AMPERE
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
 
@@ -707,8 +708,8 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = POWER_VOLT_AMPERE_REACTIVE
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
 
@@ -756,8 +757,8 @@ class ACPowerFactor(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
 
@@ -805,8 +806,8 @@ class ACEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
         self.last = None
@@ -878,8 +879,8 @@ class DCCurrent(SolarEdgeSensorBase):
     native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
     icon = 'mdi:current-dc'
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -911,8 +912,8 @@ class DCVoltage(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -945,8 +946,8 @@ class DCPower(SolarEdgeSensorBase):
     native_unit_of_measurement = POWER_WATT
     icon = 'mdi:solar-power'
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -978,8 +979,8 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -1010,8 +1011,8 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 class Status(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -1053,8 +1054,8 @@ class Status(SolarEdgeSensorBase):
 class StatusVendor(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -1092,8 +1093,8 @@ class StatusVendor(SolarEdgeSensorBase):
 class MeterEvents(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
     
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -1136,8 +1137,8 @@ class MeterVAhIE(SolarEdgeSensorBase):
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_VOLT_AMPERE_HOUR
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
         self.last = None
@@ -1205,8 +1206,8 @@ class MetervarhIE(SolarEdgeSensorBase):
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_VOLT_AMPERE_REACTIVE_HOUR
 
-    def __init__(self, platform, config_entry, phase: str = None):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
         self.last = None
@@ -1391,8 +1392,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
     icon = 'mdi:battery-charging-20'
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self.last = None
 
@@ -1425,8 +1426,8 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
     icon = 'mdi:battery-charging-100'
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self.last = None
 
@@ -1458,8 +1459,8 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         
     @property
@@ -1487,8 +1488,8 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -1516,8 +1517,8 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
     native_unit_of_measurement = PERCENTAGE
     entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -1546,8 +1547,8 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
     native_unit_of_measurement = PERCENTAGE
     entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
@@ -1572,8 +1573,8 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return round(self._platform.decoded_model['B_SOE'], 0)
 
 class SolarEdgeBatteryStatus(Status):
-    def __init__(self, platform, config_entry):
-        super().__init__(platform, config_entry)
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
