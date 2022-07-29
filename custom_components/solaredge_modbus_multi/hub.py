@@ -79,7 +79,10 @@ class SolarEdgeModbusMultiHub:
             inverter_unit_id = inverter_index + self.start_device_id
             
             try:
-                self.inverters.append(SolarEdgeInverter(inverter_unit_id, self))
+                new_inverter = SolarEdgeInverter(inverter_unit_id, self)
+                await self._hass.async_add_executor_job(new_inverter.init_device)
+                self.inverters.append(new_inverter)
+            
             except Exception as e:
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
                 raise ConfigEntryNotReady(f"Inverter device ID {inverter_unit_id} not found.")
@@ -87,6 +90,8 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 try:
                     new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
+                    await self._hass.async_add_executor_job(new_meter_1.init_device)
+                    
                     for meter in self.meters:
                         if new_meter_1.serial == meter.serial:
                             _LOGGER.warning(f"Duplicate serial {new_meter_1.serial}. Ignoring meter 1 on inverter ID {inverter_unit_id}")
@@ -99,6 +104,8 @@ class SolarEdgeModbusMultiHub:
                 
                 try:
                     new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
+                    await self._hass.async_add_executor_job(new_meter_2.init_device)
+                    
                     for meter in self.meters:
                         if new_meter_2.serial == meter.serial:
                             _LOGGER.warning(f"Duplicate serial {new_meter_2.serial}. Ignoring meter 2 on inverter ID {inverter_unit_id}")
@@ -111,6 +118,8 @@ class SolarEdgeModbusMultiHub:
                 
                 try:
                     new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
+                    await self._hass.async_add_executor_job(new_meter_3.init_device)
+
                     for meter in self.meters:
                         if new_meter_3.serial == meter.serial:
                             _LOGGER.warning(f"Duplicate serial {new_meter_3.serial}. Ignoring meter 3 on inverter ID {inverter_unit_id}")
@@ -124,6 +133,8 @@ class SolarEdgeModbusMultiHub:
             if self._detect_batteries:
                 try:
                     new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
+                    await self._hass.async_add_executor_job(new_battery_1.init_device)
+                    
                     for battery in self.batteries:
                         if new_battery_1.serial == battery.serial:
                             _LOGGER.warning(f"Duplicate serial {new_battery_1.serial}. Ignoring battery 1 on inverter ID {inverter_unit_id}")
@@ -136,6 +147,8 @@ class SolarEdgeModbusMultiHub:
                 
                 try:
                     new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
+                    await self._hass.async_add_executor_job(new_battery_2.init_device)
+                    
                     for battery in self.batteries:
                         if new_battery_2.serial == battery.serial:
                             _LOGGER.warning(f"Duplicate serial {new_battery_2.serial}. Ignoring battery 2 on inverter ID {inverter_unit_id}")
@@ -239,7 +252,8 @@ class SolarEdgeInverter:
         self.decoded_model = []
         self._callbacks = set()
         self.has_parent = False
-        
+    
+    def init_device(self) -> None:
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40000, count=4
         )
@@ -296,7 +310,7 @@ class SolarEdgeInverter:
         self.fw_version = self.decoded_common['C_Version']
         self.serial = self.decoded_common['C_SerialNumber']
         self.device_address = self.decoded_common['C_Device_address']
-        self.name = f"{hub.hub_id.capitalize()} I{self.inverter_unit_id}"
+        self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
@@ -423,7 +437,8 @@ class SolarEdgeMeter:
         else:
             raise ValueError(f"Invalid meter_id {self.meter_id}")
         
-        meter_info = hub.read_holding_registers(
+    def init_device(self) -> None:
+        meter_info = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address, count=2
         )
         if meter_info.isError():
@@ -448,7 +463,7 @@ class SolarEdgeMeter:
         ):
             raise RuntimeError("Meter {self.meter_id} not usable.")
         
-        meter_info = hub.read_holding_registers(
+        meter_info = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 2, count=65
         )
         if meter_info.isError():
@@ -476,7 +491,7 @@ class SolarEdgeMeter:
         self.fw_version = self.decoded_common['C_Version']
         self.serial = self.decoded_common['C_SerialNumber']
         self.device_address = self.decoded_common['C_Device_address']
-        self.name = f"{hub.hub_id.capitalize()} M{self.meter_id}"
+        self.name = f"{self.hub.hub_id.capitalize()} M{self.meter_id}"
         
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
@@ -636,7 +651,8 @@ class SolarEdgeBattery:
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
         
-        battery_info = hub.read_holding_registers(
+    def init_device(self) -> None:
+        battery_info = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address, count=76
         )
         if battery_info.isError():
@@ -682,7 +698,7 @@ class SolarEdgeBattery:
         self.fw_version = self.decoded_common['B_Version']
         self.serial = self.decoded_common['B_SerialNumber']
         self.device_address = self.decoded_common['B_Device_Address']
-        self.name = f"{hub.hub_id.capitalize()} B{self.battery_id}"
+        self.name = f"{self.hub.hub_id.capitalize()} B{self.battery_id}"
         
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
