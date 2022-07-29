@@ -29,7 +29,6 @@ from .const import (
 )
 from .hub import SolarEdgeModbusMultiHub
 
-
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = ["sensor"]
@@ -112,11 +111,6 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             hub.keep_modbus_open = True
     
     async def _async_update_data(self):
-        """Fetch data from API endpoint.
-        
-        This is the place to pre-process the data to lookup tables
-        so entities can quickly look up their data.
-        """
         try:
             async with async_timeout.timeout(3):
                 return await self.hub.async_refresh_modbus_data()

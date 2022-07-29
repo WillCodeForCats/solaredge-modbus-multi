@@ -173,7 +173,7 @@ class SolarEdgeModbusMultiHub:
             self.online = False
             _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
             raise UpdateFailed(f"Could not open Modbus/TCP connection to {self._host}")
-            
+        
         else:
             self.online = True            
             try:
@@ -230,16 +230,16 @@ class SolarEdgeModbusMultiHub:
             kwargs = {"unit": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
+
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
-        
         self.inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
         self._callbacks = set()
         self.has_parent = False
-
+        
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40000, count=4
         )
@@ -259,7 +259,7 @@ class SolarEdgeInverter:
         
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug("%s %s", name, hex(value) if isinstance(value, int) else value)
- 
+        
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
             or decoded_ident['C_SunSpec_DID'] != 0x0001
@@ -308,7 +308,6 @@ class SolarEdgeInverter:
         }
     
     def read_modbus_data(self) -> None:
-        
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40069, count=2
         )
@@ -389,24 +388,23 @@ class SolarEdgeInverter:
         
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {hex(value) if isinstance(value, int) else value}")
- 
+    
     @property
     def online(self) -> bool:
         """Device is online."""
         return self.hub.online
-
+    
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
-
+    
     @property
     def single_device_entity(self) -> bool:
         return self.hub._single_device_entity
-    
+
 
 class SolarEdgeMeter:
     def __init__(self, device_id: int, meter_id: int, hub: SolarEdgeModbusMultiHub) -> None:
-
         self.inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
@@ -415,7 +413,7 @@ class SolarEdgeMeter:
         self.start_address = None
         self.meter_id = meter_id
         self.has_parent = True
-     
+        
         if self.meter_id == 1:
             self.start_address = 40000 + 121
         elif self.meter_id == 2:
@@ -424,14 +422,14 @@ class SolarEdgeMeter:
             self.start_address = 40000 + 469
         else:
             raise ValueError(f"Invalid meter_id {self.meter_id}")
-
+        
         meter_info = hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address, count=2
         )
         if meter_info.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {meter_info}")
             raise RuntimeError(meter_info)
-
+        
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
         )
@@ -442,21 +440,21 @@ class SolarEdgeMeter:
         
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {name} {hex(value) if isinstance(value, int) else value}")
-
+        
         if (
             decoded_ident['C_SunSpec_DID'] == SUNSPEC_NOT_IMPL_UINT16
             or decoded_ident['C_SunSpec_DID'] != 0x0001
             or decoded_ident['C_SunSpec_Length'] != 65
         ):
             raise RuntimeError("Meter {self.meter_id} not usable.")
-
+        
         meter_info = hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 2, count=65
         )
         if meter_info.isError():
             _LOGGER.debug(meter_info)
             raise RuntimeError(meter_info)
-
+        
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
         )
@@ -471,7 +469,7 @@ class SolarEdgeMeter:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {name} {hex(value) if isinstance(value, int) else value}")
-
+        
         self.manufacturer = self.decoded_common['C_Manufacturer']
         self.model = self.decoded_common['C_Model']
         self.option = self.decoded_common['C_Option']
@@ -479,7 +477,7 @@ class SolarEdgeMeter:
         self.serial = self.decoded_common['C_SerialNumber']
         self.device_address = self.decoded_common['C_Device_address']
         self.name = f"{hub.hub_id.capitalize()} M{self.meter_id}"
-
+        
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
             "name": self.name,
@@ -490,7 +488,6 @@ class SolarEdgeMeter:
         }
     
     def read_modbus_data(self) -> None:
-        
         meter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 67, count=2
         )
@@ -516,7 +513,7 @@ class SolarEdgeMeter:
             or decoded_ident['C_SunSpec_Length'] != 105
         ):
             raise RuntimeError(f"Meter on inverter {self.inverter_unit_id} not usable.")
-
+        
         meter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 69, count=105
         )
@@ -611,10 +608,11 @@ class SolarEdgeMeter:
     def online(self) -> bool:
         """Device is online."""
         return self.hub.online
-
+    
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
-        return self._device_info        
+        return self._device_info
+    
     @property
     def single_device_entity(self) -> bool:
         return self.hub._single_device_entity
@@ -622,7 +620,6 @@ class SolarEdgeMeter:
 
 class SolarEdgeBattery:    
     def __init__(self, device_id: int, battery_id: int, hub: SolarEdgeModbusMultiHub) -> None:
-
         self.inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
@@ -631,21 +628,21 @@ class SolarEdgeBattery:
         self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
- 
+        
         if self.battery_id == 1:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
-
+        
         battery_info = hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address, count=76
         )
         if battery_info.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {battery_info}")
             raise RuntimeError(battery_info)
-
+        
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers, byteorder=Endian.Big, wordorder=Endian.Little
         )
@@ -662,16 +659,16 @@ class SolarEdgeBattery:
             ('B_MaxChargePeakPower', decoder.decode_32bit_float()),
             ('B_MaxDischargePeakPower', decoder.decode_32bit_float()),
         ])
-
+        
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
-
+        
         self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].removesuffix(self.decoded_common['B_SerialNumber'])
         self.decoded_common['B_Model'] = self.decoded_common['B_Model'].removesuffix(self.decoded_common['B_SerialNumber'])
         
         ascii_ctrl_chars =  dict.fromkeys(range(32))
         self.decoded_common['B_Manufacturer'] = self.decoded_common['B_Manufacturer'].translate(ascii_ctrl_chars)
-
+        
         if (
             len(self.decoded_common['B_Manufacturer']) == 0
             or len(self.decoded_common['B_Model']) == 0
@@ -696,7 +693,6 @@ class SolarEdgeBattery:
         }
     
     def read_modbus_data(self) -> None:
-        
         battery_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 108, count=46
         )
@@ -742,16 +738,16 @@ class SolarEdgeBattery:
         
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {name} {hex(value) if isinstance(value, int) else value}")
-
+    
     @property
     def online(self) -> bool:
         """Device is online."""
         return self.hub.online
-
+    
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
-
+    
     @property
     def single_device_entity(self) -> bool:
         return self.hub._single_device_entity
