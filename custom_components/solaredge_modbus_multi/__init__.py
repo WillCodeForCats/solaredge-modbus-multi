@@ -111,10 +111,5 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             self._hub.keep_modbus_open = True
     
     async def _async_update_data(self):
-        try:
-            async with async_timeout.timeout(3):
-                return await self.hub.async_refresh_modbus_data()
-        
-        except RuntimeError as e:
-            _LOGGER.error(f"Runtime error: {e}")
-            raise UpdateFailed(f"Runtime error: {e}")
+        async with async_timeout.timeout(4):
+            return await self.hub.async_refresh_modbus_data()
