@@ -18,17 +18,12 @@ from homeassistant.const import (
     ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
     PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ,
 )
-
 from homeassistant.components.sensor import (
     SensorStateClass,
     SensorDeviceClass,
     SensorEntity,
 )
-
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    UpdateFailed
-)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,

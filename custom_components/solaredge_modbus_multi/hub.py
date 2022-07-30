@@ -13,6 +13,7 @@ from pymodbus.compat import iteritems
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .const import (
     DOMAIN,
