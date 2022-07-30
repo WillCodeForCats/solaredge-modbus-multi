@@ -12,8 +12,6 @@ from pymodbus.compat import iteritems
 
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
-from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .const import (
     DOMAIN,
@@ -26,9 +24,35 @@ from .helpers import (
 
 _LOGGER = logging.getLogger(__name__)
 
+class SolarEdgeError(Exception):
+    """Base class for other exceptions"""
+    pass
+
+class HubInitFailed(SolarEdgeError):
+    """Raised when an error happens during init"""
+    pass
+
+class DeviceInitFailed(SolarEdgeError):
+    """Raised when a device can't be initialized"""
+    pass
+
+class ModbusReadError(SolarEdgeError):
+    """Raised when a modbus read fails"""
+    pass
+
+class ModbusWriteError(SolarEdgeError):
+    """Raised when a modbus write fails"""
+    pass
+
+class DataUpdateFailed(SolarEdgeError):
+    """Raised when an update cycle fails"""
+    pass
+
+class DeviceInvalid(SolarEdgeError):
+    """Raised when a device is not usable or invalid"""
+    pass
+
 class SolarEdgeModbusMultiHub:
-    """Thread safe wrapper class for pymodbus."""
-    
     def __init__(
         self,
         hass: HomeAssistant,
@@ -71,7 +95,7 @@ class SolarEdgeModbusMultiHub:
     async def _async_init_solaredge(self) -> None:
         
         if not self.is_socket_open():
-            raise ConfigEntryNotReady(f"Could not open Modbus/TCP connection to {self._host}")
+            raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
         
         if self._detect_batteries:
             _LOGGER.warning("Battery registers are not officially supported by SolarEdge. Use at your own risk!")
@@ -85,8 +109,9 @@ class SolarEdgeModbusMultiHub:
                 self.inverters.append(new_inverter)
             
             except Exception as e:
+                """Inverters are required"""
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
-                raise ConfigEntryNotReady(f"Inverter device ID {inverter_unit_id} not found.")
+                raise HubInitFailed(f"Inverter device ID {inverter_unit_id} not found.")
             
             if self._detect_meters:
                 try:
@@ -96,7 +121,7 @@ class SolarEdgeModbusMultiHub:
                     for meter in self.meters:
                         if new_meter_1.serial == meter.serial:
                             _LOGGER.warning(f"Duplicate serial {new_meter_1.serial}. Ignoring meter 1 on inverter ID {inverter_unit_id}")
-                            raise RuntimeError(f"Duplicate meter 1 serial {new_meter_1.serial}")
+                            raise DeviceInitFailed(f"Duplicate meter 1 serial {new_meter_1.serial}")
                     
                     self.meters.append(new_meter_1)
                     _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
@@ -110,7 +135,7 @@ class SolarEdgeModbusMultiHub:
                     for meter in self.meters:
                         if new_meter_2.serial == meter.serial:
                             _LOGGER.warning(f"Duplicate serial {new_meter_2.serial}. Ignoring meter 2 on inverter ID {inverter_unit_id}")
-                            raise RuntimeError(f"Duplicate meter 2 serial {new_meter_2.serial}")
+                            raise DeviceInitFailed(f"Duplicate meter 2 serial {new_meter_2.serial}")
                     
                     self.meters.append(new_meter_2)
                     _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
@@ -124,7 +149,7 @@ class SolarEdgeModbusMultiHub:
                     for meter in self.meters:
                         if new_meter_3.serial == meter.serial:
                             _LOGGER.warning(f"Duplicate serial {new_meter_3.serial}. Ignoring meter 3 on inverter ID {inverter_unit_id}")
-                            raise RuntimeError(f"Duplicate meter 3 serial {new_meter_3.serial}")
+                            raise DeviceInitFailed(f"Duplicate meter 3 serial {new_meter_3.serial}")
                     
                     self.meters.append(new_meter_3)
                     _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
@@ -139,7 +164,7 @@ class SolarEdgeModbusMultiHub:
                     for battery in self.batteries:
                         if new_battery_1.serial == battery.serial:
                             _LOGGER.warning(f"Duplicate serial {new_battery_1.serial}. Ignoring battery 1 on inverter ID {inverter_unit_id}")
-                            raise RuntimeError(f"Duplicate battery 1 serial {new_battery_1.serial}")
+                            raise DeviceInitFailed(f"Duplicate battery 1 serial {new_battery_1.serial}")
                             
                     self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 on inverter ID {inverter_unit_id}")
@@ -153,7 +178,7 @@ class SolarEdgeModbusMultiHub:
                     for battery in self.batteries:
                         if new_battery_2.serial == battery.serial:
                             _LOGGER.warning(f"Duplicate serial {new_battery_2.serial}. Ignoring battery 2 on inverter ID {inverter_unit_id}")
-                            raise RuntimeError(f"Duplicate battery 2 serial {new_battery_1.serial}")
+                            raise DeviceInitFailed(f"Duplicate battery 2 serial {new_battery_1.serial}")
                             
                     self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 on inverter ID {inverter_unit_id}")
@@ -171,7 +196,7 @@ class SolarEdgeModbusMultiHub:
                 await self._hass.async_add_executor_job(battery.read_modbus_data)
         
         except:
-            raise ConfigEntryNotReady(f"Devices not ready.")
+            raise HubInitFailed(f"Devices not ready.")
         
         self.initalized = True
     
@@ -185,7 +210,7 @@ class SolarEdgeModbusMultiHub:
         
         if not self.is_socket_open():
             self.online = False
-            raise UpdateFailed(f"Could not open Modbus/TCP connection to {self._host}")
+            raise DataUpdateFailed(f"Could not open Modbus/TCP connection to {self._host}")
         
         else:
             self.online = True            
@@ -199,7 +224,7 @@ class SolarEdgeModbusMultiHub:
             
             except Exception as e:
                 self.online = False
-                raise UpdateFailed(f"Failed to update devices: {e}")
+                raise DataUpdateFailed(f"Failed to update devices: {e}")
         
         if not self.keep_modbus_open:
             self.disconnect()
@@ -258,7 +283,7 @@ class SolarEdgeInverter:
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise RuntimeError(inverter_data)
+            raise ModbusReadError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -278,14 +303,14 @@ class SolarEdgeInverter:
             or decoded_ident['C_SunSpec_DID'] != 0x0001
             or decoded_ident['C_SunSpec_Length'] != 65
         ):
-            raise RuntimeError("Inverter {self.inverter_unit_id} not usable.")
+            raise DeviceInvalid("Inverter {self.inverter_unit_id} not usable.")
         
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40004, count=65
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise RuntimeError(inverter_data)
+            raise ModbusReadError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -326,7 +351,7 @@ class SolarEdgeInverter:
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise RuntimeError(inverter_data)
+            raise ModbusReadError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -345,14 +370,14 @@ class SolarEdgeInverter:
             or decoded_ident['C_SunSpec_DID'] not in [101,102,103]
             or decoded_ident['C_SunSpec_Length'] != 50
         ):
-            raise RuntimeError(f"Inverter {self.inverter_unit_id} not usable.")
+            raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
         
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40071, count=38
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise RuntimeError(inverter_data)
+            raise ModbusReadError(inverter_data)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -442,7 +467,7 @@ class SolarEdgeMeter:
         )
         if meter_info.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {meter_info}")
-            raise RuntimeError(meter_info)
+            raise ModbusReadError(meter_info)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
@@ -460,14 +485,14 @@ class SolarEdgeMeter:
             or decoded_ident['C_SunSpec_DID'] != 0x0001
             or decoded_ident['C_SunSpec_Length'] != 65
         ):
-            raise RuntimeError("Meter {self.meter_id} not usable.")
+            raise DeviceInvalid("Meter {self.meter_id} not usable.")
         
         meter_info = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 2, count=65
         )
         if meter_info.isError():
             _LOGGER.debug(meter_info)
-            raise RuntimeError(meter_info)
+            raise ModbusReadError(meter_info)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
@@ -507,7 +532,7 @@ class SolarEdgeMeter:
         )
         if meter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} meter {self.meter_id}: {meter_data}")
-            raise RuntimeError(f"Meter read error: {meter_data}")
+            raise ModbusReadError(f"Meter read error: {meter_data}")
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_data.registers, byteorder=Endian.Big
@@ -526,14 +551,14 @@ class SolarEdgeMeter:
             or decoded_ident['C_SunSpec_DID'] not in [201,202,203,204]
             or decoded_ident['C_SunSpec_Length'] != 105
         ):
-            raise RuntimeError(f"Meter on inverter {self.inverter_unit_id} not usable.")
+            raise DeviceInvalid(f"Meter on inverter {self.inverter_unit_id} not usable.")
         
         meter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=self.start_address + 69, count=105
         )
         if meter_data.isError():
             _LOGGER.error(f"Meter read error: {meter_data}")
-            raise RuntimeError(f"Meter read error: {meter_data}")
+            raise ModbusReadError(f"Meter read error: {meter_data}")
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_data.registers, byteorder=Endian.Big
@@ -656,7 +681,7 @@ class SolarEdgeBattery:
         )
         if battery_info.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} battery {self.battery_id}: {battery_info}")
-            raise RuntimeError(battery_info)
+            raise ModbusReadError(battery_info)
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers, byteorder=Endian.Big, wordorder=Endian.Little
@@ -689,7 +714,7 @@ class SolarEdgeBattery:
             or len(self.decoded_common['B_Model']) == 0
             or len(self.decoded_common['B_SerialNumber']) == 0
         ):
-            raise RuntimeError("Battery {self.battery_id} not usable.")
+            raise DeviceInvalid("Battery {self.battery_id} not usable.")
         
         self.manufacturer = self.decoded_common['B_Manufacturer']
         self.model = self.decoded_common['B_Model']
@@ -713,7 +738,7 @@ class SolarEdgeBattery:
         )
         if battery_data.isError():
             _LOGGER.error(f"Battery read error: {battery_data}")
-            raise RuntimeError(f"Battery read error: {battery_data}")
+            raise ModbusReadError(f"Battery read error: {battery_data}")
         
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_data.registers, byteorder=Endian.Big, wordorder=Endian.Little

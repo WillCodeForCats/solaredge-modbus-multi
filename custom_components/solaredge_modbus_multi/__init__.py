@@ -12,7 +12,6 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL
 )
 from homeassistant.core import HomeAssistant
-
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
@@ -27,7 +26,11 @@ from .const import (
     CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY,
     CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN,
 )
-from .hub import SolarEdgeModbusMultiHub
+from .hub import (
+    SolarEdgeModbusMultiHub,
+    HubInitFailed,
+    DataUpdateFailed,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -115,5 +118,8 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             async with async_timeout.timeout(5):
                 return await self.hub.async_refresh_modbus_data()
         
-        except Exception as e:
+        except HubInitFailed as e:
+            raise UpdateFailed(f"{e}")
+        
+        except DataUpdateFailed as e:
             raise UpdateFailed(f"{e}")
