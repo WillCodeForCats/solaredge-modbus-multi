@@ -104,11 +104,11 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             name="SolarEdgeCoordinator",
             update_interval=timedelta(seconds=scan_interval),
         )
-        self.hub = hub
+        self._hub = hub
         
         if scan_interval < 10:
             _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
-            hub.keep_modbus_open = True
+            self._hub.keep_modbus_open = True
     
     async def _async_update_data(self):
         try:
