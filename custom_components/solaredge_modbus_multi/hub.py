@@ -199,7 +199,7 @@ class SolarEdgeModbusMultiHub:
             
             except Exception as e:
                 self.online = False
-                raise UpdateFailed(f"Failed to update devices: {e}")
+                raise UpdateFailed(f"Error while updating devices ({e})")
         
         if not self.keep_modbus_open:
             self.disconnect()
