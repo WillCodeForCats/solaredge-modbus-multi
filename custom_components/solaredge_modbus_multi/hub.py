@@ -69,6 +69,7 @@ class SolarEdgeModbusMultiHub:
         self.batteries = []
     
     async def _async_init_solaredge(self) -> None:
+        #raise ConfigEntryNotReady(f"this is a test")
         
         if not self.is_socket_open():
             raise ConfigEntryNotReady(f"Could not open Modbus/TCP connection to {self._host}")
