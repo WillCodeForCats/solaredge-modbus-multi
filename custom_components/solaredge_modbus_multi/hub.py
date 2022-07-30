@@ -185,7 +185,6 @@ class SolarEdgeModbusMultiHub:
         
         if not self.is_socket_open():
             self.online = False
-            _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
             raise UpdateFailed(f"Could not open Modbus/TCP connection to {self._host}")
         
         else:
@@ -200,7 +199,6 @@ class SolarEdgeModbusMultiHub:
             
             except Exception as e:
                 self.online = False
-                _LOGGER.error(f"Failed to update devices: {e}")
                 raise UpdateFailed(f"Failed to update devices: {e}")
         
         if not self.keep_modbus_open:
