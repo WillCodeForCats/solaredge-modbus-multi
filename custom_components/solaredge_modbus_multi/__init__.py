@@ -104,17 +104,16 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             name="SolarEdgeCoordinator",
             update_interval=timedelta(seconds=scan_interval),
         )
-        self._hub = hub
+        self.hub = hub
         
         if scan_interval < 10:
             _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
-            self._hub.keep_modbus_open = True
+            hub.keep_modbus_open = True
     
     async def _async_update_data(self):
         try:
             async with async_timeout.timeout(3):
-                return await self._hub.async_refresh_modbus_data()
+                return await self.hub.async_refresh_modbus_data()
         
-        except RuntimeError as e:
-            _LOGGER.error(f"Runtime error: {e}")
-            raise UpdateFailed(f"Runtime error: {e}")
+        except Exception as e:
+            raise UpdateFailed(f"Error updating modbus data: {e}")

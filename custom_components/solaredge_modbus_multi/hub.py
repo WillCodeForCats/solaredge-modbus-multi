@@ -13,7 +13,6 @@ from pymodbus.compat import iteritems
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .const import (
     DOMAIN,
@@ -69,7 +68,6 @@ class SolarEdgeModbusMultiHub:
         self.batteries = []
     
     async def _async_init_solaredge(self) -> None:
-        #raise ConfigEntryNotReady(f"this is a test")
         
         if not self.is_socket_open():
             raise ConfigEntryNotReady(f"Could not open Modbus/TCP connection to {self._host}")
@@ -186,6 +184,7 @@ class SolarEdgeModbusMultiHub:
         
         if not self.is_socket_open():
             self.online = False
+            _LOGGER.error(f"Could not open Modbus/TCP connection to {self._host}")
             raise UpdateFailed(f"Could not open Modbus/TCP connection to {self._host}")
         
         else:
@@ -200,7 +199,8 @@ class SolarEdgeModbusMultiHub:
             
             except Exception as e:
                 self.online = False
-                raise UpdateFailed(f"Error while updating devices ({e})")
+                _LOGGER.error(f"Failed to update devices: {e}")
+                raise UpdateFailed(f"Failed to update devices: {e}")
         
         if not self.keep_modbus_open:
             self.disconnect()
