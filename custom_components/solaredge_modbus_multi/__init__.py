@@ -100,23 +100,22 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 class SolarEdgeCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, hub, scan_interval):
-        """Initialize my coordinator."""
         super().__init__(
             hass,
             _LOGGER,
-            name="SolarEdgeCoordinator",
-            update_interval=timedelta(seconds=scan_interval),
+            name = "SolarEdgeCoordinator",
+            update_interval = timedelta(seconds=scan_interval),
         )
-        self.hub = hub
+        self._hub = hub
         
         if scan_interval < 10:
             _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
-            hub.keep_modbus_open = True
+            self._hub.keep_modbus_open = True
     
     async def _async_update_data(self):
         try:
             async with async_timeout.timeout(5):
-                return await self.hub.async_refresh_modbus_data()
+                return await self._hub.async_refresh_modbus_data()
         
         except HubInitFailed as e:
             raise UpdateFailed(f"{e}")
