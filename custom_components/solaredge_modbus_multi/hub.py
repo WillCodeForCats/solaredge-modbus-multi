@@ -2,16 +2,16 @@ import asyncio
 import logging
 import threading
 
-from typing import Any, Callable, Optional, Dict
 from collections import OrderedDict
 
+from homeassistant.core import HomeAssistant
+
+from typing import Any, Callable, Optional, Dict
+
 from pymodbus.client.sync import ModbusTcpClient
+from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.compat import iteritems
-
-from homeassistant.core import HomeAssistant
-from homeassistant.core import callback
 
 from .const import (
     DOMAIN,
@@ -274,7 +274,6 @@ class SolarEdgeInverter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self._callbacks = set()
         self.has_parent = False
     
     def init_device(self) -> None:
@@ -447,7 +446,6 @@ class SolarEdgeMeter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self._callbacks = set()
         self.start_address = None
         self.meter_id = meter_id
         self.has_parent = True
@@ -663,7 +661,6 @@ class SolarEdgeBattery:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self._callbacks = set()
         self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
