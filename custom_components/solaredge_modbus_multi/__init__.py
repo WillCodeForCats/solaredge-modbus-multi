@@ -103,7 +103,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name = "SolarEdgeCoordinator",
+            name = "SolarEdge Coordinator",
             update_interval = timedelta(seconds=scan_interval),
         )
         self._hub = hub
