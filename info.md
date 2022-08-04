@@ -6,6 +6,8 @@ It supports single inverters, multiple inverters, meters, and batteries.
 
 Many improvements over other integrations that didn't work well with a multi-device setup.
 
+Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
+
 {% if installed %}
 {% if version_installed.replace("v", "").replace(".","") | int < 200 %}
 ### Recommended Update Procedure from v1.x.x

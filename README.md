@@ -5,6 +5,8 @@ A Home Assistant integration for SolarEdge inverters using Modbus/TCP. It suppor
 
 It is designed to communicate locally using Modbus/TCP where you have a single Leader (Master) inverter connected with one or more Follower (Slave) inverters chained using the RS485 bus. Inverters can have up to three meters and two batteries.
 
+Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
+
 ### Features
 * Inverter support for 1 to 32 SolarEdge inverters.
 * Meter support for 1 to 3 meters per inverter.
