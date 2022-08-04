@@ -7,14 +7,6 @@ It supports single inverters, multiple inverters, meters, and batteries.
 Many improvements over other integrations that didn't work well with a multi-device setup.
 
 {% if installed %}
-{% if version_installed.replace("v", "").replace(".","") | int < 120 %}
-
-### Required Steps to Upgrade to v1.2.0
-
-Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
-
-Make sure you have a full backup before making changes - backups are always best practice.
-{% endif %}
 {% if version_installed.replace("v", "").replace(".","") | int < 200 %}
 ### Recommended Update Procedure from v1.x.x
 
