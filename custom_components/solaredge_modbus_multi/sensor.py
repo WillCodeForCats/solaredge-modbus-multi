@@ -1,45 +1,33 @@
 import logging
 import re
 
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
 
-from homeassistant.core import HomeAssistant
-
-from homeassistant.core import callback
+from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
+                                             SensorStateClass)
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (CONF_NAME, ELECTRIC_CURRENT_AMPERE,
+                                 ELECTRIC_POTENTIAL_VOLT,
+                                 ENERGY_KILO_WATT_HOUR, FREQUENCY_HERTZ,
+                                 PERCENTAGE, POWER_KILO_WATT,
+                                 POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
+                                 POWER_WATT, TEMP_CELSIUS)
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from homeassistant.const import (
-    CONF_NAME,
-    ENERGY_KILO_WATT_HOUR,
-    POWER_WATT, POWER_KILO_WATT, POWER_VOLT_AMPERE, POWER_VOLT_AMPERE_REACTIVE,
-    ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT,
-    PERCENTAGE, TEMP_CELSIUS, FREQUENCY_HERTZ,
-)
-from homeassistant.components.sensor import (
-    SensorStateClass,
-    SensorDeviceClass,
-    SensorEntity,
-)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    DOMAIN,
-    SUNSPEC_NOT_IMPL_UINT16, SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT32,
-    SUNSPEC_NOT_ACCUM_ACC32, SUNSPEC_ACCUM_LIMIT, SUNSPEC_SF_RANGE, SUNSPEC_NOT_IMPL_FLOAT32,
-    DEVICE_STATUS, DEVICE_STATUS_DESC, BATTERY_STATUS,
-    VENDOR_STATUS, SUNSPEC_DID, METER_EVENTS,
-    ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
-)
-from .helpers import (
-    update_accum,
-    scale_factor,
-    watts_to_kilowatts
-)
+from .const import (BATTERY_STATUS, DEVICE_STATUS, DEVICE_STATUS_DESC, DOMAIN,
+                    ENERGY_VOLT_AMPERE_HOUR, ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
+                    METER_EVENTS, SUNSPEC_ACCUM_LIMIT, SUNSPEC_DID,
+                    SUNSPEC_NOT_ACCUM_ACC32, SUNSPEC_NOT_IMPL_FLOAT32,
+                    SUNSPEC_NOT_IMPL_INT16, SUNSPEC_NOT_IMPL_UINT16,
+                    SUNSPEC_NOT_IMPL_UINT32, SUNSPEC_SF_RANGE, VENDOR_STATUS)
+from .helpers import scale_factor, update_accum, watts_to_kilowatts
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,

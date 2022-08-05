@@ -1,31 +1,24 @@
-import voluptuous as vol
 import ipaddress
 import re
 
-from homeassistant import config_entries
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 import homeassistant.helpers.config_validation as cv
-from .const import (
-    DOMAIN,
-    DEFAULT_NAME,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_PORT,
-    DEFAULT_DEVICE_ID,
-    DEFAULT_NUMBER_INVERTERS,
-    DEFAULT_DETECT_METERS,
-    DEFAULT_DETECT_BATTERIES,
-    DEFAULT_SINGLE_DEVICE_ENTITY,
-    DEFAULT_KEEP_MODBUS_OPEN,
-    CONF_DEVICE_ID,
-    CONF_NUMBER_INVERTERS,
-    CONF_DETECT_METERS,
-    CONF_DETECT_BATTERIES,
-    CONF_SINGLE_DEVICE_ENTITY,
-    CONF_KEEP_MODBUS_OPEN,
-)
+import voluptuous as vol
+
+from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (CONF_HOST, CONF_NAME, CONF_PORT,
+                                 CONF_SCAN_INTERVAL)
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.config_entries import ConfigEntry
+
+from .const import (CONF_DETECT_BATTERIES, CONF_DETECT_METERS, CONF_DEVICE_ID,
+                    CONF_KEEP_MODBUS_OPEN, CONF_NUMBER_INVERTERS,
+                    CONF_SINGLE_DEVICE_ENTITY, DEFAULT_DETECT_BATTERIES,
+                    DEFAULT_DETECT_METERS, DEFAULT_DEVICE_ID,
+                    DEFAULT_KEEP_MODBUS_OPEN, DEFAULT_NAME,
+                    DEFAULT_NUMBER_INVERTERS, DEFAULT_PORT,
+                    DEFAULT_SCAN_INTERVAL, DEFAULT_SINGLE_DEVICE_ENTITY,
+                    DOMAIN)
 
 
 def host_valid(host):
