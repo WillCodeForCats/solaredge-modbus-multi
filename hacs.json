@@ -1,6 +1,6 @@
 {
   "name": "SolarEdge Modbus Multi-Inverter",
   "content_in_root": false,
-  "homeassistant": "2022.2.0",
+  "homeassistant": "2022.8.0",
   "render_readme": false
 }
