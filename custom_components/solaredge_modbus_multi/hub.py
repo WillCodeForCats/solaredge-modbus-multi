@@ -1,12 +1,10 @@
 import asyncio
 import logging
 import threading
-
 from collections import OrderedDict
 from typing import Any, Callable, Dict, Optional
 
 from homeassistant.core import HomeAssistant
-
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
