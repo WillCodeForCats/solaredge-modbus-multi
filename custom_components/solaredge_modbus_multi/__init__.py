@@ -1,8 +1,8 @@
 """The SolarEdge Modbus Integration."""
 import logging
 from datetime import timedelta
-import async_timeout
 
+import async_timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (CONF_HOST, CONF_NAME, CONF_PORT,
                                  CONF_SCAN_INTERVAL, Platform)
