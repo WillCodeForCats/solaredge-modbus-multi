@@ -2,7 +2,7 @@ import asyncio
 import logging
 import threading
 from collections import OrderedDict
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
 from pymodbus.client.sync import ModbusTcpClient

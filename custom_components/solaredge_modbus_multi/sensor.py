@@ -1,7 +1,5 @@
 import logging
 import re
-from datetime import datetime
-from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -10,13 +8,11 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    CONF_NAME,
     ELECTRIC_CURRENT_AMPERE,
     ELECTRIC_POTENTIAL_VOLT,
     ENERGY_KILO_WATT_HOUR,
     FREQUENCY_HERTZ,
     PERCENTAGE,
-    POWER_KILO_WATT,
     POWER_VOLT_AMPERE,
     POWER_VOLT_AMPERE_REACTIVE,
     POWER_WATT,
