@@ -1,28 +1,20 @@
 import asyncio
 import logging
 import threading
-
 from collections import OrderedDict
+from typing import Any, Callable, Dict, Optional
 
 from homeassistant.core import HomeAssistant
-
-from typing import Any, Callable, Optional, Dict
-
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 
-from .const import (
-    DOMAIN,
-    SUNSPEC_NOT_IMPL_UINT16,
-)
-
-from .helpers import (
-    parse_modbus_string
-)
+from .const import DOMAIN, SUNSPEC_NOT_IMPL_UINT16
+from .helpers import parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class SolarEdgeError(Exception):
     """Base class for other exceptions"""

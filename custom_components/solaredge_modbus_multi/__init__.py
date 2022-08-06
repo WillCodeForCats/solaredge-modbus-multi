@@ -1,41 +1,27 @@
 """The SolarEdge Modbus Integration."""
-import async_timeout
 import logging
-
 from datetime import timedelta
+
+import async_timeout
 from homeassistant.config_entries import ConfigEntry
-
-from homeassistant.const import (
-    CONF_NAME,
-    CONF_HOST,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-    Platform,
-)
+from homeassistant.const import (CONF_HOST, CONF_NAME, CONF_PORT,
+                                 CONF_SCAN_INTERVAL, Platform)
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
+from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
+                                                      UpdateFailed)
 
-from .const import (
-    DOMAIN, DEFAULT_SCAN_INTERVAL,
-    CONF_NUMBER_INVERTERS,
-    CONF_DEVICE_ID,
-    CONF_DETECT_METERS, DEFAULT_DETECT_METERS,
-    CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES,
-    CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY,
-    CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN,
-)
-from .hub import (
-    SolarEdgeModbusMultiHub,
-    HubInitFailed,
-    DataUpdateFailed,
-)
+from .const import (CONF_DETECT_BATTERIES, CONF_DETECT_METERS, CONF_DEVICE_ID,
+                    CONF_KEEP_MODBUS_OPEN, CONF_NUMBER_INVERTERS,
+                    CONF_SINGLE_DEVICE_ENTITY, DEFAULT_DETECT_BATTERIES,
+                    DEFAULT_DETECT_METERS, DEFAULT_KEEP_MODBUS_OPEN,
+                    DEFAULT_SCAN_INTERVAL, DEFAULT_SINGLE_DEVICE_ENTITY,
+                    DOMAIN)
+from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = [Platform.SENSOR]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus from a config entry."""
