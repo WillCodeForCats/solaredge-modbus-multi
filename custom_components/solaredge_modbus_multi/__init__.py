@@ -1,6 +1,7 @@
 """The SolarEdge Modbus Integration."""
 import logging
 from datetime import timedelta
+from typing import Any
 
 import async_timeout
 from homeassistant.config_entries import ConfigEntry
