@@ -21,7 +21,7 @@ def update_accum(self, accum_value: int) -> None:
         self.last = 0
 
     if not accum_value > 0:
-        raise ValueError(f"update_accum must be non-zero value.")
+        raise ValueError("update_accum must be non-zero value.")
 
     if accum_value >= self.last:
         # doesn't account for accumulator rollover, but it would probably take
@@ -29,4 +29,4 @@ def update_accum(self, accum_value: int) -> None:
         self.last = accum_value
         return accum_value
     else:
-        raise ValueError(f"update_accum must be an increasing value.")
+        raise ValueError("update_accum must be an increasing value.")

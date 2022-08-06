@@ -219,7 +219,7 @@ class SolarEdgeModbusMultiHub:
                 await self._hass.async_add_executor_job(battery.read_modbus_data)
 
         except:
-            raise HubInitFailed(f"Devices not ready.")
+            raise HubInitFailed("Devices not ready.")
 
         self.initalized = True
 
