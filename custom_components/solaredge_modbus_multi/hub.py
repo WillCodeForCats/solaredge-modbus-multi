@@ -144,7 +144,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(
                         f"Found meter 1 on inverter ID {inverter_unit_id}"
                     )
-                except:
+                except Exception:
                     pass
 
                 try:
@@ -167,7 +167,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(
                         f"Found meter 2 on inverter ID {inverter_unit_id}"
                     )
-                except:
+                except Exception:
                     pass
 
                 try:
@@ -190,7 +190,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(
                         f"Found meter 3 on inverter ID {inverter_unit_id}"
                     )
-                except:
+                except Exception:
                     pass
 
             if self._detect_batteries:
@@ -214,7 +214,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(
                         f"Found battery 1 inverter {inverter_unit_id}"
                     )
-                except:
+                except Exception:
                     pass
 
                 try:
@@ -237,7 +237,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(
                         f"Found battery 2 inverter {inverter_unit_id}"
                     )
-                except:
+                except Exception:
                     pass
 
         try:
@@ -254,7 +254,7 @@ class SolarEdgeModbusMultiHub:
                     battery.read_modbus_data
                 )
 
-        except:
+        except Exception:
             raise HubInitFailed("Devices not ready.")
 
         self.initalized = True

@@ -1163,7 +1163,7 @@ class ACEnergy(SolarEdgeSensorBase):
 
                 try:
                     return watts_to_kilowatts(update_accum(self, value))
-                except:
+                except Exception:
                     return None
 
         except TypeError:
@@ -1571,7 +1571,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
 
                 try:
                     return update_accum(self, value, value)
-                except:
+                except Exception:
                     return None
 
         except TypeError:
@@ -1655,7 +1655,7 @@ class MetervarhIE(SolarEdgeSensorBase):
 
                 try:
                     return update_accum(self, value, value)
-                except:
+                except Exception:
                     return None
 
         except TypeError:
@@ -1824,7 +1824,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                             self._platform.decoded_model["B_Export_Energy_WH"],
                         )
                     )
-                except:
+                except Exception:
                     return None
 
         except TypeError:
@@ -1867,7 +1867,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                             self._platform.decoded_model["B_Import_Energy_WH"],
                         )
                     )
-                except:
+                except Exception:
                     return None
 
         except TypeError:
