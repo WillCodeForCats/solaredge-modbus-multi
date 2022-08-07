@@ -513,7 +513,8 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
             raise RuntimeError(
-                "ACCurrentSensor: Unknown C_SunSpec_DID {self._platform.decoded_model['C_SunSpec_DID']}"
+                "ACCurrentSensor C_SunSpec_DID ",
+                f"{self._platform.decoded_model['C_SunSpec_DID']}",
             )
 
     @property
@@ -521,14 +522,20 @@ class ACCurrentSensor(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_current"
         else:
-            return f"{self._platform.model}_{self._platform.serial}_ac_current_{self._phase.lower()}"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"ac_current_{self._phase.lower()}",
+            )
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC Current"
         else:
-            return f"{self._platform._device_info['name']} AC Current {self._phase.upper()}"
+            return (
+                f"{self._platform._device_info['name']} ",
+                f"AC Current {self._phase.upper()}",
+            )
 
     @property
     def native_value(self):
@@ -572,7 +579,8 @@ class VoltageSensor(SolarEdgeSensorBase):
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
             raise RuntimeError(
-                "ACCurrentSensor: Unknown C_SunSpec_DID {self._platform.decoded_model['C_SunSpec_DID']}"
+                "ACCurrentSensor C_SunSpec_DID ",
+                f"{self._platform.decoded_model['C_SunSpec_DID']}",
             )
 
     @property
@@ -580,14 +588,20 @@ class VoltageSensor(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_voltage"
         else:
-            return f"{self._platform.model}_{self._platform.serial}_ac_voltage_{self._phase.lower()}"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"ac_voltage_{self._phase.lower()}",
+            )
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC Voltage"
         else:
-            return f"{self._platform._device_info['name']} AC Voltage {self._phase.upper()}"
+            return (
+                f"{self._platform._device_info['name']} ",
+                f"AC Voltage {self._phase.upper()}",
+            )
 
     @property
     def native_value(self):
@@ -632,7 +646,10 @@ class ACPower(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_power"
         else:
-            return f"{self._platform.model}_{self._platform.serial}_ac_power_{self._phase.lower()}"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"ac_power_{self._phase.lower()}",
+            )
 
     @property
     def name(self) -> str:
@@ -725,7 +742,10 @@ class ACVoltAmp(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_va"
         else:
-            return f"{self._platform.model}_{self._platform.serial}_ac_va_{self._phase.lower()}"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"ac_va_{self._phase.lower()}",
+            )
 
     @property
     def name(self) -> str:
@@ -779,14 +799,20 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_var"
         else:
-            return f"{self._platform.model}_{self._platform.serial}_ac_var_{self._phase.lower()}"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"ac_var_{self._phase.lower()}",
+            )
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC var"
         else:
-            return f"{self._platform._device_info['name']} AC var {self._phase.upper()}"
+            return (
+                f"{self._platform._device_info['name']} ",
+                f"AC var {self._phase.upper()}",
+            )
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -833,7 +859,10 @@ class ACPowerFactor(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_pf"
         else:
-            return f"{self._platform.model}_{self._platform.serial}_ac_pf_{self._phase.lower()}"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"ac_pf_{self._phase.lower()}",
+            )
 
     @property
     def name(self) -> str:
@@ -889,7 +918,8 @@ class ACEnergy(SolarEdgeSensorBase):
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
             raise RuntimeError(
-                "ACEnergy: Unknown C_SunSpec_DID {self._platform.decoded_model['C_SunSpec_DID']}"
+                "ACEnergy C_SunSpec_DID ",
+                f"{self._platform.decoded_model['C_SunSpec_DID']}",
             )
 
     @property
@@ -911,14 +941,20 @@ class ACEnergy(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_energy_kwh"
         else:
-            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_kwh"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"{self._phase.lower()}_kwh",
+            )
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC Energy kWh"
         else:
-            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} kWh"
+            return (
+                f"{self._platform._device_info['name']} ",
+                f"{re.sub('_', ' ', self._phase)} kWh",
+            )
 
     @property
     def native_value(self):
@@ -1287,7 +1323,10 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_vah"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"{self._phase.lower()}_vah",
+            )
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1298,7 +1337,10 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} VAh"
+            return (
+                f"{self._platform._device_info['name']} ",
+                f"{re.sub('_', ' ', self._phase)} VAh",
+            )
 
     @property
     def native_value(self):
@@ -1361,7 +1403,10 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_varh"
+            return (
+                f"{self._platform.model}_{self._platform.serial}_",
+                f"{self._phase.lower()}_varh",
+            )
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1372,7 +1417,10 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} varh"
+            return (
+                f"{self._platform._device_info['name']} ",
+                f"{re.sub('_', ' ', self._phase)} varh",
+            )
 
     @property
     def native_value(self):
