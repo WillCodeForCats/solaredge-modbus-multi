@@ -24,7 +24,7 @@ def update_accum(self, accum_value: int) -> None:
         raise ValueError("update_accum must be non-zero value.")
 
     if accum_value >= self.last:
-        # doesn't account for accumulator rollover, but it would probably take
+        # doesn't check accumulator rollover, but it would probably take
         # several decades to roll over to 0 so we'll worry about it later
         self.last = accum_value
         return accum_value
