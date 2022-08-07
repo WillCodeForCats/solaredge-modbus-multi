@@ -27,4 +27,4 @@ jobs:
           extra-flake8-options: ""
           extra-black-options: "--diff -l 79"
           extra-mypy-options: ""
-          extra-isort-options: ""
+          extra-isort-options: "--profile black"
