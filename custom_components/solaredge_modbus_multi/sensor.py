@@ -59,13 +59,9 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         if inverter.single_device_entity:
-            entities.append(
-                SolarEdgeDevice(inverter, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
         else:
-            entities.append(
-                SolarEdgeDevice(inverter, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
             entities.append(Manufacturer(inverter, config_entry, coordinator))
             entities.append(Model(inverter, config_entry, coordinator))
             entities.append(SerialNumber(inverter, config_entry, coordinator))
@@ -75,33 +71,15 @@ async def async_setup_entry(
         entities.append(Status(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
         entities.append(ACCurrentSensor(inverter, config_entry, coordinator))
-        entities.append(
-            ACCurrentSensor(inverter, config_entry, coordinator, "A")
-        )
-        entities.append(
-            ACCurrentSensor(inverter, config_entry, coordinator, "B")
-        )
-        entities.append(
-            ACCurrentSensor(inverter, config_entry, coordinator, "C")
-        )
-        entities.append(
-            VoltageSensor(inverter, config_entry, coordinator, "AB")
-        )
-        entities.append(
-            VoltageSensor(inverter, config_entry, coordinator, "BC")
-        )
-        entities.append(
-            VoltageSensor(inverter, config_entry, coordinator, "CA")
-        )
-        entities.append(
-            VoltageSensor(inverter, config_entry, coordinator, "AN")
-        )
-        entities.append(
-            VoltageSensor(inverter, config_entry, coordinator, "BN")
-        )
-        entities.append(
-            VoltageSensor(inverter, config_entry, coordinator, "CN")
-        )
+        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "A"))
+        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "B"))
+        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "C"))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, "AB"))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, "BC"))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, "CA"))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, "AN"))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, "BN"))
+        entities.append(VoltageSensor(inverter, config_entry, coordinator, "CN"))
         entities.append(ACPower(inverter, config_entry, coordinator))
         entities.append(ACFrequency(inverter, config_entry, coordinator))
         entities.append(ACVoltAmp(inverter, config_entry, coordinator))
@@ -111,9 +89,7 @@ async def async_setup_entry(
         entities.append(DCCurrent(inverter, config_entry, coordinator))
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
-        entities.append(
-            HeatSinkTemperature(inverter, config_entry, coordinator)
-        )
+        entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
         if meter.single_device_entity:
@@ -125,9 +101,7 @@ async def async_setup_entry(
             entities.append(Option(meter, config_entry, coordinator))
             entities.append(SerialNumber(meter, config_entry, coordinator))
             entities.append(DeviceAddress(meter, config_entry, coordinator))
-            entities.append(
-                DeviceAddressParent(meter, config_entry, coordinator)
-            )
+            entities.append(DeviceAddressParent(meter, config_entry, coordinator))
             entities.append(SunspecDID(meter, config_entry, coordinator))
         entities.append(Version(meter, config_entry, coordinator))
         entities.append(MeterEvents(meter, config_entry, coordinator))
@@ -153,165 +127,75 @@ async def async_setup_entry(
         entities.append(ACVoltAmp(meter, config_entry, coordinator, "B"))
         entities.append(ACVoltAmp(meter, config_entry, coordinator, "C"))
         entities.append(ACVoltAmpReactive(meter, config_entry, coordinator))
-        entities.append(
-            ACVoltAmpReactive(meter, config_entry, coordinator, "A")
-        )
-        entities.append(
-            ACVoltAmpReactive(meter, config_entry, coordinator, "B")
-        )
-        entities.append(
-            ACVoltAmpReactive(meter, config_entry, coordinator, "C")
-        )
+        entities.append(ACVoltAmpReactive(meter, config_entry, coordinator, "A"))
+        entities.append(ACVoltAmpReactive(meter, config_entry, coordinator, "B"))
+        entities.append(ACVoltAmpReactive(meter, config_entry, coordinator, "C"))
         entities.append(ACPowerFactor(meter, config_entry, coordinator))
         entities.append(ACPowerFactor(meter, config_entry, coordinator, "A"))
         entities.append(ACPowerFactor(meter, config_entry, coordinator, "B"))
         entities.append(ACPowerFactor(meter, config_entry, coordinator, "C"))
         entities.append(ACEnergy(meter, config_entry, coordinator, "Exported"))
-        entities.append(
-            ACEnergy(meter, config_entry, coordinator, "Exported_A")
-        )
-        entities.append(
-            ACEnergy(meter, config_entry, coordinator, "Exported_B")
-        )
-        entities.append(
-            ACEnergy(meter, config_entry, coordinator, "Exported_C")
-        )
+        entities.append(ACEnergy(meter, config_entry, coordinator, "Exported_A"))
+        entities.append(ACEnergy(meter, config_entry, coordinator, "Exported_B"))
+        entities.append(ACEnergy(meter, config_entry, coordinator, "Exported_C"))
         entities.append(ACEnergy(meter, config_entry, coordinator, "Imported"))
-        entities.append(
-            ACEnergy(meter, config_entry, coordinator, "Imported_A")
-        )
-        entities.append(
-            ACEnergy(meter, config_entry, coordinator, "Imported_B")
-        )
-        entities.append(
-            ACEnergy(meter, config_entry, coordinator, "Imported_C")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Exported")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Exported_A")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Exported_B")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Exported_C")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Imported")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Imported_A")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Imported_B")
-        )
-        entities.append(
-            MeterVAhIE(meter, config_entry, coordinator, "Imported_C")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q1")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q1_A")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q1_B")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q1_C")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q2")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q2_A")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q2_B")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Import_Q2_C")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q3")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q3_A")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q3_B")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q3_C")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q4")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q4_A")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q4_B")
-        )
-        entities.append(
-            MetervarhIE(meter, config_entry, coordinator, "Export_Q4_C")
-        )
+        entities.append(ACEnergy(meter, config_entry, coordinator, "Imported_A"))
+        entities.append(ACEnergy(meter, config_entry, coordinator, "Imported_B"))
+        entities.append(ACEnergy(meter, config_entry, coordinator, "Imported_C"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported_A"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported_B"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported_C"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Imported"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Imported_A"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Imported_B"))
+        entities.append(MeterVAhIE(meter, config_entry, coordinator, "Imported_C"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q1"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q1_A"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q1_B"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q1_C"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q2"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q2_A"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q2_B"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Import_Q2_C"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q3"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q3_A"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q3_B"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q3_C"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q4"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q4_A"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q4_B"))
+        entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q4_C"))
 
     for battery in hub.batteries:
         if battery.single_device_entity:
-            entities.append(
-                SolarEdgeDevice(battery, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
         else:
-            entities.append(
-                SolarEdgeDevice(battery, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
             entities.append(Manufacturer(battery, config_entry, coordinator))
             entities.append(Model(battery, config_entry, coordinator))
             entities.append(SerialNumber(battery, config_entry, coordinator))
             entities.append(DeviceAddress(battery, config_entry, coordinator))
-            entities.append(
-                DeviceAddressParent(battery, config_entry, coordinator)
-            )
+            entities.append(DeviceAddressParent(battery, config_entry, coordinator))
         entities.append(Version(battery, config_entry, coordinator))
-        entities.append(
-            SolarEdgeBatteryAvgTemp(battery, config_entry, coordinator)
-        )
-        entities.append(
-            SolarEdgeBatteryMaxTemp(battery, config_entry, coordinator)
-        )
-        entities.append(
-            SolarEdgeBatteryVoltage(battery, config_entry, coordinator)
-        )
-        entities.append(
-            SolarEdgeBatteryCurrent(battery, config_entry, coordinator)
-        )
-        entities.append(
-            SolarEdgeBatteryPower(battery, config_entry, coordinator)
-        )
+        entities.append(SolarEdgeBatteryAvgTemp(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryMaxTemp(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryVoltage(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryCurrent(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryPower(battery, config_entry, coordinator))
         entities.append(
             SolarEdgeBatteryEnergyExport(battery, config_entry, coordinator)
         )
         entities.append(
             SolarEdgeBatteryEnergyImport(battery, config_entry, coordinator)
         )
-        entities.append(
-            SolarEdgeBatteryMaxEnergy(battery, config_entry, coordinator)
-        )
+        entities.append(SolarEdgeBatteryMaxEnergy(battery, config_entry, coordinator))
         entities.append(
             SolarEdgeBatteryAvailableEnergy(battery, config_entry, coordinator)
         )
-        entities.append(
-            SolarEdgeBatterySOH(battery, config_entry, coordinator)
-        )
-        entities.append(
-            SolarEdgeBatterySOE(battery, config_entry, coordinator)
-        )
-        entities.append(
-            SolarEdgeBatteryStatus(battery, config_entry, coordinator)
-        )
+        entities.append(SolarEdgeBatterySOH(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatterySOE(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryStatus(battery, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -378,15 +262,11 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
             attrs["batt_discharge_peak"] = self._platform.decoded_common[
                 "B_MaxDischargePeakPower"
             ]
-            attrs["batt_max_charge"] = self._platform.decoded_common[
-                "B_MaxChargePower"
-            ]
+            attrs["batt_max_charge"] = self._platform.decoded_common["B_MaxChargePower"]
             attrs["batt_max_discharge"] = self._platform.decoded_common[
                 "B_MaxDischargePower"
             ]
-            attrs["batt_rated_energy"] = self._platform.decoded_common[
-                "B_RatedEnergy"
-            ]
+            attrs["batt_rated_energy"] = self._platform.decoded_common["B_RatedEnergy"]
 
         except KeyError:
             pass
@@ -416,9 +296,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
             attrs["sunspec_device"] = None
 
         try:
-            attrs["sunspec_did"] = self._platform.decoded_model[
-                "C_SunSpec_DID"
-            ]
+            attrs["sunspec_did"] = self._platform.decoded_model["C_SunSpec_DID"]
         except KeyError:
             attrs["sunspec_did"] = None
 
@@ -564,9 +442,7 @@ class DeviceAddressParent(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return (
-            f"{self._platform.model}_{self._platform.serial}_parent_device_id"
-        )
+        return f"{self._platform.model}_{self._platform.serial}_parent_device_id"
 
     @property
     def name(self) -> str:
@@ -586,9 +462,7 @@ class SunspecDID(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return (
-            f"{self._platform.model}_{self._platform.serial}_sunspec_device_id"
-        )
+        return f"{self._platform.model}_{self._platform.serial}_sunspec_device_id"
 
     @property
     def name(self) -> str:
@@ -597,10 +471,7 @@ class SunspecDID(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["C_SunSpec_DID"]
-                == SUNSPEC_NOT_IMPL_UINT16
-            ):
+            if self._platform.decoded_model["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16:
                 return None
 
             else:
@@ -638,17 +509,11 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
         if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            201,
-            202,
-            203,
-            204,
-        ]:
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [201, 202, 203, 204]:
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
-            raise NotImplementedError(
-                "ACCurrentSensor C_SunSpec_DID ",
-                f"{self._platform.decoded_model['C_SunSpec_DID']}",
+            raise RuntimeError(
+                "ACCurrentSensor: Unknown C_SunSpec_DID {self._platform.decoded_model['C_SunSpec_DID']}"
             )
 
     @property
@@ -656,20 +521,14 @@ class ACCurrentSensor(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_current"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_current_{self._phase.lower()}",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_ac_current_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC Current"
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"AC Current {self._phase.upper()}",
-            )
+            return f"{self._platform._device_info['name']} AC Current {self._phase.upper()}"
 
     @property
     def native_value(self):
@@ -680,12 +539,10 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == self.SUNSPEC_NOT_IMPL
+                self._platform.decoded_model[model_key] == self.SUNSPEC_NOT_IMPL
                 or self._platform.decoded_model["AC_Current_SF"]
                 == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_Current_SF"]
-                not in SUNSPEC_SF_RANGE
+                or self._platform.decoded_model["AC_Current_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -711,17 +568,11 @@ class VoltageSensor(SolarEdgeSensorBase):
 
         if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            201,
-            202,
-            203,
-            204,
-        ]:
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [201, 202, 203, 204]:
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
-            raise NotImplementedError(
-                "ACCurrentSensor C_SunSpec_DID ",
-                f"{self._platform.decoded_model['C_SunSpec_DID']}",
+            raise RuntimeError(
+                "ACCurrentSensor: Unknown C_SunSpec_DID {self._platform.decoded_model['C_SunSpec_DID']}"
             )
 
     @property
@@ -729,20 +580,14 @@ class VoltageSensor(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_voltage"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_voltage_{self._phase.lower()}",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_ac_voltage_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC Voltage"
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"AC Voltage {self._phase.upper()}",
-            )
+            return f"{self._platform._device_info['name']} AC Voltage {self._phase.upper()}"
 
     @property
     def native_value(self):
@@ -753,12 +598,10 @@ class VoltageSensor(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == self.SUNSPEC_NOT_IMPL
+                self._platform.decoded_model[model_key] == self.SUNSPEC_NOT_IMPL
                 or self._platform.decoded_model["AC_Voltage_SF"]
                 == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_Voltage_SF"]
-                not in SUNSPEC_SF_RANGE
+                or self._platform.decoded_model["AC_Voltage_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -767,9 +610,7 @@ class VoltageSensor(SolarEdgeSensorBase):
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Voltage_SF"],
                 )
-                return round(
-                    value, abs(self._platform.decoded_model["AC_Voltage_SF"])
-                )
+                return round(value, abs(self._platform.decoded_model["AC_Voltage_SF"]))
 
         except TypeError:
             return None
@@ -791,10 +632,7 @@ class ACPower(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_power"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_power_{self._phase.lower()}",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_ac_power_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
@@ -802,8 +640,7 @@ class ACPower(SolarEdgeSensorBase):
             return f"{self._platform._device_info['name']} AC Power"
         else:
             return (
-                f"{self._platform._device_info['name']} ",
-                f"AC Power {self._phase.upper()}",
+                f"{self._platform._device_info['name']} AC Power {self._phase.upper()}"
             )
 
     @property
@@ -815,10 +652,8 @@ class ACPower(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_Power_SF"]
-                == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model[model_key] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["AC_Power_SF"] == SUNSPEC_NOT_IMPL_INT16
             ):
                 return None
 
@@ -827,9 +662,7 @@ class ACPower(SolarEdgeSensorBase):
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Power_SF"],
                 )
-                return round(
-                    value, abs(self._platform.decoded_model["AC_Power_SF"])
-                )
+                return round(value, abs(self._platform.decoded_model["AC_Power_SF"]))
 
         except TypeError:
             return None
@@ -856,8 +689,7 @@ class ACFrequency(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["AC_Frequency"]
-                == SUNSPEC_NOT_IMPL_UINT16
+                self._platform.decoded_model["AC_Frequency"] == SUNSPEC_NOT_IMPL_UINT16
                 or self._platform.decoded_model["AC_Frequency_SF"]
                 == SUNSPEC_NOT_IMPL_INT16
                 or self._platform.decoded_model["AC_Frequency_SF"]
@@ -893,20 +725,14 @@ class ACVoltAmp(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_va"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_va_{self._phase.lower()}",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_ac_va_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC VA"
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"AC VA {self._phase.upper()}",
-            )
+            return f"{self._platform._device_info['name']} AC VA {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -921,12 +747,9 @@ class ACVoltAmp(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_VA_SF"]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_VA_SF"]
-                not in SUNSPEC_SF_RANGE
+                self._platform.decoded_model[model_key] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["AC_VA_SF"] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["AC_VA_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -935,9 +758,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_VA_SF"],
                 )
-                return round(
-                    value, abs(self._platform.decoded_model["AC_VA_SF"])
-                )
+                return round(value, abs(self._platform.decoded_model["AC_VA_SF"]))
 
         except TypeError:
             return None
@@ -958,20 +779,14 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_var"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_var_{self._phase.lower()}",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_ac_var_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC var"
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"AC var {self._phase.upper()}",
-            )
+            return f"{self._platform._device_info['name']} AC var {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -986,12 +801,9 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_var_SF"]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_var_SF"]
-                not in SUNSPEC_SF_RANGE
+                self._platform.decoded_model[model_key] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["AC_var_SF"] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["AC_var_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -1000,9 +812,7 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_var_SF"],
                 )
-                return round(
-                    value, abs(self._platform.decoded_model["AC_var_SF"])
-                )
+                return round(value, abs(self._platform.decoded_model["AC_var_SF"]))
 
         except TypeError:
             return None
@@ -1023,20 +833,14 @@ class ACPowerFactor(SolarEdgeSensorBase):
         if self._phase is None:
             return f"{self._platform.model}_{self._platform.serial}_ac_pf"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_pf_{self._phase.lower()}",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_ac_pf_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC PF"
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"AC PF {self._phase.upper()}",
-            )
+            return f"{self._platform._device_info['name']} AC PF {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1051,12 +855,9 @@ class ACPowerFactor(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_PF_SF"]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["AC_PF_SF"]
-                not in SUNSPEC_SF_RANGE
+                self._platform.decoded_model[model_key] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["AC_PF_SF"] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["AC_PF_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -1065,9 +866,7 @@ class ACPowerFactor(SolarEdgeSensorBase):
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_PF_SF"],
                 )
-                return round(
-                    value, abs(self._platform.decoded_model["AC_PF_SF"])
-                )
+                return round(value, abs(self._platform.decoded_model["AC_PF_SF"]))
 
         except TypeError:
             return None
@@ -1086,17 +885,11 @@ class ACEnergy(SolarEdgeSensorBase):
 
         if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            201,
-            202,
-            203,
-            204,
-        ]:
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [201, 202, 203, 204]:
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
-            raise NotImplementedError(
-                "ACEnergy C_SunSpec_DID ",
-                f"{self._platform.decoded_model['C_SunSpec_DID']}",
+            raise RuntimeError(
+                "ACEnergy: Unknown C_SunSpec_DID {self._platform.decoded_model['C_SunSpec_DID']}"
             )
 
     @property
@@ -1116,24 +909,16 @@ class ACEnergy(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_ac_energy_kwh"
-            )
+            return f"{self._platform.model}_{self._platform.serial}_ac_energy_kwh"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"{self._phase.lower()}_kwh",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_kwh"
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC Energy kWh"
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"{re.sub('_', ' ', self._phase)} kWh",
-            )
+            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} kWh"
 
     @property
     def native_value(self):
@@ -1144,10 +929,8 @@ class ACEnergy(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == SUNSPEC_NOT_ACCUM_ACC32
-                or self._platform.decoded_model[model_key]
-                > SUNSPEC_ACCUM_LIMIT
+                self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32
+                or self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT
                 or self._platform.decoded_model["AC_Energy_WH_SF"]
                 == self.SUNSPEC_NOT_IMPL
                 or self._platform.decoded_model["AC_Energy_WH_SF"]
@@ -1192,8 +975,7 @@ class DCCurrent(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["I_DC_Current"]
-                == SUNSPEC_NOT_IMPL_UINT16
+                self._platform.decoded_model["I_DC_Current"] == SUNSPEC_NOT_IMPL_UINT16
                 or self._platform.decoded_model["I_DC_Current_SF"]
                 == SUNSPEC_NOT_IMPL_INT16
                 or self._platform.decoded_model["I_DC_Current_SF"]
@@ -1235,8 +1017,7 @@ class DCVoltage(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["I_DC_Voltage"]
-                == SUNSPEC_NOT_IMPL_UINT16
+                self._platform.decoded_model["I_DC_Voltage"] == SUNSPEC_NOT_IMPL_UINT16
                 or self._platform.decoded_model["I_DC_Voltage_SF"]
                 == SUNSPEC_NOT_IMPL_INT16
                 or self._platform.decoded_model["I_DC_Voltage_SF"]
@@ -1279,12 +1060,10 @@ class DCPower(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["I_DC_Power"]
-                == SUNSPEC_NOT_IMPL_INT16
+                self._platform.decoded_model["I_DC_Power"] == SUNSPEC_NOT_IMPL_INT16
                 or self._platform.decoded_model["I_DC_Power_SF"]
                 == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["I_DC_Power_SF"]
-                not in SUNSPEC_SF_RANGE
+                or self._platform.decoded_model["I_DC_Power_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -1293,9 +1072,7 @@ class DCPower(SolarEdgeSensorBase):
                     self._platform.decoded_model["I_DC_Power"],
                     self._platform.decoded_model["I_DC_Power_SF"],
                 )
-                return round(
-                    value, abs(self._platform.decoded_model["I_DC_Power_SF"])
-                )
+                return round(value, abs(self._platform.decoded_model["I_DC_Power_SF"]))
 
         except TypeError:
             return None
@@ -1323,12 +1100,9 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
         try:
             if (
                 self._platform.decoded_model["I_Temp_Sink"] == 0x0
-                or self._platform.decoded_model["I_Temp_Sink"]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["I_Temp_SF"]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["I_Temp_SF"]
-                not in SUNSPEC_SF_RANGE
+                or self._platform.decoded_model["I_Temp_Sink"] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["I_Temp_SF"] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["I_Temp_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -1337,9 +1111,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
                     self._platform.decoded_model["I_Temp_Sink"],
                     self._platform.decoded_model["I_Temp_SF"],
                 )
-                return round(
-                    value, abs(self._platform.decoded_model["I_Temp_SF"])
-                )
+                return round(value, abs(self._platform.decoded_model["I_Temp_SF"]))
 
         except TypeError:
             return None
@@ -1363,10 +1135,7 @@ class Status(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["I_Status"]
-                == SUNSPEC_NOT_IMPL_INT16
-            ):
+            if self._platform.decoded_model["I_Status"] == SUNSPEC_NOT_IMPL_INT16:
                 return None
 
             else:
@@ -1429,10 +1198,7 @@ class StatusVendor(SolarEdgeSensorBase):
     @property
     def extra_state_attributes(self):
         try:
-            if (
-                self._platform.decoded_model["I_Status_Vendor"]
-                in VENDOR_STATUS
-            ):
+            if self._platform.decoded_model["I_Status_Vendor"] in VENDOR_STATUS:
                 return {
                     "description": VENDOR_STATUS[
                         self._platform.decoded_model["I_Status_Vendor"]
@@ -1464,10 +1230,7 @@ class MeterEvents(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["M_Events"]
-                == SUNSPEC_NOT_IMPL_UINT32
-            ):
+            if self._platform.decoded_model["M_Events"] == SUNSPEC_NOT_IMPL_UINT32:
                 return None
 
             else:
@@ -1484,9 +1247,9 @@ class MeterEvents(SolarEdgeSensorBase):
                 return {"description": str(m_events_active)}
             else:
                 for i in range(2, 31):
-                    if int(
-                        str(self._platform.decoded_model["M_Events"]), 16
-                    ) & (1 << i):
+                    if int(str(self._platform.decoded_model["M_Events"]), 16) & (
+                        1 << i
+                    ):
                         m_events_active.append(METER_EVENTS[i])
                 return {"description": str(m_events_active)}
 
@@ -1524,10 +1287,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"{self._phase.lower()}_vah",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_vah"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1538,10 +1298,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"{re.sub('_', ' ', self._phase)} VAh",
-            )
+            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} VAh"
 
     @property
     def native_value(self):
@@ -1552,14 +1309,10 @@ class MeterVAhIE(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == SUNSPEC_NOT_ACCUM_ACC32
-                or self._platform.decoded_model[model_key]
-                > SUNSPEC_ACCUM_LIMIT
-                or self._platform.decoded_model["M_VAh_SF"]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["M_VAh_SF"]
-                not in SUNSPEC_SF_RANGE
+                self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32
+                or self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT
+                or self._platform.decoded_model["M_VAh_SF"] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["M_VAh_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -1608,10 +1361,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"{self._phase.lower()}_varh",
-            )
+            return f"{self._platform.model}_{self._platform.serial}_{self._phase.lower()}_varh"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1622,10 +1372,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform._device_info['name']} ",
-                f"{re.sub('_', ' ', self._phase)} varh",
-            )
+            return f"{self._platform._device_info['name']} {re.sub('_', ' ', self._phase)} varh"
 
     @property
     def native_value(self):
@@ -1636,14 +1383,10 @@ class MetervarhIE(SolarEdgeSensorBase):
 
         try:
             if (
-                self._platform.decoded_model[model_key]
-                == SUNSPEC_NOT_ACCUM_ACC32
-                or self._platform.decoded_model[model_key]
-                > SUNSPEC_ACCUM_LIMIT
-                or self._platform.decoded_model["M_varh_SF"]
-                == SUNSPEC_NOT_IMPL_INT16
-                or self._platform.decoded_model["M_varh_SF"]
-                not in SUNSPEC_SF_RANGE
+                self._platform.decoded_model[model_key] == SUNSPEC_NOT_ACCUM_ACC32
+                or self._platform.decoded_model[model_key] > SUNSPEC_ACCUM_LIMIT
+                or self._platform.decoded_model["M_varh_SF"] == SUNSPEC_NOT_IMPL_INT16
+                or self._platform.decoded_model["M_varh_SF"] not in SUNSPEC_SF_RANGE
             ):
                 return None
 
@@ -1706,8 +1449,7 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["B_Temp_Max"]
-                == SUNSPEC_NOT_IMPL_FLOAT32
+                self._platform.decoded_model["B_Temp_Max"] == SUNSPEC_NOT_IMPL_FLOAT32
                 or self._platform.decoded_model["B_Temp_Max"] == 0xFF7FFFFF
                 or self._platform.decoded_model["B_Temp_Max"] == 0x7F7FFFFF
             ):
@@ -1725,8 +1467,7 @@ class SolarEdgeBatteryVoltage(DCVoltage):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["B_DC_Voltage"]
-                == SUNSPEC_NOT_IMPL_FLOAT32
+                self._platform.decoded_model["B_DC_Voltage"] == SUNSPEC_NOT_IMPL_FLOAT32
                 or self._platform.decoded_model["B_DC_Voltage"] == 0xFF7FFFFF
                 or self._platform.decoded_model["B_DC_Voltage"] == 0x7F7FFFFF
             ):
@@ -1747,8 +1488,7 @@ class SolarEdgeBatteryCurrent(DCCurrent):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["B_DC_Current"]
-                == SUNSPEC_NOT_IMPL_FLOAT32
+                self._platform.decoded_model["B_DC_Current"] == SUNSPEC_NOT_IMPL_FLOAT32
                 or self._platform.decoded_model["B_DC_Current"] == 0xFF7FFFFF
                 or self._platform.decoded_model["B_DC_Current"] == 0x7F7FFFFF
             ):
@@ -1771,8 +1511,7 @@ class SolarEdgeBatteryPower(DCPower):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["B_DC_Power"]
-                == SUNSPEC_NOT_IMPL_FLOAT32
+                self._platform.decoded_model["B_DC_Power"] == SUNSPEC_NOT_IMPL_FLOAT32
                 or self._platform.decoded_model["B_DC_Power"] == 0xFF7FFFFF
                 or self._platform.decoded_model["B_DC_Power"] == 0x7F7FFFFF
             ):
@@ -1810,18 +1549,14 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["B_Export_Energy_WH"]
-                == 0xFFFFFFFFFFFFFFFF
-            ):
+            if self._platform.decoded_model["B_Export_Energy_WH"] == 0xFFFFFFFFFFFFFFFF:
                 return None
 
             else:
                 try:
                     return watts_to_kilowatts(
                         update_accum(
-                            self,
-                            self._platform.decoded_model["B_Export_Energy_WH"],
+                            self, self._platform.decoded_model["B_Export_Energy_WH"]
                         )
                     )
                 except Exception:
@@ -1853,18 +1588,14 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["B_Import_Energy_WH"]
-                == 0xFFFFFFFFFFFFFFFF
-            ):
+            if self._platform.decoded_model["B_Import_Energy_WH"] == 0xFFFFFFFFFFFFFFFF:
                 return None
 
             else:
                 try:
                     return watts_to_kilowatts(
                         update_accum(
-                            self,
-                            self._platform.decoded_model["B_Import_Energy_WH"],
+                            self, self._platform.decoded_model["B_Import_Energy_WH"]
                         )
                     )
                 except Exception:
@@ -1894,17 +1625,14 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     @property
     def native_value(self):
         if (
-            self._platform.decoded_model["B_Energy_Max"]
-            == SUNSPEC_NOT_IMPL_FLOAT32
+            self._platform.decoded_model["B_Energy_Max"] == SUNSPEC_NOT_IMPL_FLOAT32
             or self._platform.decoded_model["B_Energy_Max"] == 0xFF7FFFFF
             or self._platform.decoded_model["B_Energy_Max"] == 0x7F7FFFFF
         ):
             return None
 
         else:
-            return watts_to_kilowatts(
-                self._platform.decoded_model["B_Energy_Max"]
-            )
+            return watts_to_kilowatts(self._platform.decoded_model["B_Energy_Max"])
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
@@ -2010,10 +1738,7 @@ class SolarEdgeBatteryStatus(Status):
     @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["B_Status"]
-                == SUNSPEC_NOT_IMPL_UINT32
-            ):
+            if self._platform.decoded_model["B_Status"] == SUNSPEC_NOT_IMPL_UINT32:
                 return None
 
             else:

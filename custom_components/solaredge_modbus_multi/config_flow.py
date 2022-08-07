@@ -5,12 +5,7 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_NAME,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-)
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 
@@ -48,8 +43,7 @@ def host_valid(host):
 def solaredge_modbus_multi_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
     return set(
-        entry.data[CONF_HOST]
-        for entry in hass.config_entries.async_entries(DOMAIN)
+        entry.data[CONF_HOST] for entry in hass.config_entries.async_entries(DOMAIN)
     )
 
 
@@ -92,10 +86,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_NUMBER_INVERTERS] = "max_inverters"
             elif user_input[CONF_NUMBER_INVERTERS] < 1:
                 errors[CONF_NUMBER_INVERTERS] = "min_inverters"
-            elif (
-                user_input[CONF_NUMBER_INVERTERS] + user_input[CONF_DEVICE_ID]
-                > 247
-            ):
+            elif user_input[CONF_NUMBER_INVERTERS] + user_input[CONF_DEVICE_ID] > 247:
                 errors[CONF_NUMBER_INVERTERS] = "too_many_inverters"
             else:
                 await self.async_set_unique_id(user_input[CONF_HOST])
@@ -116,15 +107,11 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        CONF_NAME, default=user_input[CONF_NAME]
-                    ): cv.string,
-                    vol.Required(
-                        CONF_HOST, default=user_input[CONF_HOST]
-                    ): cv.string,
-                    vol.Required(
-                        CONF_PORT, default=user_input[CONF_PORT]
-                    ): vol.Coerce(int),
+                    vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
+                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
+                        int
+                    ),
                     vol.Required(
                         CONF_NUMBER_INVERTERS,
                         default=user_input[CONF_NUMBER_INVERTERS],

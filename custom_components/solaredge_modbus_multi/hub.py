@@ -96,9 +96,7 @@ class SolarEdgeModbusMultiHub:
 
     async def _async_init_solaredge(self) -> None:
         if not self.is_socket_open():
-            raise HubInitFailed(
-                f"Could not open Modbus/TCP connection to {self._host}"
-            )
+            raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
 
         if self._detect_batteries:
             _LOGGER.warning(
@@ -111,24 +109,18 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
-                await self._hass.async_add_executor_job(
-                    new_inverter.init_device
-                )
+                await self._hass.async_add_executor_job(new_inverter.init_device)
                 self.inverters.append(new_inverter)
 
             except Exception as e:
                 """Inverters are required"""
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
-                raise HubInitFailed(
-                    f"Inverter device ID {inverter_unit_id} not found."
-                )
+                raise HubInitFailed(f"Inverter device ID {inverter_unit_id} not found.")
 
             if self._detect_meters:
                 try:
                     new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
-                    await self._hass.async_add_executor_job(
-                        new_meter_1.init_device
-                    )
+                    await self._hass.async_add_executor_job(new_meter_1.init_device)
 
                     for meter in self.meters:
                         if new_meter_1.serial == meter.serial:
@@ -141,17 +133,13 @@ class SolarEdgeModbusMultiHub:
                             )
 
                     self.meters.append(new_meter_1)
-                    _LOGGER.debug(
-                        f"Found meter 1 on inverter ID {inverter_unit_id}"
-                    )
+                    _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
                 except Exception:
                     pass
 
                 try:
                     new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
-                    await self._hass.async_add_executor_job(
-                        new_meter_2.init_device
-                    )
+                    await self._hass.async_add_executor_job(new_meter_2.init_device)
 
                     for meter in self.meters:
                         if new_meter_2.serial == meter.serial:
@@ -164,17 +152,13 @@ class SolarEdgeModbusMultiHub:
                             )
 
                     self.meters.append(new_meter_2)
-                    _LOGGER.debug(
-                        f"Found meter 2 on inverter ID {inverter_unit_id}"
-                    )
+                    _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
                 except Exception:
                     pass
 
                 try:
                     new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
-                    await self._hass.async_add_executor_job(
-                        new_meter_3.init_device
-                    )
+                    await self._hass.async_add_executor_job(new_meter_3.init_device)
 
                     for meter in self.meters:
                         if new_meter_3.serial == meter.serial:
@@ -187,18 +171,14 @@ class SolarEdgeModbusMultiHub:
                             )
 
                     self.meters.append(new_meter_3)
-                    _LOGGER.debug(
-                        f"Found meter 3 on inverter ID {inverter_unit_id}"
-                    )
+                    _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
                 except Exception:
                     pass
 
             if self._detect_batteries:
                 try:
                     new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
-                    await self._hass.async_add_executor_job(
-                        new_battery_1.init_device
-                    )
+                    await self._hass.async_add_executor_job(new_battery_1.init_device)
 
                     for battery in self.batteries:
                         if new_battery_1.serial == battery.serial:
@@ -211,17 +191,13 @@ class SolarEdgeModbusMultiHub:
                             )
 
                     self.batteries.append(new_battery_1)
-                    _LOGGER.debug(
-                        f"Found battery 1 inverter {inverter_unit_id}"
-                    )
+                    _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
                 except Exception:
                     pass
 
                 try:
                     new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
-                    await self._hass.async_add_executor_job(
-                        new_battery_2.init_device
-                    )
+                    await self._hass.async_add_executor_job(new_battery_2.init_device)
 
                     for battery in self.batteries:
                         if new_battery_2.serial == battery.serial:
@@ -234,34 +210,26 @@ class SolarEdgeModbusMultiHub:
                             )
 
                     self.batteries.append(new_battery_2)
-                    _LOGGER.debug(
-                        f"Found battery 2 inverter {inverter_unit_id}"
-                    )
+                    _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
                 except Exception:
                     pass
 
         try:
             for inverter in self.inverters:
-                await self._hass.async_add_executor_job(
-                    inverter.read_modbus_data
-                )
+                await self._hass.async_add_executor_job(inverter.read_modbus_data)
 
             for meter in self.meters:
                 await self._hass.async_add_executor_job(meter.read_modbus_data)
 
             for battery in self.batteries:
-                await self._hass.async_add_executor_job(
-                    battery.read_modbus_data
-                )
+                await self._hass.async_add_executor_job(battery.read_modbus_data)
 
         except Exception:
             raise HubInitFailed("Devices not ready.")
 
         self.initalized = True
 
-    async def async_refresh_modbus_data(
-        self, _now: Optional[int] = None
-    ) -> bool:
+    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> bool:
         if not self.is_socket_open():
             await self.connect()
 
@@ -278,17 +246,11 @@ class SolarEdgeModbusMultiHub:
             self.online = True
             try:
                 for inverter in self.inverters:
-                    await self._hass.async_add_executor_job(
-                        inverter.read_modbus_data
-                    )
+                    await self._hass.async_add_executor_job(inverter.read_modbus_data)
                 for meter in self.meters:
-                    await self._hass.async_add_executor_job(
-                        meter.read_modbus_data
-                    )
+                    await self._hass.async_add_executor_job(meter.read_modbus_data)
                 for battery in self.batteries:
-                    await self._hass.async_add_executor_job(
-                        battery.read_modbus_data
-                    )
+                    await self._hass.async_add_executor_job(battery.read_modbus_data)
 
             except Exception as e:
                 self.online = False
@@ -333,9 +295,7 @@ class SolarEdgeModbusMultiHub:
         """Read holding registers."""
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
-            return self._client.read_holding_registers(
-                address, count, **kwargs
-            )
+            return self._client.read_holding_registers(address, count, **kwargs)
 
 
 class SolarEdgeInverter:
@@ -459,9 +419,7 @@ class SolarEdgeInverter:
             or decoded_ident["C_SunSpec_DID"] not in [101, 102, 103]
             or decoded_ident["C_SunSpec_Length"] != 50
         ):
-            raise DeviceInvalid(
-                f"Inverter {self.inverter_unit_id} not usable."
-            )
+            raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40071, count=38
@@ -860,9 +818,9 @@ class SolarEdgeBattery:
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
         ].removesuffix(self.decoded_common["B_SerialNumber"])
-        self.decoded_common["B_Model"] = self.decoded_common[
-            "B_Model"
-        ].removesuffix(self.decoded_common["B_SerialNumber"])
+        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].removesuffix(
+            self.decoded_common["B_SerialNumber"]
+        )
 
         ascii_ctrl_chars = dict.fromkeys(range(32))
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
