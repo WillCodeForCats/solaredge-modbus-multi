@@ -13,7 +13,10 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 
 from .const import (
     CONF_DETECT_BATTERIES,
@@ -59,7 +62,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get(CONF_DEVICE_ID, 1),
         entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
         entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
-        entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
+        entry.options.get(
+            CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY
+        ),
         entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
     )
 
@@ -87,7 +92,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     solaredge_hub = hass.data[DOMAIN][entry.entry_id]["hub"]
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS
+    )
 
     if unload_ok:
         await solaredge_hub.shutdown()
@@ -112,7 +119,9 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         self._hub = hub
 
         if scan_interval < 10:
-            _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
+            _LOGGER.warning(
+                "Polling frequency < 10, requiring keep modbus open."
+            )
             self._hub.keep_modbus_open = True
 
     async def _async_update_data(self):
