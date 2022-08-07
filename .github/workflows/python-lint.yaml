@@ -18,8 +18,8 @@ jobs:
           python-root-list: "custom_components/solaredge_modbus_multi"
           use-pylint: false
           use-pycodestyle: false
-          use-flake8: false
-          use-black: false
+          use-flake8: true
+          use-black: true
           use-mypy: false
           use-isort: true
           extra-pylint-options: ""
