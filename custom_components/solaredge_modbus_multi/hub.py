@@ -100,8 +100,10 @@ class SolarEdgeModbusMultiHub:
 
         if self._detect_batteries:
             _LOGGER.warning(
-                "Battery registers not officially supported by SolarEdge. ",
-                "Use at your own risk!",
+                (
+                    "Battery registers not officially supported by SolarEdge. "
+                    "Use at your own risk!"
+                ),
             )
 
         for inverter_index in range(self.number_of_inverters):
@@ -125,8 +127,10 @@ class SolarEdgeModbusMultiHub:
                     for meter in self.meters:
                         if new_meter_1.serial == meter.serial:
                             _LOGGER.warning(
-                                f"Duplicate serial {new_meter_1.serial} ",
-                                f"on meter 1 inverter {inverter_unit_id}",
+                                (
+                                    f"Duplicate serial {new_meter_1.serial} "
+                                    f"on meter 1 inverter {inverter_unit_id}"
+                                ),
                             )
                             raise DeviceInitFailed(
                                 f"Duplicate m1 serial {new_meter_1.serial}"
@@ -144,8 +148,10 @@ class SolarEdgeModbusMultiHub:
                     for meter in self.meters:
                         if new_meter_2.serial == meter.serial:
                             _LOGGER.warning(
-                                f"Duplicate serial {new_meter_2.serial} ",
-                                "on meter 2 inverter {inverter_unit_id}",
+                                (
+                                    f"Duplicate serial {new_meter_2.serial} "
+                                    f"on meter 2 inverter {inverter_unit_id}"
+                                ),
                             )
                             raise DeviceInitFailed(
                                 f"Duplicate m2 serial {new_meter_2.serial}"
@@ -163,8 +169,10 @@ class SolarEdgeModbusMultiHub:
                     for meter in self.meters:
                         if new_meter_3.serial == meter.serial:
                             _LOGGER.warning(
-                                f"Duplicate serial {new_meter_3.serial} ",
-                                "on meter 3 inverter {inverter_unit_id}",
+                                (
+                                    f"Duplicate serial {new_meter_3.serial} "
+                                    f"on meter 3 inverter {inverter_unit_id}"
+                                ),
                             )
                             raise DeviceInitFailed(
                                 f"Duplicate m3 serial {new_meter_3.serial}"
@@ -183,8 +191,10 @@ class SolarEdgeModbusMultiHub:
                     for battery in self.batteries:
                         if new_battery_1.serial == battery.serial:
                             _LOGGER.warning(
-                                f"Duplicate serial {new_battery_1.serial} ",
-                                "on battery 1 inverter {inverter_unit_id}",
+                                (
+                                    f"Duplicate serial {new_battery_1.serial} "
+                                    f"on battery 1 inverter {inverter_unit_id}"
+                                ),
                             )
                             raise DeviceInitFailed(
                                 f"Duplicate b1 serial {new_battery_1.serial}"
@@ -202,8 +212,10 @@ class SolarEdgeModbusMultiHub:
                     for battery in self.batteries:
                         if new_battery_2.serial == battery.serial:
                             _LOGGER.warning(
-                                f"Duplicate serial {new_battery_2.serial} ",
-                                "on battery 2 inverter {inverter_unit_id}",
+                                (
+                                    f"Duplicate serial {new_battery_2.serial} "
+                                    f"on battery 2 inverter {inverter_unit_id}"
+                                ),
                             )
                             raise DeviceInitFailed(
                                 f"Duplicate b2 serial {new_battery_1.serial}"
@@ -328,7 +340,10 @@ class SolarEdgeInverter:
 
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug(
-                "%s %s", name, hex(value) if isinstance(value, int) else value
+                (
+                    f"Inverter {self.inverter_unit_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
         if (
@@ -368,8 +383,10 @@ class SolarEdgeInverter:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
         self.manufacturer = self.decoded_common["C_Manufacturer"]
@@ -410,8 +427,10 @@ class SolarEdgeInverter:
 
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
         if (
@@ -477,8 +496,10 @@ class SolarEdgeInverter:
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
     @property
@@ -522,8 +543,10 @@ class SolarEdgeMeter:
         )
         if meter_info.isError():
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} ",
-                f"meter {self.meter_id}: {meter_info}",
+                (
+                    f"Inverter {self.inverter_unit_id} "
+                    f"meter {self.meter_id}: {meter_info}"
+                ),
             )
             raise ModbusReadError(meter_info)
 
@@ -539,8 +562,10 @@ class SolarEdgeMeter:
 
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} meter {self.meter_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
         if (
@@ -581,8 +606,10 @@ class SolarEdgeMeter:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} meter {self.meter_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
         self.manufacturer = self.decoded_common["C_Manufacturer"]
@@ -610,8 +637,10 @@ class SolarEdgeMeter:
         )
         if meter_data.isError():
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} ",
-                f"meter {self.meter_id}: {meter_data}",
+                (
+                    f"Inverter {self.inverter_unit_id} "
+                    f"meter {self.meter_id}: {meter_data}"
+                ),
             )
             raise ModbusReadError(f"Meter read error: {meter_data}")
 
@@ -628,8 +657,10 @@ class SolarEdgeMeter:
 
         for name, value in iteritems(decoded_ident):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} meter {self.meter_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
         if (
@@ -734,8 +765,10 @@ class SolarEdgeMeter:
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} meter {self.meter_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
     @property
@@ -777,8 +810,10 @@ class SolarEdgeBattery:
         )
         if battery_info.isError():
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} ",
-                f"battery {self.battery_id}: {battery_info}",
+                (
+                    f"Inverter {self.inverter_unit_id} "
+                    f"battery {self.battery_id}: {battery_info}"
+                ),
             )
             raise ModbusReadError(battery_info)
 
@@ -811,8 +846,10 @@ class SolarEdgeBattery:
 
         for name, value in iteritems(self.decoded_common):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} batt {self.battery_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
@@ -902,8 +939,10 @@ class SolarEdgeBattery:
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(
-                f"Inverter {self.inverter_unit_id} batt {self.battery_id}: ",
-                f"{name} {hex(value) if isinstance(value, int) else value}",
+                (
+                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                ),
             )
 
     @property

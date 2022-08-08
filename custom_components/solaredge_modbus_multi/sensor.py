@@ -513,8 +513,8 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
             raise RuntimeError(
-                "ACCurrentSensor C_SunSpec_DID ",
-                f"{self._platform.decoded_model['C_SunSpec_DID']}",
+                "ACCurrentSensor C_SunSpec_DID "
+                f"{self._platform.decoded_model['C_SunSpec_DID']}"
             )
 
     @property
@@ -523,8 +523,8 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             return f"{self._platform.model}_{self._platform.serial}_ac_current"
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_current_{self._phase.lower()}",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"ac_current_{self._phase.lower()}"
             )
 
     @property
@@ -533,8 +533,8 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             return f"{self._platform._device_info['name']} AC Current"
         else:
             return (
-                f"{self._platform._device_info['name']} ",
-                f"AC Current {self._phase.upper()}",
+                f"{self._platform._device_info['name']} "
+                f"AC Current {self._phase.upper()}"
             )
 
     @property
@@ -579,8 +579,8 @@ class VoltageSensor(SolarEdgeSensorBase):
             self.SUNSPEC_NOT_IMPL = SUNSPEC_NOT_IMPL_INT16
         else:
             raise RuntimeError(
-                "ACCurrentSensor C_SunSpec_DID ",
-                f"{self._platform.decoded_model['C_SunSpec_DID']}",
+                "ACCurrentSensor C_SunSpec_DID "
+                f"{self._platform.decoded_model['C_SunSpec_DID']}"
             )
 
     @property
@@ -589,8 +589,8 @@ class VoltageSensor(SolarEdgeSensorBase):
             return f"{self._platform.model}_{self._platform.serial}_ac_voltage"
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_voltage_{self._phase.lower()}",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"ac_voltage_{self._phase.lower()}"
             )
 
     @property
@@ -599,8 +599,8 @@ class VoltageSensor(SolarEdgeSensorBase):
             return f"{self._platform._device_info['name']} AC Voltage"
         else:
             return (
-                f"{self._platform._device_info['name']} ",
-                f"AC Voltage {self._phase.upper()}",
+                f"{self._platform._device_info['name']} "
+                f"AC Voltage {self._phase.upper()}"
             )
 
     @property
@@ -647,8 +647,8 @@ class ACPower(SolarEdgeSensorBase):
             return f"{self._platform.model}_{self._platform.serial}_ac_power"
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_power_{self._phase.lower()}",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"ac_power_{self._phase.lower()}"
             )
 
     @property
@@ -743,8 +743,8 @@ class ACVoltAmp(SolarEdgeSensorBase):
             return f"{self._platform.model}_{self._platform.serial}_ac_va"
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_va_{self._phase.lower()}",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"ac_va_{self._phase.lower()}"
             )
 
     @property
@@ -800,8 +800,8 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
             return f"{self._platform.model}_{self._platform.serial}_ac_var"
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_var_{self._phase.lower()}",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"ac_var_{self._phase.lower()}"
             )
 
     @property
@@ -810,8 +810,8 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
             return f"{self._platform._device_info['name']} AC var"
         else:
             return (
-                f"{self._platform._device_info['name']} ",
-                f"AC var {self._phase.upper()}",
+                f"{self._platform._device_info['name']} "
+                f"AC var {self._phase.upper()}"
             )
 
     @property
@@ -860,8 +860,8 @@ class ACPowerFactor(SolarEdgeSensorBase):
             return f"{self._platform.model}_{self._platform.serial}_ac_pf"
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"ac_pf_{self._phase.lower()}",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"ac_pf_{self._phase.lower()}"
             )
 
     @property
@@ -942,8 +942,8 @@ class ACEnergy(SolarEdgeSensorBase):
             return f"{self._platform.model}_{self._platform.serial}_ac_energy_kwh"
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"{self._phase.lower()}_kwh",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"{self._phase.lower()}_kwh"
             )
 
     @property
@@ -952,8 +952,8 @@ class ACEnergy(SolarEdgeSensorBase):
             return f"{self._platform._device_info['name']} AC Energy kWh"
         else:
             return (
-                f"{self._platform._device_info['name']} ",
-                f"{re.sub('_', ' ', self._phase)} kWh",
+                f"{self._platform._device_info['name']} "
+                f"{re.sub('_', ' ', self._phase)} kWh"
             )
 
     @property
@@ -1324,8 +1324,8 @@ class MeterVAhIE(SolarEdgeSensorBase):
             raise NotImplementedError
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"{self._phase.lower()}_vah",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"{self._phase.lower()}_vah"
             )
 
     @property
@@ -1338,8 +1338,8 @@ class MeterVAhIE(SolarEdgeSensorBase):
             raise NotImplementedError
         else:
             return (
-                f"{self._platform._device_info['name']} ",
-                f"{re.sub('_', ' ', self._phase)} VAh",
+                f"{self._platform._device_info['name']} "
+                f"{re.sub('_', ' ', self._phase)} VAh"
             )
 
     @property
@@ -1404,8 +1404,8 @@ class MetervarhIE(SolarEdgeSensorBase):
             raise NotImplementedError
         else:
             return (
-                f"{self._platform.model}_{self._platform.serial}_",
-                f"{self._phase.lower()}_varh",
+                f"{self._platform.model}_{self._platform.serial}_"
+                f"{self._phase.lower()}_varh"
             )
 
     @property
@@ -1418,8 +1418,8 @@ class MetervarhIE(SolarEdgeSensorBase):
             raise NotImplementedError
         else:
             return (
-                f"{self._platform._device_info['name']} ",
-                f"{re.sub('_', ' ', self._phase)} varh",
+                f"{self._platform._device_info['name']} "
+                f"{re.sub('_', ' ', self._phase)} varh"
             )
 
     @property
