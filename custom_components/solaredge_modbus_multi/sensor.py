@@ -1847,10 +1847,9 @@ class SolarEdgeBatteryStatus(Status):
         attrs = {}
 
         try:
-            if self._platform.decoded_model["B_Status"] in BATTERY_STATUS:
-                attrs["status_text"] = BATTERY_STATUS[
-                    self._platform.decoded_model["B_Status"]
-                ]
+            attrs["status_text"] = BATTERY_STATUS[
+                self._platform.decoded_model["B_Status"]
+            ]
 
         except KeyError:
             pass
