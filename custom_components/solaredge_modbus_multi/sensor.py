@@ -256,17 +256,30 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
         attrs = {}
 
         try:
-            attrs["batt_charge_peak"] = self._platform.decoded_common[
-                "B_MaxChargePeakPower"
-            ]
-            attrs["batt_discharge_peak"] = self._platform.decoded_common[
-                "B_MaxDischargePeakPower"
-            ]
-            attrs["batt_max_charge"] = self._platform.decoded_common["B_MaxChargePower"]
-            attrs["batt_max_discharge"] = self._platform.decoded_common[
-                "B_MaxDischargePower"
-            ]
-            attrs["batt_rated_energy"] = self._platform.decoded_common["B_RatedEnergy"]
+            if self._platform.decoded_common["B_MaxChargePeakPower"] != 0xFF7FFFFF:
+                attrs["batt_charge_peak"] = self._platform.decoded_common[
+                    "B_MaxChargePeakPower"
+                ]
+
+            if self._platform.decoded_common["B_MaxDischargePeakPower"] != 0xFF7FFFFF:
+                attrs["batt_discharge_peak"] = self._platform.decoded_common[
+                    "B_MaxDischargePeakPower"
+                ]
+
+            if self._platform.decoded_common["B_MaxChargePower"] != 0xFF7FFFFF:
+                attrs["batt_max_charge"] = self._platform.decoded_common[
+                    "B_MaxChargePower"
+                ]
+
+            if self._platform.decoded_common["B_MaxDischargePower"] != 0xFF7FFFFF:
+                attrs["batt_max_discharge"] = self._platform.decoded_common[
+                    "B_MaxDischargePower"
+                ]
+
+            if self._platform.decoded_common["B_RatedEnergy"] != 0xFF7FFFFF:
+                attrs["batt_rated_energy"] = self._platform.decoded_common[
+                    "B_RatedEnergy"
+                ]
 
         except KeyError:
             pass
