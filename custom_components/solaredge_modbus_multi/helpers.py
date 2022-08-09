@@ -1,3 +1,6 @@
+import struct
+
+
 def scale_factor(value: int, sf: int):
     try:
         return value * (10 ** sf)
@@ -7,6 +10,10 @@ def scale_factor(value: int, sf: int):
 
 def watts_to_kilowatts(value):
     return round(value * 0.001, 3)
+
+
+def float_to_hex(f):
+    return hex(struct.unpack("<I", struct.pack("<f", f))[0])
 
 
 def parse_modbus_string(s: str) -> str:
