@@ -169,3 +169,10 @@ BATTERY_STATUS = {
     5: "Fault",
     7: "Idle",
 }
+
+RRCR_STATUS = {
+    0: "A",
+    1: "B",
+    2: "C",
+    3: "D",
+}
