@@ -815,7 +815,12 @@ class SolarEdgeBattery:
                     f"battery {self.battery_id}: {battery_info}"
                 ),
             )
-            raise ModbusReadError(battery_info)
+
+            if battery_info.exception_code == 0x02:
+                raise DeviceInvalid(battery_info)
+
+            else:
+                raise ModbusReadError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers,
