@@ -90,6 +90,7 @@ class SolarEdgeModbusMultiHub:
         self.batteries = []
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
+        self.inverter_common = []
 
         self.initalized = False
         self.online = False
@@ -389,6 +390,8 @@ class SolarEdgeInverter:
                 ),
             )
 
+        self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
+
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
@@ -527,6 +530,7 @@ class SolarEdgeMeter:
         self.start_address = None
         self.meter_id = meter_id
         self.has_parent = True
+        self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
 
         if self.meter_id == 1:
             self.start_address = 40000 + 121
@@ -796,6 +800,7 @@ class SolarEdgeBattery:
         self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
+        self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
 
         if self.battery_id == 1:
             self.start_address = 57600
