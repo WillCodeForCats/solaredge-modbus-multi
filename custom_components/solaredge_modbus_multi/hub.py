@@ -115,6 +115,10 @@ class SolarEdgeModbusMultiHub:
                 await self._hass.async_add_executor_job(new_inverter.init_device)
                 self.inverters.append(new_inverter)
 
+            except ModbusReadError as e:
+                self.disconnect()
+                raise HubInitFailed(f"{e}")
+
             except DeviceInvalid as e:
                 """Inverters are required"""
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
@@ -140,8 +144,9 @@ class SolarEdgeModbusMultiHub:
                     self.meters.append(new_meter_1)
                     _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
 
-                except ModbusReadError:
-                    raise HubInitFailed
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
 
                 except DeviceInvalid:
                     pass
@@ -165,8 +170,9 @@ class SolarEdgeModbusMultiHub:
                     self.meters.append(new_meter_2)
                     _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
 
-                except ModbusReadError:
-                    raise HubInitFailed
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
 
                 except DeviceInvalid:
                     pass
@@ -190,8 +196,9 @@ class SolarEdgeModbusMultiHub:
                     self.meters.append(new_meter_3)
                     _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
 
-                except ModbusReadError:
-                    raise HubInitFailed
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
 
                 except DeviceInvalid:
                     pass
@@ -216,8 +223,9 @@ class SolarEdgeModbusMultiHub:
                     self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
 
-                except ModbusReadError:
-                    raise HubInitFailed
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
 
                 except DeviceInvalid:
                     pass
@@ -241,8 +249,9 @@ class SolarEdgeModbusMultiHub:
                     self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
 
-                except ModbusReadError:
-                    raise HubInitFailed
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
 
                 except DeviceInvalid:
                     pass
