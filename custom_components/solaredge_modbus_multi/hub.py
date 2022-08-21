@@ -267,11 +267,11 @@ class SolarEdgeModbusMultiHub:
             except ModbusReadError as e:
                 self.disconnect()
                 self.online = False
-                raise DataUpdateFailed(f"Failed to update devices: {e}")
+                raise DataUpdateFailed(f"Update failed: {e}")
 
             except DeviceInvalid as e:
                 self.online = False
-                raise DataUpdateFailed(f"Failed to update devices: {e}")
+                raise DataUpdateFailed(f"Invalid device: {e}")
 
         if not self.keep_modbus_open:
             self.disconnect()
