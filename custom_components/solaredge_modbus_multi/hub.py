@@ -264,7 +264,12 @@ class SolarEdgeModbusMultiHub:
                 for battery in self.batteries:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
-            except Exception as e:
+            except ModbusReadError:
+                self.disconnect()
+                self.online = False
+                raise DataUpdateFailed(f"Failed to update devices: {e}")
+
+            except DeviceInvalid:
                 self.online = False
                 raise DataUpdateFailed(f"Failed to update devices: {e}")
 
