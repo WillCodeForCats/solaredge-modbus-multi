@@ -337,7 +337,7 @@ class SolarEdgeInverter:
             ]
         )
 
-        for name, value in iter(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -380,7 +380,7 @@ class SolarEdgeInverter:
             ]
         )
 
-        for name, value in iter(self.decoded_common):
+        for name, value in iter(self.decoded_common.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -424,7 +424,7 @@ class SolarEdgeInverter:
             ]
         )
 
-        for name, value in iter(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -493,7 +493,7 @@ class SolarEdgeInverter:
             ]
         )
 
-        for name, value in iter(self.decoded_model):
+        for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -559,7 +559,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iter(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -603,7 +603,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iter(self.decoded_common):
+        for name, value in iter(self.decoded_common.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -654,7 +654,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iter(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -762,7 +762,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iter(self.decoded_model):
+        for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -843,7 +843,7 @@ class SolarEdgeBattery:
             ]
         )
 
-        for name, value in iter(self.decoded_common):
+        for name, value in iter(self.decoded_common.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
@@ -936,7 +936,7 @@ class SolarEdgeBattery:
             ]
         )
 
-        for name, value in iter(self.decoded_model):
+        for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
