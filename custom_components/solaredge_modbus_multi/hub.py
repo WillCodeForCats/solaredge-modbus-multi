@@ -202,7 +202,7 @@ class SolarEdgeModbusMultiHub:
 
                     self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
-                except Exception:
+                except DeviceInvalid:
                     pass
 
                 try:
@@ -223,7 +223,7 @@ class SolarEdgeModbusMultiHub:
 
                     self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
-                except Exception:
+                except DeviceInvalid:
                     pass
 
         try:
@@ -264,12 +264,12 @@ class SolarEdgeModbusMultiHub:
                 for battery in self.batteries:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
-            except ModbusReadError:
+            except ModbusReadError as e:
                 self.disconnect()
                 self.online = False
                 raise DataUpdateFailed(f"Failed to update devices: {e}")
 
-            except DeviceInvalid:
+            except DeviceInvalid as e:
                 self.online = False
                 raise DataUpdateFailed(f"Failed to update devices: {e}")
 
