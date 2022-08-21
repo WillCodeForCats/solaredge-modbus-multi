@@ -1,1 +1,1 @@
-pymodbus == 3.0.0dev4
+pymodbus @ https://github.com/riptideio/pymodbus/archive/refs/tags/v3.0.0dev4.zip
