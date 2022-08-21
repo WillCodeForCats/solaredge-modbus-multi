@@ -9,6 +9,7 @@ from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ModbusExceptions
 
 from .const import DOMAIN, SUNSPEC_NOT_IMPL_UINT16
 from .helpers import parse_modbus_string
@@ -821,7 +822,7 @@ class SolarEdgeBattery:
                 ),
             )
 
-            if battery_info.exception_code == 0x02:
+            if battery_info.exception_code == ModbusExceptions.IllegalAddress:
                 raise DeviceInvalid(battery_info)
 
             else:
