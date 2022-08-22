@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
+from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusExceptions
 
@@ -276,7 +277,12 @@ class SolarEdgeModbusMultiHub:
             await self.connect()
 
         if not self.initalized:
-            await self._async_init_solaredge()
+            try:
+                await self._async_init_solaredge()
+
+            except ConnectionException as e:
+                self.disconnect()
+                raise HubInitFailed(f"Setup failed: {e}")
 
         if not self.is_socket_open():
             self.online = False
@@ -295,15 +301,20 @@ class SolarEdgeModbusMultiHub:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
             except ModbusReadError as e:
-                self.disconnect()
                 self.online = False
+                self.disconnect()
                 raise DataUpdateFailed(f"Update failed: {e}")
 
             except DeviceInvalid as e:
+                self.online = False
                 if not self.keep_modbus_open:
                     self.disconnect()
-                self.online = False
                 raise DataUpdateFailed(f"Invalid device: {e}")
+
+            except ConnectionException as e:
+                self.online = False
+                self.disconnect()
+                raise DataUpdateFailed(f"Connection failed: {e}")
 
         if not self.keep_modbus_open:
             self.disconnect()
