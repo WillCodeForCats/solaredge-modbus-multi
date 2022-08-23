@@ -331,8 +331,9 @@ class SolarEdgeModbusMultiHub:
     def disconnect(self) -> None:
         """Disconnect client."""
         with self._lock:
-            self._client.close()
-            self._client = None
+            if self._client is not None:
+                self._client.close()
+                self._client = None
 
     async def connect(self) -> None:
         """Connect client."""
