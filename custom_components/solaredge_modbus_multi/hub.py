@@ -91,6 +91,7 @@ class SolarEdgeModbusMultiHub:
         self.meters = []
         self.batteries = []
         self.inverter_common = {}
+        self.mmppt_common = {}
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
 
@@ -366,6 +367,7 @@ class SolarEdgeInverter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
+        self.decoded_mmppt = []
         self.has_parent = False
 
     def init_device(self) -> None:
@@ -440,6 +442,60 @@ class SolarEdgeInverter:
             )
 
         self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
+
+        mmppt_common = self.hub.read_holding_registers(
+            unit=self.inverter_unit_id, address=40121, count=10
+        )
+        if mmppt_common.isError():
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+            raise ModbusReadError(mmppt_common)
+
+            if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
+                self.decoded_mmppt = None
+
+            else:
+                raise ModbusReadError(mmppt_common)
+
+        else:
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                mmppt_common.registers, byteorder=Endian.Big
+            )
+
+            self.decoded_mmppt = OrderedDict(
+                [
+                    ("mmppt_ID", decoder.decode_16bit_uint()),
+                    ("mmppt_Length", decoder.decode_16bit_uint()),
+                    ("mmppt_DCA_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCV_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCW_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
+                    ("mmppt_Events", decoder.decode_32bit_uint()),
+                    ("mmppt_Units", decoder.decode_16bit_uint()),
+                    ("mmppt_TmsPer", decoder.decode_16bit_uint()),
+                ]
+            )
+
+            for name, value in iteritems(self.decoded_mmppt):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} MMPPT: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
+                )
+
+        if (
+            self.decoded_mmppt["mmppt_ID"] == SUNSPEC_NOT_IMPL_UINT16
+            or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
+            or self.decoded_mmppt["mmppt_ID"] not in [160]
+            or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
+        ):
+            _LOGGER.warning(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
+            self.decoded_mmppt = None
+
+        else:
+            _LOGGER.warning(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
+
+        self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
 
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
@@ -577,19 +633,32 @@ class SolarEdgeMeter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self.start_address = None
+        self.start_address = 40000
         self.meter_id = meter_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
+        self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
 
         if self.meter_id == 1:
-            self.start_address = 40000 + 121
+            self.start_address = self.start_address + 121
         elif self.meter_id == 2:
-            self.start_address = 40000 + 295
+            self.start_address = self.start_address + 295
         elif self.meter_id == 3:
-            self.start_address = 40000 + 469
+            self.start_address = self.start_address + 469
         else:
             raise ValueError(f"Invalid meter_id {self.meter_id}")
+
+        if self.mmppt_common is not None:
+            if self.mmppt_common["mmppt_Units"] == 2:
+                self.start_address = self.start_address + 50
+
+            elif self.mmppt_common["mmppt_Units"] == 3:
+                self.start_address = self.start_address + 70
+
+            else:
+                raise ValueError(
+                    f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
+                )
 
     def init_device(self) -> None:
         meter_info = self.hub.read_holding_registers(
