@@ -8,5 +8,5 @@
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
   "iot_class": "local_polling",
-  "version": "v2.1.3"
+  "version": "v2.1.3-pre.4"
 }
