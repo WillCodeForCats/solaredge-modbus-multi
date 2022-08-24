@@ -8,7 +8,9 @@ from homeassistant.core import HomeAssistant
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
+from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ModbusExceptions
 
 from .const import DOMAIN, SUNSPEC_NOT_IMPL_UINT16
 from .helpers import parse_modbus_string
@@ -77,6 +79,7 @@ class SolarEdgeModbusMultiHub:
         self._host = host
         self._port = port
         self._lock = threading.Lock()
+        self._client = None
         self._name = name
         self._id = name.lower()
         self.number_of_inverters = number_of_inverters
@@ -88,9 +91,6 @@ class SolarEdgeModbusMultiHub:
         self.inverters = []
         self.meters = []
         self.batteries = []
-
-        self._client = ModbusTcpClient(host=self._host, port=self._port)
-
         self.initalized = False
         self.online = False
 
@@ -114,7 +114,11 @@ class SolarEdgeModbusMultiHub:
                 await self._hass.async_add_executor_job(new_inverter.init_device)
                 self.inverters.append(new_inverter)
 
-            except Exception as e:
+            except ModbusReadError as e:
+                self.disconnect()
+                raise HubInitFailed(f"{e}")
+
+            except DeviceInvalid as e:
                 """Inverters are required"""
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
                 raise HubInitFailed(f"Inverter device ID {inverter_unit_id} not found.")
@@ -138,7 +142,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.meters.append(new_meter_1)
                     _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
                 try:
@@ -159,7 +168,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.meters.append(new_meter_2)
                     _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
                 try:
@@ -180,7 +194,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.meters.append(new_meter_3)
                     _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
             if self._detect_batteries:
@@ -202,7 +221,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
                 try:
@@ -223,7 +247,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
         try:
@@ -246,7 +275,12 @@ class SolarEdgeModbusMultiHub:
             await self.connect()
 
         if not self.initalized:
-            await self._async_init_solaredge()
+            try:
+                await self._async_init_solaredge()
+
+            except ConnectionException as e:
+                self.disconnect()
+                raise HubInitFailed(f"Setup failed: {e}")
 
         if not self.is_socket_open():
             self.online = False
@@ -264,9 +298,21 @@ class SolarEdgeModbusMultiHub:
                 for battery in self.batteries:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
-            except Exception as e:
+            except ModbusReadError as e:
                 self.online = False
-                raise DataUpdateFailed(f"Failed to update devices: {e}")
+                self.disconnect()
+                raise DataUpdateFailed(f"Update failed: {e}")
+
+            except DeviceInvalid as e:
+                self.online = False
+                if not self.keep_modbus_open:
+                    self.disconnect()
+                raise DataUpdateFailed(f"Invalid device: {e}")
+
+            except ConnectionException as e:
+                self.online = False
+                self.disconnect()
+                raise DataUpdateFailed(f"Connection failed: {e}")
 
         if not self.keep_modbus_open:
             self.disconnect()
@@ -282,22 +328,30 @@ class SolarEdgeModbusMultiHub:
     def hub_id(self) -> str:
         return self._id
 
-    def disconnect(self):
-        """Disconnect client."""
+    def disconnect(self) -> None:
+        """Disconnect modbus client."""
         with self._lock:
-            self._client.close()
+            if self._client is not None:
+                self._client.close()
+                self._client = None
 
-    async def connect(self):
-        """Connect client."""
+    async def connect(self) -> None:
+        """Connect modbus client."""
         with self._lock:
+            if self._client is None:
+                self._client = ModbusTcpClient(host=self._host, port=self._port)
             await self._hass.async_add_executor_job(self._client.connect)
 
-    def is_socket_open(self):
-        """Check client."""
+    def is_socket_open(self) -> bool:
+        """Check modbus client connection status."""
         with self._lock:
-            return self._client.is_socket_open()
+            if self._client is None:
+                return False
+            else:
+                return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
+        """Shut down the hub."""
         self.online = False
         self.disconnect()
         self._client = None
@@ -548,7 +602,12 @@ class SolarEdgeMeter:
                     f"meter {self.meter_id}: {meter_info}"
                 ),
             )
-            raise ModbusReadError(meter_info)
+
+            if meter_info.exception_code == ModbusExceptions.IllegalAddress:
+                raise DeviceInvalid(meter_info)
+
+            else:
+                raise ModbusReadError(meter_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
@@ -815,7 +874,12 @@ class SolarEdgeBattery:
                     f"battery {self.battery_id}: {battery_info}"
                 ),
             )
-            raise ModbusReadError(battery_info)
+
+            if battery_info.exception_code == ModbusExceptions.IllegalAddress:
+                raise DeviceInvalid(battery_info)
+
+            else:
+                raise ModbusReadError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers,
