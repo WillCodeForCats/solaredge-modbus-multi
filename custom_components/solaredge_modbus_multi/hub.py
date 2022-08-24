@@ -489,11 +489,11 @@ class SolarEdgeInverter:
             or self.decoded_mmppt["mmppt_ID"] not in [160]
             or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
         ):
-            _LOGGER.warning(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
             self.decoded_mmppt = None
 
         else:
-            _LOGGER.warning(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
         self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
 
