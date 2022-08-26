@@ -79,7 +79,6 @@ class SolarEdgeModbusMultiHub:
         self._host = host
         self._port = port
         self._lock = threading.Lock()
-        self._client = None
         self._name = name
         self._id = name.lower()
         self.number_of_inverters = number_of_inverters
@@ -91,6 +90,9 @@ class SolarEdgeModbusMultiHub:
         self.inverters = []
         self.meters = []
         self.batteries = []
+
+        self._client = ModbusTcpClient(host=self._host, port=self._port)
+
         self.initalized = False
         self.online = False
 
@@ -331,24 +333,17 @@ class SolarEdgeModbusMultiHub:
     def disconnect(self) -> None:
         """Disconnect modbus client."""
         with self._lock:
-            if self._client is not None:
-                self._client.close()
-                self._client = None
+            self._client.close()
 
     async def connect(self) -> None:
         """Connect modbus client."""
         with self._lock:
-            if self._client is None:
-                self._client = ModbusTcpClient(host=self._host, port=self._port)
             await self._hass.async_add_executor_job(self._client.connect)
 
     def is_socket_open(self) -> bool:
         """Check modbus client connection status."""
         with self._lock:
-            if self._client is None:
-                return False
-            else:
-                return self._client.is_socket_open()
+            return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
