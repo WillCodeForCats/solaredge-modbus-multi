@@ -90,6 +90,7 @@ class SolarEdgeModbusMultiHub:
         self.inverters = []
         self.meters = []
         self.batteries = []
+        self.inverter_common = {}
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
 
@@ -438,6 +439,8 @@ class SolarEdgeInverter:
                 ),
             )
 
+        self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
+
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
@@ -445,6 +448,7 @@ class SolarEdgeInverter:
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
+        self.uid_base = f"{self.model}_{self.serial}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
@@ -576,6 +580,7 @@ class SolarEdgeMeter:
         self.start_address = None
         self.meter_id = meter_id
         self.has_parent = True
+        self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
 
         if self.meter_id == 1:
             self.start_address = 40000 + 121
@@ -673,6 +678,10 @@ class SolarEdgeMeter:
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} M{self.meter_id}"
+
+        inverter_model = self.inverter_common["C_Model"]
+        inerter_serial = self.inverter_common["C_SerialNumber"]
+        self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
@@ -850,6 +859,7 @@ class SolarEdgeBattery:
         self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
+        self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
 
         if self.battery_id == 1:
             self.start_address = 57600
@@ -937,6 +947,10 @@ class SolarEdgeBattery:
         self.serial = self.decoded_common["B_SerialNumber"]
         self.device_address = self.decoded_common["B_Device_Address"]
         self.name = f"{self.hub.hub_id.capitalize()} B{self.battery_id}"
+
+        inverter_model = self.inverter_common["C_Model"]
+        inerter_serial = self.inverter_common["C_SerialNumber"]
+        self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
