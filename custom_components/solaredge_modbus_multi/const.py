@@ -124,6 +124,7 @@ SUNSPEC_DID = {
     101: "Single Phase Inverter",
     102: "Split Phase Inverter",
     103: "Three Phase Inverter",
+    160: "Inverter Multiple Power Point Tracker",
     201: "Single Phase Meter",
     202: "Split Phase Meter",
     203: "Three Phase Wye Meter",
