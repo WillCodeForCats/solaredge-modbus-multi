@@ -18,43 +18,43 @@ from .helpers import parse_modbus_string
 _LOGGER = logging.getLogger(__name__)
 
 
-class SolarEdgeError(Exception):
+class SolarEdgeException(Exception):
     """Base class for other exceptions"""
 
     pass
 
 
-class HubInitFailed(SolarEdgeError):
+class HubInitFailed(SolarEdgeException):
     """Raised when an error happens during init"""
 
     pass
 
 
-class DeviceInitFailed(SolarEdgeError):
+class DeviceInitFailed(SolarEdgeException):
     """Raised when a device can't be initialized"""
 
     pass
 
 
-class ModbusReadError(SolarEdgeError):
+class ModbusReadError(SolarEdgeException):
     """Raised when a modbus read fails"""
 
     pass
 
 
-class ModbusWriteError(SolarEdgeError):
+class ModbusWriteError(SolarEdgeException):
     """Raised when a modbus write fails"""
 
     pass
 
 
-class DataUpdateFailed(SolarEdgeError):
+class DataUpdateFailed(SolarEdgeException):
     """Raised when an update cycle fails"""
 
     pass
 
 
-class DeviceInvalid(SolarEdgeError):
+class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid"""
 
     pass
