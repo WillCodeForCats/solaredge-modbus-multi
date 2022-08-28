@@ -447,8 +447,7 @@ class SolarEdgeInverter:
             unit=self.inverter_unit_id, address=40121, count=10
         )
         if mmppt_common.isError():
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise ModbusReadError(mmppt_common)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {inverter_data}")
 
             if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
                 self.decoded_mmppt = None
@@ -610,6 +609,43 @@ class SolarEdgeInverter:
                     f"{name} {hex(value) if isinstance(value, int) else value}"
                 ),
             )
+
+        if self.decoded_mmppt is not None:
+            mmppt_common = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=40121, count=10
+            )
+
+            if mmppt_common.isError():
+                _LOGGER.debug(
+                    f"Inverter {self.inverter_unit_id} MMPPT: {inverter_data}"
+                )
+                raise ModbusReadError(mmppt_common)
+
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    mmppt_common.registers, byteorder=Endian.Big
+                )
+
+            self.decoded_mmppt = OrderedDict(
+                [
+                    ("mmppt_DID", decoder.decode_16bit_uint()),
+                    ("mmppt_Length", decoder.decode_16bit_uint()),
+                    ("mmppt_DCA_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCV_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCW_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
+                    ("mmppt_Events", decoder.decode_32bit_uint()),
+                    ("mmppt_Units", decoder.decode_16bit_uint()),
+                    ("mmppt_TmsPer", decoder.decode_16bit_uint()),
+                ]
+            )
+
+            for name, value in iteritems(self.decoded_mmppt):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} MMPPT: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
+                )
 
     @property
     def online(self) -> bool:
