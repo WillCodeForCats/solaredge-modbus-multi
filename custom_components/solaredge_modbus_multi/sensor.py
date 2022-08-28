@@ -306,7 +306,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
         if len(self._platform.option) > 0:
             attrs["option"] = self._platform.option
 
-        if self._platform.has_parent is True:
+        if self._platform.has_parent:
             attrs["parent_device_id"] = self._platform.inverter_unit_id
 
         attrs["serial_number"] = self._platform.serial
@@ -327,21 +327,6 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
             attrs["sunspec_did"] = self._platform.decoded_model["C_SunSpec_DID"]
         except KeyError:
             attrs["sunspec_did"] = None
-
-        try:
-            if self._platform.decoded_mmppt is not None:
-                attrs["mmppt_did"] = self._platform.decoded_mmppt["mmppt_DID"]
-                attrs["mmppt_units"] = self._platform.decoded_mmppt["mmppt_Units"]
-
-                if self._platform.decoded_mmppt["mmppt_DID"] in SUNSPEC_DID:
-                    attrs["mmppt_device"] = SUNSPEC_DID[
-                        self._platform.decoded_mmppt["mmppt_DID"]
-                    ]
-                else:
-                    attrs["mmppt_device"] = "unknown"
-
-        except AttributeError:
-            pass
 
         return attrs
 

@@ -463,7 +463,7 @@ class SolarEdgeInverter:
 
             self.decoded_mmppt = OrderedDict(
                 [
-                    ("mmppt_DID", decoder.decode_16bit_uint()),
+                    ("mmppt_ID", decoder.decode_16bit_uint()),
                     ("mmppt_Length", decoder.decode_16bit_uint()),
                     ("mmppt_DCA_SF", decoder.decode_16bit_int()),
                     ("mmppt_DCV_SF", decoder.decode_16bit_int()),
@@ -484,9 +484,9 @@ class SolarEdgeInverter:
                 )
 
         if (
-            self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            self.decoded_mmppt["mmppt_ID"] == SUNSPEC_NOT_IMPL_UINT16
             or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
-            or self.decoded_mmppt["mmppt_DID"] not in [160]
+            or self.decoded_mmppt["mmppt_ID"] not in [160]
             or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
         ):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
@@ -929,7 +929,6 @@ class SolarEdgeBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
 
         if self.battery_id == 1:
             self.start_address = 57600
