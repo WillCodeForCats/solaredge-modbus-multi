@@ -447,8 +447,7 @@ class SolarEdgeInverter:
             unit=self.inverter_unit_id, address=40121, count=10
         )
         if mmppt_common.isError():
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise ModbusReadError(mmppt_common)
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {inverter_data}")
 
             if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
                 self.decoded_mmppt = None
