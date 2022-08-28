@@ -12,6 +12,7 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * Meter support for 1 to 3 meters per inverter.
 * Battery support for 1 or 2 batteries per inverter.
 * Automatically detects meters and batteries.
+* Supports Three Phase Inverters with Synergy Technology.
 * Polling frequency configuration option (1 to 86400 seconds).
 * Configurable starting inverter device ID.
 * Connects using Modbus/TCP - no cloud dependencies.

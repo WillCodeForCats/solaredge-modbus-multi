@@ -124,6 +124,7 @@ SUNSPEC_DID = {
     101: "Single Phase Inverter",
     102: "Split Phase Inverter",
     103: "Three Phase Inverter",
+    160: "Multiple MPPT Inverter Extension",
     201: "Single Phase Meter",
     202: "Split Phase Meter",
     203: "Three Phase Wye Meter",
@@ -170,4 +171,21 @@ BATTERY_STATUS = {
     4: "Discharge",
     5: "Fault",
     7: "Idle",
+}
+
+MMPPT_EVENTS = {
+    0: "GROUND_FAULT",
+    1: "INPUT_OVER_VOLTAGE",
+    3: "DC_DISCONNECT",
+    5: "CABINET_OPEN",
+    6: "MANUAL_SHUTDOWN",
+    7: "OVER_TEMP",
+    12: "BLOWN_FUSE",
+    13: "UNDER_TEMP",
+    14: "MEMORY_LOSS",
+    15: "ARC_DETECTION",
+    19: "RESERVED",
+    20: "TEST_FAILED",
+    21: "INPUT_UNDER_VOLTAGE",
+    22: "INPUT_OVER_CURRENT",
 }
