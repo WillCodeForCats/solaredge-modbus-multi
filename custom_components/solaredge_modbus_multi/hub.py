@@ -462,7 +462,7 @@ class SolarEdgeInverter:
 
             self.decoded_mmppt = OrderedDict(
                 [
-                    ("mmppt_ID", decoder.decode_16bit_uint()),
+                    ("mmppt_DID", decoder.decode_16bit_uint()),
                     ("mmppt_Length", decoder.decode_16bit_uint()),
                     ("mmppt_DCA_SF", decoder.decode_16bit_int()),
                     ("mmppt_DCV_SF", decoder.decode_16bit_int()),
@@ -483,9 +483,9 @@ class SolarEdgeInverter:
                 )
 
         if (
-            self.decoded_mmppt["mmppt_ID"] == SUNSPEC_NOT_IMPL_UINT16
+            self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
             or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
-            or self.decoded_mmppt["mmppt_ID"] not in [160]
+            or self.decoded_mmppt["mmppt_DID"] not in [160]
             or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
         ):
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
