@@ -8,10 +8,7 @@
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
           "number_of_inverters": "Aantal aangesloten omvormers",
-          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
-          "read_meter_1": "Gebruik meter 1",
-          "read_meter_2": "Gebruik meter 2",
-          "read_meter_3": "Gebruik meter 3"
+          "device_id": "Omvormer Modbus-adres (apparaat-ID)"
         }
       }
     },

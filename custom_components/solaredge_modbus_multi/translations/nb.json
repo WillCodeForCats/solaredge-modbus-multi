@@ -8,10 +8,7 @@
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",
           "number_of_inverters": "Antall omformere koblet sammen",
-          "device_id": "Inverter Modbus-adresse (enhets-ID)",
-          "read_meter_1": "Bruk måler 1",
-          "read_meter_2": "Bruk måler 2",
-          "read_meter_3": "Bruk måler 3"
+          "device_id": "Inverter Modbus-adresse (enhets-ID)"
         }
       }
     },

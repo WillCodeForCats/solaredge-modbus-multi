@@ -8,10 +8,7 @@
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
           "device_id": "Inverter Modbus Address (Device ID)",
-          "number_of_inverters": "Number of Inverters",
-          "read_meter_1": "Use Meter 1",
-          "read_meter_2": "Use Meter 2",
-          "read_meter_3": "Use Meter 3"
+          "number_of_inverters": "Number of Inverters"
         }
       }
     },
