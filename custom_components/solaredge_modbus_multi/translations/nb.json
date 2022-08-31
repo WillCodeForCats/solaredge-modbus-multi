@@ -7,8 +7,8 @@
           "name": "Sensorvoorvoegsel",
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",
-          "number_of_inverters": "Antall omformere koblet sammen",
-          "device_id": "Inverter Modbus-adresse (enhets-ID)"
+          "device_id": "Inverter Modbus-adresse (enhets-ID)",
+          "number_of_inverters": "Antall omformere koblet sammen"
         }
       }
     },

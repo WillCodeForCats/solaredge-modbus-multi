@@ -7,8 +7,8 @@
           "name": "Sensor prefix",
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
-          "number_of_inverters": "Aantal aangesloten omvormers",
-          "device_id": "Omvormer Modbus-adres (apparaat-ID)"
+          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
+          "number_of_inverters": "Aantal aangesloten omvormers"
         }
       }
     },
