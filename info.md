@@ -13,8 +13,8 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 ### Recommended Update Procedure to v2.2.0
 
 1. Delete integration from Settings -> Devices & Services.
-2. Update to 2.2.0 release.
-3. Add the integration under Settings -> Devices & Services.
+2. Update to v2.2.0 release (manually or through HACS).
+3. Re-Add the integration under Settings -> Devices & Services.
 {% endif %}
 {% endif %}
 
