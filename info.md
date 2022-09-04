@@ -31,4 +31,4 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
 
-Requires Home Assistant 2022.2.0 and newer.
+Requires Home Assistant 2022.8.0 and newer.
