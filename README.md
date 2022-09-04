@@ -41,12 +41,12 @@ After rebooting Home Assistant, this integration can be configured through the i
 ### Documentation
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
-### Recommended Update Procedure from v1.x.x
+### Recommended Update Procedure (from releases older than v2.2.0)
 1. Delete integration from Settings -> Devices & Services.
-2. Update to 2.x.x release.
+2. Update to v2.2.0 release.
 3. Add the integration under Settings -> Devices & Services.
 
-Fixing #21 causes HA to recreate entities. Updating in place will cause existing entities will be seen as duplicates and HA will suffix them with `_2`. If this happens you can either update everything to use the new names, or follow the update procedure to avoid renaming. This assumes the default entity names; custom names will have to be handled manually in any case.
+This procedure will preserve entity names. If updated in place, existing meter and battery entities will have a `_2` suffix after updating to a v2.2.x or higher release, or from a v1.x.x to a v2.x.x release. If this happens you can either update everything to use the new names, or follow the recommended update procedure to avoid renaming. This assumes the default entity names: custom names will have to be handled manually in any case.
 
 ### Upgrading from v1.1.x to v1.2.x
 Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
