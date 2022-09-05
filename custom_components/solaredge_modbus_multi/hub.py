@@ -450,6 +450,7 @@ class SolarEdgeInverter:
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {inverter_data}")
 
             if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
                 self.decoded_mmppt = None
 
             else:
@@ -482,17 +483,16 @@ class SolarEdgeInverter:
                     ),
                 )
 
-        if (
-            self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
-            or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
-            or self.decoded_mmppt["mmppt_DID"] not in [160]
-            or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
-        ):
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
-            self.decoded_mmppt = None
-
-        else:
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
+            if (
+                self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
+                or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
+                or self.decoded_mmppt["mmppt_DID"] not in [160]
+                or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
+            ):
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
+                self.decoded_mmppt = None
+            else:
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
         self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
 
