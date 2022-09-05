@@ -9,12 +9,12 @@ Many improvements over other integrations that didn't work well with a multi-dev
 Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
 
 {% if installed %}
-{% if version_installed.replace("v", "").replace(".","") | int < 200 %}
-### Recommended Update Procedure from v1.x.x
+{% if version_installed.replace("v", "").replace(".","") | int < 220 %}
+### Recommended Update Procedure to v2.2.0
 
 1. Delete integration from Settings -> Devices & Services.
-2. Update to 2.x.x release.
-3. Add the integration under Settings -> Devices & Services.
+2. Update to v2.2.0 release (manually or through HACS).
+3. Re-Add the integration under Settings -> Devices & Services.
 {% endif %}
 {% endif %}
 
@@ -31,4 +31,4 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
 
-Requires Home Assistant 2022.2.0 and newer.
+Requires Home Assistant 2022.8.0 and newer.

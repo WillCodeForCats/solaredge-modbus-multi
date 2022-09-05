@@ -8,10 +8,7 @@
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
           "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
-          "number_of_inverters": "Anzahl Wechselrichter",
-          "read_meter_1": "Verwenden Sie Meter 1",
-          "read_meter_2": "Verwenden Sie Meter 2",
-          "read_meter_3": "Verwenden Sie Meter 3"
+          "number_of_inverters": "Anzahl Wechselrichter"
         }
       }
     },
