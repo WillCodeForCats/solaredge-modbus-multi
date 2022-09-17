@@ -637,6 +637,9 @@ class VoltageSensor(SolarEdgeSensorBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         if self._phase is None:
+            raise NotImplementedError
+
+        elif self._phase in ["LN", "LL", "AB"]:
             return True
 
         elif self._platform.decoded_model["C_SunSpec_DID"] in [
@@ -709,6 +712,23 @@ class ACPower(SolarEdgeSensorBase):
             return f"{self._platform.uid_base}_ac_power"
         else:
             return f"{self._platform.uid_base}_ac_power_{self._phase.lower()}"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._phase is None:
+            return True
+
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
+            203,
+            204,
+        ] and self._phase in [
+            "B",
+            "C",
+        ]:
+            return True
+
+        else:
+            return False
 
     @property
     def name(self) -> str:
@@ -989,6 +1009,30 @@ class ACEnergy(SolarEdgeSensorBase):
             return f"{self._platform.uid_base}_ac_energy_kwh"
         else:
             return f"{self._platform.uid_base}_{self._phase.lower()}_kwh"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._phase is None or self._phase in [
+            "Exported",
+            "Imported",
+            "Exported_A",
+            "Imported_A",
+        ]:
+            return True
+
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
+            203,
+            204,
+        ] and self._phase in [
+            "Exported_B",
+            "Exported_C",
+            "Imported_B",
+            "Imported_C",
+        ]:
+            return True
+
+        else:
+            return False
 
     @property
     def name(self) -> str:
