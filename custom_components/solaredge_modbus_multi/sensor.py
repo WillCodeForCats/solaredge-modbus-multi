@@ -554,11 +554,15 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.decoded_model["C_SunSpec_DID"] in [
+        if self._phase is None:
+            return True
+
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
             103,
             203,
             204,
         ] and self._phase in [
+            "A",
             "B",
             "C",
         ]:
@@ -632,15 +636,19 @@ class VoltageSensor(SolarEdgeSensorBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.decoded_model["C_SunSpec_DID"] in [
+        if self._phase is None:
+            return True
+
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
             103,
             203,
             204,
         ] and self._phase in [
-            "BN",
-            "CN",
             "BC",
             "CA",
+            "AN",
+            "BN",
+            "CN",
         ]:
             return True
 
