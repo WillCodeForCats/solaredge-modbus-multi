@@ -20,7 +20,9 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
 
-Requires Home Assistant 2022.2.0 and newer.
+Requires Home Assistant 2022.8.0 and newer.
+
+Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ## Installation
 Copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder,
