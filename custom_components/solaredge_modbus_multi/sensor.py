@@ -553,6 +553,21 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             return f"{self._platform.uid_base}_ac_current_{self._phase.lower()}"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._platform.decoded_model["C_SunSpec_DID"] in [
+            103,
+            203,
+            204,
+        ] and self._phase in [
+            "B",
+            "C",
+        ]:
+            return True
+
+        else:
+            return False
+
+    @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC Current"
@@ -614,6 +629,23 @@ class VoltageSensor(SolarEdgeSensorBase):
             return f"{self._platform.uid_base}_ac_voltage"
         else:
             return f"{self._platform.uid_base}_ac_voltage_{self._phase.lower()}"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._platform.decoded_model["C_SunSpec_DID"] in [
+            103,
+            203,
+            204,
+        ] and self._phase in [
+            "BN",
+            "CN",
+            "BC",
+            "CA",
+        ]:
+            return True
+
+        else:
+            return False
 
     @property
     def name(self) -> str:
