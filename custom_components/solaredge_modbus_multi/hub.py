@@ -8,7 +8,9 @@ from homeassistant.core import HomeAssistant
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
+from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ModbusExceptions
 
 from .const import DOMAIN, SUNSPEC_NOT_IMPL_UINT16
 from .helpers import parse_modbus_string
@@ -16,43 +18,43 @@ from .helpers import parse_modbus_string
 _LOGGER = logging.getLogger(__name__)
 
 
-class SolarEdgeError(Exception):
+class SolarEdgeException(Exception):
     """Base class for other exceptions"""
 
     pass
 
 
-class HubInitFailed(SolarEdgeError):
+class HubInitFailed(SolarEdgeException):
     """Raised when an error happens during init"""
 
     pass
 
 
-class DeviceInitFailed(SolarEdgeError):
+class DeviceInitFailed(SolarEdgeException):
     """Raised when a device can't be initialized"""
 
     pass
 
 
-class ModbusReadError(SolarEdgeError):
+class ModbusReadError(SolarEdgeException):
     """Raised when a modbus read fails"""
 
     pass
 
 
-class ModbusWriteError(SolarEdgeError):
+class ModbusWriteError(SolarEdgeException):
     """Raised when a modbus write fails"""
 
     pass
 
 
-class DataUpdateFailed(SolarEdgeError):
+class DataUpdateFailed(SolarEdgeException):
     """Raised when an update cycle fails"""
 
     pass
 
 
-class DeviceInvalid(SolarEdgeError):
+class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid"""
 
     pass
@@ -88,6 +90,8 @@ class SolarEdgeModbusMultiHub:
         self.inverters = []
         self.meters = []
         self.batteries = []
+        self.inverter_common = {}
+        self.mmppt_common = {}
 
         self._client = ModbusTcpClient(host=self._host, port=self._port)
 
@@ -114,7 +118,11 @@ class SolarEdgeModbusMultiHub:
                 await self._hass.async_add_executor_job(new_inverter.init_device)
                 self.inverters.append(new_inverter)
 
-            except Exception as e:
+            except ModbusReadError as e:
+                self.disconnect()
+                raise HubInitFailed(f"{e}")
+
+            except DeviceInvalid as e:
                 """Inverters are required"""
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
                 raise HubInitFailed(f"Inverter device ID {inverter_unit_id} not found.")
@@ -138,7 +146,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.meters.append(new_meter_1)
                     _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
                 try:
@@ -159,7 +172,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.meters.append(new_meter_2)
                     _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
                 try:
@@ -180,7 +198,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.meters.append(new_meter_3)
                     _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
             if self._detect_batteries:
@@ -202,7 +225,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
                 try:
@@ -223,7 +251,12 @@ class SolarEdgeModbusMultiHub:
 
                     self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
-                except Exception:
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
                     pass
 
         try:
@@ -246,7 +279,12 @@ class SolarEdgeModbusMultiHub:
             await self.connect()
 
         if not self.initalized:
-            await self._async_init_solaredge()
+            try:
+                await self._async_init_solaredge()
+
+            except ConnectionException as e:
+                self.disconnect()
+                raise HubInitFailed(f"Setup failed: {e}")
 
         if not self.is_socket_open():
             self.online = False
@@ -264,9 +302,21 @@ class SolarEdgeModbusMultiHub:
                 for battery in self.batteries:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
-            except Exception as e:
+            except ModbusReadError as e:
                 self.online = False
-                raise DataUpdateFailed(f"Failed to update devices: {e}")
+                self.disconnect()
+                raise DataUpdateFailed(f"Update failed: {e}")
+
+            except DeviceInvalid as e:
+                self.online = False
+                if not self.keep_modbus_open:
+                    self.disconnect()
+                raise DataUpdateFailed(f"Invalid device: {e}")
+
+            except ConnectionException as e:
+                self.online = False
+                self.disconnect()
+                raise DataUpdateFailed(f"Connection failed: {e}")
 
         if not self.keep_modbus_open:
             self.disconnect()
@@ -282,26 +332,27 @@ class SolarEdgeModbusMultiHub:
     def hub_id(self) -> str:
         return self._id
 
-    def disconnect(self):
-        """Disconnect client."""
+    def disconnect(self) -> None:
+        """Disconnect modbus client."""
         with self._lock:
             self._client.close()
 
-    async def connect(self):
-        """Connect client."""
+    async def connect(self) -> None:
+        """Connect modbus client."""
         with self._lock:
             await self._hass.async_add_executor_job(self._client.connect)
 
-    def is_socket_open(self):
-        """Check client."""
+    def is_socket_open(self) -> bool:
+        """Check modbus client connection status."""
         with self._lock:
             return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
+        """Shut down the hub."""
         self.online = False
         self.disconnect()
         self._client = None
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -316,6 +367,7 @@ class SolarEdgeInverter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
+        self.decoded_mmppt = []
         self.has_parent = False
         self.global_power_control_block = None
 
@@ -390,6 +442,61 @@ class SolarEdgeInverter:
                 ),
             )
 
+        self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
+
+        mmppt_common = self.hub.read_holding_registers(
+            unit=self.inverter_unit_id, address=40121, count=10
+        )
+        if mmppt_common.isError():
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {inverter_data}")
+
+            if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
+                self.decoded_mmppt = None
+
+            else:
+                raise ModbusReadError(mmppt_common)
+
+        else:
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                mmppt_common.registers, byteorder=Endian.Big
+            )
+
+            self.decoded_mmppt = OrderedDict(
+                [
+                    ("mmppt_DID", decoder.decode_16bit_uint()),
+                    ("mmppt_Length", decoder.decode_16bit_uint()),
+                    ("mmppt_DCA_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCV_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCW_SF", decoder.decode_16bit_int()),
+                    ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
+                    ("mmppt_Events", decoder.decode_32bit_uint()),
+                    ("mmppt_Units", decoder.decode_16bit_uint()),
+                    ("mmppt_TmsPer", decoder.decode_16bit_uint()),
+                ]
+            )
+
+            for name, value in iteritems(self.decoded_mmppt):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} MMPPT: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
+                )
+
+            if (
+                self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
+                or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
+                or self.decoded_mmppt["mmppt_DID"] not in [160]
+                or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
+            ):
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
+                self.decoded_mmppt = None
+            else:
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
+
+        self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
+
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
@@ -397,6 +504,7 @@ class SolarEdgeInverter:
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
+        self.uid_base = f"{self.model}_{self.serial}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
@@ -563,18 +671,32 @@ class SolarEdgeMeter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self.start_address = None
+        self.start_address = 40000
         self.meter_id = meter_id
         self.has_parent = True
+        self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
+        self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
 
         if self.meter_id == 1:
-            self.start_address = 40000 + 121
+            self.start_address = self.start_address + 121
         elif self.meter_id == 2:
-            self.start_address = 40000 + 295
+            self.start_address = self.start_address + 295
         elif self.meter_id == 3:
-            self.start_address = 40000 + 469
+            self.start_address = self.start_address + 469
         else:
             raise ValueError(f"Invalid meter_id {self.meter_id}")
+
+        if self.mmppt_common is not None:
+            if self.mmppt_common["mmppt_Units"] == 2:
+                self.start_address = self.start_address + 50
+
+            elif self.mmppt_common["mmppt_Units"] == 3:
+                self.start_address = self.start_address + 70
+
+            else:
+                raise ValueError(
+                    f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
+                )
 
     def init_device(self) -> None:
         meter_info = self.hub.read_holding_registers(
@@ -587,7 +709,12 @@ class SolarEdgeMeter:
                     f"meter {self.meter_id}: {meter_info}"
                 ),
             )
-            raise ModbusReadError(meter_info)
+
+            if meter_info.exception_code == ModbusExceptions.IllegalAddress:
+                raise DeviceInvalid(meter_info)
+
+            else:
+                raise ModbusReadError(meter_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
@@ -658,6 +785,10 @@ class SolarEdgeMeter:
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} M{self.meter_id}"
+
+        inverter_model = self.inverter_common["C_Model"]
+        inerter_serial = self.inverter_common["C_SerialNumber"]
+        self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
@@ -835,6 +966,7 @@ class SolarEdgeBattery:
         self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
+        self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
 
         if self.battery_id == 1:
             self.start_address = 57600
@@ -854,7 +986,12 @@ class SolarEdgeBattery:
                     f"battery {self.battery_id}: {battery_info}"
                 ),
             )
-            raise ModbusReadError(battery_info)
+
+            if battery_info.exception_code == ModbusExceptions.IllegalAddress:
+                raise DeviceInvalid(battery_info)
+
+            else:
+                raise ModbusReadError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers,
@@ -917,6 +1054,10 @@ class SolarEdgeBattery:
         self.serial = self.decoded_common["B_SerialNumber"]
         self.device_address = self.decoded_common["B_Device_Address"]
         self.name = f"{self.hub.hub_id.capitalize()} B{self.battery_id}"
+
+        inverter_model = self.inverter_common["C_Model"]
+        inerter_serial = self.inverter_common["C_SerialNumber"]
+        self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
         self._device_info = {
             "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},

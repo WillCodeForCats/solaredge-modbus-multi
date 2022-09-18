@@ -8,10 +8,7 @@
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
           "device_id": "Adres Modbus Inwertera (Device ID)",
-          "number_of_inverters": "Ilość inwerterów",
-          "read_meter_1": "Użyj licznika 1",
-          "read_meter_2": "Użyj licznika 2",
-          "read_meter_3": "Użyj licznika 3"
+          "number_of_inverters": "Ilość inwerterów"
         }
       }
     },

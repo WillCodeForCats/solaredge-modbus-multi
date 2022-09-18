@@ -243,7 +243,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_device"
+        return f"{self._platform.uid_base}_device"
 
     @property
     def name(self) -> str:
@@ -342,7 +342,7 @@ class SerialNumber(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_serial_number"
+        return f"{self._platform.uid_base}_serial_number"
 
     @property
     def name(self) -> str:
@@ -362,7 +362,7 @@ class Manufacturer(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_manufacturer"
+        return f"{self._platform.uid_base}_manufacturer"
 
     @property
     def name(self) -> str:
@@ -382,7 +382,7 @@ class Model(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_model"
+        return f"{self._platform.uid_base}_model"
 
     @property
     def name(self) -> str:
@@ -402,7 +402,7 @@ class Option(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_option"
+        return f"{self._platform.uid_base}_option"
 
     @property
     def name(self) -> str:
@@ -432,7 +432,7 @@ class Version(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_version"
+        return f"{self._platform.uid_base}_version"
 
     @property
     def name(self) -> str:
@@ -452,7 +452,7 @@ class DeviceAddress(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_device_id"
+        return f"{self._platform.uid_base}_device_id"
 
     @property
     def name(self) -> str:
@@ -472,7 +472,7 @@ class DeviceAddressParent(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_parent_device_id"
+        return f"{self._platform.uid_base}_parent_device_id"
 
     @property
     def name(self) -> str:
@@ -492,7 +492,7 @@ class SunspecDID(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_sunspec_device_id"
+        return f"{self._platform.uid_base}_sunspec_device_id"
 
     @property
     def name(self) -> str:
@@ -550,12 +550,9 @@ class ACCurrentSensor(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return f"{self._platform.model}_{self._platform.serial}_ac_current"
+            return f"{self._platform.uid_base}_ac_current"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"ac_current_{self._phase.lower()}"
-            )
+            return f"{self._platform.uid_base}_ac_current_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
@@ -616,12 +613,9 @@ class VoltageSensor(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return f"{self._platform.model}_{self._platform.serial}_ac_voltage"
+            return f"{self._platform.uid_base}_ac_voltage"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"ac_voltage_{self._phase.lower()}"
-            )
+            return f"{self._platform.uid_base}_ac_voltage_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
@@ -674,12 +668,9 @@ class ACPower(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return f"{self._platform.model}_{self._platform.serial}_ac_power"
+            return f"{self._platform.uid_base}_ac_power"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"ac_power_{self._phase.lower()}"
-            )
+            return f"{self._platform.uid_base}_ac_power_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
@@ -726,7 +717,7 @@ class ACFrequency(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_ac_frequency"
+        return f"{self._platform.uid_base}_ac_frequency"
 
     @property
     def name(self) -> str:
@@ -770,12 +761,9 @@ class ACVoltAmp(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return f"{self._platform.model}_{self._platform.serial}_ac_va"
+            return f"{self._platform.uid_base}_ac_va"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"ac_va_{self._phase.lower()}"
-            )
+            return f"{self._platform.uid_base}_ac_va_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
@@ -827,22 +815,16 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return f"{self._platform.model}_{self._platform.serial}_ac_var"
+            return f"{self._platform.uid_base}_ac_var"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"ac_var_{self._phase.lower()}"
-            )
+            return f"{self._platform.uid_base}_ac_var_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
         if self._phase is None:
             return f"{self._platform._device_info['name']} AC var"
         else:
-            return (
-                f"{self._platform._device_info['name']} "
-                f"AC var {self._phase.upper()}"
-            )
+            return f"{self._platform._device_info['name']} AC var {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -887,12 +869,9 @@ class ACPowerFactor(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return f"{self._platform.model}_{self._platform.serial}_ac_pf"
+            return f"{self._platform.uid_base}_ac_pf"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"ac_pf_{self._phase.lower()}"
-            )
+            return f"{self._platform.uid_base}_ac_pf_{self._phase.lower()}"
 
     @property
     def name(self) -> str:
@@ -969,12 +948,9 @@ class ACEnergy(SolarEdgeSensorBase):
     @property
     def unique_id(self) -> str:
         if self._phase is None:
-            return f"{self._platform.model}_{self._platform.serial}_ac_energy_kwh"
+            return f"{self._platform.uid_base}_ac_energy_kwh"
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"{self._phase.lower()}_kwh"
-            )
+            return f"{self._platform.uid_base}_{self._phase.lower()}_kwh"
 
     @property
     def name(self) -> str:
@@ -1031,7 +1007,7 @@ class DCCurrent(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_dc_current"
+        return f"{self._platform.uid_base}_dc_current"
 
     @property
     def name(self) -> str:
@@ -1073,7 +1049,7 @@ class DCVoltage(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_dc_voltage"
+        return f"{self._platform.uid_base}_dc_voltage"
 
     @property
     def name(self) -> str:
@@ -1116,7 +1092,7 @@ class DCPower(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_dc_power"
+        return f"{self._platform.uid_base}_dc_power"
 
     @property
     def name(self) -> str:
@@ -1155,7 +1131,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_temp_sink"
+        return f"{self._platform.uid_base}_temp_sink"
 
     @property
     def name(self) -> str:
@@ -1192,7 +1168,7 @@ class Status(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_status"
+        return f"{self._platform.uid_base}_status"
 
     @property
     def name(self) -> str:
@@ -1240,7 +1216,7 @@ class StatusVendor(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_status_vendor"
+        return f"{self._platform.uid_base}_status_vendor"
 
     @property
     def name(self) -> str:
@@ -1342,7 +1318,7 @@ class MeterEvents(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_meter_events"
+        return f"{self._platform.uid_base}_meter_events"
 
     @property
     def name(self) -> str:
@@ -1408,10 +1384,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"{self._phase.lower()}_vah"
-            )
+            return f"{self._platform.uid_base}_" f"{self._phase.lower()}_vah"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1488,10 +1461,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform.model}_{self._platform.serial}_"
-                f"{self._phase.lower()}_varh"
-            )
+            return f"{self._platform.uid_base}_{self._phase.lower()}_varh"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1541,7 +1511,7 @@ class MetervarhIE(SolarEdgeSensorBase):
 class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_avg_temp"
+        return f"{self._platform.uid_base}_avg_temp"
 
     @property
     def name(self) -> str:
@@ -1570,7 +1540,7 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
 class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_max_temp"
+        return f"{self._platform.uid_base}_max_temp"
 
     @property
     def name(self) -> str:
@@ -1687,7 +1657,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_energy_export"
+        return f"{self._platform.uid_base}_energy_export"
 
     @property
     def name(self) -> str:
@@ -1726,7 +1696,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_energy_import"
+        return f"{self._platform.uid_base}_energy_import"
 
     @property
     def name(self) -> str:
@@ -1763,7 +1733,7 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_max_energy"
+        return f"{self._platform.uid_base}_max_energy"
 
     @property
     def name(self) -> str:
@@ -1794,7 +1764,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_avail_energy"
+        return f"{self._platform.uid_base}_avail_energy"
 
     @property
     def name(self) -> str:
@@ -1829,7 +1799,7 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_battery_soh"
+        return f"{self._platform.uid_base}_battery_soh"
 
     @property
     def name(self) -> str:
@@ -1861,7 +1831,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_battery_soe"
+        return f"{self._platform.uid_base}_battery_soe"
 
     @property
     def name(self) -> str:
