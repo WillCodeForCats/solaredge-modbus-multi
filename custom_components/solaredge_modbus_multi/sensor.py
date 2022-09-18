@@ -722,6 +722,7 @@ class ACPower(SolarEdgeSensorBase):
             203,
             204,
         ] and self._phase in [
+            "A",
             "B",
             "C",
         ]:
