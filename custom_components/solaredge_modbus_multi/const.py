@@ -1,3 +1,5 @@
+from typing import Final
+
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 DEFAULT_SCAN_INTERVAL = 300
@@ -16,8 +18,8 @@ CONF_SINGLE_DEVICE_ENTITY = "single_device_entity"
 CONF_KEEP_MODBUS_OPEN = "keep_modbus_open"
 
 # units missing in homeassistant core
-ENERGY_VOLT_AMPERE_HOUR = "VAh"
-ENERGY_VOLT_AMPERE_REACTIVE_HOUR = "varh"
+ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
+ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
 SUNSPEC_NOT_IMPL_INT16 = 0x8000
 SUNSPEC_NOT_IMPL_UINT16 = 0xFFFF
