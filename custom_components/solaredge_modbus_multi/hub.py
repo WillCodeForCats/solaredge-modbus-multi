@@ -12,7 +12,7 @@ from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusExceptions
 
-from .const import DOMAIN, SUNSPEC_NOT_IMPL_UINT16
+from .const import DOMAIN, SunSpecNotImpl
 from .helpers import parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -399,7 +399,7 @@ class SolarEdgeInverter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
@@ -484,8 +484,8 @@ class SolarEdgeInverter:
                 )
 
             if (
-                self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
-                or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
+                self.decoded_mmppt["mmppt_DID"] == SunSpecNotImpl.UINT16
+                or self.decoded_mmppt["mmppt_Units"] == SunSpecNotImpl.UINT16
                 or self.decoded_mmppt["mmppt_DID"] not in [160]
                 or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
             ):
@@ -542,7 +542,7 @@ class SolarEdgeInverter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] not in [101, 102, 103]
             or decoded_ident["C_SunSpec_Length"] != 50
         ):
@@ -696,7 +696,7 @@ class SolarEdgeMeter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
@@ -795,7 +795,7 @@ class SolarEdgeMeter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] not in [201, 202, 203, 204]
             or decoded_ident["C_SunSpec_Length"] != 105
         ):
