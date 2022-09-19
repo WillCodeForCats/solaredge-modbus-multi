@@ -43,6 +43,7 @@ class SunSpecNotImpl(IntEnum):
 class SunSpecAccum(IntEnum):
     NA16 = 0x0000
     NA32 = 0x00000000
+    LIMIT16 = 0xFFFF
     LIMIT32 = 0xFFFFFFFF
 
 
