@@ -140,7 +140,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 1 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate m1 serial {new_meter_1.serial}"
                             )
 
@@ -166,7 +166,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 2 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate m2 serial {new_meter_2.serial}"
                             )
 
@@ -192,7 +192,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 3 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate m3 serial {new_meter_3.serial}"
                             )
 
@@ -219,7 +219,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on battery 1 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate b1 serial {new_battery_1.serial}"
                             )
 
@@ -245,7 +245,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on battery 2 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate b2 serial {new_battery_1.serial}"
                             )
 
