@@ -55,5 +55,4 @@ This procedure will preserve entity names. If updated in place, existing meter a
 Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
 
 ## Specifications
-- https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
-- https://sunspec.org/wp-content/uploads/2015/06/SunSpec-Specification-Common-Models-A12031-1.6.pdf
+[WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
