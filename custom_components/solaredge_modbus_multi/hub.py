@@ -93,7 +93,7 @@ class SolarEdgeModbusMultiHub:
         self.inverter_common = {}
         self.mmppt_common = {}
 
-        self._client = None
+        self._client = ModbusTcpClient(host=self._host, port=self._port)
 
         self.initalized = False
         self.online = False
@@ -340,17 +340,11 @@ class SolarEdgeModbusMultiHub:
     async def connect(self) -> None:
         """Connect modbus client."""
         with self._lock:
-            if self._client is None:
-                self._client = ModbusTcpClient(host=self._host, port=self._port)
-
             await self._hass.async_add_executor_job(self._client.connect)
 
     def is_socket_open(self) -> bool:
         """Check modbus client connection status."""
         with self._lock:
-            if self._client is None:
-                return False
-
             return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
