@@ -111,7 +111,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         )
         self._hub = hub
 
-        if scan_interval < 10:
+        if scan_interval < 10 and not self._hub.keep_modbus_open:
             _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
             self._hub.keep_modbus_open = True
 
