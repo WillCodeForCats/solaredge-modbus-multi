@@ -752,7 +752,7 @@ class SolarEdgeMeter:
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
         self._device_info = {
-            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
+            "identifiers": {(DOMAIN, self.uid_base)},
             "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
@@ -1021,7 +1021,7 @@ class SolarEdgeBattery:
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
         self._device_info = {
-            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
+            "identifiers": {(DOMAIN, self.uid_base)},
             "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
