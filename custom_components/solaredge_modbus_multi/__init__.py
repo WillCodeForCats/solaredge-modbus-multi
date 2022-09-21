@@ -13,6 +13,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -99,6 +100,53 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle an options update."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
+) -> bool:
+    """Remove a config entry from a device."""
+    solaredge_hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+
+    known_devices = []
+
+    for inverter in solaredge_hub.inverters:
+        inverter_device_ids = {
+            dev_id[1]
+            for dev_id in inverter.device_info["identifiers"]
+            if dev_id[0] == DOMAIN
+        }
+        for dev_id in inverter_device_ids:
+            known_devices.append(dev_id)
+
+    for meter in solaredge_hub.meters:
+        meter_device_ids = {
+            dev_id[1]
+            for dev_id in meter.device_info["identifiers"]
+            if dev_id[0] == DOMAIN
+        }
+        for dev_id in meter_device_ids:
+            known_devices.append(dev_id)
+
+    for battery in solaredge_hub.batteries:
+        battery_device_ids = {
+            dev_id[1]
+            for dev_id in battery.device_info["identifiers"]
+            if dev_id[0] == DOMAIN
+        }
+        for dev_id in battery_device_ids:
+            known_devices.append(dev_id)
+
+    this_device_ids = {
+        dev_id[1] for dev_id in device_entry.identifiers if dev_id[0] == DOMAIN
+    }
+
+    for device_id in this_device_ids:
+        if device_id in known_devices:
+            _LOGGER.error(f"Failed to remove device entry: device {device_id} in use")
+            return False
+
+    return True
 
 
 class SolarEdgeCoordinator(DataUpdateCoordinator):
