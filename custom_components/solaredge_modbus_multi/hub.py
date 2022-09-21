@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import threading
 from collections import OrderedDict
@@ -93,7 +92,7 @@ class SolarEdgeModbusMultiHub:
         self.inverter_common = {}
         self.mmppt_common = {}
 
-        self._client = ModbusTcpClient(host=self._host, port=self._port)
+        self._client = None
 
         self.initalized = False
         self.online = False
@@ -340,11 +339,17 @@ class SolarEdgeModbusMultiHub:
     async def connect(self) -> None:
         """Connect modbus client."""
         with self._lock:
+            if self._client is None:
+                self._client = ModbusTcpClient(host=self._host, port=self._port)
+
             await self._hass.async_add_executor_job(self._client.connect)
 
     def is_socket_open(self) -> bool:
         """Check modbus client connection status."""
         with self._lock:
+            if self._client is None:
+                return False
+
             return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
@@ -352,7 +357,6 @@ class SolarEdgeModbusMultiHub:
         self.online = False
         self.disconnect()
         self._client = None
-        await asyncio.sleep(3)
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -752,7 +756,7 @@ class SolarEdgeMeter:
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
         self._device_info = {
-            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
+            "identifiers": {(DOMAIN, self.uid_base)},
             "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
@@ -1021,7 +1025,7 @@ class SolarEdgeBattery:
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
         self._device_info = {
-            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
+            "identifiers": {(DOMAIN, self.uid_base)},
             "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
