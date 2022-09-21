@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import threading
 from collections import OrderedDict
@@ -358,7 +357,6 @@ class SolarEdgeModbusMultiHub:
         self.online = False
         self.disconnect()
         self._client = None
-        await asyncio.sleep(3)
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
