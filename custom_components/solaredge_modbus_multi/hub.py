@@ -75,24 +75,23 @@ class SolarEdgeModbusMultiHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
+        self._name = name
         self._host = host
         self._port = port
-        self._lock = threading.Lock()
-        self._name = name
-        self._id = name.lower()
-        self.number_of_inverters = number_of_inverters
-        self.start_device_id = start_device_id
+        self._number_of_inverters = number_of_inverters
+        self._start_device_id = start_device_id
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
         self.keep_modbus_open = keep_modbus_open
+        self._lock = threading.Lock()
+        self._id = name.lower()
+        self._client = None
         self.inverters = []
         self.meters = []
         self.batteries = []
         self.inverter_common = {}
         self.mmppt_common = {}
-
-        self._client = None
 
         self.initalized = False
         self.online = False
@@ -109,8 +108,8 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        for inverter_index in range(self.number_of_inverters):
-            inverter_unit_id = inverter_index + self.start_device_id
+        for inverter_index in range(self._number_of_inverters):
+            inverter_unit_id = inverter_index + self._start_device_id
 
             try:
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
