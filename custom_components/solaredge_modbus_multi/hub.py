@@ -11,7 +11,7 @@ from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusExceptions
 
-from .const import DOMAIN, SUNSPEC_NOT_IMPL_UINT16
+from .const import DOMAIN, SunSpecNotImpl
 from .helpers import parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,24 +75,23 @@ class SolarEdgeModbusMultiHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
+        self._name = name
         self._host = host
         self._port = port
-        self._lock = threading.Lock()
-        self._name = name
-        self._id = name.lower()
-        self.number_of_inverters = number_of_inverters
-        self.start_device_id = start_device_id
+        self._number_of_inverters = number_of_inverters
+        self._start_device_id = start_device_id
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
         self.keep_modbus_open = keep_modbus_open
+        self._lock = threading.Lock()
+        self._id = name.lower()
+        self._client = None
         self.inverters = []
         self.meters = []
         self.batteries = []
         self.inverter_common = {}
         self.mmppt_common = {}
-
-        self._client = None
 
         self.initalized = False
         self.online = False
@@ -109,8 +108,8 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        for inverter_index in range(self.number_of_inverters):
-            inverter_unit_id = inverter_index + self.start_device_id
+        for inverter_index in range(self._number_of_inverters):
+            inverter_unit_id = inverter_index + self._start_device_id
 
             try:
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
@@ -403,7 +402,7 @@ class SolarEdgeInverter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
@@ -488,8 +487,8 @@ class SolarEdgeInverter:
                 )
 
             if (
-                self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
-                or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
+                self.decoded_mmppt["mmppt_DID"] == SunSpecNotImpl.UINT16
+                or self.decoded_mmppt["mmppt_Units"] == SunSpecNotImpl.UINT16
                 or self.decoded_mmppt["mmppt_DID"] not in [160]
                 or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
             ):
@@ -546,7 +545,7 @@ class SolarEdgeInverter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] not in [101, 102, 103]
             or decoded_ident["C_SunSpec_Length"] != 50
         ):
@@ -700,7 +699,7 @@ class SolarEdgeMeter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
@@ -799,7 +798,7 @@ class SolarEdgeMeter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] not in [201, 202, 203, 204]
             or decoded_ident["C_SunSpec_Length"] != 105
         ):
