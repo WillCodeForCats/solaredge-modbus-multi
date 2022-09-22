@@ -96,6 +96,18 @@ class SolarEdgeModbusMultiHub:
         self.initalized = False
         self.online = False
 
+        _LOGGER.debug(
+            (
+                f"{DOMAIN} configuration: "
+                f"number_of_inverters={self._number_of_inverters}, "
+                f"start_device_id={self._start_device_id}, "
+                f"detect_meters={self._detect_meters}, "
+                f"detect_batteries={self._detect_batteries}, "
+                f"single_device_entity={self._single_device_entity}, "
+                f"keep_modbus_open={self.keep_modbus_open}, "
+            ),
+        )
+
     async def _async_init_solaredge(self) -> None:
         if not self.is_socket_open():
             raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
