@@ -313,16 +313,14 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
                     self._platform.decoded_model["C_SunSpec_DID"]
                 ]
 
-            else:
-                attrs["sunspec_device"] = "unknown"
-
         except KeyError:
-            attrs["sunspec_device"] = None
+            pass
 
         try:
             attrs["sunspec_did"] = self._platform.decoded_model["C_SunSpec_DID"]
+
         except KeyError:
-            attrs["sunspec_did"] = None
+            pass
 
         return attrs
 
