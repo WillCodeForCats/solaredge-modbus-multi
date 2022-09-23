@@ -324,6 +324,23 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
         except KeyError:
             attrs["sunspec_did"] = None
 
+        try:
+            if self._platform.decoded_mmppt is not None:
+                try:
+                    if self._platform.decoded_mmppt["mmppt_DID"] in SUNSPEC_DID:
+                        attrs["mmppt_device"] = SUNSPEC_DID[
+                            self._platform.decoded_mmppt["mmppt_DID"]
+                        ]
+
+                except KeyError:
+                    pass
+
+                attrs["mmppt_did"] = self._platform.decoded_mmppt["mmppt_DID"]
+                attrs["mmppt_units"] = self._platform.decoded_mmppt["mmppt_Units"]
+
+        except AttributeError:
+            pass
+
         return attrs
 
 
