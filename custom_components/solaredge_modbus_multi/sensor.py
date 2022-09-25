@@ -1854,6 +1854,7 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatterySOE(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.BATTERY
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
     entity_category = EntityCategory.DIAGNOSTIC
