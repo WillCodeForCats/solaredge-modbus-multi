@@ -1825,6 +1825,7 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
     entity_category = EntityCategory.DIAGNOSTIC
+    icon = "mdi:battery-heart-outline"
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
