@@ -56,3 +56,6 @@ Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.co
 
 ## Specifications
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
+
+## Project Sponsors
+None yet...
