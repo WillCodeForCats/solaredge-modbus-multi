@@ -1368,7 +1368,7 @@ class SolarEdgeRRCR(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["I_RRCR"] == SUNSPEC_NOT_IMPL_UINT16
+                self._platform.decoded_model["I_RRCR"] == SunSpecNotImpl.UINT16
                 or self._platform.decoded_model["I_RRCR"] > 0xF
                 or self._platform.global_power_control_block is not True
             ):
