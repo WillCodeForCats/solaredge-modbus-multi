@@ -626,7 +626,7 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=61440, count=4
             )
             if inverter_data.isError():
-                if inverter_data.exception_code == 0x02:
+                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
                     self.global_power_control_block = False
                     _LOGGER.debug(
                         (
