@@ -639,7 +639,7 @@ class SolarEdgeInverter:
                     _LOGGER.debug(
                         (
                             f"Inverter {self.inverter_unit_id}: "
-                            "global power control block unavailable"
+                            "global power control block NOT available"
                         )
                     )
                 else:
@@ -653,7 +653,7 @@ class SolarEdgeInverter:
                     wordorder=Endian.Little,
                 )
 
-                self.decoded_model.append(
+                self.decoded_model.update(
                     OrderedDict(
                         [
                             ("I_RRCR", decoder.decode_16bit_uint()),
@@ -662,7 +662,7 @@ class SolarEdgeInverter:
                         ]
                     )
                 )
-                self.power_status_available = True
+                self.global_power_control_block = True
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(

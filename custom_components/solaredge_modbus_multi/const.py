@@ -184,10 +184,10 @@ BATTERY_STATUS = {
 }
 
 RRCR_STATUS = {
-    0: "A",
-    1: "B",
-    2: "C",
-    3: "D",
+    3: "L1",
+    2: "L2",
+    1: "L3",
+    0: "L4",
 }
 
 MMPPT_EVENTS = {

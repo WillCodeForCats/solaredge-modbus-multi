@@ -88,6 +88,8 @@ async def async_setup_entry(
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
         entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
         if meter.single_device_entity:
@@ -1387,13 +1389,96 @@ class SolarEdgeRRCR(SolarEdgeSensorBase):
     def extra_state_attributes(self):
         try:
             rrcr_inputs = []
-            if int(str(self._platform.decoded_model["I_RRCR"]), 4) == 0x0:
+
+            if int(str(self._platform.decoded_model["I_RRCR"])) == 0x0:
                 return {"inputs": str(rrcr_inputs)}
+
             else:
-                for i in range(0, 5):
-                    if int(str(self._platform.decoded_model["I_RRCR"]), 4) & (1 << i):
+                for i in range(0, 4):
+                    if int(str(self._platform.decoded_model["I_RRCR"])) & (1 << i):
                         rrcr_inputs.append(RRCR_STATUS[i])
+
                 return {"inputs": str(rrcr_inputs)}
+
+        except KeyError:
+            return None
+
+
+class SolarEdgeActivePowerLimit(SolarEdgeSensorBase):
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = PERCENTAGE
+    icon = "mdi:percent"
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_active_power_limit"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} Active Power Limit"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._platform.global_power_control_block is True:
+            return True
+        else:
+            return False
+
+    @property
+    def native_value(self):
+        try:
+            if (
+                self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
+                or self._platform.decoded_model["I_Power_Limit"] > 100
+                or self._platform.decoded_model["I_Power_Limit"] < 0
+                or self._platform.global_power_control_block is not True
+            ):
+                return None
+
+            else:
+                return self._platform.decoded_model["I_Power_Limit"]
+
+        except KeyError:
+            return None
+
+
+class SolarEdgeCosPhi(SolarEdgeSensorBase):
+    state_class = SensorStateClass.MEASUREMENT
+    icon = "mdi:angle-acute"
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.model}_{self._platform.serial}_cosphi"
+
+    @property
+    def name(self) -> str:
+        return f"{self._platform._device_info['name']} CosPhi"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def native_value(self):
+        try:
+            if (
+                self._platform.decoded_model["I_CosPhi"] == SunSpecNotImpl.FLOAT32
+                or self._platform.decoded_model["I_CosPhi"] > 1.0
+                or self._platform.decoded_model["I_CosPhi"] < -1.0
+                or self._platform.global_power_control_block is not True
+            ):
+                return None
+
+            else:
+                return round(self._platform.decoded_model["I_CosPhi"], 1)
 
         except KeyError:
             return None
