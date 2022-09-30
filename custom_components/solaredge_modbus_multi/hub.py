@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import threading
 from collections import OrderedDict
@@ -11,7 +10,7 @@ from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusExceptions
 
-from .const import DOMAIN, SUNSPEC_NOT_IMPL_UINT16
+from .const import DOMAIN, SunSpecNotImpl
 from .helpers import parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,27 +74,38 @@ class SolarEdgeModbusMultiHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
+        self._name = name
         self._host = host
         self._port = port
-        self._lock = threading.Lock()
-        self._name = name
-        self._id = name.lower()
-        self.number_of_inverters = number_of_inverters
-        self.start_device_id = start_device_id
+        self._number_of_inverters = number_of_inverters
+        self._start_device_id = start_device_id
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
         self.keep_modbus_open = keep_modbus_open
+        self._lock = threading.Lock()
+        self._id = name.lower()
+        self._client = None
         self.inverters = []
         self.meters = []
         self.batteries = []
         self.inverter_common = {}
         self.mmppt_common = {}
 
-        self._client = ModbusTcpClient(host=self._host, port=self._port)
-
         self.initalized = False
         self.online = False
+
+        _LOGGER.debug(
+            (
+                f"{DOMAIN} configuration: "
+                f"number_of_inverters={self._number_of_inverters}, "
+                f"start_device_id={self._start_device_id}, "
+                f"detect_meters={self._detect_meters}, "
+                f"detect_batteries={self._detect_batteries}, "
+                f"single_device_entity={self._single_device_entity}, "
+                f"keep_modbus_open={self.keep_modbus_open}, "
+            ),
+        )
 
     async def _async_init_solaredge(self) -> None:
         if not self.is_socket_open():
@@ -109,8 +119,8 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        for inverter_index in range(self.number_of_inverters):
-            inverter_unit_id = inverter_index + self.start_device_id
+        for inverter_index in range(self._number_of_inverters):
+            inverter_unit_id = inverter_index + self._start_device_id
 
             try:
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
@@ -139,7 +149,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 1 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate m1 serial {new_meter_1.serial}"
                             )
 
@@ -165,7 +175,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 2 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate m2 serial {new_meter_2.serial}"
                             )
 
@@ -191,7 +201,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 3 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate m3 serial {new_meter_3.serial}"
                             )
 
@@ -218,7 +228,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on battery 1 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate b1 serial {new_battery_1.serial}"
                             )
 
@@ -244,7 +254,7 @@ class SolarEdgeModbusMultiHub:
                                     f"on battery 2 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInitFailed(
+                            raise DeviceInvalid(
                                 f"Duplicate b2 serial {new_battery_1.serial}"
                             )
 
@@ -339,11 +349,17 @@ class SolarEdgeModbusMultiHub:
     async def connect(self) -> None:
         """Connect modbus client."""
         with self._lock:
+            if self._client is None:
+                self._client = ModbusTcpClient(host=self._host, port=self._port)
+
             await self._hass.async_add_executor_job(self._client.connect)
 
     def is_socket_open(self) -> bool:
         """Check modbus client connection status."""
         with self._lock:
+            if self._client is None:
+                return False
+
             return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
@@ -351,7 +367,6 @@ class SolarEdgeModbusMultiHub:
         self.online = False
         self.disconnect()
         self._client = None
-        await asyncio.sleep(3)
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -398,7 +413,7 @@ class SolarEdgeInverter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
@@ -483,8 +498,8 @@ class SolarEdgeInverter:
                 )
 
             if (
-                self.decoded_mmppt["mmppt_DID"] == SUNSPEC_NOT_IMPL_UINT16
-                or self.decoded_mmppt["mmppt_Units"] == SUNSPEC_NOT_IMPL_UINT16
+                self.decoded_mmppt["mmppt_DID"] == SunSpecNotImpl.UINT16
+                or self.decoded_mmppt["mmppt_Units"] == SunSpecNotImpl.UINT16
                 or self.decoded_mmppt["mmppt_DID"] not in [160]
                 or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
             ):
@@ -541,7 +556,7 @@ class SolarEdgeInverter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] not in [101, 102, 103]
             or decoded_ident["C_SunSpec_Length"] != 50
         ):
@@ -695,7 +710,7 @@ class SolarEdgeMeter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
@@ -751,7 +766,7 @@ class SolarEdgeMeter:
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
         self._device_info = {
-            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
+            "identifiers": {(DOMAIN, self.uid_base)},
             "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,
@@ -794,7 +809,7 @@ class SolarEdgeMeter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SUNSPEC_NOT_IMPL_UINT16
+            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
             or decoded_ident["C_SunSpec_DID"] not in [201, 202, 203, 204]
             or decoded_ident["C_SunSpec_Length"] != 105
         ):
@@ -1020,7 +1035,7 @@ class SolarEdgeBattery:
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
         self._device_info = {
-            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
+            "identifiers": {(DOMAIN, self.uid_base)},
             "name": self.name,
             "manufacturer": self.manufacturer,
             "model": self.model,

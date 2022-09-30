@@ -1,3 +1,6 @@
+from enum import IntEnum
+from typing import Final
+
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 DEFAULT_SCAN_INTERVAL = 300
@@ -16,17 +19,24 @@ CONF_SINGLE_DEVICE_ENTITY = "single_device_entity"
 CONF_KEEP_MODBUS_OPEN = "keep_modbus_open"
 
 # units missing in homeassistant core
-ENERGY_VOLT_AMPERE_HOUR = "VAh"
-ENERGY_VOLT_AMPERE_REACTIVE_HOUR = "varh"
+ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
+ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
-SUNSPEC_NOT_IMPL_INT16 = 0x8000
-SUNSPEC_NOT_IMPL_UINT16 = 0xFFFF
-SUNSPEC_NOT_ACCUM_ACC16 = 0x0000
-SUNSPEC_NOT_IMPL_INT32 = 0x80000000
-SUNSPEC_NOT_IMPL_UINT32 = 0xFFFFFFFF
-SUNSPEC_NOT_ACCUM_ACC32 = 0x00000000
-SUNSPEC_ACCUM_LIMIT = 4294967295
-SUNSPEC_NOT_IMPL_FLOAT32 = 0x7FC00000
+
+class SunSpecNotImpl(IntEnum):
+    INT16 = 0x8000
+    UINT16 = 0xFFFF
+    INT32 = 0x80000000
+    UINT32 = 0xFFFFFFFF
+    FLOAT32 = 0x7FC00000
+
+
+class SunSpecAccum(IntEnum):
+    NA16 = 0x0000
+    NA32 = 0x00000000
+    LIMIT16 = 0xFFFF
+    LIMIT32 = 0xFFFFFFFF
+
 
 SUNSPEC_SF_RANGE = [
     -10,
@@ -66,7 +76,7 @@ DEVICE_STATUS_DESC = {
 
 # English descriptions of parameter names
 DEVICE_STATUS = {
-    SUNSPEC_NOT_IMPL_INT16: None,
+    SunSpecNotImpl.INT16: None,
     0: "Unknown",
     1: "Off",
     2: "Sleeping (Auto-Shutdown)",
@@ -79,7 +89,7 @@ DEVICE_STATUS = {
 }
 
 VENDOR_STATUS = {
-    SUNSPEC_NOT_IMPL_INT16: None,
+    SunSpecNotImpl.INT16: None,
     0: "No Error",
     17: "Temperature Too High",
     25: "Isolation Faults",
