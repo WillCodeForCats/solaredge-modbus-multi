@@ -489,7 +489,7 @@ class SolarEdgeInverter:
                 ]
             )
 
-            for name, value in iteritems(self.decoded_mmppt):
+            for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
                     (
                         f"Inverter {self.inverter_unit_id} MMPPT: "
