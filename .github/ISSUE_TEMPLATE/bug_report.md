@@ -33,6 +33,7 @@ logger:
         custom_components.solaredge_modbus_multi: debug
         pymodbus.client.sync: debug
 ```
+Debug logging will generate a large amount of data: it is recommended to configure it, collect the data needed, then remove debug logging during normal operation.
 
 **Home Assistant (please complete the following information):**
  - Home Assistant Core Version:
