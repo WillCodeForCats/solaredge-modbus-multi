@@ -1,6 +1,6 @@
 ---
 name: Change Request
-about: Request a change for the integration.
+about: Request an update or change for the integration.
 title: ''
 labels: ''
 assignees: ''
