@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ELECTRIC_CURRENT_AMPERE,
     ELECTRIC_POTENTIAL_VOLT,
-    ENERGY_KILO_WATT_HOUR,
+    ENERGY_WATT_HOUR,
     FREQUENCY_HERTZ,
     PERCENTAGE,
     POWER_VOLT_AMPERE,
@@ -37,7 +37,7 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, scale_factor, update_accum, watts_to_kilowatts
+from .helpers import float_to_hex, scale_factor, update_accum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -981,7 +981,7 @@ class ACPowerFactor(SolarEdgeSensorBase):
 class ACEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = ENERGY_WATT_HOUR
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -1079,7 +1079,7 @@ class ACEnergy(SolarEdgeSensorBase):
                 )
 
                 try:
-                    return watts_to_kilowatts(update_accum(self, value))
+                    return update_accum(self, value)
                 except Exception:
                     return None
 
@@ -1680,7 +1680,7 @@ class SolarEdgeBatteryPower(DCPower):
 class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = ENERGY_WATT_HOUR
     icon = "mdi:battery-charging-20"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1704,10 +1704,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
             else:
                 try:
-                    return watts_to_kilowatts(
-                        update_accum(
-                            self, self._platform.decoded_model["B_Export_Energy_WH"]
-                        )
+                    return update_accum(
+                        self, self._platform.decoded_model["B_Export_Energy_WH"]
                     )
                 except Exception:
                     return None
@@ -1719,7 +1717,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = ENERGY_WATT_HOUR
     icon = "mdi:battery-charging-100"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1743,10 +1741,8 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
             else:
                 try:
-                    return watts_to_kilowatts(
-                        update_accum(
-                            self, self._platform.decoded_model["B_Import_Energy_WH"]
-                        )
+                    return update_accum(
+                        self, self._platform.decoded_model["B_Import_Energy_WH"]
                     )
                 except Exception:
                     return None
@@ -1758,7 +1754,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = ENERGY_WATT_HOUR
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -1783,13 +1779,13 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
             return None
 
         else:
-            return watts_to_kilowatts(self._platform.decoded_model["B_Energy_Max"])
+            return self._platform.decoded_model["B_Energy_Max"]
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = ENERGY_WATT_HOUR
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -1816,9 +1812,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             return None
 
         else:
-            return watts_to_kilowatts(
-                self._platform.decoded_model["B_Energy_Available"]
-            )
+            return self._platform.decoded_model["B_Energy_Available"]
 
 
 class SolarEdgeBatterySOH(SolarEdgeSensorBase):
