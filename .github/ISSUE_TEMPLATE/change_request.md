@@ -10,7 +10,7 @@ assignees: ''
 A clear and concise description of what the feature should be.
 
 **What should be updated or changed?**
-If applicable, add screenshots or edits of the proposed feature that help describe it.
+A clear and concise description of the proposed new or updated behavior.
 
 **Home Assistant (please complete the following information):**
  - Home Assistant Core Version:
