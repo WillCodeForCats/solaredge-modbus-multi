@@ -10,6 +10,8 @@ assignees: ''
 Before reporting a bug, make sure your configuration is correct and your LAN is working.
 https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
 
+Do not ask for setup help: setup is not a "bug". Post help requests in one of the community support options.
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
