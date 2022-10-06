@@ -287,6 +287,10 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
             raise HubInitFailed(f"Invalid device: {e}")
 
+        except ConnectionException as e:
+            self.disconnect()
+            raise HubInitFailed(f"Connection failed: {e}")
+
         self.initalized = True
 
     async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> bool:
@@ -396,7 +400,7 @@ class SolarEdgeInverter:
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise ModbusReadError(inverter_data)
+            raise DeviceInvalid(f"Inverter ID {self.inverter_unit_id} not found.")
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -423,7 +427,7 @@ class SolarEdgeInverter:
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
-            raise DeviceInvalid("Inverter {self.inverter_unit_id} not usable.")
+            raise DeviceInvalid("Inverter ID {self.inverter_unit_id} not usable.")
 
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40004, count=65
