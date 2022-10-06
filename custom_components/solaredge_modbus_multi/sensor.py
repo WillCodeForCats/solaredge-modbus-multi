@@ -1047,11 +1047,11 @@ class ACEnergy(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC Energy"
+            return f"{self._platform._device_info['name']} AC Energy kWh"
         else:
             return (
                 f"{self._platform._device_info['name']} "
-                f"{re.sub('_', ' ', self._phase)}"
+                f"{re.sub('_', ' ', self._phase)} kWh"
             )
 
     @property
