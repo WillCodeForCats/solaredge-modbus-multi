@@ -1492,7 +1492,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"" f"{re.sub('_', ' ', self._phase)} varh"
+            return f"{re.sub('_', ' ', self._phase)} varh"
 
     @property
     def native_value(self):
