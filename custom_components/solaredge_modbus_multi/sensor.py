@@ -671,9 +671,7 @@ class VoltageSensor(SolarEdgeSensorBase):
         if self._phase is None:
             return "AC Voltage"
         else:
-            return (
-                f"AC Voltage {self._phase.upper()}"
-            )
+            return f"AC Voltage {self._phase.upper()}"
 
     @property
     def native_value(self):
@@ -742,9 +740,7 @@ class ACPower(SolarEdgeSensorBase):
         if self._phase is None:
             return "AC Power"
         else:
-            return (
-                f"AC Power {self._phase.upper()}"
-            )
+            return f"AC Power {self._phase.upper()}"
 
     @property
     def native_value(self):
@@ -1046,9 +1042,7 @@ class ACEnergy(SolarEdgeSensorBase):
         if self._phase is None:
             return "AC Energy kWh"
         else:
-            return (
-                f"{re.sub('_', ' ', self._phase)} kWh"
-            )
+            return f"{re.sub('_', ' ', self._phase)} kWh"
 
     @property
     def native_value(self):
@@ -1424,9 +1418,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{re.sub('_', ' ', self._phase)} VAh"
-            )
+            return f"{re.sub('_', ' ', self._phase)} VAh"
 
     @property
     def native_value(self):
@@ -1500,10 +1492,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f""
-                f"{re.sub('_', ' ', self._phase)} varh"
-            )
+            return f"" f"{re.sub('_', ' ', self._phase)} varh"
 
     @property
     def native_value(self):
