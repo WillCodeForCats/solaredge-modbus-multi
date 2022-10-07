@@ -1803,10 +1803,9 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
         if (
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == SunSpecNotImpl.FLOAT32
-            or float_to_hex(self._platform.decoded_model["B_Energy_Available"])
-            == 0xFF7FFFFF
-            or float_to_hex(self._platform.decoded_model["B_Energy_Available"])
-            == 0x7F7FFFFF
+            or self._platform.decoded_model["B_Energy_Available"] < 0
+            or self._platform.decoded_model["B_Energy_Available"]
+            > self._platform.decoded_model["B_RatedEnergy"]
         ):
             return None
 
