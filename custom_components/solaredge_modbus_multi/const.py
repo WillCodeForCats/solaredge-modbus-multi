@@ -43,6 +43,8 @@ class BatteryLimit(IntEnum):
     Vmax = 600
     Amin = -200
     Amax = 200
+    Tmax = 100
+    Tmin = -30
 
 
 SUNSPEC_SF_RANGE = [

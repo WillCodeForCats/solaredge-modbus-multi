@@ -1557,10 +1557,8 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
             if (
                 float_to_hex(self._platform.decoded_model["B_Temp_Average"])
                 == SunSpecNotImpl.FLOAT32
-                or float_to_hex(self._platform.decoded_model["B_Temp_Average"])
-                == 0xFF7FFFFF
-                or float_to_hex(self._platform.decoded_model["B_Temp_Average"])
-                == 0x7F7FFFFF
+                or self._platform.decoded_model["B_Temp_Average"] < BatteryLimit.Tmin
+                or self._platform.decoded_model["B_Temp_Average"] > BatteryLimit.Tmax
             ):
                 return None
 
@@ -1590,10 +1588,8 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
             if (
                 float_to_hex(self._platform.decoded_model["B_Temp_Max"])
                 == SunSpecNotImpl.FLOAT32
-                or float_to_hex(self._platform.decoded_model["B_Temp_Max"])
-                == 0xFF7FFFFF
-                or float_to_hex(self._platform.decoded_model["B_Temp_Max"])
-                == 0x7F7FFFFF
+                or self._platform.decoded_model["B_Temp_Max"] < BatteryLimit.Tmin
+                or self._platform.decoded_model["B_Temp_Max"] > BatteryLimit.Tmax
             ):
                 return None
 
