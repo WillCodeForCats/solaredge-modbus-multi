@@ -12,7 +12,7 @@ from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusExceptions
 
 from .const import DOMAIN, SunSpecNotImpl
-from .helpers import parse_modbus_string
+from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1006,12 +1006,21 @@ class SolarEdgeBattery:
         )
 
         for name, value in iteritems(self.decoded_common):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
+            if isinstance(value, float):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {float_to_hex(value)}"
+                    ),
+                )
+
+            else:
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
+                )
 
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
@@ -1103,12 +1112,21 @@ class SolarEdgeBattery:
         )
 
         for name, value in iteritems(self.decoded_model):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
+            if isinstance(value, float):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {float_to_hex(value)}"
+                    ),
+                )
+
+            else:
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
+                )
 
     @property
     def online(self) -> bool:
