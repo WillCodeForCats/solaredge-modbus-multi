@@ -1686,7 +1686,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
-        self._last = None
+        self.last = None
 
     @property
     def unique_id(self) -> str:
@@ -1704,29 +1704,12 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
             else:
                 try:
-                    if self._last is None:
-                        self._last = 0
-
-                    if self._platform.decoded_model["B_Export_Energy_WH"] >= self._last:
-                        self._last = self._platform.decoded_model["B_Export_Energy_WH"]
-
-                        return watts_to_kilowatts(
-                            self._platform.decoded_model["B_Export_Energy_WH"]
+                    return watts_to_kilowatts(
+                        update_accum(
+                            self, self._platform.decoded_model["B_Export_Energy_WH"]
                         )
-
-                    else:
-                        _LOGGER.error(
-                            ("B_Export_Energy_WH went backwards: ")(
-                                f"{self._platform.decoded_model['B_Export_Energy_WH']}"
-                            )(f" < {self._last}")
-                        ),
-
-                        if self._platform.decoded_model["B_Export_Energy_WH"] == 0x0:
-                            self._last = None
-
-                        return None
-
-                except OverflowError:
+                    )
+                except Exception:
                     return None
 
         except TypeError:
@@ -1742,7 +1725,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
-        self._last = None
+        self.last = None
 
     @property
     def unique_id(self) -> str:
@@ -1760,29 +1743,12 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
             else:
                 try:
-                    if self._last is None:
-                        self._last = 0
-
-                    if self._platform.decoded_model["B_Import_Energy_WH"] >= self._last:
-                        self._last = self._platform.decoded_model["B_Import_Energy_WH"]
-
-                        return watts_to_kilowatts(
-                            self._platform.decoded_model["B_Import_Energy_WH"]
+                    return watts_to_kilowatts(
+                        update_accum(
+                            self, self._platform.decoded_model["B_Import_Energy_WH"]
                         )
-
-                    else:
-                        _LOGGER.error(
-                            ("B_Export_Energy_WH went backwards: ")(
-                                f"{self._platform.decoded_model['B_Import_Energy_WH']}"
-                            )(f" < {self._last}")
-                        ),
-
-                        if self._platform.decoded_model["B_Import_Energy_WH"] == 0x0:
-                            self._last = None
-
-                        return None
-
-                except OverflowError:
+                    )
+                except Exception:
                     return None
 
         except TypeError:
