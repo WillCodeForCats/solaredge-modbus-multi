@@ -31,7 +31,7 @@ logger:
     default: warning
     logs:
         custom_components.solaredge_modbus_multi: debug
-        pymodbus.client.sync: debug
+        #pymodbus: debug #only if needed
 ```
 Debug logging will generate a large amount of data: it is recommended to configure it, collect the data needed, then remove debug logging during normal operation.
 
