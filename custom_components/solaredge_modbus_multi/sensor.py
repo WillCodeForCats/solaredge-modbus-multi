@@ -1842,8 +1842,6 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
         if (
             float_to_hex(self._platform.decoded_model["B_SOH"])
             == SunSpecNotImpl.FLOAT32
-            or float_to_hex(self._platform.decoded_model["B_SOH"]) == 0xFF7FFFFF
-            or float_to_hex(self._platform.decoded_model["B_SOH"]) == 0x7F7FFFFF
             or self._platform.decoded_model["B_SOH"] < 0
             or self._platform.decoded_model["B_SOH"] > 100
         ):
@@ -1874,8 +1872,6 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
         if (
             float_to_hex(self._platform.decoded_model["B_SOE"])
             == SunSpecNotImpl.FLOAT32
-            or float_to_hex(self._platform.decoded_model["B_SOE"]) == 0xFF7FFFFF
-            or float_to_hex(self._platform.decoded_model["B_SOE"]) == 0x7F7FFFFF
             or self._platform.decoded_model["B_SOE"] < 0
             or self._platform.decoded_model["B_SOE"] > 100
         ):
