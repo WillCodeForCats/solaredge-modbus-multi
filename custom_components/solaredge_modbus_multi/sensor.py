@@ -1775,8 +1775,9 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
         if (
             float_to_hex(self._platform.decoded_model["B_Energy_Max"])
             == SunSpecNotImpl.FLOAT32
-            or float_to_hex(self._platform.decoded_model["B_Energy_Max"]) == 0xFF7FFFFF
-            or float_to_hex(self._platform.decoded_model["B_Energy_Max"]) == 0x7F7FFFFF
+            or self._platform.decoded_model["B_Energy_Max"] < 0
+            or self._platform.decoded_model["B_Energy_Max"]
+            > self._platform.decoded_model["B_RatedEnergy"]
         ):
             return None
 
