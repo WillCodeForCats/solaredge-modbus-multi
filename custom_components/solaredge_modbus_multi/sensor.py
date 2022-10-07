@@ -34,6 +34,7 @@ from .const import (
     SUNSPEC_DID,
     SUNSPEC_SF_RANGE,
     VENDOR_STATUS,
+    BatteryLimit,
     SunSpecAccum,
     SunSpecNotImpl,
 )
@@ -1610,11 +1611,10 @@ class SolarEdgeBatteryVoltage(DCVoltage):
             if (
                 float_to_hex(self._platform.decoded_model["B_DC_Voltage"])
                 == SunSpecNotImpl.FLOAT32
-                or float_to_hex(self._platform.decoded_model["B_DC_Voltage"])
-                == 0xFF7FFFFF
-                or float_to_hex(self._platform.decoded_model["B_DC_Voltage"])
-                == 0x7F7FFFFF
+                or self._platform.decoded_model["B_DC_Voltage"] < BatteryLimit.Vmin
+                or self._platform.decoded_model["B_DC_Voltage"] > BatteryLimit.Vmax
             ):
+
                 return None
 
             elif self._platform.decoded_model["B_Status"] in [0]:
@@ -1634,10 +1634,8 @@ class SolarEdgeBatteryCurrent(DCCurrent):
             if (
                 float_to_hex(self._platform.decoded_model["B_DC_Current"])
                 == SunSpecNotImpl.FLOAT32
-                or float_to_hex(self._platform.decoded_model["B_DC_Current"])
-                == 0xFF7FFFFF
-                or float_to_hex(self._platform.decoded_model["B_DC_Current"])
-                == 0x7F7FFFFF
+                or self._platform.decoded_model["B_DC_Current"] < BatteryLimit.Amin
+                or self._platform.decoded_model["B_DC_Current"] > BatteryLimit.Amax
             ):
                 return None
 
