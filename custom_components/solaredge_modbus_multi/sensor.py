@@ -1715,7 +1715,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        _LOGGER.warning(
+                        _LOGGER.error(
                             ("B_Export_Energy_WH went backwards: ")(
                                 f"{self._platform.decoded_model['B_Export_Energy_WH']}"
                             )(f" < {self._last}")
@@ -1771,7 +1771,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        _LOGGER.warning(
+                        _LOGGER.error(
                             ("B_Export_Energy_WH went backwards: ")(
                                 f"{self._platform.decoded_model['B_Import_Energy_WH']}"
                             )(f" < {self._last}")
