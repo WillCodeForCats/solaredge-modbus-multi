@@ -204,6 +204,7 @@ async def async_setup_entry(
 
 class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
     should_poll = False
+    _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
         """Pass coordinator to CoordinatorEntity."""
@@ -246,7 +247,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Device"
+        return "Device"
 
     @property
     def native_value(self):
@@ -360,7 +361,7 @@ class SerialNumber(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Serial Number"
+        return "Serial Number"
 
     @property
     def native_value(self):
@@ -380,7 +381,7 @@ class Manufacturer(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Manufacturer"
+        return "Manufacturer"
 
     @property
     def native_value(self):
@@ -400,7 +401,7 @@ class Model(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Model"
+        return "Model"
 
     @property
     def native_value(self):
@@ -420,7 +421,7 @@ class Option(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Option"
+        return "Option"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -450,7 +451,7 @@ class Version(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Version"
+        return "Version"
 
     @property
     def native_value(self):
@@ -470,7 +471,7 @@ class DeviceAddress(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Device ID"
+        return "Device ID"
 
     @property
     def native_value(self):
@@ -490,7 +491,7 @@ class DeviceAddressParent(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Parent Device ID"
+        return "Parent Device ID"
 
     @property
     def native_value(self):
@@ -510,7 +511,7 @@ class SunspecDID(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Sunspec Device ID"
+        return "Sunspec Device ID"
 
     @property
     def native_value(self):
@@ -590,12 +591,9 @@ class ACCurrentSensor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC Current"
+            return "AC Current"
         else:
-            return (
-                f"{self._platform._device_info['name']} "
-                f"AC Current {self._phase.upper()}"
-            )
+            return f"AC Current {self._phase.upper()}"
 
     @property
     def native_value(self):
@@ -676,12 +674,9 @@ class VoltageSensor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC Voltage"
+            return "AC Voltage"
         else:
-            return (
-                f"{self._platform._device_info['name']} "
-                f"AC Voltage {self._phase.upper()}"
-            )
+            return f"AC Voltage {self._phase.upper()}"
 
     @property
     def native_value(self):
@@ -748,11 +743,9 @@ class ACPower(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC Power"
+            return "AC Power"
         else:
-            return (
-                f"{self._platform._device_info['name']} AC Power {self._phase.upper()}"
-            )
+            return f"AC Power {self._phase.upper()}"
 
     @property
     def native_value(self):
@@ -794,7 +787,7 @@ class ACFrequency(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} AC Frequency"
+        return "AC Frequency"
 
     @property
     def native_value(self):
@@ -841,9 +834,9 @@ class ACVoltAmp(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC VA"
+            return "AC VA"
         else:
-            return f"{self._platform._device_info['name']} AC VA {self._phase.upper()}"
+            return f"AC VA {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -895,9 +888,9 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC var"
+            return "AC var"
         else:
-            return f"{self._platform._device_info['name']} AC var {self._phase.upper()}"
+            return f"AC var {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -949,9 +942,9 @@ class ACPowerFactor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC PF"
+            return "AC PF"
         else:
-            return f"{self._platform._device_info['name']} AC PF {self._phase.upper()}"
+            return f"AC PF {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1052,12 +1045,9 @@ class ACEnergy(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return f"{self._platform._device_info['name']} AC Energy kWh"
+            return "AC Energy kWh"
         else:
-            return (
-                f"{self._platform._device_info['name']} "
-                f"{re.sub('_', ' ', self._phase)} kWh"
-            )
+            return f"{re.sub('_', ' ', self._phase)} kWh"
 
     @property
     def native_value(self):
@@ -1108,7 +1098,7 @@ class DCCurrent(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} DC Current"
+        return "DC Current"
 
     @property
     def native_value(self):
@@ -1150,7 +1140,7 @@ class DCVoltage(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} DC Voltage"
+        return "DC Voltage"
 
     @property
     def native_value(self):
@@ -1193,7 +1183,7 @@ class DCPower(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} DC Power"
+        return "DC Power"
 
     @property
     def native_value(self):
@@ -1231,7 +1221,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Temp Sink"
+        return "Temp Sink"
 
     @property
     def native_value(self):
@@ -1268,7 +1258,7 @@ class Status(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Status"
+        return "Status"
 
     @property
     def native_value(self):
@@ -1316,7 +1306,7 @@ class StatusVendor(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Status Vendor"
+        return "Status Vendor"
 
     @property
     def native_value(self):
@@ -1499,7 +1489,7 @@ class MeterEvents(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Meter Events"
+        return "Meter Events"
 
     @property
     def native_value(self):
@@ -1572,10 +1562,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform._device_info['name']} "
-                f"{re.sub('_', ' ', self._phase)} VAh"
-            )
+            return f"{re.sub('_', ' ', self._phase)} VAh"
 
     @property
     def native_value(self):
@@ -1649,10 +1636,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return (
-                f"{self._platform._device_info['name']} "
-                f"{re.sub('_', ' ', self._phase)} varh"
-            )
+            return f"{re.sub('_', ' ', self._phase)} varh"
 
     @property
     def native_value(self):
@@ -1692,7 +1676,7 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Average Temperature"
+        return "Average Temperature"
 
     @property
     def native_value(self):
@@ -1719,7 +1703,7 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Max Temperature"
+        return "Max Temperature"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1831,7 +1815,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Energy Export"
+        return "Energy Export"
 
     @property
     def native_value(self):
@@ -1870,7 +1854,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Energy Import"
+        return "Energy Import"
 
     @property
     def native_value(self):
@@ -1907,7 +1891,7 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Maximum Energy"
+        return "Maximum Energy"
 
     @property
     def native_value(self):
@@ -1939,7 +1923,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Available Energy"
+        return "Available Energy"
 
     @property
     def native_value(self):
@@ -1974,7 +1958,7 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} State of Health"
+        return "State of Health"
 
     @property
     def native_value(self):
@@ -2004,7 +1988,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} State of Energy"
+        return "State of Energy"
 
     @property
     def native_value(self):
