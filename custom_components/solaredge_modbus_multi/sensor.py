@@ -1470,7 +1470,8 @@ class SolarEdgeCosPhi(SolarEdgeSensorBase):
     def native_value(self):
         try:
             if (
-                self._platform.decoded_model["I_CosPhi"] == SunSpecNotImpl.FLOAT32
+                float_to_hex(self._platform.decoded_model["I_CosPhi"])
+                == SunSpecNotImpl.FLOAT32
                 or self._platform.decoded_model["I_CosPhi"] > 1.0
                 or self._platform.decoded_model["I_CosPhi"] < -1.0
                 or self._platform.global_power_control_block is not True
