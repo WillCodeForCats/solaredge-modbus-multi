@@ -1348,7 +1348,7 @@ class SolarEdgeRRCR(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} RRCR Status"
+        return "RRCR Status"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1410,7 +1410,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} Active Power Limit"
+        return "Active Power Limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1451,7 +1451,7 @@ class SolarEdgeCosPhi(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._platform._device_info['name']} CosPhi"
+        return "CosPhi"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
