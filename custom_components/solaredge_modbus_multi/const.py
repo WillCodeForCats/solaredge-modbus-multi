@@ -38,6 +38,15 @@ class SunSpecAccum(IntEnum):
     LIMIT32 = 0xFFFFFFFF
 
 
+class BatteryLimit(IntEnum):
+    Vmin = 0
+    Vmax = 600
+    Amin = -200
+    Amax = 200
+    Tmax = 100
+    Tmin = -30
+
+
 SUNSPEC_SF_RANGE = [
     -10,
     -9,

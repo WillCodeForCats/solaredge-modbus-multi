@@ -11,7 +11,7 @@ from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusExceptions
 
 from .const import DOMAIN, SunSpecNotImpl
-from .helpers import parse_modbus_string
+from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -278,8 +278,17 @@ class SolarEdgeModbusMultiHub:
             for battery in self.batteries:
                 await self._hass.async_add_executor_job(battery.read_modbus_data)
 
-        except Exception:
-            raise HubInitFailed("Devices not ready.")
+        except ModbusReadError as e:
+            self.disconnect()
+            raise HubInitFailed(f"Read error: {e}")
+
+        except DeviceInvalid as e:
+            self.disconnect()
+            raise HubInitFailed(f"Invalid device: {e}")
+
+        except ConnectionException as e:
+            self.disconnect()
+            raise HubInitFailed(f"Connection failed: {e}")
 
         self.initalized = True
 
@@ -390,7 +399,7 @@ class SolarEdgeInverter:
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise ModbusReadError(inverter_data)
+            raise DeviceInvalid(f"Inverter ID {self.inverter_unit_id} not found.")
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -417,7 +426,7 @@ class SolarEdgeInverter:
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
-            raise DeviceInvalid("Inverter {self.inverter_unit_id} not usable.")
+            raise DeviceInvalid("Inverter ID {self.inverter_unit_id} not usable.")
 
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40004, count=65
@@ -996,12 +1005,21 @@ class SolarEdgeBattery:
         )
 
         for name, value in iter(self.decoded_common.items()):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
+            if isinstance(value, float):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {float_to_hex(value)}"
+                    ),
+                )
+
+            else:
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
+                )
 
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
@@ -1093,12 +1111,21 @@ class SolarEdgeBattery:
         )
 
         for name, value in iter(self.decoded_model.items()):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
+            if isinstance(value, float):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {float_to_hex(value)}"
+                    ),
+                )
+
+            else:
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
+                )
 
     @property
     def online(self) -> bool:

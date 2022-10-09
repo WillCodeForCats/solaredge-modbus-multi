@@ -10,6 +10,8 @@ assignees: ''
 Before reporting a bug, make sure your configuration is correct and your LAN is working.
 https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
 
+Do not ask for setup help: setup is not a "bug". Post help requests in one of the community support options.
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
@@ -29,8 +31,9 @@ logger:
     default: warning
     logs:
         custom_components.solaredge_modbus_multi: debug
-        pymodbus.client.sync: debug
+        #pymodbus: debug #only if needed
 ```
+Debug logging will generate a large amount of data: it is recommended to configure it, collect the data needed, then remove debug logging during normal operation.
 
 **Home Assistant (please complete the following information):**
  - Home Assistant Core Version:
