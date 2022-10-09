@@ -1757,7 +1757,7 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
             == SunSpecNotImpl.FLOAT32
             or self._platform.decoded_model["B_Energy_Max"] < 0
             or self._platform.decoded_model["B_Energy_Max"]
-            > self._platform.decoded_model["B_RatedEnergy"]
+            > self._platform.decoded_common["B_RatedEnergy"]
         ):
             return None
 
@@ -1789,7 +1789,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             == SunSpecNotImpl.FLOAT32
             or self._platform.decoded_model["B_Energy_Available"] < 0
             or self._platform.decoded_model["B_Energy_Available"]
-            > self._platform.decoded_model["B_RatedEnergy"]
+            > self._platform.decoded_common["B_RatedEnergy"]
         ):
             return None
 
