@@ -256,7 +256,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
         try:
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxChargePeakPower"])
-                != "0xff7fffff"
+                != hex(SunSpecNotImpl.FLOAT32)
                 and self._platform.decoded_common["B_MaxChargePeakPower"] > 0
             ):
                 attrs["batt_charge_peak"] = self._platform.decoded_common[
@@ -265,7 +265,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxDischargePeakPower"])
-                != "0xff7fffff"
+                != hex(SunSpecNotImpl.FLOAT32)
                 and self._platform.decoded_common["B_MaxDischargePeakPower"] > 0
             ):
                 attrs["batt_discharge_peak"] = self._platform.decoded_common[
@@ -274,7 +274,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxChargePower"])
-                != "0xff7fffff"
+                != hex(SunSpecNotImpl.FLOAT32)
                 and self._platform.decoded_common["B_MaxChargePower"] > 0
             ):
                 attrs["batt_max_charge"] = self._platform.decoded_common[
@@ -283,7 +283,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxDischargePower"])
-                != "0xff7fffff"
+                != hex(SunSpecNotImpl.FLOAT32)
                 and self._platform.decoded_common["B_MaxDischargePower"] > 0
             ):
                 attrs["batt_max_discharge"] = self._platform.decoded_common[
@@ -292,7 +292,7 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_RatedEnergy"])
-                != "0xff7fffff"
+                != hex(SunSpecNotImpl.FLOAT32)
                 and self._platform.decoded_common["B_RatedEnergy"] > 0
             ):
                 attrs["batt_rated_energy"] = self._platform.decoded_common[
