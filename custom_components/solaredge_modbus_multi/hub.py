@@ -139,7 +139,7 @@ class SolarEdgeModbusMultiHub:
             except DeviceInvalid as e:
                 """Inverters are required"""
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
-                raise HubInitFailed(f"Inverter device ID {inverter_unit_id} not found.")
+                raise HubInitFailed(f"{e}")
 
             if self._detect_meters:
                 try:
