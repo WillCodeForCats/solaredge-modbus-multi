@@ -7,13 +7,9 @@ from homeassistant.core import HomeAssistant
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
-from pymodbus.exceptions import (
-    ConnectionException,
-    ExceptionResponse,
-    ModbusIOException,
-)
+from pymodbus.exceptions import ConnectionException, ModbusIOException
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.pdu import ModbusExceptions
+from pymodbus.pdu import ExceptionResponse, ModbusExceptions
 
 from .const import DOMAIN, SunSpecNotImpl
 from .helpers import parse_modbus_string
