@@ -3,7 +3,7 @@ import struct
 
 def scale_factor(value: int, sf: int):
     try:
-        return value * (10 ** sf)
+        return value * (10**sf)
     except ZeroDivisionError:
         return 0
 
