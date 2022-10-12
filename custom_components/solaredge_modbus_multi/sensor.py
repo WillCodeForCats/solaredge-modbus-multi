@@ -256,7 +256,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
         try:
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxChargePeakPower"])
-                != 0xFF7FFFFF
+                != hex(SunSpecNotImpl.FLOAT32)
+                and self._platform.decoded_common["B_MaxChargePeakPower"] > 0
             ):
                 attrs["batt_charge_peak"] = self._platform.decoded_common[
                     "B_MaxChargePeakPower"
@@ -264,7 +265,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxDischargePeakPower"])
-                != 0xFF7FFFFF
+                != hex(SunSpecNotImpl.FLOAT32)
+                and self._platform.decoded_common["B_MaxDischargePeakPower"] > 0
             ):
                 attrs["batt_discharge_peak"] = self._platform.decoded_common[
                     "B_MaxDischargePeakPower"
@@ -272,7 +274,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxChargePower"])
-                != 0xFF7FFFFF
+                != hex(SunSpecNotImpl.FLOAT32)
+                and self._platform.decoded_common["B_MaxChargePower"] > 0
             ):
                 attrs["batt_max_charge"] = self._platform.decoded_common[
                     "B_MaxChargePower"
@@ -280,7 +283,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_MaxDischargePower"])
-                != 0xFF7FFFFF
+                != hex(SunSpecNotImpl.FLOAT32)
+                and self._platform.decoded_common["B_MaxDischargePower"] > 0
             ):
                 attrs["batt_max_discharge"] = self._platform.decoded_common[
                     "B_MaxDischargePower"
@@ -288,7 +292,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
             if (
                 float_to_hex(self._platform.decoded_common["B_RatedEnergy"])
-                != 0xFF7FFFFF
+                != hex(SunSpecNotImpl.FLOAT32)
+                and self._platform.decoded_common["B_RatedEnergy"] > 0
             ):
                 attrs["batt_rated_energy"] = self._platform.decoded_common[
                     "B_RatedEnergy"
@@ -1540,7 +1545,7 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
         try:
             if (
                 float_to_hex(self._platform.decoded_model["B_Temp_Average"])
-                == SunSpecNotImpl.FLOAT32
+                == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["B_Temp_Average"] < BatteryLimit.Tmin
                 or self._platform.decoded_model["B_Temp_Average"] > BatteryLimit.Tmax
             ):
@@ -1571,7 +1576,7 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
         try:
             if (
                 float_to_hex(self._platform.decoded_model["B_Temp_Max"])
-                == SunSpecNotImpl.FLOAT32
+                == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["B_Temp_Max"] < BatteryLimit.Tmin
                 or self._platform.decoded_model["B_Temp_Max"] > BatteryLimit.Tmax
             ):
@@ -1590,7 +1595,7 @@ class SolarEdgeBatteryVoltage(DCVoltage):
         try:
             if (
                 float_to_hex(self._platform.decoded_model["B_DC_Voltage"])
-                == SunSpecNotImpl.FLOAT32
+                == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["B_DC_Voltage"] < BatteryLimit.Vmin
                 or self._platform.decoded_model["B_DC_Voltage"] > BatteryLimit.Vmax
             ):
@@ -1613,7 +1618,7 @@ class SolarEdgeBatteryCurrent(DCCurrent):
         try:
             if (
                 float_to_hex(self._platform.decoded_model["B_DC_Current"])
-                == SunSpecNotImpl.FLOAT32
+                == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["B_DC_Current"] < BatteryLimit.Amin
                 or self._platform.decoded_model["B_DC_Current"] > BatteryLimit.Amax
             ):
@@ -1637,11 +1642,11 @@ class SolarEdgeBatteryPower(DCPower):
         try:
             if (
                 float_to_hex(self._platform.decoded_model["B_DC_Power"])
-                == SunSpecNotImpl.FLOAT32
+                == hex(SunSpecNotImpl.FLOAT32)
                 or float_to_hex(self._platform.decoded_model["B_DC_Power"])
-                == 0xFF7FFFFF
+                == "0xff7fffff"
                 or float_to_hex(self._platform.decoded_model["B_DC_Power"])
-                == 0x7F7FFFFF
+                == "0x7f7fffff"
             ):
                 return None
 
@@ -1754,10 +1759,10 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     def native_value(self):
         if (
             float_to_hex(self._platform.decoded_model["B_Energy_Max"])
-            == SunSpecNotImpl.FLOAT32
+            == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Max"] < 0
             or self._platform.decoded_model["B_Energy_Max"]
-            > self._platform.decoded_model["B_RatedEnergy"]
+            > self._platform.decoded_common["B_RatedEnergy"]
         ):
             return None
 
@@ -1786,10 +1791,10 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     def native_value(self):
         if (
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
-            == SunSpecNotImpl.FLOAT32
+            == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
             or self._platform.decoded_model["B_Energy_Available"]
-            > self._platform.decoded_model["B_RatedEnergy"]
+            > self._platform.decoded_common["B_RatedEnergy"]
         ):
             return None
 
@@ -1821,7 +1826,7 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
     def native_value(self):
         if (
             float_to_hex(self._platform.decoded_model["B_SOH"])
-            == SunSpecNotImpl.FLOAT32
+            == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_SOH"] < 0
             or self._platform.decoded_model["B_SOH"] > 100
         ):
@@ -1851,7 +1856,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
     def native_value(self):
         if (
             float_to_hex(self._platform.decoded_model["B_SOE"])
-            == SunSpecNotImpl.FLOAT32
+            == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_SOE"] < 0
             or self._platform.decoded_model["B_SOE"] > 100
         ):
