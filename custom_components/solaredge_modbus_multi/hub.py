@@ -4,7 +4,7 @@ from collections import OrderedDict
 from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
-from pymodbus.client.sync import ModbusTcpClient
+from pymodbus.client import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
@@ -380,7 +380,7 @@ class SolarEdgeModbusMultiHub:
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
         with self._lock:
-            kwargs = {"unit": unit} if unit else {}
+            kwargs = {"slave": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
 
