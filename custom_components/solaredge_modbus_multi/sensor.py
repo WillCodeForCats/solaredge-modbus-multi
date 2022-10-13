@@ -1700,8 +1700,9 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                     else:
                         _LOGGER.warning(
                             ("B_Export_Energy_WH went backwards: ")(
-                                f"{self._platform.decoded_model['B_Export_Energy_WH']}"
-                            )(f" < {self._last}")
+                                f"{self._platform.decoded_model['B_Export_Energy_WH']} "
+                                f"< {self._last}"
+                            )
                         ),
 
                         if self._platform.decoded_model["B_Export_Energy_WH"] == 0x0:
@@ -1756,8 +1757,9 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                     else:
                         _LOGGER.warning(
                             ("B_Export_Energy_WH went backwards: ")(
-                                f"{self._platform.decoded_model['B_Import_Energy_WH']}"
-                            )(f" < {self._last}")
+                                f"{self._platform.decoded_model['B_Import_Energy_WH']} "
+                                f"< {self._last}"
+                            )
                         ),
 
                         if self._platform.decoded_model["B_Import_Energy_WH"] == 0x0:
