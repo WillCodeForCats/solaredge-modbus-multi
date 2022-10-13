@@ -7,9 +7,9 @@ from homeassistant.core import HomeAssistant
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.compat import iteritems
 from pymodbus.constants import Endian
-from pymodbus.exceptions import ConnectionException
+from pymodbus.exceptions import ConnectionException, ModbusIOException
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.pdu import ModbusExceptions
+from pymodbus.pdu import ExceptionResponse, ModbusExceptions
 
 from .const import DOMAIN, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
@@ -135,7 +135,7 @@ class SolarEdgeModbusMultiHub:
             except DeviceInvalid as e:
                 """Inverters are required"""
                 _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
-                raise HubInitFailed(f"Inverter device ID {inverter_unit_id} not found.")
+                raise HubInitFailed(f"{e}")
 
             if self._detect_meters:
                 try:
@@ -401,7 +401,22 @@ class SolarEdgeInverter:
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise DeviceInvalid(f"Inverter ID {self.inverter_unit_id} not found.")
+
+            if type(inverter_data) is ModbusIOException:
+                raise DeviceInvalid(
+                    f"No response from inverter ID {self.inverter_unit_id}"
+                )
+
+            elif type(inverter_data) is ExceptionResponse:
+                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                    raise DeviceInvalid(
+                        f"ID {self.inverter_unit_id} is not a SunSpec inverter."
+                    )
+                else:
+                    raise ModbusReadError(inverter_data)
+
+            else:
+                raise ModbusReadError(inverter_data)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -424,11 +439,15 @@ class SolarEdgeInverter:
             )
 
         if (
-            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+            decoded_ident["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
+            or decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+            or decoded_ident["C_SunSpec_ID"] != 0x53756E53
             or decoded_ident["C_SunSpec_DID"] != 0x0001
             or decoded_ident["C_SunSpec_Length"] != 65
         ):
-            raise DeviceInvalid("Inverter ID {self.inverter_unit_id} not usable.")
+            raise DeviceInvalid(
+                f"ID {self.inverter_unit_id} is not a SunSpec inverter."
+            )
 
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40004, count=65
