@@ -192,6 +192,13 @@ BATTERY_STATUS = {
     7: "Idle",
 }
 
+RRCR_STATUS = {
+    3: "L1",
+    2: "L2",
+    1: "L3",
+    0: "L4",
+}
+
 MMPPT_EVENTS = {
     0: "GROUND_FAULT",
     1: "INPUT_OVER_VOLTAGE",
