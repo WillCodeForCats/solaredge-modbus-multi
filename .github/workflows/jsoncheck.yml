@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  json:
     name: JSON Action
     runs-on: ubuntu-latest
     steps:
