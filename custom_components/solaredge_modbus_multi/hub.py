@@ -393,6 +393,7 @@ class SolarEdgeInverter:
         self.decoded_model = []
         self.decoded_mmppt = []
         self.has_parent = False
+        self.global_power_control_block = None
 
     def init_device(self) -> None:
         inverter_data = self.hub.read_holding_registers(
@@ -644,6 +645,44 @@ class SolarEdgeInverter:
                 ("I_Status_Vendor", decoder.decode_16bit_int()),
             ]
         )
+
+        if (
+            self.global_power_control_block is True
+            or self.global_power_control_block is None
+        ):
+            inverter_data = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=61440, count=4
+            )
+            if inverter_data.isError():
+                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                    self.global_power_control_block = False
+                    _LOGGER.debug(
+                        (
+                            f"Inverter {self.inverter_unit_id}: "
+                            "global power control block NOT available"
+                        )
+                    )
+                else:
+                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+                    raise ModbusReadError(inverter_data)
+
+            else:
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.Big,
+                    wordorder=Endian.Little,
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("I_RRCR", decoder.decode_16bit_uint()),
+                            ("I_Power_Limit", decoder.decode_16bit_uint()),
+                            ("I_CosPhi", decoder.decode_32bit_float()),
+                        ]
+                    )
+                )
+                self.global_power_control_block = True
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(
