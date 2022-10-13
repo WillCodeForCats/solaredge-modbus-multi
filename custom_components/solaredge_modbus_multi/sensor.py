@@ -1890,7 +1890,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
     def native_value(self):
         if (
             float_to_hex(self._platform.decoded_model["B_SOE"])
-            == SunSpecNotImpl.FLOAT32
+            == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_SOE"] < 0
             or self._platform.decoded_model["B_SOE"] > 100
         ):
