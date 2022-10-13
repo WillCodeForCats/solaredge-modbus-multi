@@ -1342,7 +1342,24 @@ class StatusVendor(SolarEdgeSensorBase):
             return None
 
 
-class SolarEdgeRRCR(SolarEdgeSensorBase):
+class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def available(self) -> bool:
+        if (
+            self._platform.global_power_control_block is not True
+            or self._platform.online is not True
+        ):
+            return False
+
+        else:
+            return True
+
+
+class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
@@ -1368,7 +1385,6 @@ class SolarEdgeRRCR(SolarEdgeSensorBase):
             if (
                 self._platform.decoded_model["I_RRCR"] == SunSpecNotImpl.UINT16
                 or self._platform.decoded_model["I_RRCR"] > 0xF
-                or self._platform.global_power_control_block is not True
             ):
                 return None
 
@@ -1400,7 +1416,7 @@ class SolarEdgeRRCR(SolarEdgeSensorBase):
             return None
 
 
-class SolarEdgeActivePowerLimit(SolarEdgeSensorBase):
+class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
     icon = "mdi:percent"
@@ -1431,7 +1447,6 @@ class SolarEdgeActivePowerLimit(SolarEdgeSensorBase):
                 self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
                 or self._platform.decoded_model["I_Power_Limit"] > 100
                 or self._platform.decoded_model["I_Power_Limit"] < 0
-                or self._platform.global_power_control_block is not True
             ):
                 return None
 
@@ -1442,7 +1457,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeSensorBase):
             return None
 
 
-class SolarEdgeCosPhi(SolarEdgeSensorBase):
+class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
     state_class = SensorStateClass.MEASUREMENT
     icon = "mdi:angle-acute"
 
@@ -1470,7 +1485,6 @@ class SolarEdgeCosPhi(SolarEdgeSensorBase):
                 == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["I_CosPhi"] > 1.0
                 or self._platform.decoded_model["I_CosPhi"] < -1.0
-                or self._platform.global_power_control_block is not True
             ):
                 return None
 
