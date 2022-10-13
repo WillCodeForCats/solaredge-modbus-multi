@@ -22,7 +22,7 @@ on:
 
 jobs:
   analyze:
-    name: CodeQL Action
+    name: Analyze
     runs-on: ubuntu-latest
     permissions:
       actions: read
