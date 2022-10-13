@@ -10,7 +10,6 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: Python Code Quality Action
     steps:
       - uses: actions/checkout@v3
       - uses: WillCodeForCats/python-lint-action@v1.0.0
