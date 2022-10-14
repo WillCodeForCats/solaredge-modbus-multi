@@ -563,7 +563,7 @@ class SolarEdgeInverter:
         self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
         mmppt_common = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=40121, count=10
+            unit=self.inverter_unit_id, address=40121, count=9
         )
         if mmppt_common.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {mmppt_common}")
@@ -592,15 +592,12 @@ class SolarEdgeInverter:
                 [
                     ("mmppt_DID", decoder.decode_16bit_uint()),
                     ("mmppt_Length", decoder.decode_16bit_uint()),
-                    ("mmppt_DCA_SF", decoder.decode_16bit_int()),
-                    ("mmppt_DCV_SF", decoder.decode_16bit_int()),
-                    ("mmppt_DCW_SF", decoder.decode_16bit_int()),
-                    ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
-                    ("mmppt_Events", decoder.decode_32bit_uint()),
+                    ("ignore", decoder.skip_bytes(12)),
                     ("mmppt_Units", decoder.decode_16bit_uint()),
-                    ("mmppt_TmsPer", decoder.decode_16bit_uint()),
                 ]
             )
+
+            del self.decoded_mmppt["ignore"]
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
