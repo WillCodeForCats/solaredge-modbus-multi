@@ -384,6 +384,35 @@ class SolarEdgeModbusMultiHub:
             kwargs = {"unit": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
+    async def write_holding_registers(self, unit, address, data):
+        """Write holding registers."""
+        if not self.initalized:
+            raise ModbusWriteError("Integration is not initalized")
+
+        if not self.is_socket_open():
+            await self.connect()
+
+        if not self.is_socket_open():
+            self.online = False
+            raise ModbusWriteError(
+                f"Could not open Modbus/TCP connection to {self._host}"
+            )
+
+        try:
+            with self._lock:
+                kwargs = {"unit": unit} if unit else {}
+                return await self._hass.async_add_executor_job(
+                    self._client.write_registers(address, data, **kwargs)
+                )
+
+        except ConnectionException as e:
+            self.online = False
+            self.disconnect()
+            raise ModbusWriteError(f"Write failed: {e}")
+
+        if not self.keep_modbus_open:
+            self.disconnect()
+
 
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
