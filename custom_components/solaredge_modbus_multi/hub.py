@@ -712,41 +712,37 @@ class SolarEdgeInverter:
                 self.global_power_control = True
 
         """ Advanced Power Control """
-        inverter_data = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=61762, count=2
-        )
-        if inverter_data.isError():
-            if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                self.advanced_power_control = None
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id}: "
-                        "advanced power control NOT available"
+        if self.advanced_power_control is True or self.advanced_power_control is None:
+            inverter_data = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=61762, count=2
+            )
+            if inverter_data.isError():
+                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                    self.advanced_power_control = False
+                    _LOGGER.debug(
+                        (
+                            f"Inverter {self.inverter_unit_id}: "
+                            "advanced power control NOT available"
+                        )
+                    )
+
+                else:
+                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+                    raise ModbusReadError(inverter_data)
+
+            else:
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers, byteorder=Endian.Big
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("I_AdvPwrCtrlEn", decoder.decode_32bit_int()),
+                        ]
                     )
                 )
-
-            else:
-                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-                raise ModbusReadError(inverter_data)
-
-        else:
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.Big
-            )
-
-            self.decoded_model.update(
-                OrderedDict(
-                    [
-                        ("I_AdvPwrCtrlEn", decoder.decode_32bit_int()),
-                    ]
-                )
-            )
-
-            if self.decoded_model["I_AdvPwrCtrlEn"] == 1:
                 self.advanced_power_control = True
-
-            else:
-                self.advanced_power_control = False
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(
