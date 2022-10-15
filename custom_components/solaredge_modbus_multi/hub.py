@@ -422,8 +422,8 @@ class SolarEdgeInverter:
         self.decoded_model = []
         self.decoded_mmppt = []
         self.has_parent = False
-        self.global_power_control_block = None
-        self.advanced_power_control_enabled = None
+        self.global_power_control = None
+        self.advanced_power_control = None
 
     def init_device(self) -> None:
         inverter_data = self.hub.read_holding_registers(
@@ -676,16 +676,13 @@ class SolarEdgeInverter:
             ]
         )
 
-        if (
-            self.global_power_control_block is True
-            or self.global_power_control_block is None
-        ):
+        if self.global_power_control is True or self.global_power_control is None:
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=61440, count=4
             )
             if inverter_data.isError():
                 if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                    self.global_power_control_block = False
+                    self.global_power_control = False
                     _LOGGER.debug(
                         (
                             f"Inverter {self.inverter_unit_id}: "
@@ -712,7 +709,7 @@ class SolarEdgeInverter:
                         ]
                     )
                 )
-                self.global_power_control_block = True
+                self.global_power_control = True
 
         """ Advanced Power Control """
         inverter_data = self.hub.read_holding_registers(
@@ -720,7 +717,7 @@ class SolarEdgeInverter:
         )
         if inverter_data.isError():
             if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                self.advanced_power_control_enabled = None
+                self.advanced_power_control = None
                 _LOGGER.debug(
                     (
                         f"Inverter {self.inverter_unit_id}: "
@@ -746,10 +743,10 @@ class SolarEdgeInverter:
             )
 
             if self.decoded_model["I_AdvPwrCtrlEn"] == 1:
-                self.advanced_power_control_enabled = True
+                self.advanced_power_control = True
 
             else:
-                self.advanced_power_control_enabled = False
+                self.advanced_power_control = False
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(
