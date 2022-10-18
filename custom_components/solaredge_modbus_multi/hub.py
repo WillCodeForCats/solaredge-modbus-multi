@@ -364,6 +364,10 @@ class SolarEdgeModbusMultiHub:
 
         _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
+    @property
+    def coordinator_timeout(self) -> int:
+        return 30
+
     def disconnect(self) -> None:
         """Disconnect modbus client."""
         with self._lock:
