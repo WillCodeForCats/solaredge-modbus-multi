@@ -86,7 +86,10 @@ class SolarEdgeModbusMultiHub:
         self._keep_modbus_open = keep_modbus_open
         self._lock = threading.Lock()
         self._id = name.lower()
+        self._coordinator_timeout = 30
         self._client = None
+        self._id = name.lower()
+        self._lock = threading.Lock()
         self.inverters = []
         self.meters = []
         self.batteries = []
@@ -366,7 +369,8 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def coordinator_timeout(self) -> int:
-        return 30
+        _LOGGER.debug(f"coordinator timeout is {self._coordinator_timeout}")
+        return self._coordinator_timeout
 
     def disconnect(self) -> None:
         """Disconnect modbus client."""
