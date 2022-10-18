@@ -683,7 +683,7 @@ class SolarEdgeInverter:
                 )
                 self.global_power_control_block = True
 
-        for name, value in iteritems(self.decoded_model):
+        for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
