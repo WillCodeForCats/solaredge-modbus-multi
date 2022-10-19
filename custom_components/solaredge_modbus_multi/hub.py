@@ -356,7 +356,7 @@ class SolarEdgeModbusMultiHub:
         return self._keep_modbus_open
 
     @keep_modbus_open.setter
-    def keep_modbus_open(self, value: bool) -> bool:
+    def keep_modbus_open(self, value: bool) -> None:
         if value is True:
             self._keep_modbus_open = True
         else:
