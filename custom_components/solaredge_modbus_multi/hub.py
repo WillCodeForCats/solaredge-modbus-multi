@@ -83,7 +83,7 @@ class SolarEdgeModbusMultiHub:
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
-        self.keep_modbus_open = keep_modbus_open
+        self._keep_modbus_open = keep_modbus_open
         self._lock = threading.Lock()
         self._id = name.lower()
         self._client = None
@@ -104,7 +104,7 @@ class SolarEdgeModbusMultiHub:
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
                 f"single_device_entity={self._single_device_entity}, "
-                f"keep_modbus_open={self.keep_modbus_open}, "
+                f"keep_modbus_open={self._keep_modbus_open}, "
             ),
         )
 
@@ -328,7 +328,7 @@ class SolarEdgeModbusMultiHub:
 
             except DeviceInvalid as e:
                 self.online = False
-                if not self.keep_modbus_open:
+                if not self._keep_modbus_open:
                     self.disconnect()
                 raise DataUpdateFailed(f"Invalid device: {e}")
 
@@ -337,7 +337,7 @@ class SolarEdgeModbusMultiHub:
                 self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
-        if not self.keep_modbus_open:
+        if not self._keep_modbus_open:
             self.disconnect()
 
         return True
@@ -350,6 +350,19 @@ class SolarEdgeModbusMultiHub:
     @property
     def hub_id(self) -> str:
         return self._id
+
+    @property
+    def keep_modbus_open(self) -> bool:
+        return self._keep_modbus_open
+
+    @keep_modbus_open.setter
+    def keep_modbus_open(self, value: bool) -> None:
+        if value is True:
+            self._keep_modbus_open = True
+        else:
+            self._keep_modbus_open = False
+
+        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
     def disconnect(self) -> None:
         """Disconnect modbus client."""
