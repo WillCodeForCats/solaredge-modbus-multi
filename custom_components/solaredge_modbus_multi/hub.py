@@ -83,7 +83,7 @@ class SolarEdgeModbusMultiHub:
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._single_device_entity = single_device_entity
-        self.keep_modbus_open = keep_modbus_open
+        self._keep_modbus_open = keep_modbus_open
         self._lock = threading.Lock()
         self._id = name.lower()
         self._client = None
@@ -104,7 +104,7 @@ class SolarEdgeModbusMultiHub:
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
                 f"single_device_entity={self._single_device_entity}, "
-                f"keep_modbus_open={self.keep_modbus_open}, "
+                f"keep_modbus_open={self._keep_modbus_open}, "
             ),
         )
 
@@ -328,7 +328,7 @@ class SolarEdgeModbusMultiHub:
 
             except DeviceInvalid as e:
                 self.online = False
-                if not self.keep_modbus_open:
+                if not self._keep_modbus_open:
                     self.disconnect()
                 raise DataUpdateFailed(f"Invalid device: {e}")
 
@@ -337,7 +337,7 @@ class SolarEdgeModbusMultiHub:
                 self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
-        if not self.keep_modbus_open:
+        if not self._keep_modbus_open:
             self.disconnect()
 
         return True
@@ -350,6 +350,19 @@ class SolarEdgeModbusMultiHub:
     @property
     def hub_id(self) -> str:
         return self._id
+
+    @property
+    def keep_modbus_open(self) -> bool:
+        return self._keep_modbus_open
+
+    @keep_modbus_open.setter
+    def keep_modbus_open(self, value: bool) -> None:
+        if value is True:
+            self._keep_modbus_open = True
+        else:
+            self._keep_modbus_open = False
+
+        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
     def disconnect(self) -> None:
         """Disconnect modbus client."""
@@ -393,6 +406,8 @@ class SolarEdgeInverter:
         self.decoded_model = []
         self.decoded_mmppt = []
         self.has_parent = False
+        self.global_power_control = None
+        self.advanced_power_control = None
 
     def init_device(self) -> None:
         inverter_data = self.hub.read_holding_registers(
@@ -644,6 +659,74 @@ class SolarEdgeInverter:
                 ("I_Status_Vendor", decoder.decode_16bit_int()),
             ]
         )
+
+        if self.global_power_control is True or self.global_power_control is None:
+            inverter_data = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=61440, count=4
+            )
+            if inverter_data.isError():
+                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                    self.global_power_control = False
+                    _LOGGER.debug(
+                        (
+                            f"Inverter {self.inverter_unit_id}: "
+                            "global power control NOT available"
+                        )
+                    )
+                else:
+                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+                    raise ModbusReadError(inverter_data)
+
+            else:
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.Big,
+                    wordorder=Endian.Little,
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("I_RRCR", decoder.decode_16bit_uint()),
+                            ("I_Power_Limit", decoder.decode_16bit_uint()),
+                            ("I_CosPhi", decoder.decode_32bit_float()),
+                        ]
+                    )
+                )
+                self.global_power_control = True
+
+        """ Advanced Power Control """
+        if self.advanced_power_control is True or self.advanced_power_control is None:
+            inverter_data = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=61762, count=2
+            )
+            if inverter_data.isError():
+                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                    self.advanced_power_control = False
+                    _LOGGER.debug(
+                        (
+                            f"Inverter {self.inverter_unit_id}: "
+                            "advanced power control NOT available"
+                        )
+                    )
+
+                else:
+                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+                    raise ModbusReadError(inverter_data)
+
+            else:
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers, byteorder=Endian.Big
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("I_AdvPwrCtrlEn", decoder.decode_32bit_int()),
+                        ]
+                    )
+                )
+                self.advanced_power_control = True
 
         for name, value in iteritems(self.decoded_model):
             _LOGGER.debug(
