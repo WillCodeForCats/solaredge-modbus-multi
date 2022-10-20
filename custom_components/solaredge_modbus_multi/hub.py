@@ -398,7 +398,8 @@ class SolarEdgeModbusMultiHub:
 
     async def disconnect(self) -> None:
         """Disconnect modbus client."""
-        await self._hass.async_add_executor_job(self._client.close())
+        if self._client is not None:
+            await self._hass.async_add_executor_job(self._client.close)
 
     async def connect(self) -> None:
         """Connect modbus client."""
