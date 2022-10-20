@@ -1350,7 +1350,7 @@ class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
     @property
     def available(self) -> bool:
         if (
-            self._platform.global_power_control_block is not True
+            self._platform.global_power_control is not True
             or self._platform.online is not True
         ):
             return False
@@ -1374,7 +1374,7 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.global_power_control_block is True:
+        if self._platform.global_power_control is True:
             return True
         else:
             return False
@@ -1435,7 +1435,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.global_power_control_block is True:
+        if self._platform.global_power_control is True:
             return True
         else:
             return False
