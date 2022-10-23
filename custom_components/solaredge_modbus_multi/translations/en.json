@@ -35,8 +35,17 @@
           "single_device_entity": "Single Device Entity",
           "keep_modbus_open": "Keep Modbus Connection Open",
           "detect_meters": "Auto-Detect Meters",
-          "detect_batteries": "Auto-Detect Batteries"
-       }
+          "detect_batteries": "Auto-Detect Batteries",
+          "advanced_power_control": "Advanced Power Control"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Advanced Power Control",
+        "data": {
+          "adv_storedge_control": "StorEdge Control",
+          "adv_export_control": "Export Limit Control"   
+        },
+        "description": "Warning: These options can violate your interconnect agreement, alter your utility billing, and may require special equipment provisioning from SolarEdge or your installer. Use at your own risk!"
       }
     },
     "error": {
