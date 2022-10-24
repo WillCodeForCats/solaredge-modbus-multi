@@ -3,10 +3,10 @@
   "name": "SolarEdge Modbus Multi Device",
   "documentation": "https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki",
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
-  "requirements": ["pymodbus==2.5.3"],
+  "requirements": ["pymodbus==3.0.0"],
   "dependencies": [],
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
   "iot_class": "local_polling",
-  "version": "v2.2.6-pre.1"
+  "version": "v2.2.6-pre.3"
 }

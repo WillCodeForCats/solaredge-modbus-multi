@@ -4,8 +4,7 @@ from collections import OrderedDict
 from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
-from pymodbus.client.sync import ModbusTcpClient
-from pymodbus.compat import iteritems
+from pymodbus.client import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ConnectionException, ModbusIOException
 from pymodbus.payload import BinaryPayloadDecoder
@@ -402,7 +401,7 @@ class SolarEdgeModbusMultiHub:
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
         with self._lock:
-            kwargs = {"unit": unit} if unit else {}
+            kwargs = {"slave": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
 
@@ -452,7 +451,7 @@ class SolarEdgeInverter:
             ]
         )
 
-        for name, value in iteritems(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -499,7 +498,7 @@ class SolarEdgeInverter:
             ]
         )
 
-        for name, value in iteritems(self.decoded_common):
+        for name, value in iter(self.decoded_common.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -541,7 +540,7 @@ class SolarEdgeInverter:
                 ]
             )
 
-            for name, value in iteritems(self.decoded_mmppt):
+            for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
                     (
                         f"Inverter {self.inverter_unit_id} MMPPT: "
@@ -599,7 +598,7 @@ class SolarEdgeInverter:
             ]
         )
 
-        for name, value in iteritems(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -736,7 +735,7 @@ class SolarEdgeInverter:
                 )
                 self.advanced_power_control = True
 
-        for name, value in iteritems(self.decoded_model):
+        for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id}: "
@@ -821,7 +820,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iteritems(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -865,7 +864,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iteritems(self.decoded_common):
+        for name, value in iter(self.decoded_common.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -920,7 +919,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iteritems(decoded_ident):
+        for name, value in iter(decoded_ident.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -1028,7 +1027,7 @@ class SolarEdgeMeter:
             ]
         )
 
-        for name, value in iteritems(self.decoded_model):
+        for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
@@ -1115,7 +1114,7 @@ class SolarEdgeBattery:
             ]
         )
 
-        for name, value in iteritems(self.decoded_common):
+        for name, value in iter(self.decoded_common.items()):
             if isinstance(value, float):
                 _LOGGER.debug(
                     (
@@ -1221,7 +1220,7 @@ class SolarEdgeBattery:
             ]
         )
 
-        for name, value in iteritems(self.decoded_model):
+        for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
                 _LOGGER.debug(
                     (
