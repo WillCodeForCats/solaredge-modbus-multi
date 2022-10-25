@@ -211,9 +211,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_adv_pwr_ctl(self, user_input=None) -> FlowResult:
         """Advanced Power Control"""
         errors = {}
-        agree = {True: "Enable", False: "Disable"}
 
-        """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(
                 title="", data={**self.init_info, **user_input}
@@ -236,11 +234,11 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Required(
                         CONF_ADV_STOREDGE_CONTROL,
                         default=user_input[CONF_ADV_STOREDGE_CONTROL],
-                    ): vol.In(agree),
+                    ): cv.boolean,
                     vol.Required(
                         CONF_ADV_EXPORT_CONTROL,
                         default=user_input[CONF_ADV_EXPORT_CONTROL],
-                    ): vol.In(agree),
+                    ): cv.boolean,
                 }
             ),
             errors=errors,

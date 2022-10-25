@@ -42,8 +42,8 @@
       "adv_pwr_ctl": {
         "title": "Advanced Power Control",
         "data": {
-          "adv_storedge_control": "StorEdge Control",
-          "adv_export_control": "Export Limit Control"   
+          "adv_storedge_control": "Enable StorEdge Control",
+          "adv_export_control": "Enable Export Limit Control"   
         },
         "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"
       }
