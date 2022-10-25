@@ -212,20 +212,36 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         """Advanced Power Control"""
         errors = {}
         agree = {True: "Enable", False: "Disable"}
-        # [%key:common::state::off%]
 
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_ADV_STOREDGE_CONTROL, default=DEFAULT_ADV_STOREDGE_CONTROL
-                ): vol.In(agree),
-                vol.Required(
-                    CONF_ADV_EXPORT_CONTROL, default=DEFAULT_ADV_EXPORT_CONTROL
-                ): vol.In(agree),
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="", data={**self.init_info, **user_input}
+            )
+
+        else:
+            user_input = {
+                CONF_ADV_STOREDGE_CONTROL: self.config_entry.options.get(
+                    CONF_ADV_STOREDGE_CONTROL, DEFAULT_ADV_STOREDGE_CONTROL
+                ),
+                CONF_ADV_EXPORT_CONTROL: self.config_entry.options.get(
+                    CONF_ADV_EXPORT_CONTROL, DEFAULT_ADV_EXPORT_CONTROL
+                ),
             }
-        )
+
         return self.async_show_form(
             step_id="adv_pwr_ctl",
-            data_schema=schema,
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_ADV_STOREDGE_CONTROL,
+                        default=user_input[CONF_ADV_STOREDGE_CONTROL],
+                    ): vol.In(agree),
+                    vol.Required(
+                        CONF_ADV_EXPORT_CONTROL,
+                        default=user_input[CONF_ADV_EXPORT_CONTROL],
+                    ): vol.In(agree),
+                }
+            ),
             errors=errors,
         )
