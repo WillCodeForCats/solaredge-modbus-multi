@@ -35,8 +35,17 @@
           "single_device_entity": "Enkelt enhetsenhet",
           "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
           "detect_meters": "Automatisk oppdagelse av målere",
-          "detect_batteries": "Automatisk gjenkjenning av batterier"
+          "detect_batteries": "Automatisk gjenkjenning av batterier",
+          "advanced_power_control": "Avansert strømkontroll"
         }
+      },
+      "adv_pwr_ctl": {
+        "title": "Avansert strømkontroll",
+        "data": {
+          "adv_storedge_control": "Aktiver StorEdge Control",
+          "adv_export_control": "Aktiver eksportgrensekontroll"   
+        },
+        "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
       }
     },
     "error": {
