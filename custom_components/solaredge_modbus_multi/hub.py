@@ -523,9 +523,20 @@ class SolarEdgeInverter:
         if mmppt_common.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {inverter_data}")
 
-            if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
-                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
-                self.decoded_mmppt = None
+            if type(mmppt_common) is ModbusIOException:
+                raise ModbusReadError(
+                    f"No response from inverter ID {self.inverter_unit_id}"
+                )
+
+            elif type(mmppt_common) is ExceptionResponse:
+                if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(
+                        f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT"
+                    )
+                    self.decoded_mmppt = None
+
+                else:
+                    raise ModbusReadError(mmppt_common)
 
             else:
                 raise ModbusReadError(mmppt_common)
@@ -681,16 +692,28 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=61440, count=4
             )
             if inverter_data.isError():
-                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                    self.global_power_control = False
-                    _LOGGER.debug(
-                        (
-                            f"Inverter {self.inverter_unit_id}: "
-                            "global power control NOT available"
-                        )
+
+                if type(inverter_data) is ModbusIOException:
+                    raise ModbusReadError(
+                        f"No response from inverter ID {self.inverter_unit_id}"
                     )
+
+                elif type(inverter_data) is ExceptionResponse:
+                    if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                        self.global_power_control = False
+                        _LOGGER.debug(
+                            (
+                                f"Inverter {self.inverter_unit_id}: "
+                                "global power control NOT available"
+                            )
+                        )
+                    else:
+                        _LOGGER.debug(
+                            f"Inverter {self.inverter_unit_id}: {inverter_data}"
+                        )
+                        raise ModbusReadError(inverter_data)
+
                 else:
-                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
                     raise ModbusReadError(inverter_data)
 
             else:
@@ -717,14 +740,25 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=61762, count=2
             )
             if inverter_data.isError():
-                if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                    self.advanced_power_control = False
-                    _LOGGER.debug(
-                        (
-                            f"Inverter {self.inverter_unit_id}: "
-                            "advanced power control NOT available"
-                        )
+                if type(inverter_data) is ModbusIOException:
+                    raise ModbusReadError(
+                        f"No response from inverter ID {self.inverter_unit_id}"
                     )
+
+                elif type(inverter_data) is ExceptionResponse:
+                    if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                        self.advanced_power_control = False
+                        _LOGGER.debug(
+                            (
+                                f"Inverter {self.inverter_unit_id}: "
+                                "advanced power control NOT available"
+                            )
+                        )
+                    else:
+                        _LOGGER.debug(
+                            f"Inverter {self.inverter_unit_id}: {inverter_data}"
+                        )
+                        raise ModbusReadError(inverter_data)
 
                 else:
                     _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
@@ -813,8 +847,17 @@ class SolarEdgeMeter:
                 ),
             )
 
-            if meter_info.exception_code == ModbusExceptions.IllegalAddress:
-                raise DeviceInvalid(meter_info)
+            if type(meter_info) is ModbusIOException:
+                raise DeviceInvalid(
+                    f"No response from inverter ID {self.inverter_unit_id}"
+                )
+
+            elif type(meter_info) is ExceptionResponse:
+                if meter_info.exception_code == ModbusExceptions.IllegalAddress:
+                    raise DeviceInvalid(meter_info)
+
+                else:
+                    raise ModbusReadError(meter_info)
 
             else:
                 raise ModbusReadError(meter_info)
@@ -1090,8 +1133,17 @@ class SolarEdgeBattery:
                 ),
             )
 
-            if battery_info.exception_code == ModbusExceptions.IllegalAddress:
-                raise DeviceInvalid(battery_info)
+            if type(battery_info) is ModbusIOException:
+                raise DeviceInvalid(
+                    f"No response from inverter ID {self.inverter_unit_id}"
+                )
+
+            elif type(battery_info) is ExceptionResponse:
+                if battery_info.exception_code == ModbusExceptions.IllegalAddress:
+                    raise DeviceInvalid(battery_info)
+
+                else:
+                    raise ModbusReadError(battery_info)
 
             else:
                 raise ModbusReadError(battery_info)
