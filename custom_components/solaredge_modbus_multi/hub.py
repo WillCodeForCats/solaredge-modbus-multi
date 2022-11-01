@@ -702,7 +702,8 @@ class SolarEdgeInverter:
                             )
                         )
 
-                raise ModbusReadError(inverter_data)
+                if self.global_power_control is not False:
+                    raise ModbusReadError(inverter_data)
 
             else:
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -745,7 +746,8 @@ class SolarEdgeInverter:
                             )
                         )
 
-                raise ModbusReadError(inverter_data)
+                if self.advanced_power_control is not False:
+                    raise ModbusReadError(inverter_data)
 
             else:
                 decoder = BinaryPayloadDecoder.fromRegisters(
