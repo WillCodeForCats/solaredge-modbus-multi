@@ -424,7 +424,7 @@ class SolarEdgeModbusMultiHub:
     def write_registers(self, unit, address, payload):
         """Write registers."""
         with self._lock:
-            kwargs = {"unit": unit} if unit else {}
+            kwargs = {"slave": unit} if unit else {}
             return self._client.write_registers(address, payload, **kwargs)
 
 
@@ -818,7 +818,7 @@ class SolarEdgeInverter:
                 ]
             )
 
-            for name, value in iteritems(self.decoded_storedge):
+            for name, value in iter(self.decoded_storedge.items()):
                 _LOGGER.debug(
                     (
                         f"Inverter {self.inverter_unit_id}: "
