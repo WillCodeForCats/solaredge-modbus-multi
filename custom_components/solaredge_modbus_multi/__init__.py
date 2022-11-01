@@ -17,12 +17,18 @@ from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    CONF_ADV_EXPORT_CONTROL,
+    CONF_ADV_PWR_CONTROL,
+    CONF_ADV_STOREDGE_CONTROL,
     CONF_DETECT_BATTERIES,
     CONF_DETECT_METERS,
     CONF_DEVICE_ID,
     CONF_KEEP_MODBUS_OPEN,
     CONF_NUMBER_INVERTERS,
     CONF_SINGLE_DEVICE_ENTITY,
+    DEFAULT_ADV_EXPORT_CONTROL,
+    DEFAULT_ADV_PWR_CONTROL,
+    DEFAULT_ADV_STOREDGE_CONTROL,
     DEFAULT_DETECT_BATTERIES,
     DEFAULT_DETECT_METERS,
     DEFAULT_KEEP_MODBUS_OPEN,
@@ -62,6 +68,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
         entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
         entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
+        entry.options.get(CONF_ADV_PWR_CONTROL, DEFAULT_ADV_PWR_CONTROL),
+        entry.options.get(CONF_ADV_STOREDGE_CONTROL, DEFAULT_ADV_STOREDGE_CONTROL),
+        entry.options.get(CONF_ADV_EXPORT_CONTROL, DEFAULT_ADV_EXPORT_CONTROL),
     )
 
     coordinator = SolarEdgeCoordinator(
@@ -165,7 +174,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            async with async_timeout.timeout(30):
+            async with async_timeout.timeout(self._hub.coordinator_timeout):
                 return await self._hub.async_refresh_modbus_data()
 
         except HubInitFailed as e:

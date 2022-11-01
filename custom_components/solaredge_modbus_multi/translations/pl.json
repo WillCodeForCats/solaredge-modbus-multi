@@ -35,8 +35,17 @@
           "single_device_entity": "Użyj jednej encji dla urządzenia",
           "keep_modbus_open": "Pozostaw połączenie Modbus otwarte",
           "detect_meters": "Automatycznie wykryj liczniki",
-          "detect_batteries": "Automatycznie wykryj baterie"
+          "detect_batteries": "Automatycznie wykryj baterie",
+          "advanced_power_control": "Zaawansowana kontrola mocy"
         }
+      },
+      "adv_pwr_ctl": {
+        "title": "Zaawansowana kontrola mocy",
+        "data": {
+          "adv_storedge_control": "Włącz kontrolę StorEdge",
+          "adv_export_control": "Włącz kontrolę limitu eksportu"   
+        },
+        "description": "Ostrzeżenie: opcje te mogą naruszać umowy za media, zmieniać rozliczenia za media, mogą wymagać specjalnego sprzętu i nadpisać udostępnianie przez SolarEdge lub instalatora. Używaj na własne ryzyko!"
       }
     },
     "error": {

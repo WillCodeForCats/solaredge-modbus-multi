@@ -10,12 +10,18 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import (
+    CONF_ADV_EXPORT_CONTROL,
+    CONF_ADV_PWR_CONTROL,
+    CONF_ADV_STOREDGE_CONTROL,
     CONF_DETECT_BATTERIES,
     CONF_DETECT_METERS,
     CONF_DEVICE_ID,
     CONF_KEEP_MODBUS_OPEN,
     CONF_NUMBER_INVERTERS,
     CONF_SINGLE_DEVICE_ENTITY,
+    DEFAULT_ADV_EXPORT_CONTROL,
+    DEFAULT_ADV_PWR_CONTROL,
+    DEFAULT_ADV_STOREDGE_CONTROL,
     DEFAULT_DETECT_BATTERIES,
     DEFAULT_DETECT_METERS,
     DEFAULT_DEVICE_ID,
@@ -141,7 +147,12 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             else:
-                return self.async_create_entry(title="", data=user_input)
+                if user_input[CONF_ADV_PWR_CONTROL] is True:
+                    self.init_info = user_input
+                    return await self.async_step_adv_pwr_ctl()
+                else:
+                    return self.async_create_entry(title="", data=user_input)
+
         else:
             user_input = {
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(
@@ -158,6 +169,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
                 CONF_DETECT_BATTERIES: self.config_entry.options.get(
                     CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES
+                ),
+                CONF_ADV_PWR_CONTROL: self.config_entry.options.get(
+                    CONF_ADV_PWR_CONTROL, DEFAULT_ADV_PWR_CONTROL
                 ),
             }
 
@@ -185,7 +199,47 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_DETECT_BATTERIES,
                         default=user_input[CONF_DETECT_BATTERIES],
                     ): cv.boolean,
+                    vol.Optional(
+                        CONF_ADV_PWR_CONTROL,
+                        default=user_input[CONF_ADV_PWR_CONTROL],
+                    ): cv.boolean,
                 },
+            ),
+            errors=errors,
+        )
+
+    async def async_step_adv_pwr_ctl(self, user_input=None) -> FlowResult:
+        """Advanced Power Control"""
+        errors = {}
+
+        if user_input is not None:
+            return self.async_create_entry(
+                title="", data={**self.init_info, **user_input}
+            )
+
+        else:
+            user_input = {
+                CONF_ADV_STOREDGE_CONTROL: self.config_entry.options.get(
+                    CONF_ADV_STOREDGE_CONTROL, DEFAULT_ADV_STOREDGE_CONTROL
+                ),
+                CONF_ADV_EXPORT_CONTROL: self.config_entry.options.get(
+                    CONF_ADV_EXPORT_CONTROL, DEFAULT_ADV_EXPORT_CONTROL
+                ),
+            }
+
+        return self.async_show_form(
+            step_id="adv_pwr_ctl",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_ADV_STOREDGE_CONTROL,
+                        default=user_input[CONF_ADV_STOREDGE_CONTROL],
+                    ): cv.boolean,
+                    vol.Required(
+                        CONF_ADV_EXPORT_CONTROL,
+                        default=user_input[CONF_ADV_EXPORT_CONTROL],
+                    ): cv.boolean,
+                }
             ),
             errors=errors,
         )
