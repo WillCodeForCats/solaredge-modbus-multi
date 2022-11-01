@@ -437,16 +437,13 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-            elif type(inverter_data) is ExceptionResponse:
+            if type(inverter_data) is ExceptionResponse:
                 if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
                     raise DeviceInvalid(
                         f"ID {self.inverter_unit_id} is not a SunSpec inverter."
                     )
-                else:
-                    raise ModbusReadError(inverter_data)
 
-            else:
-                raise ModbusReadError(inverter_data)
+            raise ModbusReadError(inverter_data)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             inverter_data.registers, byteorder=Endian.Big
@@ -521,25 +518,21 @@ class SolarEdgeInverter:
             unit=self.inverter_unit_id, address=40121, count=10
         )
         if mmppt_common.isError():
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {inverter_data}")
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {mmppt_common}")
 
             if type(mmppt_common) is ModbusIOException:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-            elif type(mmppt_common) is ExceptionResponse:
+            if type(mmppt_common) is ExceptionResponse:
                 if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
                     _LOGGER.debug(
                         f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT"
                     )
                     self.decoded_mmppt = None
 
-                else:
-                    raise ModbusReadError(mmppt_common)
-
-            else:
-                raise ModbusReadError(mmppt_common)
+            raise ModbusReadError(mmppt_common)
 
         else:
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -692,13 +685,14 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=61440, count=4
             )
             if inverter_data.isError():
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
 
                 if type(inverter_data) is ModbusIOException:
                     raise ModbusReadError(
                         f"No response from inverter ID {self.inverter_unit_id}"
                     )
 
-                elif type(inverter_data) is ExceptionResponse:
+                if type(inverter_data) is ExceptionResponse:
                     if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
                         self.global_power_control = False
                         _LOGGER.debug(
@@ -707,14 +701,8 @@ class SolarEdgeInverter:
                                 "global power control NOT available"
                             )
                         )
-                    else:
-                        _LOGGER.debug(
-                            f"Inverter {self.inverter_unit_id}: {inverter_data}"
-                        )
-                        raise ModbusReadError(inverter_data)
 
-                else:
-                    raise ModbusReadError(inverter_data)
+                raise ModbusReadError(inverter_data)
 
             else:
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -740,12 +728,14 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=61762, count=2
             )
             if inverter_data.isError():
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+
                 if type(inverter_data) is ModbusIOException:
                     raise ModbusReadError(
                         f"No response from inverter ID {self.inverter_unit_id}"
                     )
 
-                elif type(inverter_data) is ExceptionResponse:
+                if type(inverter_data) is ExceptionResponse:
                     if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
                         self.advanced_power_control = False
                         _LOGGER.debug(
@@ -754,15 +744,8 @@ class SolarEdgeInverter:
                                 "advanced power control NOT available"
                             )
                         )
-                    else:
-                        _LOGGER.debug(
-                            f"Inverter {self.inverter_unit_id}: {inverter_data}"
-                        )
-                        raise ModbusReadError(inverter_data)
 
-                else:
-                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-                    raise ModbusReadError(inverter_data)
+                raise ModbusReadError(inverter_data)
 
             else:
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -852,15 +835,11 @@ class SolarEdgeMeter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-            elif type(meter_info) is ExceptionResponse:
+            if type(meter_info) is ExceptionResponse:
                 if meter_info.exception_code == ModbusExceptions.IllegalAddress:
                     raise DeviceInvalid(meter_info)
 
-                else:
-                    raise ModbusReadError(meter_info)
-
-            else:
-                raise ModbusReadError(meter_info)
+            raise ModbusReadError(meter_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_info.registers, byteorder=Endian.Big
@@ -1138,15 +1117,11 @@ class SolarEdgeBattery:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-            elif type(battery_info) is ExceptionResponse:
+            if type(battery_info) is ExceptionResponse:
                 if battery_info.exception_code == ModbusExceptions.IllegalAddress:
                     raise DeviceInvalid(battery_info)
 
-                else:
-                    raise ModbusReadError(battery_info)
-
-            else:
-                raise ModbusReadError(battery_info)
+            raise ModbusReadError(battery_info)
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_info.registers,
