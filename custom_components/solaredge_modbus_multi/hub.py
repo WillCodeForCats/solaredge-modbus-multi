@@ -123,14 +123,6 @@ class SolarEdgeModbusMultiHub:
         if not self.is_socket_open():
             raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
 
-        if self._detect_batteries:
-            _LOGGER.warning(
-                (
-                    "Battery registers not officially supported by SolarEdge. "
-                    "Use at your own risk!"
-                ),
-            )
-
         if self._adv_storedge_control:
             _LOGGER.warning(
                 (
