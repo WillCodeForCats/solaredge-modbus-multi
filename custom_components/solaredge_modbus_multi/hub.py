@@ -525,14 +525,15 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-            if type(mmppt_common) is ExceptionResponse:
+            elif type(mmppt_common) is ExceptionResponse:
                 if mmppt_common.exception_code == ModbusExceptions.IllegalAddress:
                     _LOGGER.debug(
                         f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT"
                     )
                     self.decoded_mmppt = None
 
-            raise ModbusReadError(mmppt_common)
+            else:
+                raise ModbusReadError(mmppt_common)
 
         else:
             decoder = BinaryPayloadDecoder.fromRegisters(
