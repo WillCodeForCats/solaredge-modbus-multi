@@ -131,6 +131,22 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
+        if self._adv_storedge_control:
+            _LOGGER.warning(
+                (
+                    "Advanced Power Control: StorEdge Control is enabled. "
+                    "Use at your own risk!"
+                ),
+            )
+
+        if self._adv_export_control:
+            _LOGGER.warning(
+                (
+                    "Advanced Power Control: Export Limit Control is enabled. "
+                    "Use at your own risk!"
+                ),
+            )
+
         for inverter_index in range(self._number_of_inverters):
             inverter_unit_id = inverter_index + self._start_device_id
 
