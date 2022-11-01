@@ -421,12 +421,6 @@ class SolarEdgeModbusMultiHub:
             kwargs = {"slave": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
-    def write_registers(self, unit, address, payload):
-        """Write registers."""
-        with self._lock:
-            kwargs = {"slave": unit} if unit else {}
-            return self._client.write_registers(address, payload, **kwargs)
-
 
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
@@ -435,7 +429,6 @@ class SolarEdgeInverter:
         self.decoded_common = []
         self.decoded_model = []
         self.decoded_mmppt = []
-        self.decoded_storedge = []
         self.has_parent = False
         self.global_power_control = None
         self.advanced_power_control = None
@@ -786,49 +779,6 @@ class SolarEdgeInverter:
                     f"{name} {hex(value) if isinstance(value, int) else value}"
                 ),
             )
-
-        # If a battery is available on this inverter read storage control registers
-        for battery in self.hub.batteries:
-            if self.inverter_unit_id != battery.inverter_unit_id:
-                continue
-
-            # Read the storedge holding registers
-            inverter_data = self.hub.read_holding_registers(
-                unit=self.inverter_unit_id, address=57348, count=14
-            )
-            if inverter_data.isError():
-                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-                raise ModbusReadError(inverter_data)
-
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
-            )
-
-            self.decoded_storedge = OrderedDict(
-                [
-                    ("control_mode", decoder.decode_16bit_uint()),
-                    ("ac_charge_policy", decoder.decode_16bit_uint()),
-                    ("ac_charge_limit", decoder.decode_32bit_float()),
-                    ("backup_reserved", decoder.decode_32bit_float()),
-                    ("default_mode", decoder.decode_16bit_uint()),
-                    ("remote_command_timeout", decoder.decode_32bit_uint()),
-                    ("remote_command_mode", decoder.decode_16bit_uint()),
-                    ("remote_charge_limit", decoder.decode_32bit_float()),
-                    ("remote_discharge_limit", decoder.decode_32bit_float()),
-                ]
-            )
-
-            for name, value in iter(self.decoded_storedge.items()):
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                    ),
-                )
-
-    def write_registers(self, address, payload):
-        """Write inverter register."""
-        return self.hub.write_registers(self.inverter_unit_id, address, payload)
 
     @property
     def online(self) -> bool:

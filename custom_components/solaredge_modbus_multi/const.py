@@ -221,28 +221,3 @@ MMPPT_EVENTS = {
     21: "INPUT_UNDER_VOLTAGE",
     22: "INPUT_OVER_CURRENT",
 }
-
-STOREDGE_CONTROL_MODE = {
-    0: "Disabled",
-    1: "Maximize Self Consumption",
-    2: "Time of Use",
-    3: "Backup Only",
-    4: "Remote Control",
-}
-
-STOREDGE_AC_CHARGE_POLICY = {
-    0: "Disabled",
-    1: "Always Allowed",
-    2: "Fixed Energy Limit",
-    3: "Percent of Production",
-}
-
-STOREDGE_MODE = {
-    0: "Off",
-    1: "Charge from excess PV power only",
-    2: "Charge from PV first",
-    3: "Charge from PV and AC",
-    4: "Maximize export",
-    5: "Discharge to match load",
-    7: "Maximize self consumption",
-}

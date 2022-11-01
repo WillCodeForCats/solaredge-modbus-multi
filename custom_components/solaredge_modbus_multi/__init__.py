@@ -40,7 +40,7 @@ from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[str] = [Platform.NUMBER, Platform.SELECT, Platform.SENSOR]
+PLATFORMS: list[str] = [Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
