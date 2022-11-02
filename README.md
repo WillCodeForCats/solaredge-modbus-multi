@@ -51,9 +51,6 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 This procedure will preserve entity names. If updated in place, existing meter and battery entities will have a `_2` suffix after updating to a v2.2.x or higher release, or from a v1.x.x to a v2.x.x release. If this happens you can either update everything to use the new names, or follow the recommended update procedure to avoid renaming. This assumes the default entity names: custom names will have to be handled manually in any case.
 
-### Upgrading from v1.1.x to v1.2.x
-Follow instructions at: [How To Upgrade from v1.1.x to v1.2.x](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/How-To-Upgrade-from-v1.1.x-to-v1.2.x)
-
 ## Specifications
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
 
