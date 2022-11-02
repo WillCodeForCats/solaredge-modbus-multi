@@ -31,21 +31,28 @@ async def async_setup_entry(
 
     entities = []
 
-    # If a battery is available add storage control
-    for battery in hub.batteries:
-        for inverter in hub.inverters:
-            # Skip this inverter if no battery connected to it
-            if inverter.inverter_unit_id != battery.inverter_unit_id:
-                continue
-            entities.append(StoredgeACChargeLimit(inverter, config_entry, coordinator))
-            entities.append(StoredgeBackupReserved(inverter, config_entry, coordinator))
-            entities.append(StoredgeCommandTimeout(inverter, config_entry, coordinator))
-            entities.append(
-                StoredgeChargeLimit(inverter, battery, config_entry, coordinator)
-            )
-            entities.append(
-                StoredgeDischargeLimit(inverter, battery, config_entry, coordinator)
-            )
+    """ Advanced Power Control: StorEdge Control """
+    if hub.option_storedge_control is True:
+        for battery in hub.batteries:
+            for inverter in hub.inverters:
+                # Skip this inverter if no battery connected to it
+                if inverter.inverter_unit_id != battery.inverter_unit_id:
+                    continue
+                entities.append(
+                    StoredgeACChargeLimit(inverter, config_entry, coordinator)
+                )
+                entities.append(
+                    StoredgeBackupReserved(inverter, config_entry, coordinator)
+                )
+                entities.append(
+                    StoredgeCommandTimeout(inverter, config_entry, coordinator)
+                )
+                entities.append(
+                    StoredgeChargeLimit(inverter, battery, config_entry, coordinator)
+                )
+                entities.append(
+                    StoredgeDischargeLimit(inverter, battery, config_entry, coordinator)
+                )
 
     async_add_entities(entities)
     return True
