@@ -33,7 +33,6 @@ async def async_setup_entry(
     if hub.option_storedge_control is True:
         for battery in hub.batteries:
             for inverter in hub.inverters:
-                # Skip this inverter if no battery connected to it
                 if inverter.inverter_unit_id != battery.inverter_unit_id:
                     continue
                 entities.append(
@@ -47,8 +46,8 @@ async def async_setup_entry(
                 )
                 entities.append(StoredgeRemoteMode(inverter, config_entry, coordinator))
 
-    async_add_entities(entities)
-    return True
+    if entities:
+        async_add_entities(entities)
 
 
 def get_key(d, search):
