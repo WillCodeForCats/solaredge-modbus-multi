@@ -150,7 +150,9 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_float(float(value))
-        self._platform.write_registers(address=57350, payload=builder.to_registers())
+        await self._platform.write_registers(
+            address=57350, payload=builder.to_registers()
+        )
         await self.async_update()
 
 
@@ -179,7 +181,9 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_float(float(value))
-        self._platform.write_registers(address=57352, payload=builder.to_registers())
+        await self._platform.write_registers(
+            address=57352, payload=builder.to_registers()
+        )
         await self.async_update()
 
 
@@ -216,7 +220,9 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_uint(int(value))
-        self._platform.write_registers(address=57355, payload=builder.to_registers())
+        await self._platform.write_registers(
+            address=57355, payload=builder.to_registers()
+        )
         await self.async_update()
 
 
@@ -258,7 +264,9 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_float(float(value))
-        self._platform.write_registers(address=57358, payload=builder.to_registers())
+        await self._platform.write_registers(
+            address=57358, payload=builder.to_registers()
+        )
         await self.async_update()
 
 
@@ -300,5 +308,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_float(float(value))
-        self._platform.write_registers(address=57360, payload=builder.to_registers())
+        await self._platform.write_registers(
+            address=57360, payload=builder.to_registers()
+        )
         await self.async_update()

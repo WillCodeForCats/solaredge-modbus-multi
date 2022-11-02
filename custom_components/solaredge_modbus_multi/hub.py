@@ -101,6 +101,10 @@ class SolarEdgeModbusMultiHub:
         self.inverter_common = {}
         self.mmppt_common = {}
 
+        self._wr_unit = None
+        self._wr_address = None
+        self._wr_payload = None
+
         self.initalized = False
         self.online = False
 
@@ -425,11 +429,39 @@ class SolarEdgeModbusMultiHub:
             kwargs = {"slave": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
-    def write_registers(self, unit, address, payload):
+    def _write_registers(self):
         """Write registers."""
         with self._lock:
-            kwargs = {"slave": unit} if unit else {}
-            return self._client.write_registers(address, payload, **kwargs)
+            kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
+            return self._client.write_registers(
+                self._wr_address, self._wr_payload, **kwargs
+            )
+
+        if not self._keep_modbus_open:
+            self.disconnect()
+
+    async def write_registers(self, unit, address, payload):
+        self._wr_unit = unit
+        self._wr_address = address
+        self._wr_payload = payload
+
+        if not self.is_socket_open():
+            await self.connect()
+
+        try:
+            result = await self._hass.async_add_executor_job(self._write_registers)
+
+        except ConnectionException as e:
+            _LOGGER.error(f"Write command failed: {e}")
+            self.online = False
+            self.disconnect()
+
+        else:
+            if not self._keep_modbus_open:
+                self.disconnect()
+
+            if result.isError():
+                raise ModbusWriteError(result)
 
 
 class SolarEdgeInverter:
@@ -855,9 +887,9 @@ class SolarEdgeInverter:
                         ),
                     )
 
-    def write_registers(self, address, payload):
+    async def write_registers(self, address, payload):
         """Write inverter register."""
-        return self.hub.write_registers(self.inverter_unit_id, address, payload)
+        await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
     @property
     def online(self) -> bool:

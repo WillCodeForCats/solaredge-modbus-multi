@@ -111,7 +111,7 @@ class StoredgeControlMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        self._platform.write_registers(address=57348, payload=new_mode)
+        await self._platform.write_registers(address=57348, payload=new_mode)
         await self.async_update()
 
 
@@ -136,7 +136,7 @@ class StoredgeACChargePolicy(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        self._platform.write_registers(address=57349, payload=new_mode)
+        await self._platform.write_registers(address=57349, payload=new_mode)
         await self.async_update()
 
 
@@ -169,7 +169,7 @@ class StoredgeDefaultMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        self._platform.write_registers(address=57354, payload=new_mode)
+        await self._platform.write_registers(address=57354, payload=new_mode)
         await self.async_update()
 
 
@@ -205,5 +205,5 @@ class StoredgeRemoteMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        self._platform.write_registers(address=57357, payload=new_mode)
+        await self._platform.write_registers(address=57357, payload=new_mode)
         await self.async_update()
