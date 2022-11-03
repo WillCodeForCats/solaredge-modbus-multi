@@ -457,9 +457,6 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
 
         else:
-            if not self._keep_modbus_open:
-                self.disconnect()
-
             if result.isError():
                 raise ModbusWriteError(result)
 
