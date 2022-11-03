@@ -87,7 +87,10 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 
     @property
     def available(self) -> bool:
-        if self._platform.advanced_power_control is True:
+        if (
+            self._platform.online is True
+            and self._platform.advanced_power_control is True
+        ):
             return True
 
         else:
