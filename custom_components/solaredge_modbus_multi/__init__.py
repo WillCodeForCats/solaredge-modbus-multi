@@ -40,7 +40,13 @@ from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[str] = [Platform.BINARY_SENSOR,, Platform.NUMBER, Platform.SELECT, Platform.SENSOR]
+PLATFORMS: list[str] = [
+    Platform.BINARY_SENSOR,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SENSOR,
+]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus from a config entry."""
