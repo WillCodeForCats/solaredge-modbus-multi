@@ -55,4 +55,4 @@ This procedure will preserve entity names. If updated in place, existing meter a
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
 
 ## Project Sponsors
-None yet...
+[@bertybuttface](https://github.com/bertybuttface)
