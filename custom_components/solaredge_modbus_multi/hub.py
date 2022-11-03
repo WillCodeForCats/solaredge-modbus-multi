@@ -101,6 +101,10 @@ class SolarEdgeModbusMultiHub:
         self.inverter_common = {}
         self.mmppt_common = {}
 
+        self._wr_unit = None
+        self._wr_address = None
+        self._wr_payload = None
+
         self.initalized = False
         self.online = False
 
@@ -371,6 +375,10 @@ class SolarEdgeModbusMultiHub:
         return self._id
 
     @property
+    def option_storedge_control(self) -> bool:
+        return self._adv_storedge_control
+
+    @property
     def keep_modbus_open(self) -> bool:
         return self._keep_modbus_open
 
@@ -421,11 +429,39 @@ class SolarEdgeModbusMultiHub:
             kwargs = {"slave": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
-    def write_registers(self, unit, address, payload):
+    def _write_registers(self):
         """Write registers."""
         with self._lock:
-            kwargs = {"slave": unit} if unit else {}
-            return self._client.write_registers(address, payload, **kwargs)
+            kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
+            return self._client.write_registers(
+                self._wr_address, self._wr_payload, **kwargs
+            )
+
+        if not self._keep_modbus_open:
+            self.disconnect()
+
+    async def write_registers(self, unit, address, payload):
+        self._wr_unit = unit
+        self._wr_address = address
+        self._wr_payload = payload
+
+        if not self.is_socket_open():
+            await self.connect()
+
+        try:
+            result = await self._hass.async_add_executor_job(self._write_registers)
+
+        except ConnectionException as e:
+            _LOGGER.error(f"Write command failed: {e}")
+            self.online = False
+            self.disconnect()
+
+        else:
+            if not self._keep_modbus_open:
+                self.disconnect()
+
+            if result.isError():
+                raise ModbusWriteError(result)
 
 
 class SolarEdgeInverter:
@@ -787,48 +823,73 @@ class SolarEdgeInverter:
                 ),
             )
 
-        # If a battery is available on this inverter read storage control registers
-        for battery in self.hub.batteries:
-            if self.inverter_unit_id != battery.inverter_unit_id:
-                continue
+        """ Advanced Power Control: StorEdge Control """
+        if (
+            self.hub.option_storedge_control is True
+            and self.decoded_storedge is not None
+        ):
+            for battery in self.hub.batteries:
+                if self.inverter_unit_id != battery.inverter_unit_id:
+                    continue
 
-            # Read the storedge holding registers
-            inverter_data = self.hub.read_holding_registers(
-                unit=self.inverter_unit_id, address=57348, count=14
-            )
-            if inverter_data.isError():
-                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-                raise ModbusReadError(inverter_data)
+                inverter_data = self.hub.read_holding_registers(
+                    unit=self.inverter_unit_id, address=57348, count=14
+                )
+                if inverter_data.isError():
+                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
-            )
+                    if type(inverter_data) is ModbusIOException:
+                        raise ModbusReadError(
+                            f"No response from inverter ID {self.inverter_unit_id}"
+                        )
 
-            self.decoded_storedge = OrderedDict(
-                [
-                    ("control_mode", decoder.decode_16bit_uint()),
-                    ("ac_charge_policy", decoder.decode_16bit_uint()),
-                    ("ac_charge_limit", decoder.decode_32bit_float()),
-                    ("backup_reserved", decoder.decode_32bit_float()),
-                    ("default_mode", decoder.decode_16bit_uint()),
-                    ("remote_command_timeout", decoder.decode_32bit_uint()),
-                    ("remote_command_mode", decoder.decode_16bit_uint()),
-                    ("remote_charge_limit", decoder.decode_32bit_float()),
-                    ("remote_discharge_limit", decoder.decode_32bit_float()),
-                ]
-            )
+                    if type(inverter_data) is ExceptionResponse:
+                        if (
+                            inverter_data.exception_code
+                            == ModbusExceptions.IllegalAddress
+                        ):
+                            self.decoded_storedge = False
+                            _LOGGER.debug(
+                                (
+                                    f"Inverter {self.inverter_unit_id}: "
+                                    "storedge control NOT available"
+                                )
+                            )
 
-            for name, value in iter(self.decoded_storedge.items()):
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                    ),
+                    if self.decoded_storedge is not None:
+                        raise ModbusReadError(inverter_data)
+
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.Big,
+                    wordorder=Endian.Little,
                 )
 
-    def write_registers(self, address, payload):
+                self.decoded_storedge = OrderedDict(
+                    [
+                        ("control_mode", decoder.decode_16bit_uint()),
+                        ("ac_charge_policy", decoder.decode_16bit_uint()),
+                        ("ac_charge_limit", decoder.decode_32bit_float()),
+                        ("backup_reserved", decoder.decode_32bit_float()),
+                        ("default_mode", decoder.decode_16bit_uint()),
+                        ("remote_command_timeout", decoder.decode_32bit_uint()),
+                        ("remote_command_mode", decoder.decode_16bit_uint()),
+                        ("remote_charge_limit", decoder.decode_32bit_float()),
+                        ("remote_discharge_limit", decoder.decode_32bit_float()),
+                    ]
+                )
+
+                for name, value in iter(self.decoded_storedge.items()):
+                    _LOGGER.debug(
+                        (
+                            f"Inverter {self.inverter_unit_id}: "
+                            f"{name} {hex(value) if isinstance(value, int) else value}"
+                        ),
+                    )
+
+    async def write_registers(self, address, payload):
         """Write inverter register."""
-        return self.hub.write_registers(self.inverter_unit_id, address, payload)
+        await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
     @property
     def online(self) -> bool:
