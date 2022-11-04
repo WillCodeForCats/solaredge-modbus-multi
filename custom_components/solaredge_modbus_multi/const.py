@@ -242,12 +242,12 @@ STOREDGE_AC_CHARGE_POLICY = {
 
 STOREDGE_MODE = {
     0: "Off",
-    1: "Charge from excess PV power only",
-    2: "Charge from PV first",
+    1: "Charge from Excess PV Power Only",
+    2: "Charge from PV First",
     3: "Charge from PV and AC",
-    4: "Maximize export",
-    5: "Discharge to match load",
-    7: "Maximize self consumption",
+    4: "Maximize Export",
+    5: "Discharge to Match Load",
+    7: "Maximize Self Consumption",
 }
 
 LIMIT_CONTROL_MODE = {
