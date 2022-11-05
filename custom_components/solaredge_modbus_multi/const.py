@@ -249,3 +249,12 @@ STOREDGE_MODE = {
     5: "Discharge to match load",
     7: "Maximize self consumption",
 }
+
+EXPORT_CONTROL_MODE = {
+    0: "Disabled",
+    1: "Direct Limitation",
+    2: "Indirect Limitation",
+    3: "Production Limitation",
+}
+
+EXPORT_CONTROL_LIMIT_MODE = {0: "Total", 1: "Per Phase"}
