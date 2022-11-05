@@ -356,6 +356,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
 
 class SerialNumber(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -376,6 +378,8 @@ class SerialNumber(SolarEdgeSensorBase):
 
 
 class Manufacturer(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -396,6 +400,8 @@ class Manufacturer(SolarEdgeSensorBase):
 
 
 class Model(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -416,6 +422,8 @@ class Model(SolarEdgeSensorBase):
 
 
 class Option(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -466,6 +474,8 @@ class Version(SolarEdgeSensorBase):
 
 
 class DeviceAddress(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -486,6 +496,8 @@ class DeviceAddress(SolarEdgeSensorBase):
 
 
 class DeviceAddressParent(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -506,6 +518,8 @@ class DeviceAddressParent(SolarEdgeSensorBase):
 
 
 class SunspecDID(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
