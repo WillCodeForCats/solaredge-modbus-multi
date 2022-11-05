@@ -454,7 +454,7 @@ class SolarEdgeModbusMultiHub:
         except ConnectionException as e:
             _LOGGER.error(f"Write command failed: {e}")
             self.online = False
-            self.disconnect()
+            await self.disconnect()
 
         else:
             if result.isError():
