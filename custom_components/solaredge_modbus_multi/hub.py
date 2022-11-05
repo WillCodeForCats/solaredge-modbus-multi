@@ -437,9 +437,6 @@ class SolarEdgeModbusMultiHub:
                 self._wr_address, self._wr_payload, **kwargs
             )
 
-        if not self._keep_modbus_open:
-            self.disconnect()
-
     async def write_registers(self, unit, address, payload):
         self._wr_unit = unit
         self._wr_address = address
