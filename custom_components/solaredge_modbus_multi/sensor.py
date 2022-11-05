@@ -31,6 +31,7 @@ from .const import (
     ENERGY_VOLT_AMPERE_HOUR,
     ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
     METER_EVENTS,
+    MMPPT_EVENTS,
     RRCR_STATUS,
     SUNSPEC_DID,
     SUNSPEC_SF_RANGE,
@@ -91,6 +92,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
         entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
         entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
         if meter.single_device_entity:
@@ -1538,6 +1540,64 @@ class MeterEvents(SolarEdgeSensorBase):
 
         except KeyError:
             return None
+
+
+class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_mmppt_events"
+
+    @property
+    def name(self) -> str:
+        return "MMPPT Events"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._platform.decoded_mmppt is not None:
+            return True
+        else:
+            return False
+
+    @property
+    def native_value(self):
+        try:
+            if self._platform.decoded_model["mmppt_Events"] == SunSpecNotImpl.UINT32:
+                return None
+
+            else:
+                return self._platform.decoded_model["mmppt_Events"]
+
+        except KeyError:
+            return None
+
+    @property
+    def extra_state_attributes(self):
+        attrs = {}
+
+        try:
+            mmppt_events_active = []
+            if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
+                attrs["description"] = str(mmppt_events_active)
+            else:
+                for i in range(0, 31):
+                    if int(str(self._platform.decoded_model["mmppt_Events"])) & (
+                        1 << i
+                    ):
+                        mmppt_events_active.append(MMPPT_EVENTS[i])
+                attrs["description"] = str(mmppt_events_active)
+
+            attrs["bits"] = bin(self._platform.decoded_model["mmppt_Events"])
+
+        except KeyError:
+            return None
+
+        return attrs
 
 
 class MeterVAhIE(SolarEdgeSensorBase):

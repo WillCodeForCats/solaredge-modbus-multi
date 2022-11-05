@@ -563,7 +563,7 @@ class SolarEdgeInverter:
         self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
         mmppt_common = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=40121, count=10
+            unit=self.inverter_unit_id, address=40121, count=9
         )
         if mmppt_common.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id} MMPPT: {mmppt_common}")
@@ -592,15 +592,12 @@ class SolarEdgeInverter:
                 [
                     ("mmppt_DID", decoder.decode_16bit_uint()),
                     ("mmppt_Length", decoder.decode_16bit_uint()),
-                    ("mmppt_DCA_SF", decoder.decode_16bit_int()),
-                    ("mmppt_DCV_SF", decoder.decode_16bit_int()),
-                    ("mmppt_DCW_SF", decoder.decode_16bit_int()),
-                    ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
-                    ("mmppt_Events", decoder.decode_32bit_uint()),
+                    ("ignore", decoder.skip_bytes(12)),
                     ("mmppt_Units", decoder.decode_16bit_uint()),
-                    ("mmppt_TmsPer", decoder.decode_16bit_uint()),
                 ]
             )
+
+            del self.decoded_mmppt["ignore"]
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
@@ -729,6 +726,93 @@ class SolarEdgeInverter:
             ]
         )
 
+        """ Multiple MPPT Extension """
+        if self.decoded_mmppt is not None:
+            if self.decoded_mmppt["mmppt_Units"] == 2:
+                mmppt_registers = 48
+
+            elif self.decoded_mmppt["mmppt_Units"] == 3:
+                mmppt_registers = 68
+
+            else:
+                raise NotImplementedError()
+
+            inverter_data = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=40123, count=mmppt_registers
+            )
+            if inverter_data.isError():
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+                raise ModbusReadError(inverter_data)
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                inverter_data.registers, byteorder=Endian.Big
+            )
+
+            if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("mmppt_DCA_SF", decoder.decode_16bit_int()),
+                            ("mmppt_DCV_SF", decoder.decode_16bit_int()),
+                            ("mmppt_DCW_SF", decoder.decode_16bit_int()),
+                            ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
+                            ("mmppt_Events", decoder.decode_32bit_uint()),
+                            ("ignore", decoder.skip_bytes(2)),
+                            ("mmppt_TmsPer", decoder.decode_16bit_uint()),
+                            ("mmppt_0_ID", decoder.decode_16bit_uint()),
+                            (
+                                "mmppt_0_IDStr",
+                                parse_modbus_string(decoder.decode_string(16)),
+                            ),
+                            ("mmppt_0_DCA", decoder.decode_16bit_uint()),
+                            ("mmppt_0_DCV", decoder.decode_16bit_uint()),
+                            ("mmppt_0_DCW", decoder.decode_16bit_uint()),
+                            ("mmppt_0_DCWH", decoder.decode_32bit_uint()),
+                            ("mmppt_0_Tms", decoder.decode_32bit_uint()),
+                            ("mmppt_0_Tmp", decoder.decode_16bit_int()),
+                            ("mmppt_0_DCSt", decoder.decode_16bit_uint()),
+                            ("mmppt_0_DCEvt", decoder.decode_32bit_uint()),
+                            ("mmppt_1_ID", decoder.decode_16bit_uint()),
+                            (
+                                "mmppt_1_IDStr",
+                                parse_modbus_string(decoder.decode_string(16)),
+                            ),
+                            ("mmppt_1_DCA", decoder.decode_16bit_uint()),
+                            ("mmppt_1_DCV", decoder.decode_16bit_uint()),
+                            ("mmppt_1_DCW", decoder.decode_16bit_uint()),
+                            ("mmppt_1_DCWH", decoder.decode_32bit_uint()),
+                            ("mmppt_1_Tms", decoder.decode_32bit_uint()),
+                            ("mmppt_1_Tmp", decoder.decode_16bit_int()),
+                            ("mmppt_1_DCSt", decoder.decode_16bit_uint()),
+                            ("mmppt_1_DCEvt", decoder.decode_32bit_uint()),
+                        ]
+                    )
+                )
+
+            if self.decoded_mmppt["mmppt_Units"] in [3]:
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("mmppt_2_ID", decoder.decode_16bit_uint()),
+                            (
+                                "mmppt_2_IDStr",
+                                parse_modbus_string(decoder.decode_string(16)),
+                            ),
+                            ("mmppt_2_DCA", decoder.decode_16bit_uint()),
+                            ("mmppt_2_DCV", decoder.decode_16bit_uint()),
+                            ("mmppt_2_DCW", decoder.decode_16bit_uint()),
+                            ("mmppt_2_DCWH", decoder.decode_32bit_uint()),
+                            ("mmppt_2_Tms", decoder.decode_32bit_uint()),
+                            ("mmppt_2_Tmp", decoder.decode_16bit_int()),
+                            ("mmppt_2_DCSt", decoder.decode_16bit_uint()),
+                            ("mmppt_2_DCEvt", decoder.decode_32bit_uint()),
+                        ]
+                    )
+                )
+
+            del self.decoded_model["ignore"]
+
+        """ Global Dynamic Power Control and Status """
         if self.global_power_control is True or self.global_power_control is None:
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=61440, count=4
