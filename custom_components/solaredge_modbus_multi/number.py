@@ -223,10 +223,10 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
         )
 
     @property
-    def native_value(self) -> float | None:
-        return float(self._platform.decoded_storedge["remote_command_timeout"])
+    def native_value(self) -> int | None:
+        return int(self._platform.decoded_storedge["remote_command_timeout"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_uint(int(value))
