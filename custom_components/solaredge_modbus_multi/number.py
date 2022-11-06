@@ -119,7 +119,7 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Storedge AC Charge Limit"
+        return "AC Charge Limit"
 
     @property
     def available(self) -> bool:
@@ -181,7 +181,7 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Storedge Backup Reserved"
+        return "Backup Reserved"
 
     @property
     def native_value(self) -> float | None:
@@ -212,7 +212,7 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Storedge Remote Command Timeout"
+        return "Temporary Mode Timeout"
 
     @property
     def available(self) -> bool:
@@ -251,7 +251,7 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Storedge Remote Charge Limit"
+        return "Charge Limit"
 
     @property
     def available(self) -> bool:
@@ -295,7 +295,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Storedge Remote Discharge Limit"
+        return "Discharge Limit"
 
     @property
     def available(self) -> bool:
