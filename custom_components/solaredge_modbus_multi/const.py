@@ -230,7 +230,7 @@ STOREDGE_CONTROL_MODE = {
     1: "Maximize Self Consumption",
     2: "Time of Use",
     3: "Backup Only",
-    4: "Manual Control",
+    4: "Remote Control",
 }
 
 STOREDGE_AC_CHARGE_POLICY = {
