@@ -41,7 +41,7 @@
         }
       },
       "adv_pwr_ctl": {
-        "title": "Geavanceerde stroomregeling",
+        "title": "Opties voor stroomregeling",
         "data": {
           "adv_storage_control": "StorEdge-besturing inschakelen",
           "adv_site_limit_control": "Beheer van sitelimiet inschakelen"   

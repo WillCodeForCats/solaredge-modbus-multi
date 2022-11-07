@@ -134,7 +134,7 @@ class SolarEdgeModbusMultiHub:
         if self._adv_storage_control:
             _LOGGER.warning(
                 (
-                    "Advanced Power Control: StorEdge Control is enabled. "
+                    "Power Control Options: StorEdge Control is enabled. "
                     "Use at your own risk!"
                 ),
             )
@@ -142,7 +142,7 @@ class SolarEdgeModbusMultiHub:
         if self._adv_site_limit_control:
             _LOGGER.warning(
                 (
-                    "Advanced Power Control: Site Limit Control is enabled. "
+                    "Power Control Options: Export Limit Control is enabled. "
                     "Use at your own risk!"
                 ),
             )
@@ -875,7 +875,7 @@ class SolarEdgeInverter:
                 )
                 self.global_power_control = True
 
-        """ Advanced Power Control """
+        """ Power Control Options """
         if self.advanced_power_control is True or self.advanced_power_control is None:
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=61762, count=2
@@ -1008,7 +1008,7 @@ class SolarEdgeInverter:
                 ),
             )
 
-        """ Advanced Power Control: StorEdge Control """
+        """ Power Control Options: StorEdge Control """
         if (
             self.hub.option_storedge_control is True
             and self.decoded_storedge is not None

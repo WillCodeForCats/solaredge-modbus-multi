@@ -218,7 +218,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
     async def async_step_adv_pwr_ctl(self, user_input=None) -> FlowResult:
-        """Advanced Power Control"""
+        """Power Control Options"""
         errors = {}
 
         if user_input is not None:
