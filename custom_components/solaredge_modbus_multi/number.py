@@ -212,7 +212,7 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Temporary Mode Timeout"
+        return "Command Mode Timeout"
 
     @property
     def available(self) -> bool:

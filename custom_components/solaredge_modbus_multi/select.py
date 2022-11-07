@@ -195,7 +195,7 @@ class StoredgeRemoteMode(SolarEdgeSelectBase):
 
     @property
     def name(self) -> str:
-        return "StorEdge Temporary Mode"
+        return "StorEdge Command Mode"
 
     @property
     def available(self) -> bool:
