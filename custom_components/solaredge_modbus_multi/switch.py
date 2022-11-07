@@ -1,6 +1,6 @@
 import logging
 
-from homeassistant.components.binary_sensor import SwitchEntity
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -89,15 +89,25 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        raise NotImplementedError
+        return (int(self._platform.decoded_model["E_Mode"]) >> 10) & 1
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        raise NotImplementedError
+        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = set_bits | (1 << 10)
+
+        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        await self._platform.write_registers(address=57344, payload=set_bits)
+        await self.async_update()
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        raise NotImplementedError
+        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = set_bits & ~(1 << 10)
+
+        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        await self._platform.write_registers(address=57344, payload=set_bits)
+        await self.async_update()
 
 
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
@@ -121,12 +131,22 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        raise NotImplementedError
+        return (int(self._platform.decoded_model["E_Mode"]) >> 11) & 1
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        raise NotImplementedError
+        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = set_bits | (1 << 11)
+
+        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        await self._platform.write_registers(address=57344, payload=set_bits)
+        await self.async_update()
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        raise NotImplementedError
+        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = set_bits & ~(1 << 11)
+
+        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        await self._platform.write_registers(address=57344, payload=set_bits)
+        await self.async_update()

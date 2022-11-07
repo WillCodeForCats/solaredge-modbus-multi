@@ -489,6 +489,7 @@ class SolarEdgeInverter:
         self.has_parent = False
         self.global_power_control = None
         self.advanced_power_control = None
+        self._has_export_control = None
 
     def init_device(self) -> None:
         inverter_data = self.hub.read_holding_registers(
@@ -912,6 +913,58 @@ class SolarEdgeInverter:
                     )
                 )
                 self.advanced_power_control = True
+
+        """ Export Limit Control """
+        if self._has_export_control is True or self._has_export_control is None:
+            for battery in self.hub.batteries:
+                if self.inverter_unit_id != battery.inverter_unit_id:
+                    continue
+
+                inverter_data = self.hub.read_holding_registers(
+                    unit=self.inverter_unit_id, address=57344, count=4
+                )
+                if inverter_data.isError():
+                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+
+                    if type(inverter_data) is ModbusIOException:
+                        raise ModbusReadError(
+                            f"No response from inverter ID {self.inverter_unit_id}"
+                        )
+
+                    if type(inverter_data) is ExceptionResponse:
+                        if (
+                            inverter_data.exception_code
+                            == ModbusExceptions.IllegalAddress
+                        ):
+                            self._has_export_control = False
+                            _LOGGER.debug(
+                                (
+                                    f"Inverter {self.inverter_unit_id}: "
+                                    "export control NOT available"
+                                )
+                            )
+
+                    if self._has_export_control is not False:
+                        raise ModbusReadError(inverter_data)
+
+                else:
+                    self._has_export_control = True
+
+                    decoder = BinaryPayloadDecoder.fromRegisters(
+                        inverter_data.registers,
+                        byteorder=Endian.Big,
+                        wordorder=Endian.Little,
+                    )
+
+                    self.decoded_model.update(
+                        OrderedDict(
+                            [
+                                ("E_Mode", decoder.decode_16bit_uint()),
+                                ("E_Limit_Mode", decoder.decode_16bit_uint()),
+                                ("E_Site_Limit", decoder.decode_32bit_float()),
+                            ]
+                        )
+                    )
 
         for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(

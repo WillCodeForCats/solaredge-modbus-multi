@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
+    EXPORT_CONTROL_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CONTROL_MODE,
     STOREDGE_MODE,
@@ -28,6 +29,9 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
     entities = []
+
+    for inverter in hub.inverters:
+        entities.append(SolarEdgeExportControlMode(inverter, config_entry, coordinator))
 
     """ Advanced Power Control: StorEdge Control """
     if hub.option_storedge_control is True:
@@ -206,4 +210,52 @@ class StoredgeRemoteMode(SolarEdgeSelectBase):
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
         await self._platform.write_registers(address=57357, payload=new_mode)
+        await self.async_update()
+
+
+class SolarEdgeExportControlMode(SolarEdgeSelectBase):
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        self._options = EXPORT_CONTROL_MODE
+        self._attr_options = list(self._options.values())
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_export_control_mode"
+
+    @property
+    def name(self) -> str:
+        return "Export Control Mode"
+
+    @property
+    def current_option(self) -> str:
+        try:
+            if (int(self._platform.decoded_model["E_Mode"]) >> 0) & 1:
+                return self._options[0]
+
+            elif (int(self._platform.decoded_model["E_Mode"]) >> 1) & 1:
+                return self._options[1]
+
+            elif (int(self._platform.decoded_model["E_Mode"]) >> 2) & 1:
+                return self._options[2]
+
+            else:
+                return self._options[None]
+
+        except KeyError:
+            return None
+
+    async def async_select_option(self, option: str) -> None:
+        set_bits = int(self._platform.decoded_model["E_Mode"])
+        new_mode = get_key(self._options, option)
+
+        set_bits = set_bits & ~(1 << 0)
+        set_bits = set_bits & ~(1 << 1)
+        set_bits = set_bits & ~(1 << 2)
+
+        if new_mode is not None:
+            set_bits = set_bits | (1 << int(new_mode))
+
+        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        await self._platform.write_registers(address=57344, payload=set_bits)
         await self.async_update()
