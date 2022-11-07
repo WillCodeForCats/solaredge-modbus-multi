@@ -8,14 +8,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    DOMAIN,
-    LIMIT_CONTROL,
-    LIMIT_CONTROL_MODE,
-    STOREDGE_AC_CHARGE_POLICY,
-    STOREDGE_CONTROL_MODE,
-    STOREDGE_MODE,
-)
+from .const import DOMAIN, STORAGE_AC_CHARGE_POLICY, STORAGE_CONTROL_MODE, STORAGE_MODE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,7 +96,7 @@ class SolarEdgeSelectBase(CoordinatorEntity, SelectEntity):
 class StoredgeControlMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_CONTROL_MODE
+        self._options = STORAGE_CONTROL_MODE
         self._attr_options = list(self._options.values())
 
     @property
@@ -128,7 +121,7 @@ class StoredgeControlMode(SolarEdgeSelectBase):
 class StoredgeACChargePolicy(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_AC_CHARGE_POLICY
+        self._options = STORAGE_AC_CHARGE_POLICY
         self._attr_options = list(self._options.values())
 
     @property
@@ -153,7 +146,7 @@ class StoredgeACChargePolicy(SolarEdgeSelectBase):
 class StoredgeDefaultMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_MODE
+        self._options = STORAGE_MODE
         self._attr_options = list(self._options.values())
 
     @property
@@ -186,7 +179,7 @@ class StoredgeDefaultMode(SolarEdgeSelectBase):
 class StoredgeRemoteMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_MODE
+        self._options = STORAGE_MODE
         self._attr_options = list(self._options.values())
 
     @property

@@ -12,11 +12,11 @@ DEFAULT_DETECT_BATTERIES = False
 DEFAULT_SINGLE_DEVICE_ENTITY = True
 DEFAULT_KEEP_MODBUS_OPEN = False
 DEFAULT_ADV_PWR_CONTROL = False
-DEFAULT_ADV_STOREDGE_CONTROL = False
+DEFAULT_ADV_STORAGE_CONTROL = False
 DEFAULT_ADV_SITE_LIMIT_CONTROL = False
 DEFAULT_ALLOW_BATTERY_ENERGY_RESET = False
 CONF_ADV_PWR_CONTROL = "advanced_power_control"
-CONF_ADV_STOREDGE_CONTROL = "adv_storedge_control"
+CONF_ADV_STORAGE_CONTROL = "adv_storedge_control"
 CONF_ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_DEVICE_ID = "device_id"
@@ -225,7 +225,7 @@ MMPPT_EVENTS = {
     22: "INPUT_OVER_CURRENT",
 }
 
-STOREDGE_CONTROL_MODE = {
+STORAGE_CONTROL_MODE = {
     0: "Disabled",
     1: "Maximize Self Consumption",
     2: "Time of Use",
@@ -233,14 +233,14 @@ STOREDGE_CONTROL_MODE = {
     4: "Remote Control",
 }
 
-STOREDGE_AC_CHARGE_POLICY = {
+STORAGE_AC_CHARGE_POLICY = {
     0: "Disabled",
     1: "Always Allowed",
     2: "Fixed Energy Limit",
     3: "Percent of Production",
 }
 
-STOREDGE_MODE = {
+STORAGE_MODE = {
     0: "Off",
     1: "Charge from Excess PV Power Only",
     2: "Charge from PV First",

@@ -12,7 +12,7 @@ from homeassistant.data_entry_flow import FlowResult
 from .const import (
     CONF_ADV_PWR_CONTROL,
     CONF_ADV_SITE_LIMIT_CONTROL,
-    CONF_ADV_STOREDGE_CONTROL,
+    CONF_ADV_STORAGE_CONTROL,
     CONF_ALLOW_BATTERY_ENERGY_RESET,
     CONF_DETECT_BATTERIES,
     CONF_DETECT_METERS,
@@ -22,7 +22,7 @@ from .const import (
     CONF_SINGLE_DEVICE_ENTITY,
     DEFAULT_ADV_PWR_CONTROL,
     DEFAULT_ADV_SITE_LIMIT_CONTROL,
-    DEFAULT_ADV_STOREDGE_CONTROL,
+    DEFAULT_ADV_STORAGE_CONTROL,
     DEFAULT_ALLOW_BATTERY_ENERGY_RESET,
     DEFAULT_DETECT_BATTERIES,
     DEFAULT_DETECT_METERS,
@@ -228,8 +228,8 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
 
         else:
             user_input = {
-                CONF_ADV_STOREDGE_CONTROL: self.config_entry.options.get(
-                    CONF_ADV_STOREDGE_CONTROL, DEFAULT_ADV_STOREDGE_CONTROL
+                CONF_ADV_STORAGE_CONTROL: self.config_entry.options.get(
+                    CONF_ADV_STORAGE_CONTROL, DEFAULT_ADV_STORAGE_CONTROL
                 ),
                 CONF_ADV_SITE_LIMIT_CONTROL: self.config_entry.options.get(
                     CONF_ADV_SITE_LIMIT_CONTROL, DEFAULT_ADV_SITE_LIMIT_CONTROL
@@ -241,8 +241,8 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_ADV_STOREDGE_CONTROL,
-                        default=user_input[CONF_ADV_STOREDGE_CONTROL],
+                        CONF_ADV_STORAGE_CONTROL,
+                        default=user_input[CONF_ADV_STORAGE_CONTROL],
                     ): cv.boolean,
                     vol.Required(
                         CONF_ADV_SITE_LIMIT_CONTROL,
