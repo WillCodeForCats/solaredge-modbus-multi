@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
     EXPORT_CONTROL_MODE,
+    EXPORT_LIMIT_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CONTROL_MODE,
     STOREDGE_MODE,
@@ -32,6 +33,7 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         entities.append(SolarEdgeExportControlMode(inverter, config_entry, coordinator))
+        entities.append(SolaredgeExportLimitMode(inverter, config_entry, coordinator))
 
     """ Advanced Power Control: StorEdge Control """
     if hub.option_storedge_control is True:
@@ -258,4 +260,32 @@ class SolarEdgeExportControlMode(SolarEdgeSelectBase):
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
         await self._platform.write_registers(address=57344, payload=set_bits)
+        await self.async_update()
+
+
+class SolaredgeExportLimitMode(SolarEdgeSelectBase):
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        self._options = EXPORT_LIMIT_MODE
+        self._attr_options = list(self._options.values())
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_export_limit_mode"
+
+    @property
+    def name(self) -> str:
+        return "Export Limit Mode"
+
+    @property
+    def current_option(self) -> str:
+        try:
+            return self._options[self._platform.decoded_model["E_Limit_Mode"]]
+        except KeyError:
+            return None
+
+    async def async_select_option(self, option: str) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {option}")
+        new_mode = get_key(self._options, option)
+        await self._platform.write_registers(address=57345, payload=new_mode)
         await self.async_update()

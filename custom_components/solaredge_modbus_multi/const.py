@@ -257,4 +257,4 @@ EXPORT_CONTROL_MODE = {
     2: "Production Limitation",
 }
 
-EXPORT_CONTROL_LIMIT_MODE = {0: "Total", 1: "Per Phase"}
+EXPORT_LIMIT_MODE = {0: "Total", 1: "Per Phase"}
