@@ -72,8 +72,9 @@ class SolarEdgeModbusMultiHub:
         single_device_entity: bool = True,
         keep_modbus_open: bool = False,
         advanced_power_control: bool = False,
-        adv_storedge_control: bool = False,
+        adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
+
         allow_battery_energy_reset: bool = False,
     ):
         """Initialize the Modbus hub."""
@@ -88,7 +89,7 @@ class SolarEdgeModbusMultiHub:
         self._single_device_entity = single_device_entity
         self._keep_modbus_open = keep_modbus_open
         self._advanced_power_control = advanced_power_control
-        self._adv_storedge_control = adv_storedge_control
+        self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
         self._lock = threading.Lock()
@@ -120,7 +121,7 @@ class SolarEdgeModbusMultiHub:
                 f"single_device_entity={self._single_device_entity}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"advanced_power_control={self._advanced_power_control}, "
-                f"adv_storedge_control={self._adv_storedge_control}, "
+                f"adv_storage_control={self.adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
             ),
@@ -130,7 +131,7 @@ class SolarEdgeModbusMultiHub:
         if not self.is_socket_open():
             raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
 
-        if self._adv_storedge_control:
+        if self._adv_storage_control:
             _LOGGER.warning(
                 (
                     "Advanced Power Control: StorEdge Control is enabled. "
@@ -388,7 +389,7 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def option_storedge_control(self) -> bool:
-        return self._adv_storedge_control
+        return self._adv_storage_control
 
     @property
     def option_export_control(self) -> bool:
