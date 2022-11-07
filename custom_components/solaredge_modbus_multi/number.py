@@ -31,7 +31,7 @@ async def async_setup_entry(
 
     entities = []
 
-    """ Advanced Power Control: StorEdge Control """
+    """ Power Control Options: Storage Control """
     if hub.option_storedge_control is True:
         for battery in hub.batteries:
             for inverter in hub.inverters:

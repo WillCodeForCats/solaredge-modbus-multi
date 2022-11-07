@@ -31,11 +31,7 @@ async def async_setup_entry(
 
     entities = []
 
-    for inverter in hub.inverters:
-        entities.append(SolarEdgeExportControlMode(inverter, config_entry, coordinator))
-        entities.append(SolaredgeExportLimitMode(inverter, config_entry, coordinator))
-
-    """ Advanced Power Control: StorEdge Control """
+    """ Power Control Options: Storage Control """
     if hub.option_storedge_control is True:
         for battery in hub.batteries:
             for inverter in hub.inverters:
@@ -51,6 +47,16 @@ async def async_setup_entry(
                     StoredgeDefaultMode(inverter, config_entry, coordinator)
                 )
                 entities.append(StoredgeRemoteMode(inverter, config_entry, coordinator))
+
+    """ Power Control Options: Export Limit Control """
+    if hub.option_export_control is True:
+        for inverter in hub.inverters:
+            entities.append(
+                SolarEdgeExportControlMode(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolaredgeExportLimitMode(inverter, config_entry, coordinator)
+            )
 
     if entities:
         async_add_entities(entities)
