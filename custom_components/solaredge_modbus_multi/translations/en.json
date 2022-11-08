@@ -37,7 +37,7 @@
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "advanced_power_control": "Advanced Power Control",
-          "allow_storage_energy_reset": "Allow Storage Energy to Reset"
+          "allow_battery_energy_reset": "Allow Battery Energy to Reset"
         }
       },
       "adv_pwr_ctl": {

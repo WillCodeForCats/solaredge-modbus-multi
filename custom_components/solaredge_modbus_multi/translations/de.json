@@ -36,7 +36,8 @@
           "keep_modbus_open": "Modbus-Verbindung geöffnet lassen",
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
-          "advanced_power_control": "Erweiterte Leistungssteuerung"
+          "advanced_power_control": "Erweiterte Leistungssteuerung",
+          "allow_battery_energy_reset": ""
         }
       },
       "adv_pwr_ctl": {

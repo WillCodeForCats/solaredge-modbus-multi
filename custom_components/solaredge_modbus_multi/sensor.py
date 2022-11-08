@@ -1929,7 +1929,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        if self._platform.allow_storage_energy_reset:
+                        if self._platform.allow_battery_energy_reset:
                             _LOGGER.warning(
                                 (
                                     "Battery Export Energy went backwards: "
@@ -1991,7 +1991,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        if self._platform.allow_storage_energy_reset:
+                        if self._platform.allow_battery_energy_reset:
                             _LOGGER.warning(
                                 (
                                     "Battery Import Energy went backwards: "

@@ -13,7 +13,7 @@ from .const import (
     CONF_ADV_EXPORT_CONTROL,
     CONF_ADV_PWR_CONTROL,
     CONF_ADV_STOREDGE_CONTROL,
-    CONF_ALLOW_STORAGE_ENERGY_RESET,
+    CONF_ALLOW_BATTERY_ENERGY_RESET,
     CONF_DETECT_BATTERIES,
     CONF_DETECT_METERS,
     CONF_DEVICE_ID,
@@ -23,7 +23,7 @@ from .const import (
     DEFAULT_ADV_EXPORT_CONTROL,
     DEFAULT_ADV_PWR_CONTROL,
     DEFAULT_ADV_STOREDGE_CONTROL,
-    DEFAULT_ALLOW_STORAGE_ENERGY_RESET,
+    DEFAULT_ALLOW_BATTERY_ENERGY_RESET,
     DEFAULT_DETECT_BATTERIES,
     DEFAULT_DETECT_METERS,
     DEFAULT_DEVICE_ID,
@@ -175,8 +175,8 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                 CONF_ADV_PWR_CONTROL: self.config_entry.options.get(
                     CONF_ADV_PWR_CONTROL, DEFAULT_ADV_PWR_CONTROL
                 ),
-                CONF_ALLOW_STORAGE_ENERGY_RESET: self.config_entry.options.get(
-                    CONF_ALLOW_STORAGE_ENERGY_RESET, DEFAULT_ALLOW_STORAGE_ENERGY_RESET
+                CONF_ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
+                    CONF_ALLOW_BATTERY_ENERGY_RESET, DEFAULT_ALLOW_BATTERY_ENERGY_RESET
                 ),
             }
 
@@ -209,8 +209,8 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         default=user_input[CONF_ADV_PWR_CONTROL],
                     ): cv.boolean,
                     vol.Optional(
-                        CONF_ALLOW_STORAGE_ENERGY_RESET,
-                        default=user_input[CONF_ALLOW_STORAGE_ENERGY_RESET],
+                        CONF_ALLOW_BATTERY_ENERGY_RESET,
+                        default=user_input[CONF_ALLOW_BATTERY_ENERGY_RESET],
                     ): cv.boolean,
                 },
             ),

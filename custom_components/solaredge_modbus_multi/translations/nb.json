@@ -36,7 +36,8 @@
           "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
-          "advanced_power_control": "Avansert strømkontroll"
+          "advanced_power_control": "Avansert strømkontroll",
+          "allow_battery_energy_reset": ""
         }
       },
       "adv_pwr_ctl": {

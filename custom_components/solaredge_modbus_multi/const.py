@@ -14,7 +14,7 @@ DEFAULT_KEEP_MODBUS_OPEN = False
 DEFAULT_ADV_PWR_CONTROL = False
 DEFAULT_ADV_STOREDGE_CONTROL = False
 DEFAULT_ADV_EXPORT_CONTROL = False
-DEFAULT_ALLOW_STORAGE_ENERGY_RESET = False
+DEFAULT_ALLOW_BATTERY_ENERGY_RESET = False
 CONF_ADV_PWR_CONTROL = "advanced_power_control"
 CONF_ADV_STOREDGE_CONTROL = "adv_storedge_control"
 CONF_ADV_EXPORT_CONTROL = "adv_export_control"
@@ -24,7 +24,7 @@ CONF_DETECT_METERS = "detect_meters"
 CONF_DETECT_BATTERIES = "detect_batteries"
 CONF_SINGLE_DEVICE_ENTITY = "single_device_entity"
 CONF_KEEP_MODBUS_OPEN = "keep_modbus_open"
-CONF_ALLOW_STORAGE_ENERGY_RESET = "allow_storage_energy_reset"
+CONF_ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"

@@ -36,7 +36,8 @@
           "keep_modbus_open": "Pozostaw połączenie Modbus otwarte",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
-          "advanced_power_control": "Zaawansowana kontrola mocy"
+          "advanced_power_control": "Zaawansowana kontrola mocy",
+          "allow_battery_energy_reset": ""
         }
       },
       "adv_pwr_ctl": {
