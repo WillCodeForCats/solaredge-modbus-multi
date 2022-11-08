@@ -36,7 +36,8 @@
           "keep_modbus_open": "Houd Modbus-verbinding open",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
-          "advanced_power_control": "Geavanceerde stroomregeling"
+          "advanced_power_control": "Geavanceerde stroomregeling",
+          "allow_battery_energy_reset": "Batterij-energie laten resetten"
         }
       },
       "adv_pwr_ctl": {

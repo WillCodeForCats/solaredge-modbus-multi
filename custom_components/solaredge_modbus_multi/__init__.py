@@ -20,6 +20,7 @@ from .const import (
     CONF_ADV_EXPORT_CONTROL,
     CONF_ADV_PWR_CONTROL,
     CONF_ADV_STOREDGE_CONTROL,
+    CONF_ALLOW_BATTERY_ENERGY_RESET,
     CONF_DETECT_BATTERIES,
     CONF_DETECT_METERS,
     CONF_DEVICE_ID,
@@ -29,6 +30,7 @@ from .const import (
     DEFAULT_ADV_EXPORT_CONTROL,
     DEFAULT_ADV_PWR_CONTROL,
     DEFAULT_ADV_STOREDGE_CONTROL,
+    DEFAULT_ALLOW_BATTERY_ENERGY_RESET,
     DEFAULT_DETECT_BATTERIES,
     DEFAULT_DETECT_METERS,
     DEFAULT_KEEP_MODBUS_OPEN,
@@ -76,6 +78,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_ADV_PWR_CONTROL, DEFAULT_ADV_PWR_CONTROL),
         entry.options.get(CONF_ADV_STOREDGE_CONTROL, DEFAULT_ADV_STOREDGE_CONTROL),
         entry.options.get(CONF_ADV_EXPORT_CONTROL, DEFAULT_ADV_EXPORT_CONTROL),
+        entry.options.get(
+            CONF_ALLOW_BATTERY_ENERGY_RESET, DEFAULT_ALLOW_BATTERY_ENERGY_RESET
+        ),
     )
 
     coordinator = SolarEdgeCoordinator(
