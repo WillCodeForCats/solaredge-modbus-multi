@@ -74,6 +74,7 @@ class SolarEdgeModbusMultiHub:
         advanced_power_control: bool = False,
         adv_storedge_control: bool = False,
         adv_export_control: bool = False,
+        allow_storage_energy_reset: bool = False,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -89,6 +90,7 @@ class SolarEdgeModbusMultiHub:
         self._advanced_power_control = advanced_power_control
         self._adv_storedge_control = adv_storedge_control
         self._adv_export_control = adv_export_control
+        self._allow_storage_energy_reset = allow_storage_energy_reset
         self._lock = threading.Lock()
         self._id = name.lower()
         self._coordinator_timeout = 30
@@ -120,6 +122,7 @@ class SolarEdgeModbusMultiHub:
                 f"advanced_power_control={self._advanced_power_control}, "
                 f"adv_storedge_control={self._adv_storedge_control}, "
                 f"adv_export_control={self._adv_export_control}, "
+                f"allow_storage_energy_reset={self._allow_storage_energy_reset}, "
             ),
         )
 
@@ -381,6 +384,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def keep_modbus_open(self) -> bool:
         return self._keep_modbus_open
+
+    @property
+    def allow_storage_energy_reset(self) -> bool:
+        return self._allow_storage_energy_reset
 
     @keep_modbus_open.setter
     def keep_modbus_open(self, value: bool) -> None:
