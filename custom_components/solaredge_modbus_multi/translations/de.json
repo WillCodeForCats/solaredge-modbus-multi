@@ -37,7 +37,7 @@
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "advanced_power_control": "Erweiterte Leistungssteuerung",
-          "allow_battery_energy_reset": ""
+          "allow_battery_energy_reset": "Batterieenergie zurücksetzen lassen"
         }
       },
       "adv_pwr_ctl": {

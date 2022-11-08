@@ -37,7 +37,7 @@
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "advanced_power_control": "Zaawansowana kontrola mocy",
-          "allow_battery_energy_reset": ""
+          "allow_battery_energy_reset": "Zezwól na zresetowanie energii baterii"
         }
       },
       "adv_pwr_ctl": {
