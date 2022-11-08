@@ -53,6 +53,13 @@ async def async_setup_entry(
                     StoredgeDischargeLimit(inverter, battery, config_entry, coordinator)
                 )
 
+    """ Power Control Options: Export Limit Control """
+    if hub.option_export_control is True:
+        for inverter in hub.inverters:
+            entities.append(
+                SolarEdgeExportSiteLimit(inverter, config_entry, coordinator)
+            )
+
     if entities:
         async_add_entities(entities)
 
@@ -310,5 +317,36 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57360, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeExportSiteLimit(SolarEdgeNumberBase):
+    icon = "mdi:transmission-tower-import"
+
+    def __init__(self, inverter, config_entry, coordinator):
+        super().__init__(inverter, config_entry, coordinator)
+        self._attr_native_min_value = 0
+        self._attr_native_max_value = 1000000
+        self._attr_native_unit_of_measurement = POWER_WATT
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_export_limit"
+
+    @property
+    def name(self) -> str:
+        return "Export Limit"
+
+    @property
+    def native_value(self) -> float | None:
+        return round(self._platform.decoded_model["E_Site_Limit"], 1)
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder.add_32bit_float(float(value))
+        await self._platform.write_registers(
+            address=57346, payload=builder.to_registers()
         )
         await self.async_update()

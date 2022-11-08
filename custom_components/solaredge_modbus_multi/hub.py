@@ -392,7 +392,7 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def option_export_control(self) -> bool:
-        return self.adv_export_control
+        return self._adv_export_control
 
     @property
     def keep_modbus_open(self) -> bool:
