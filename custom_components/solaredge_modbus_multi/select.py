@@ -105,7 +105,7 @@ class StoredgeControlMode(SolarEdgeSelectBase):
 
     @property
     def name(self) -> str:
-        return "StorEdge Control Mode"
+        return "Storage Control Mode"
 
     @property
     def current_option(self) -> str:
@@ -155,7 +155,7 @@ class StoredgeDefaultMode(SolarEdgeSelectBase):
 
     @property
     def name(self) -> str:
-        return "StorEdge Default Mode"
+        return "Storage Default Mode"
 
     @property
     def available(self) -> bool:
@@ -188,7 +188,7 @@ class StoredgeRemoteMode(SolarEdgeSelectBase):
 
     @property
     def name(self) -> str:
-        return "StorEdge Command Mode"
+        return "Storage Command Mode"
 
     @property
     def available(self) -> bool:

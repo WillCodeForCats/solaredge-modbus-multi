@@ -43,7 +43,7 @@
       "adv_pwr_ctl": {
         "title": "Power Control Options",
         "data": {
-          "adv_storage_control": "Enable StorEdge Control",
+          "adv_storage_control": "Enable Storage Control",
           "adv_site_limit_control": "Enable Site Limit Control"   
         },
         "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"

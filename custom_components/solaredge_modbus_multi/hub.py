@@ -134,7 +134,7 @@ class SolarEdgeModbusMultiHub:
         if self._adv_storage_control:
             _LOGGER.warning(
                 (
-                    "Power Control Options: StorEdge Control is enabled. "
+                    "Power Control Options: Storage Control is enabled. "
                     "Use at your own risk!"
                 ),
             )
@@ -1008,7 +1008,7 @@ class SolarEdgeInverter:
                 ),
             )
 
-        """ Power Control Options: StorEdge Control """
+        """ Power Control Options: Storage Control """
         if (
             self.hub.option_storedge_control is True
             and self.decoded_storedge is not None
