@@ -1929,15 +1929,19 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        _LOGGER.warning(
-                            (
-                                "Battery Export Energy went backwards: "
-                                f"{self._platform.decoded_model['B_Export_Energy_WH']} "
-                                f"< {self._last}"
+                        if self._platform.allow_storage_energy_reset:
+                            _LOGGER.warning(
+                                (
+                                    "Battery Export Energy went backwards: "
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: E501
+                                    f"< {self._last}"
+                                )
                             )
-                        ),
 
-                        if self._platform.decoded_model["B_Export_Energy_WH"] == 0x0:
+                        if (
+                            self._platform.decoded_model["B_Export_Energy_WH"] == 0x0
+                            and self._platform.allow_storage_energy_reset
+                        ):
                             self._last = None
 
                         return None
@@ -1987,15 +1991,19 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        _LOGGER.warning(
-                            (
-                                "Battery Import Energy went backwards: "
-                                f"{self._platform.decoded_model['B_Import_Energy_WH']} "
-                                f"< {self._last}"
-                            )
-                        ),
+                        if self._platform.allow_storage_energy_reset:
+                            _LOGGER.warning(
+                                (
+                                    "Battery Import Energy went backwards: "
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: E501
+                                    f"< {self._last}"
+                                )
+                            ),
 
-                        if self._platform.decoded_model["B_Import_Energy_WH"] == 0x0:
+                        if (
+                            self._platform.decoded_model["B_Import_Energy_WH"] == 0x0
+                            and self._platform.allow_storage_energy_reset
+                        ):
                             self._last = None
 
                         return None

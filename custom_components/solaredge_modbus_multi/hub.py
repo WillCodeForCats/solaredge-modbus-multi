@@ -1492,3 +1492,7 @@ class SolarEdgeBattery:
     @property
     def single_device_entity(self) -> bool:
         return self.hub._single_device_entity
+
+    @property
+    def allow_storage_energy_reset(self) -> bool:
+        return self.hub.allow_storage_energy_reset
