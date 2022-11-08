@@ -1540,20 +1540,26 @@ class MeterEvents(SolarEdgeSensorBase):
 
     @property
     def extra_state_attributes(self):
+        attrs = {}
+
         try:
             m_events_active = []
             if int(str(self._platform.decoded_model["M_Events"]), 16) == 0x0:
-                return {"description": str(m_events_active)}
+                attrs["description"] = str(m_events_active)
             else:
                 for i in range(2, 31):
                     if int(str(self._platform.decoded_model["M_Events"]), 16) & (
                         1 << i
                     ):
                         m_events_active.append(METER_EVENTS[i])
-                return {"description": str(m_events_active)}
+                attrs["description"] = str(m_events_active)
+
+            attrs["bits"] = bin(self._platform.decoded_model["M_Events"])
 
         except KeyError:
             return None
+
+        return attrs
 
 
 class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
