@@ -1938,11 +1938,11 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                                 )
                             )
 
-                        if (
-                            self._platform.decoded_model["B_Export_Energy_WH"] == 0x0
-                            and self._platform.allow_storage_energy_reset
-                        ):
-                            self._last = None
+                            if (
+                                self._platform.decoded_model["B_Export_Energy_WH"]
+                                == 0x0
+                            ):
+                                self._last = None
 
                         return None
 
@@ -2000,11 +2000,11 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                                 )
                             ),
 
-                        if (
-                            self._platform.decoded_model["B_Import_Energy_WH"] == 0x0
-                            and self._platform.allow_storage_energy_reset
-                        ):
-                            self._last = None
+                            if (
+                                self._platform.decoded_model["B_Import_Energy_WH"]
+                                == 0x0
+                            ):
+                                self._last = None
 
                         return None
 
