@@ -32,7 +32,7 @@ async def async_setup_entry(
     entities = []
 
     """ Power Control Options: Storage Control """
-    if hub.option_storedge_control is True:
+    if hub.option_storage_control is True:
         for battery in hub.batteries:
             for inverter in hub.inverters:
                 if inverter.inverter_unit_id != battery.inverter_unit_id:
@@ -115,7 +115,7 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_ac_charge_limit"
+        return f"{self._platform.uid_base}_storage_ac_charge_limit"
 
     @property
     def name(self) -> str:
@@ -124,16 +124,16 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         # Available for AC charge policies 2 & 3
-        return self._platform.online and self._platform.decoded_storedge[
+        return self._platform.online and self._platform.decoded_storage[
             "ac_charge_policy"
         ] in [2, 3]
 
     @property
     def native_unit_of_measurement(self) -> str | None:
         # kWh in AC policy "Fixed Energy Limit", % in AC policy "Percent of Production"
-        if self._platform.decoded_storedge["ac_charge_policy"] == 2:
+        if self._platform.decoded_storage["ac_charge_policy"] == 2:
             return ENERGY_KILO_WATT_HOUR
-        elif self._platform.decoded_storedge["ac_charge_policy"] == 3:
+        elif self._platform.decoded_storage["ac_charge_policy"] == 3:
             return PERCENTAGE
         else:
             return None
@@ -145,16 +145,16 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
     @property
     def native_max_value(self) -> float:
         # 100MWh in AC policy "Fixed Energy Limit"
-        if self._platform.decoded_storedge["ac_charge_policy"] == 2:
+        if self._platform.decoded_storage["ac_charge_policy"] == 2:
             return 100000000
-        elif self._platform.decoded_storedge["ac_charge_policy"] == 3:
+        elif self._platform.decoded_storage["ac_charge_policy"] == 3:
             return 100
         else:
             return 0
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["ac_charge_limit"], 3)
+        return round(self._platform.decoded_storage["ac_charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -177,7 +177,7 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_backup_reserve"
+        return f"{self._platform.uid_base}_storage_backup_reserve"
 
     @property
     def name(self) -> str:
@@ -185,7 +185,7 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["backup_reserve"], 3)
+        return round(self._platform.decoded_storage["backup_reserve"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -208,7 +208,7 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_remote_command_timeout"
+        return f"{self._platform.uid_base}_storage_remote_command_timeout"
 
     @property
     def name(self) -> str:
@@ -219,12 +219,12 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
     def native_value(self) -> int | None:
-        return int(self._platform.decoded_storedge["remote_command_timeout"])
+        return int(self._platform.decoded_storage["remote_command_timeout"])
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -247,7 +247,7 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_remote_charge_limit"
+        return f"{self._platform.uid_base}_storage_remote_charge_limit"
 
     @property
     def name(self) -> str:
@@ -258,7 +258,7 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
@@ -268,7 +268,7 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["remote_charge_limit"], 3)
+        return round(self._platform.decoded_storage["remote_charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -291,7 +291,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_remote_discharge_limit"
+        return f"{self._platform.uid_base}_storage_remote_discharge_limit"
 
     @property
     def name(self) -> str:
@@ -302,7 +302,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
@@ -312,7 +312,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["remote_discharge_limit"], 3)
+        return round(self._platform.decoded_storage["remote_discharge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
