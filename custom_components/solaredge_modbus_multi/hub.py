@@ -959,6 +959,46 @@ class SolarEdgeInverter:
                     )
                 )
 
+            """ External Production Max Power """
+            inverter_data = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=57362, count=2
+            )
+            if inverter_data.isError():
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+
+                if type(inverter_data) is ModbusIOException:
+                    raise ModbusReadError(
+                        f"No response from inverter ID {self.inverter_unit_id}"
+                    )
+
+                if type(inverter_data) is ExceptionResponse:
+                    if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                        del self.decoded_model["Ext_Prod_Max"]
+                        _LOGGER.debug(
+                            (
+                                f"Inverter {self.inverter_unit_id}: "
+                                "Ext_Prod_Max NOT available"
+                            )
+                        )
+
+                if self._has_export_control is not False:
+                    raise ModbusReadError(inverter_data)
+
+            else:
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.Big,
+                    wordorder=Endian.Little,
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("Ext_Prod_Max", decoder.decode_32bit_float()),
+                        ]
+                    )
+                )
+
         for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
