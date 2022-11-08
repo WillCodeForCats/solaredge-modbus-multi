@@ -198,6 +198,7 @@ BATTERY_STATUS = {
     4: "Discharge",
     5: "Fault",
     7: "Idle",
+    10: "Power Saving",
 }
 
 RRCR_STATUS = {
