@@ -366,11 +366,11 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_external_production_maximum"
+        return f"{self._platform.uid_base}_external_production_max"
 
     @property
     def name(self) -> str:
-        return "External Production Maximum"
+        return "External Production Max"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
