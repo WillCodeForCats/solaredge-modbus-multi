@@ -177,15 +177,15 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_backup_reserved"
+        return f"{self._platform.uid_base}_storedge_backup_reserve"
 
     @property
     def name(self) -> str:
-        return "Backup Reserved"
+        return "Backup Reserve"
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["backup_reserved"], 3)
+        return round(self._platform.decoded_storedge["backup_reserve"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
