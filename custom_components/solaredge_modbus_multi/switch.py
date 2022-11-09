@@ -128,10 +128,6 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         return "Negative Site Limit"
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
-        return False
-
-    @property
     def is_on(self) -> bool:
         return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 11) & 1
 
