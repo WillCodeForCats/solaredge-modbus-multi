@@ -335,11 +335,11 @@ class SolarEdgeExportSiteLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_export_limit"
+        return f"{self._platform.uid_base}_site_limit"
 
     @property
     def name(self) -> str:
-        return "Export Limit"
+        return "Site Limit"
 
     @property
     def native_value(self) -> float | None:

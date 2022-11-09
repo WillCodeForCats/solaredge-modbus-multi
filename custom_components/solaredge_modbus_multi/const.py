@@ -252,8 +252,8 @@ STOREDGE_MODE = {
 
 EXPORT_CONTROL_MODE = {
     None: "Disabled",
-    0: "Direct Limitation",
-    1: "Indirect Limitation",
+    0: "Direct Export Limitation",
+    1: "Indirect Export Limitation",
     2: "Production Limitation",
 }
 
