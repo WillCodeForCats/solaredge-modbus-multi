@@ -952,8 +952,8 @@ class SolarEdgeInverter:
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("E_Mode", decoder.decode_16bit_uint()),
-                            ("E_Limit_Mode", decoder.decode_16bit_uint()),
+                            ("E_Lim_Ctl_Mode", decoder.decode_16bit_uint()),
+                            ("E_Lim_Ctl", decoder.decode_16bit_uint()),
                             ("E_Site_Limit", decoder.decode_32bit_float()),
                         ]
                     )

@@ -91,11 +91,11 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        return (int(self._platform.decoded_model["E_Mode"]) >> 10) & 1
+        return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits | (1 << 10)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
@@ -104,7 +104,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits & ~(1 << 10)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
@@ -133,11 +133,11 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        return (int(self._platform.decoded_model["E_Mode"]) >> 11) & 1
+        return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 11) & 1
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits | (1 << 11)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
@@ -146,7 +146,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits & ~(1 << 11)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")

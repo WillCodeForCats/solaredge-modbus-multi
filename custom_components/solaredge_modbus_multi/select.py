@@ -10,8 +10,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
-    EXPORT_CONTROL_MODE,
-    EXPORT_LIMIT_MODE,
+    LIMIT_CONTROL,
+    LIMIT_CONTROL_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CONTROL_MODE,
     STOREDGE_MODE,
@@ -52,11 +52,9 @@ async def async_setup_entry(
     if hub.option_export_control is True:
         for inverter in hub.inverters:
             entities.append(
-                SolarEdgeExportControlMode(inverter, config_entry, coordinator)
+                SolaredgeLimitControlMode(inverter, config_entry, coordinator)
             )
-            entities.append(
-                SolaredgeExportLimitMode(inverter, config_entry, coordinator)
-            )
+            entities.append(SolaredgeLimitControl(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -221,30 +219,30 @@ class StoredgeRemoteMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class SolarEdgeExportControlMode(SolarEdgeSelectBase):
+class SolaredgeLimitControlMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = EXPORT_CONTROL_MODE
+        self._options = LIMIT_CONTROL_MODE
         self._attr_options = list(self._options.values())
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_export_control_mode"
+        return f"{self._platform.uid_base}_limit_control_mode"
 
     @property
     def name(self) -> str:
-        return "Export Control Mode"
+        return "Limit Control Mode"
 
     @property
     def current_option(self) -> str:
         try:
-            if (int(self._platform.decoded_model["E_Mode"]) >> 0) & 1:
+            if (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1:
                 return self._options[0]
 
-            elif (int(self._platform.decoded_model["E_Mode"]) >> 1) & 1:
+            elif (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 1) & 1:
                 return self._options[1]
 
-            elif (int(self._platform.decoded_model["E_Mode"]) >> 2) & 1:
+            elif (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2) & 1:
                 return self._options[2]
 
             else:
@@ -254,7 +252,7 @@ class SolarEdgeExportControlMode(SolarEdgeSelectBase):
             return None
 
     async def async_select_option(self, option: str) -> None:
-        set_bits = int(self._platform.decoded_model["E_Mode"])
+        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         new_mode = get_key(self._options, option)
 
         set_bits = set_bits & ~(1 << 0)
@@ -269,24 +267,24 @@ class SolarEdgeExportControlMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class SolaredgeExportLimitMode(SolarEdgeSelectBase):
+class SolaredgeLimitControl(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = EXPORT_LIMIT_MODE
+        self._options = LIMIT_CONTROL
         self._attr_options = list(self._options.values())
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_export_limit_mode"
+        return f"{self._platform.uid_base}_limit_control"
 
     @property
     def name(self) -> str:
-        return "Export Limit Mode"
+        return "Limit Control"
 
     @property
     def current_option(self) -> str:
         try:
-            return self._options[self._platform.decoded_model["E_Limit_Mode"]]
+            return self._options[self._platform.decoded_model["E_Lim_Ctl"]]
         except KeyError:
             return None
 

@@ -250,11 +250,11 @@ STOREDGE_MODE = {
     7: "Maximize self consumption",
 }
 
-EXPORT_CONTROL_MODE = {
+LIMIT_CONTROL_MODE = {
     None: "Disabled",
     0: "Direct Export Limitation",
     1: "Indirect Export Limitation",
     2: "Production Limitation",
 }
 
-EXPORT_LIMIT_MODE = {0: "Total", 1: "Per Phase"}
+LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
