@@ -23,7 +23,7 @@ async def async_setup_entry(
 
     entities = []
 
-    """ Power Control Options: Export Limit Control """
+    """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
         for inverter in hub.inverters:
             if inverter.single_device_entity:

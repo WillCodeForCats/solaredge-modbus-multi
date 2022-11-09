@@ -17,8 +17,8 @@ from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
-    CONF_ADV_EXPORT_CONTROL,
     CONF_ADV_PWR_CONTROL,
+    CONF_ADV_SITE_LIMIT_CONTROL,
     CONF_ADV_STOREDGE_CONTROL,
     CONF_ALLOW_BATTERY_ENERGY_RESET,
     CONF_DETECT_BATTERIES,
@@ -27,8 +27,8 @@ from .const import (
     CONF_KEEP_MODBUS_OPEN,
     CONF_NUMBER_INVERTERS,
     CONF_SINGLE_DEVICE_ENTITY,
-    DEFAULT_ADV_EXPORT_CONTROL,
     DEFAULT_ADV_PWR_CONTROL,
+    DEFAULT_ADV_SITE_LIMIT_CONTROL,
     DEFAULT_ADV_STOREDGE_CONTROL,
     DEFAULT_ALLOW_BATTERY_ENERGY_RESET,
     DEFAULT_DETECT_BATTERIES,
@@ -78,7 +78,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
         entry.options.get(CONF_ADV_PWR_CONTROL, DEFAULT_ADV_PWR_CONTROL),
         entry.options.get(CONF_ADV_STOREDGE_CONTROL, DEFAULT_ADV_STOREDGE_CONTROL),
-        entry.options.get(CONF_ADV_EXPORT_CONTROL, DEFAULT_ADV_EXPORT_CONTROL),
+        entry.options.get(CONF_ADV_SITE_LIMIT_CONTROL, DEFAULT_ADV_SITE_LIMIT_CONTROL),
         entry.options.get(
             CONF_ALLOW_BATTERY_ENERGY_RESET, DEFAULT_ALLOW_BATTERY_ENERGY_RESET
         ),

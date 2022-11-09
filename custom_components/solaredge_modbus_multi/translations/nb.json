@@ -29,7 +29,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "SolarEdge Modbus Options",
+        "title": "SolarEdge Modbus-alternativer",
         "data": {
           "scan_interval": "Avstemningsfrekvens (sekunder)",
           "single_device_entity": "Enkelt enhetsenhet",
@@ -44,7 +44,7 @@
         "title": "Avansert strømkontroll",
         "data": {
           "adv_storedge_control": "Aktiver StorEdge Control",
-          "adv_export_control": "Aktiver eksportgrensekontroll"   
+          "adv_site_limit_control": "Aktiver Site Limit Control"   
         },
         "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
       }

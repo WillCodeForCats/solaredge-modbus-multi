@@ -53,7 +53,7 @@ async def async_setup_entry(
                     StoredgeDischargeLimit(inverter, battery, config_entry, coordinator)
                 )
 
-    """ Power Control Options: Export Limit Control """
+    """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
         for inverter in hub.inverters:
             entities.append(

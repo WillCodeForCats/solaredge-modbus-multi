@@ -73,7 +73,7 @@ class SolarEdgeModbusMultiHub:
         keep_modbus_open: bool = False,
         advanced_power_control: bool = False,
         adv_storedge_control: bool = False,
-        adv_export_control: bool = False,
+        adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
     ):
         """Initialize the Modbus hub."""
@@ -89,7 +89,7 @@ class SolarEdgeModbusMultiHub:
         self._keep_modbus_open = keep_modbus_open
         self._advanced_power_control = advanced_power_control
         self._adv_storedge_control = adv_storedge_control
-        self._adv_export_control = adv_export_control
+        self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
         self._lock = threading.Lock()
         self._id = name.lower()
@@ -121,7 +121,7 @@ class SolarEdgeModbusMultiHub:
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"advanced_power_control={self._advanced_power_control}, "
                 f"adv_storedge_control={self._adv_storedge_control}, "
-                f"adv_export_control={self._adv_export_control}, "
+                f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
             ),
         )
@@ -138,10 +138,10 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        if self._adv_export_control:
+        if self._adv_site_limit_control:
             _LOGGER.warning(
                 (
-                    "Advanced Power Control: Export Limit Control is enabled. "
+                    "Advanced Power Control: Site Limit Control is enabled. "
                     "Use at your own risk!"
                 ),
             )
@@ -392,7 +392,7 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def option_export_control(self) -> bool:
-        return self._adv_export_control
+        return self._adv_site_limit_control
 
     @property
     def keep_modbus_open(self) -> bool:
@@ -914,7 +914,7 @@ class SolarEdgeInverter:
                 )
                 self.advanced_power_control = True
 
-        """ Export Limit Control """
+        """ Site Limit Control """
         if self._has_export_control is True or self._has_export_control is None:
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=57344, count=4
