@@ -74,7 +74,6 @@ class SolarEdgeModbusMultiHub:
         advanced_power_control: bool = False,
         adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
-
         allow_battery_energy_reset: bool = False,
     ):
         """Initialize the Modbus hub."""

@@ -77,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
         entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
         entry.options.get(CONF_ADV_PWR_CONTROL, DEFAULT_ADV_PWR_CONTROL),
-        entry.options.get(CONF_ADV_STORAGE_CONTROL, DEFAULT_ADV_STOREDGE_CONTROL),
+        entry.options.get(CONF_ADV_STORAGE_CONTROL, DEFAULT_ADV_STORAGE_CONTROL),
         entry.options.get(CONF_ADV_SITE_LIMIT_CONTROL, DEFAULT_ADV_SITE_LIMIT_CONTROL),
         entry.options.get(
             CONF_ALLOW_BATTERY_ENERGY_RESET, DEFAULT_ALLOW_BATTERY_ENERGY_RESET
