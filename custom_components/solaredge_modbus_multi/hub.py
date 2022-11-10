@@ -120,7 +120,7 @@ class SolarEdgeModbusMultiHub:
                 f"single_device_entity={self._single_device_entity}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"advanced_power_control={self._advanced_power_control}, "
-                f"adv_storage_control={self.adv_storage_control}, "
+                f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
             ),
