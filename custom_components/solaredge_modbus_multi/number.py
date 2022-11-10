@@ -325,7 +325,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
 
 
 class SolarEdgeExportSiteLimit(SolarEdgeNumberBase):
-    icon = "mdi:transmission-tower-import"
+    icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, config_entry, coordinator):
         super().__init__(inverter, config_entry, coordinator)
