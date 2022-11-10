@@ -241,12 +241,12 @@ STORAGE_AC_CHARGE_POLICY = {
 }
 
 STORAGE_MODE = {
-    0: "Off",
-    1: "Charge from Excess PV Power Only",
-    2: "Charge from PV First",
-    3: "Charge from PV and AC",
-    4: "Maximize Export",
-    5: "Discharge to Match Load",
+    0: "Solar Power Only (Off)",
+    1: "Charge from Clipped Solar Power",
+    2: "Charge from Solar Power",
+    3: "Charge from Solar Power and Grid",
+    4: "Discharge to Maximize Export",
+    5: "Discharge to Minimize Import",
     7: "Maximize Self Consumption",
 }
 
