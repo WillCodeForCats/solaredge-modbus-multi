@@ -252,8 +252,8 @@ STOREDGE_MODE = {
 
 LIMIT_CONTROL_MODE = {
     None: "Disabled",
-    0: "Using Export/Import Meter",
-    1: "Using Consumption Meter",
+    0: "Export Using Export/Import Meter",
+    1: "Export Using Consumption Meter",
     2: "Production Limitation",
 }
 
