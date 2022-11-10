@@ -13,11 +13,11 @@ DEFAULT_SINGLE_DEVICE_ENTITY = True
 DEFAULT_KEEP_MODBUS_OPEN = False
 DEFAULT_ADV_PWR_CONTROL = False
 DEFAULT_ADV_STOREDGE_CONTROL = False
-DEFAULT_ADV_EXPORT_CONTROL = False
+DEFAULT_ADV_SITE_LIMIT_CONTROL = False
 DEFAULT_ALLOW_BATTERY_ENERGY_RESET = False
 CONF_ADV_PWR_CONTROL = "advanced_power_control"
 CONF_ADV_STOREDGE_CONTROL = "adv_storedge_control"
-CONF_ADV_EXPORT_CONTROL = "adv_export_control"
+CONF_ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_DEVICE_ID = "device_id"
 CONF_DETECT_METERS = "detect_meters"
@@ -249,3 +249,12 @@ STOREDGE_MODE = {
     5: "Discharge to match load",
     7: "Maximize self consumption",
 }
+
+LIMIT_CONTROL_MODE = {
+    None: "Disabled",
+    0: "Export/Import Meter",
+    1: "Consumption Meter",
+    2: "Production Limitation",
+}
+
+LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
