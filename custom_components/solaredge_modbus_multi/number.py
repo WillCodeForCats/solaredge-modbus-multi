@@ -343,7 +343,11 @@ class SolarEdgeExportSiteLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_model["E_Site_Limit"], 1)
+        try:
+            return round(self._platform.decoded_model["E_Site_Limit"], 1)
+
+        except KeyError:
+            return None
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -378,7 +382,11 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_model["Ext_Prod_Max"], 1)
+        try:
+            return round(self._platform.decoded_model["Ext_Prod_Max"], 1)
+
+        except KeyError:
+            return None
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
