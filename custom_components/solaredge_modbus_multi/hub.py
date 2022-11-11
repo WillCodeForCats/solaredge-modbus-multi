@@ -1000,12 +1000,11 @@ class SolarEdgeInverter:
                 )
 
         for name, value in iter(self.decoded_model.items()):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
+            if isinstance(value, float):
+                display_value = float_to_hex(value)
+            else:
+                display_value = hex(value) if isinstance(value, int) else value
+            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {display_value}")
 
         """ Power Control Options: Storage Control """
         if self.hub.option_storage_control is True and self.decoded_storage is not None:
@@ -1061,11 +1060,12 @@ class SolarEdgeInverter:
                 )
 
                 for name, value in iter(self.decoded_storage.items()):
+                    if isinstance(value, float):
+                        display_value = float_to_hex(value)
+                    else:
+                        display_value = hex(value) if isinstance(value, int) else value
                     _LOGGER.debug(
-                        (
-                            f"Inverter {self.inverter_unit_id}: "
-                            f"{name} {hex(value) if isinstance(value, int) else value}"
-                        ),
+                        f"Inverter {self.inverter_unit_id}: {name} {display_value}"
                     )
 
     async def write_registers(self, address, payload):
@@ -1455,20 +1455,15 @@ class SolarEdgeBattery:
 
         for name, value in iter(self.decoded_common.items()):
             if isinstance(value, float):
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                        f"{name} {float_to_hex(value)}"
-                    ),
-                )
-
+                display_value = float_to_hex(value)
             else:
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                    ),
-                )
+                display_value = hex(value) if isinstance(value, int) else value
+            _LOGGER.debug(
+                (
+                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                    f"{name} {display_value}"
+                ),
+            )
 
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
