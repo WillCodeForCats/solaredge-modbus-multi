@@ -37,16 +37,12 @@ async def async_setup_entry(
             for inverter in hub.inverters:
                 if inverter.inverter_unit_id != battery.inverter_unit_id:
                     continue
+                entities.append(StorageControlMode(inverter, config_entry, coordinator))
                 entities.append(
-                    StoredgeControlMode(inverter, config_entry, coordinator)
+                    StorageACChargePolicy(inverter, config_entry, coordinator)
                 )
-                entities.append(
-                    StoredgeACChargePolicy(inverter, config_entry, coordinator)
-                )
-                entities.append(
-                    StoredgeDefaultMode(inverter, config_entry, coordinator)
-                )
-                entities.append(StoredgeRemoteMode(inverter, config_entry, coordinator))
+                entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
+                entities.append(StorageRemoteMode(inverter, config_entry, coordinator))
 
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
@@ -100,7 +96,7 @@ class SolarEdgeSelectBase(CoordinatorEntity, SelectEntity):
         self.async_write_ha_state()
 
 
-class StoredgeControlMode(SolarEdgeSelectBase):
+class StorageControlMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_CONTROL_MODE
@@ -125,7 +121,7 @@ class StoredgeControlMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StoredgeACChargePolicy(SolarEdgeSelectBase):
+class StorageACChargePolicy(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_AC_CHARGE_POLICY
@@ -150,7 +146,7 @@ class StoredgeACChargePolicy(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StoredgeDefaultMode(SolarEdgeSelectBase):
+class StorageDefaultMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE
@@ -183,7 +179,7 @@ class StoredgeDefaultMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StoredgeRemoteMode(SolarEdgeSelectBase):
+class StorageRemoteMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE

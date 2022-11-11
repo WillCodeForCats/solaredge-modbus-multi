@@ -38,19 +38,19 @@ async def async_setup_entry(
                 if inverter.inverter_unit_id != battery.inverter_unit_id:
                     continue
                 entities.append(
-                    StoredgeACChargeLimit(inverter, config_entry, coordinator)
+                    StorageACChargeLimit(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeBackupReserved(inverter, config_entry, coordinator)
+                    StorageBackupReserved(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeCommandTimeout(inverter, config_entry, coordinator)
+                    StorageCommandTimeout(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeChargeLimit(inverter, battery, config_entry, coordinator)
+                    StorageChargeLimit(inverter, battery, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeDischargeLimit(inverter, battery, config_entry, coordinator)
+                    StorageDischargeLimit(inverter, battery, config_entry, coordinator)
                 )
 
     """ Power Control Options: Site Limit Control """
@@ -107,7 +107,7 @@ class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
         self.async_write_ha_state()
 
 
-class StoredgeACChargeLimit(SolarEdgeNumberBase):
+class StorageACChargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -166,7 +166,7 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeBackupReserved(SolarEdgeNumberBase):
+class StorageBackupReserved(SolarEdgeNumberBase):
     icon = "mdi:battery-positive"
 
     def __init__(self, inverter, config_entry, coordinator):
@@ -197,7 +197,7 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeCommandTimeout(SolarEdgeNumberBase):
+class StorageCommandTimeout(SolarEdgeNumberBase):
     icon = "mdi:clock-end"
 
     def __init__(self, inverter, config_entry, coordinator):
@@ -212,7 +212,7 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Command Timeout"
+        return "Storage Command Timeout"
 
     @property
     def available(self) -> bool:
@@ -236,7 +236,7 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeChargeLimit(SolarEdgeNumberBase):
+class StorageChargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, battery, config_entry, coordinator):
@@ -280,7 +280,7 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeDischargeLimit(SolarEdgeNumberBase):
+class StorageDischargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, battery, config_entry, coordinator):
