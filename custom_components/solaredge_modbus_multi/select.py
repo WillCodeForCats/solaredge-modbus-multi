@@ -129,7 +129,7 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storage_ac_charge_policy"
+        return f"{self._platform.uid_base}_ac_charge_policy"
 
     @property
     def name(self) -> str:
@@ -187,7 +187,7 @@ class StorageRemoteMode(SolarEdgeSelectBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storage_remote_mode"
+        return f"{self._platform.uid_base}_storage_command_mode"
 
     @property
     def name(self) -> str:
