@@ -475,7 +475,23 @@ class SolarEdgeModbusMultiHub:
 
         else:
             if result.isError():
-                raise ModbusWriteError(result)
+                if type(result) is ModbusIOException:
+                    _LOGGER.error("Write command failed: No response from device.")
+                    self.online = False
+                    await self.disconnect()
+
+                if type(result) is ExceptionResponse:
+                    if result.exception_code == ModbusExceptions.IllegalAddress:
+                        _LOGGER.error(
+                            (
+                                "Write command failed: "
+                                f"Illegal address {hex(self._wr_address)}"
+                            ),
+                        )
+                        self.online = False
+                        await self.disconnect()
+
+            raise ModbusWriteError(result)
 
 
 class SolarEdgeInverter:
