@@ -295,7 +295,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def name(self) -> str:
-        return "Discharge Limit"
+        return "Storage Discharge Limit"
 
     @property
     def available(self) -> bool:
