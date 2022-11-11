@@ -1544,17 +1544,15 @@ class MeterEvents(SolarEdgeSensorBase):
 
         try:
             m_events_active = []
-            if int(str(self._platform.decoded_model["M_Events"]), 16) == 0x0:
+            if int(str(self._platform.decoded_model["M_Events"])) == 0x0:
                 attrs["description"] = str(m_events_active)
             else:
                 for i in range(2, 31):
-                    if int(str(self._platform.decoded_model["M_Events"]), 16) & (
-                        1 << i
-                    ):
+                    if int(str(self._platform.decoded_model["M_Events"])) & (1 << i):
                         m_events_active.append(METER_EVENTS[i])
                 attrs["description"] = str(m_events_active)
 
-            attrs["bits"] = bin(self._platform.decoded_model["M_Events"])
+            attrs["bits"] = f"{int(self._platform.decoded_model['M_Events']):032b}"
 
         except KeyError:
             return None
