@@ -252,9 +252,9 @@ STOREDGE_MODE = {
 
 LIMIT_CONTROL_MODE = {
     None: "Disabled",
-    0: "Export/Import Meter",
-    1: "Consumption Meter",
-    2: "Production Limitation",
+    0: "Export Control (Export/Import Meter)",
+    1: "Export Control (Consumption Meter)",
+    2: "Production Control",
 }
 
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
