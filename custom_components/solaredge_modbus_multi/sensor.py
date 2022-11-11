@@ -1610,7 +1610,7 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
                         mmppt_events_active.append(MMPPT_EVENTS[i])
                 attrs["description"] = str(mmppt_events_active)
 
-            attrs["bits"] = bin(self._platform.decoded_model["mmppt_Events"])
+            attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
 
         except KeyError:
             return None
