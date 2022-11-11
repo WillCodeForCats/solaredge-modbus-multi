@@ -234,7 +234,7 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
         return "Limit Control Mode"
 
     @property
-    def current_option(self) -> str:
+    def current_option(self) -> str | None:
         try:
             if (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1:
                 return self._options[0]
@@ -282,7 +282,7 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         return "Limit Control"
 
     @property
-    def current_option(self) -> str:
+    def current_option(self) -> str | None:
         try:
             return self._options[self._platform.decoded_model["E_Lim_Ctl"]]
         except KeyError:
