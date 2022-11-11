@@ -208,7 +208,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storage_remote_command_timeout"
+        return f"{self._platform.uid_base}_storage_command_timeout"
 
     @property
     def name(self) -> str:
@@ -224,7 +224,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int | None:
-        return int(self._platform.decoded_storage["remote_command_timeout"])
+        return int(self._platform.decoded_storage["command_timeout"])
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -247,7 +247,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storage_remote_charge_limit"
+        return f"{self._platform.uid_base}_storage_charge_limit"
 
     @property
     def name(self) -> str:
@@ -268,7 +268,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storage["remote_charge_limit"], 3)
+        return round(self._platform.decoded_storage["charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -291,7 +291,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storage_remote_discharge_limit"
+        return f"{self._platform.uid_base}_storage_discharge_limit"
 
     @property
     def name(self) -> str:
@@ -312,7 +312,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storage["remote_discharge_limit"], 3)
+        return round(self._platform.decoded_storage["discharge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")

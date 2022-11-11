@@ -204,7 +204,7 @@ class StorageRemoteMode(SolarEdgeSelectBase):
     @property
     def current_option(self) -> str:
         try:
-            return self._options[self._platform.decoded_storage["remote_command_mode"]]
+            return self._options[self._platform.decoded_storage["command_mode"]]
         except KeyError:
             return STATE_UNKNOWN
 

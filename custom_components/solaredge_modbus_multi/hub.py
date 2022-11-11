@@ -1052,10 +1052,10 @@ class SolarEdgeInverter:
                         ("ac_charge_limit", decoder.decode_32bit_float()),
                         ("backup_reserve", decoder.decode_32bit_float()),
                         ("default_mode", decoder.decode_16bit_uint()),
-                        ("remote_command_timeout", decoder.decode_32bit_uint()),
-                        ("remote_command_mode", decoder.decode_16bit_uint()),
-                        ("remote_charge_limit", decoder.decode_32bit_float()),
-                        ("remote_discharge_limit", decoder.decode_32bit_float()),
+                        ("command_timeout", decoder.decode_32bit_uint()),
+                        ("command_mode", decoder.decode_16bit_uint()),
+                        ("charge_limit", decoder.decode_32bit_float()),
+                        ("discharge_limit", decoder.decode_32bit_float()),
                     ]
                 )
 
