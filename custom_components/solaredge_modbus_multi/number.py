@@ -31,7 +31,7 @@ async def async_setup_entry(
 
     entities = []
 
-    """ Advanced Power Control: StorEdge Control """
+    """ Power Control Options: Storage Control """
     if hub.option_storedge_control is True:
         for battery in hub.batteries:
             for inverter in hub.inverters:
@@ -52,6 +52,16 @@ async def async_setup_entry(
                 entities.append(
                     StoredgeDischargeLimit(inverter, battery, config_entry, coordinator)
                 )
+
+    """ Power Control Options: Site Limit Control """
+    if hub.option_export_control is True:
+        for inverter in hub.inverters:
+            entities.append(
+                SolarEdgeExportSiteLimit(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolarEdgeExternalProductionMax(inverter, config_entry, coordinator)
+            )
 
     if entities:
         async_add_entities(entities)
@@ -310,5 +320,79 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57360, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeExportSiteLimit(SolarEdgeNumberBase):
+    icon = "mdi:lightning-bolt"
+
+    def __init__(self, inverter, config_entry, coordinator):
+        super().__init__(inverter, config_entry, coordinator)
+        self._attr_native_min_value = 0
+        self._attr_native_max_value = 1000000
+        self._attr_native_unit_of_measurement = POWER_WATT
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_site_limit"
+
+    @property
+    def name(self) -> str:
+        return "Site Limit"
+
+    @property
+    def native_value(self) -> float | None:
+        try:
+            return round(self._platform.decoded_model["E_Site_Limit"], 1)
+
+        except KeyError:
+            return None
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder.add_32bit_float(float(value))
+        await self._platform.write_registers(
+            address=57346, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
+    icon = "mdi:lightning-bolt"
+
+    def __init__(self, inverter, config_entry, coordinator):
+        super().__init__(inverter, config_entry, coordinator)
+        self._attr_native_min_value = 0
+        self._attr_native_max_value = 1000000
+        self._attr_native_unit_of_measurement = POWER_WATT
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_external_production_max"
+
+    @property
+    def name(self) -> str:
+        return "External Production Max"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def native_value(self) -> float | None:
+        try:
+            return round(self._platform.decoded_model["Ext_Prod_Max"], 1)
+
+        except KeyError:
+            return None
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder.add_32bit_float(float(value))
+        await self._platform.write_registers(
+            address=57362, payload=builder.to_registers()
         )
         await self.async_update()
