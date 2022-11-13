@@ -491,7 +491,7 @@ class SolarEdgeModbusMultiHub:
                         self.online = False
                         await self.disconnect()
 
-            raise ModbusWriteError(result)
+                raise ModbusWriteError(result)
 
 
 class SolarEdgeInverter:
