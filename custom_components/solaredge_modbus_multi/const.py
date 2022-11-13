@@ -12,11 +12,11 @@ DEFAULT_DETECT_BATTERIES = False
 DEFAULT_SINGLE_DEVICE_ENTITY = True
 DEFAULT_KEEP_MODBUS_OPEN = False
 DEFAULT_ADV_PWR_CONTROL = False
-DEFAULT_ADV_STOREDGE_CONTROL = False
+DEFAULT_ADV_STORAGE_CONTROL = False
 DEFAULT_ADV_SITE_LIMIT_CONTROL = False
 DEFAULT_ALLOW_BATTERY_ENERGY_RESET = False
 CONF_ADV_PWR_CONTROL = "advanced_power_control"
-CONF_ADV_STOREDGE_CONTROL = "adv_storedge_control"
+CONF_ADV_STORAGE_CONTROL = "adv_storage_control"
 CONF_ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_DEVICE_ID = "device_id"
@@ -225,7 +225,7 @@ MMPPT_EVENTS = {
     22: "INPUT_OVER_CURRENT",
 }
 
-STOREDGE_CONTROL_MODE = {
+STORAGE_CONTROL_MODE = {
     0: "Disabled",
     1: "Maximize Self Consumption",
     2: "Time of Use",
@@ -233,21 +233,21 @@ STOREDGE_CONTROL_MODE = {
     4: "Remote Control",
 }
 
-STOREDGE_AC_CHARGE_POLICY = {
+STORAGE_AC_CHARGE_POLICY = {
     0: "Disabled",
     1: "Always Allowed",
     2: "Fixed Energy Limit",
     3: "Percent of Production",
 }
 
-STOREDGE_MODE = {
-    0: "Off",
-    1: "Charge from excess PV power only",
-    2: "Charge from PV first",
-    3: "Charge from PV and AC",
-    4: "Maximize export",
-    5: "Discharge to match load",
-    7: "Maximize self consumption",
+STORAGE_MODE = {
+    0: "Solar Power Only (Off)",
+    1: "Charge from Clipped Solar Power",
+    2: "Charge from Solar Power",
+    3: "Charge from Solar Power and Grid",
+    4: "Discharge to Maximize Export",
+    5: "Discharge to Minimize Import",
+    7: "Maximize Self Consumption",
 }
 
 LIMIT_CONTROL_MODE = {
