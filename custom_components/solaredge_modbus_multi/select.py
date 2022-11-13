@@ -15,6 +15,7 @@ from .const import (
     STORAGE_AC_CHARGE_POLICY,
     STORAGE_CONTROL_MODE,
     STORAGE_MODE,
+    SunSpecNotImpl,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -230,8 +231,11 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
         return "Limit Control Mode"
 
     @property
-    def current_option(self) -> str:
+    def current_option(self) -> str | None:
         try:
+            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
+                return None
+
             if (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1:
                 return self._options[0]
 
@@ -278,9 +282,13 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         return "Limit Control"
 
     @property
-    def current_option(self) -> str:
+    def current_option(self) -> str | None:
         try:
+            if self._platform.decoded_model["E_Lim_Ctl"] == SunSpecNotImpl.UINT16:
+                return None
+
             return self._options[self._platform.decoded_model["E_Lim_Ctl"]]
+
         except KeyError:
             return None
 

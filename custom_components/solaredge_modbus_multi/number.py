@@ -15,7 +15,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadBuilder
 
-from .const import DOMAIN
+from .const import DOMAIN, SunSpecNotImpl
+from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -342,8 +343,27 @@ class SolarEdgeExportSiteLimit(SolarEdgeNumberBase):
         return "Site Limit"
 
     @property
+    def available(self) -> bool:
+        try:
+            return self._platform.online and (
+                (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1
+                or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 1) & 1
+                or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2) & 1
+            )
+
+        except KeyError:
+            return False
+
+    @property
     def native_value(self) -> float | None:
         try:
+            if (
+                float_to_hex(self._platform.decoded_model["E_Site_Limit"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_model["E_Site_Limit"] < 0
+            ):
+                return None
+
             return round(self._platform.decoded_model["E_Site_Limit"], 1)
 
         except KeyError:
@@ -377,12 +397,30 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
         return "External Production Max"
 
     @property
+    def available(self) -> bool:
+        try:
+            return (
+                self._platform.online
+                and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
+            )
+
+        except KeyError:
+            return False
+
+    @property
     def entity_registry_enabled_default(self) -> bool:
         return False
 
     @property
     def native_value(self) -> float | None:
         try:
+            if (
+                float_to_hex(self._platform.decoded_model["Ext_Prod_Max"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_model["Ext_Prod_Max"] < 0
+            ):
+                return None
+
             return round(self._platform.decoded_model["Ext_Prod_Max"], 1)
 
         except KeyError:
