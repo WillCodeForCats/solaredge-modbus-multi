@@ -480,7 +480,7 @@ class SolarEdgeModbusMultiHub:
                     self.online = False
                     await self.disconnect()
 
-                if type(result) is ExceptionResponse:
+                elif type(result) is ExceptionResponse:
                     if result.exception_code == ModbusExceptions.IllegalAddress:
                         _LOGGER.error(
                             (
@@ -491,7 +491,8 @@ class SolarEdgeModbusMultiHub:
                         self.online = False
                         await self.disconnect()
 
-                raise ModbusWriteError(result)
+                else:
+                    raise ModbusWriteError(result)
 
 
 class SolarEdgeInverter:
