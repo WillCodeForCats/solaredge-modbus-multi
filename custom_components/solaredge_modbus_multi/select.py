@@ -12,9 +12,9 @@ from .const import (
     DOMAIN,
     LIMIT_CONTROL,
     LIMIT_CONTROL_MODE,
-    STOREDGE_AC_CHARGE_POLICY,
-    STOREDGE_CONTROL_MODE,
-    STOREDGE_MODE,
+    STORAGE_AC_CHARGE_POLICY,
+    STORAGE_CONTROL_MODE,
+    STORAGE_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,21 +32,17 @@ async def async_setup_entry(
     entities = []
 
     """ Power Control Options: Storage Control """
-    if hub.option_storedge_control is True:
+    if hub.option_storage_control is True:
         for battery in hub.batteries:
             for inverter in hub.inverters:
                 if inverter.inverter_unit_id != battery.inverter_unit_id:
                     continue
+                entities.append(StorageControlMode(inverter, config_entry, coordinator))
                 entities.append(
-                    StoredgeControlMode(inverter, config_entry, coordinator)
+                    StorageACChargePolicy(inverter, config_entry, coordinator)
                 )
-                entities.append(
-                    StoredgeACChargePolicy(inverter, config_entry, coordinator)
-                )
-                entities.append(
-                    StoredgeDefaultMode(inverter, config_entry, coordinator)
-                )
-                entities.append(StoredgeRemoteMode(inverter, config_entry, coordinator))
+                entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
+                entities.append(StorageRemoteMode(inverter, config_entry, coordinator))
 
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
@@ -100,23 +96,23 @@ class SolarEdgeSelectBase(CoordinatorEntity, SelectEntity):
         self.async_write_ha_state()
 
 
-class StoredgeControlMode(SolarEdgeSelectBase):
+class StorageControlMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_CONTROL_MODE
+        self._options = STORAGE_CONTROL_MODE
         self._attr_options = list(self._options.values())
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_control_mode"
+        return f"{self._platform.uid_base}_storage_control_mode"
 
     @property
     def name(self) -> str:
-        return "Storedge Control Mode"
+        return "Storage Control Mode"
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storedge["control_mode"]]
+        return self._options[self._platform.decoded_storage["control_mode"]]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -125,15 +121,15 @@ class StoredgeControlMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StoredgeACChargePolicy(SolarEdgeSelectBase):
+class StorageACChargePolicy(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_AC_CHARGE_POLICY
+        self._options = STORAGE_AC_CHARGE_POLICY
         self._attr_options = list(self._options.values())
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_ac_charge_policy"
+        return f"{self._platform.uid_base}_ac_charge_policy"
 
     @property
     def name(self) -> str:
@@ -141,7 +137,7 @@ class StoredgeACChargePolicy(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storedge["ac_charge_policy"]]
+        return self._options[self._platform.decoded_storage["ac_charge_policy"]]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -150,31 +146,31 @@ class StoredgeACChargePolicy(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StoredgeDefaultMode(SolarEdgeSelectBase):
+class StorageDefaultMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_MODE
+        self._options = STORAGE_MODE
         self._attr_options = list(self._options.values())
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_default_mode"
+        return f"{self._platform.uid_base}_storage_default_mode"
 
     @property
     def name(self) -> str:
-        return "Storedge Default Mode"
+        return "Storage Default Mode"
 
     @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storedge["default_mode"]]
+        return self._options[self._platform.decoded_storage["default_mode"]]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -183,32 +179,32 @@ class StoredgeDefaultMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StoredgeRemoteMode(SolarEdgeSelectBase):
+class StorageRemoteMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        self._options = STOREDGE_MODE
+        self._options = STORAGE_MODE
         self._attr_options = list(self._options.values())
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_remote_mode"
+        return f"{self._platform.uid_base}_storage_command_mode"
 
     @property
     def name(self) -> str:
-        return "Storedge Remote Mode"
+        return "Storage Command Mode"
 
     @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
     def current_option(self) -> str:
         try:
-            return self._options[self._platform.decoded_storedge["remote_command_mode"]]
+            return self._options[self._platform.decoded_storage["command_mode"]]
         except KeyError:
             return STATE_UNKNOWN
 

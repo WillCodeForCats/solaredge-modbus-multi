@@ -32,25 +32,25 @@ async def async_setup_entry(
     entities = []
 
     """ Power Control Options: Storage Control """
-    if hub.option_storedge_control is True:
+    if hub.option_storage_control is True:
         for battery in hub.batteries:
             for inverter in hub.inverters:
                 if inverter.inverter_unit_id != battery.inverter_unit_id:
                     continue
                 entities.append(
-                    StoredgeACChargeLimit(inverter, config_entry, coordinator)
+                    StorageACChargeLimit(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeBackupReserved(inverter, config_entry, coordinator)
+                    StorageBackupReserved(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeCommandTimeout(inverter, config_entry, coordinator)
+                    StorageCommandTimeout(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeChargeLimit(inverter, battery, config_entry, coordinator)
+                    StorageChargeLimit(inverter, battery, config_entry, coordinator)
                 )
                 entities.append(
-                    StoredgeDischargeLimit(inverter, battery, config_entry, coordinator)
+                    StorageDischargeLimit(inverter, battery, config_entry, coordinator)
                 )
 
     """ Power Control Options: Site Limit Control """
@@ -107,7 +107,7 @@ class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
         self.async_write_ha_state()
 
 
-class StoredgeACChargeLimit(SolarEdgeNumberBase):
+class StorageACChargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -115,25 +115,25 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_ac_charge_limit"
+        return f"{self._platform.uid_base}_storage_ac_charge_limit"
 
     @property
     def name(self) -> str:
-        return "Storedge AC Charge Limit"
+        return "AC Charge Limit"
 
     @property
     def available(self) -> bool:
         # Available for AC charge policies 2 & 3
-        return self._platform.online and self._platform.decoded_storedge[
+        return self._platform.online and self._platform.decoded_storage[
             "ac_charge_policy"
         ] in [2, 3]
 
     @property
     def native_unit_of_measurement(self) -> str | None:
         # kWh in AC policy "Fixed Energy Limit", % in AC policy "Percent of Production"
-        if self._platform.decoded_storedge["ac_charge_policy"] == 2:
+        if self._platform.decoded_storage["ac_charge_policy"] == 2:
             return ENERGY_KILO_WATT_HOUR
-        elif self._platform.decoded_storedge["ac_charge_policy"] == 3:
+        elif self._platform.decoded_storage["ac_charge_policy"] == 3:
             return PERCENTAGE
         else:
             return None
@@ -145,16 +145,16 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
     @property
     def native_max_value(self) -> float:
         # 100MWh in AC policy "Fixed Energy Limit"
-        if self._platform.decoded_storedge["ac_charge_policy"] == 2:
+        if self._platform.decoded_storage["ac_charge_policy"] == 2:
             return 100000000
-        elif self._platform.decoded_storedge["ac_charge_policy"] == 3:
+        elif self._platform.decoded_storage["ac_charge_policy"] == 3:
             return 100
         else:
             return 0
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["ac_charge_limit"], 3)
+        return round(self._platform.decoded_storage["ac_charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -166,7 +166,7 @@ class StoredgeACChargeLimit(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeBackupReserved(SolarEdgeNumberBase):
+class StorageBackupReserved(SolarEdgeNumberBase):
     icon = "mdi:battery-positive"
 
     def __init__(self, inverter, config_entry, coordinator):
@@ -177,15 +177,15 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_backup_reserved"
+        return f"{self._platform.uid_base}_storage_backup_reserve"
 
     @property
     def name(self) -> str:
-        return "Storedge Backup Reserved"
+        return "Backup Reserve"
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["backup_reserved"], 3)
+        return round(self._platform.decoded_storage["backup_reserve"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -197,7 +197,7 @@ class StoredgeBackupReserved(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeCommandTimeout(SolarEdgeNumberBase):
+class StorageCommandTimeout(SolarEdgeNumberBase):
     icon = "mdi:clock-end"
 
     def __init__(self, inverter, config_entry, coordinator):
@@ -208,25 +208,25 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_remote_command_timeout"
+        return f"{self._platform.uid_base}_storage_command_timeout"
 
     @property
     def name(self) -> str:
-        return "Storedge Remote Command Timeout"
+        return "Storage Command Timeout"
 
     @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
-    def native_value(self) -> float | None:
-        return float(self._platform.decoded_storedge["remote_command_timeout"])
+    def native_value(self) -> int | None:
+        return int(self._platform.decoded_storage["command_timeout"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_uint(int(value))
@@ -236,7 +236,7 @@ class StoredgeCommandTimeout(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeChargeLimit(SolarEdgeNumberBase):
+class StorageChargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, battery, config_entry, coordinator):
@@ -247,18 +247,18 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_remote_charge_limit"
+        return f"{self._platform.uid_base}_storage_charge_limit"
 
     @property
     def name(self) -> str:
-        return "Storedge Remote Charge Limit"
+        return "Storage Charge Limit"
 
     @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
@@ -268,7 +268,7 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["remote_charge_limit"], 3)
+        return round(self._platform.decoded_storage["charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -280,7 +280,7 @@ class StoredgeChargeLimit(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StoredgeDischargeLimit(SolarEdgeNumberBase):
+class StorageDischargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, battery, config_entry, coordinator):
@@ -291,18 +291,18 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_storedge_remote_discharge_limit"
+        return f"{self._platform.uid_base}_storage_discharge_limit"
 
     @property
     def name(self) -> str:
-        return "Storedge Remote Discharge Limit"
+        return "Storage Discharge Limit"
 
     @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storedge["control_mode"] == 4
+            and self._platform.decoded_storage["control_mode"] == 4
         )
 
     @property
@@ -312,7 +312,7 @@ class StoredgeDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
-        return round(self._platform.decoded_storedge["remote_discharge_limit"], 3)
+        return round(self._platform.decoded_storage["discharge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")

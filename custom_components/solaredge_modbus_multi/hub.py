@@ -72,7 +72,7 @@ class SolarEdgeModbusMultiHub:
         single_device_entity: bool = True,
         keep_modbus_open: bool = False,
         advanced_power_control: bool = False,
-        adv_storedge_control: bool = False,
+        adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
     ):
@@ -88,7 +88,7 @@ class SolarEdgeModbusMultiHub:
         self._single_device_entity = single_device_entity
         self._keep_modbus_open = keep_modbus_open
         self._advanced_power_control = advanced_power_control
-        self._adv_storedge_control = adv_storedge_control
+        self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
         self._lock = threading.Lock()
@@ -120,7 +120,7 @@ class SolarEdgeModbusMultiHub:
                 f"single_device_entity={self._single_device_entity}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"advanced_power_control={self._advanced_power_control}, "
-                f"adv_storedge_control={self._adv_storedge_control}, "
+                f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
             ),
@@ -130,10 +130,10 @@ class SolarEdgeModbusMultiHub:
         if not self.is_socket_open():
             raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
 
-        if self._adv_storedge_control:
+        if self._adv_storage_control:
             _LOGGER.warning(
                 (
-                    "Advanced Power Control: StorEdge Control is enabled. "
+                    "Power Control Options: Storage Control is enabled. "
                     "Use at your own risk!"
                 ),
             )
@@ -141,7 +141,7 @@ class SolarEdgeModbusMultiHub:
         if self._adv_site_limit_control:
             _LOGGER.warning(
                 (
-                    "Advanced Power Control: Site Limit Control is enabled. "
+                    "Power Control Options: Export Limit Control is enabled. "
                     "Use at your own risk!"
                 ),
             )
@@ -387,8 +387,8 @@ class SolarEdgeModbusMultiHub:
         return self._id
 
     @property
-    def option_storedge_control(self) -> bool:
-        return self._adv_storedge_control
+    def option_storage_control(self) -> bool:
+        return self._adv_storage_control
 
     @property
     def option_export_control(self) -> bool:
@@ -485,7 +485,7 @@ class SolarEdgeInverter:
         self.decoded_common = []
         self.decoded_model = []
         self.decoded_mmppt = []
-        self.decoded_storedge = []
+        self.decoded_storage = []
         self.has_parent = False
         self.global_power_control = None
         self.advanced_power_control = None
@@ -874,7 +874,7 @@ class SolarEdgeInverter:
                 )
                 self.global_power_control = True
 
-        """ Advanced Power Control """
+        """ Power Control Options """
         if self.advanced_power_control is True or self.advanced_power_control is None:
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=61762, count=2
@@ -1006,11 +1006,8 @@ class SolarEdgeInverter:
                 display_value = hex(value) if isinstance(value, int) else value
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {display_value}")
 
-        """ Advanced Power Control: StorEdge Control """
-        if (
-            self.hub.option_storedge_control is True
-            and self.decoded_storedge is not None
-        ):
+        """ Power Control Options: Storage Control """
+        if self.hub.option_storage_control is True and self.decoded_storage is not None:
             for battery in self.hub.batteries:
                 if self.inverter_unit_id != battery.inverter_unit_id:
                     continue
@@ -1031,15 +1028,15 @@ class SolarEdgeInverter:
                             inverter_data.exception_code
                             == ModbusExceptions.IllegalAddress
                         ):
-                            self.decoded_storedge = False
+                            self.decoded_storage = False
                             _LOGGER.debug(
                                 (
                                     f"Inverter {self.inverter_unit_id}: "
-                                    "storedge control NOT available"
+                                    "storage control NOT available"
                                 )
                             )
 
-                    if self.decoded_storedge is not None:
+                    if self.decoded_storage is not None:
                         raise ModbusReadError(inverter_data)
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1048,21 +1045,21 @@ class SolarEdgeInverter:
                     wordorder=Endian.Little,
                 )
 
-                self.decoded_storedge = OrderedDict(
+                self.decoded_storage = OrderedDict(
                     [
                         ("control_mode", decoder.decode_16bit_uint()),
                         ("ac_charge_policy", decoder.decode_16bit_uint()),
                         ("ac_charge_limit", decoder.decode_32bit_float()),
-                        ("backup_reserved", decoder.decode_32bit_float()),
+                        ("backup_reserve", decoder.decode_32bit_float()),
                         ("default_mode", decoder.decode_16bit_uint()),
-                        ("remote_command_timeout", decoder.decode_32bit_uint()),
-                        ("remote_command_mode", decoder.decode_16bit_uint()),
-                        ("remote_charge_limit", decoder.decode_32bit_float()),
-                        ("remote_discharge_limit", decoder.decode_32bit_float()),
+                        ("command_timeout", decoder.decode_32bit_uint()),
+                        ("command_mode", decoder.decode_16bit_uint()),
+                        ("charge_limit", decoder.decode_32bit_float()),
+                        ("discharge_limit", decoder.decode_32bit_float()),
                     ]
                 )
 
-                for name, value in iter(self.decoded_storedge.items()):
+                for name, value in iter(self.decoded_storage.items()):
                     if isinstance(value, float):
                         display_value = float_to_hex(value)
                     else:
