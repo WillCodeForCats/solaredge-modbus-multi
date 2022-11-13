@@ -7,7 +7,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, SunSpecNotImpl
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,7 +92,11 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     @property
     def is_on(self) -> bool | None:
         try:
+            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
+                return None
+
             return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
+
         except KeyError:
             return None
 
@@ -133,7 +137,11 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     @property
     def is_on(self) -> bool | None:
         try:
+            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
+                return None
+
             return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 11) & 1
+
         except KeyError:
             return None
 
