@@ -43,7 +43,7 @@ async def async_setup_entry(
                     StorageACChargePolicy(inverter, config_entry, coordinator)
                 )
                 entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
-                entities.append(StorageRemoteMode(inverter, config_entry, coordinator))
+                entities.append(StorageCommandMode(inverter, config_entry, coordinator))
 
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
@@ -195,7 +195,7 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StorageRemoteMode(SolarEdgeSelectBase):
+class StorageCommandMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE

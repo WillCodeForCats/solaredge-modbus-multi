@@ -42,7 +42,7 @@ async def async_setup_entry(
                     StorageACChargeLimit(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StorageBackupReserved(inverter, config_entry, coordinator)
+                    StorageBackupReserve(inverter, config_entry, coordinator)
                 )
                 entities.append(
                     StorageCommandTimeout(inverter, config_entry, coordinator)
@@ -175,7 +175,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StorageBackupReserved(SolarEdgeNumberBase):
+class StorageBackupReserve(SolarEdgeNumberBase):
     icon = "mdi:battery-positive"
 
     def __init__(self, inverter, config_entry, coordinator):
