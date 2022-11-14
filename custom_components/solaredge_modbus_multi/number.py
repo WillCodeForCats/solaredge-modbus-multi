@@ -366,7 +366,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
         super().__init__(inverter, config_entry, coordinator)
         self._attr_native_min_value = 0
         self._attr_native_max_value = 1000000
-        self._attr_native_unit_of_measurement = POWER_WATT
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
@@ -420,7 +420,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
         super().__init__(inverter, config_entry, coordinator)
         self._attr_native_min_value = 0
         self._attr_native_max_value = 1000000
-        self._attr_native_unit_of_measurement = POWER_WATT
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
