@@ -125,9 +125,9 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
     @property
     def native_unit_of_measurement(self) -> str | None:
         # kWh in AC policy "Fixed Energy Limit", % in AC policy "Percent of Production"
-        if self._platform.decoded_storedge["ac_charge_policy"] == 2:
+        if self._platform.decoded_storage["ac_charge_policy"] == 2:
             return UnitOfEnergy.KILO_WATT_HOUR
-        elif self._platform.decoded_storedge["ac_charge_policy"] == 3:
+        elif self._platform.decoded_storage["ac_charge_policy"] == 3:
             return PERCENTAGE
         else:
             return None
