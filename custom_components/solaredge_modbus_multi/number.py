@@ -57,9 +57,7 @@ async def async_setup_entry(
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
         for inverter in hub.inverters:
-            entities.append(
-                SolarEdgeExportSiteLimit(inverter, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeSiteLimit(inverter, config_entry, coordinator))
             entities.append(
                 SolarEdgeExternalProductionMax(inverter, config_entry, coordinator)
             )
@@ -366,7 +364,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class SolarEdgeExportSiteLimit(SolarEdgeNumberBase):
+class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, config_entry, coordinator):
