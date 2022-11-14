@@ -990,7 +990,11 @@ class SolarEdgeInverter:
 
                 if type(inverter_data) is ExceptionResponse:
                     if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                        del self.decoded_model["Ext_Prod_Max"]
+                        try:
+                            del self.decoded_model["Ext_Prod_Max"]
+                        except KeyError:
+                            pass
+
                         _LOGGER.debug(
                             (
                                 f"Inverter {self.inverter_unit_id}: "
