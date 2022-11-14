@@ -43,7 +43,7 @@ async def async_setup_entry(
                     StorageACChargePolicy(inverter, config_entry, coordinator)
                 )
                 entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
-                entities.append(StorageRemoteMode(inverter, config_entry, coordinator))
+                entities.append(StorageCommandMode(inverter, config_entry, coordinator))
 
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
@@ -137,7 +137,15 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         return "AC Charge Policy"
 
     @property
-    def current_option(self) -> str:
+    def current_option(self) -> str | None:
+        if (
+            self._platform.decoded_storage is False
+            or self._platform.decoded_storage["ac_charge_policy"]
+            == SunSpecNotImpl.UINT16
+            or self._platform.decoded_storage["ac_charge_policy"] not in self._options
+        ):
+            return None
+
         return self._options[self._platform.decoded_storage["ac_charge_policy"]]
 
     async def async_select_option(self, option: str) -> None:
@@ -170,7 +178,14 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         )
 
     @property
-    def current_option(self) -> str:
+    def current_option(self) -> str | None:
+        if (
+            self._platform.decoded_storage is False
+            or self._platform.decoded_storage["default_mode"] == SunSpecNotImpl.UINT16
+            or self._platform.decoded_storage["default_mode"] not in self._options
+        ):
+            return None
+
         return self._options[self._platform.decoded_storage["default_mode"]]
 
     async def async_select_option(self, option: str) -> None:
@@ -180,7 +195,7 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         await self.async_update()
 
 
-class StorageRemoteMode(SolarEdgeSelectBase):
+class StorageCommandMode(SolarEdgeSelectBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE
@@ -204,6 +219,13 @@ class StorageRemoteMode(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
+        if (
+            self._platform.decoded_storage is False
+            or self._platform.decoded_storage["command_mode"] == SunSpecNotImpl.UINT16
+            or self._platform.decoded_storage["command_mode"] not in self._options
+        ):
+            return None
+
         try:
             return self._options[self._platform.decoded_storage["command_mode"]]
         except KeyError:

@@ -42,7 +42,7 @@ async def async_setup_entry(
                     StorageACChargeLimit(inverter, config_entry, coordinator)
                 )
                 entities.append(
-                    StorageBackupReserved(inverter, config_entry, coordinator)
+                    StorageBackupReserve(inverter, config_entry, coordinator)
                 )
                 entities.append(
                     StorageCommandTimeout(inverter, config_entry, coordinator)
@@ -153,6 +153,14 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
+        if (
+            self._platform.decoded_storage is False
+            or float_to_hex(self._platform.decoded_storage["ac_charge_limit"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_storage["ac_charge_limit"] < 0
+        ):
+            return None
+
         return round(self._platform.decoded_storage["ac_charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
@@ -165,7 +173,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         await self.async_update()
 
 
-class StorageBackupReserved(SolarEdgeNumberBase):
+class StorageBackupReserve(SolarEdgeNumberBase):
     icon = "mdi:battery-positive"
 
     def __init__(self, inverter, config_entry, coordinator):
@@ -184,6 +192,15 @@ class StorageBackupReserved(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
+        if (
+            self._platform.decoded_storage is False
+            or float_to_hex(self._platform.decoded_storage["backup_reserve"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_storage["backup_reserve"] < 0
+            or self._platform.decoded_storage["backup_reserve"] > 100
+        ):
+            return None
+
         return round(self._platform.decoded_storage["backup_reserve"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
@@ -223,6 +240,14 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int | None:
+        if (
+            self._platform.decoded_storage is False
+            or self._platform.decoded_storage["command_timeout"]
+            == SunSpecNotImpl.UINT32
+            or self._platform.decoded_storage["command_timeout"] > 86400
+        ):
+            return None
+
         return int(self._platform.decoded_storage["command_timeout"])
 
     async def async_set_native_value(self, value: int) -> None:
@@ -267,6 +292,14 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
+        if (
+            self._platform.decoded_storage is False
+            or float_to_hex(self._platform.decoded_storage["charge_limit"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_storage["charge_limit"] < 0
+        ):
+            return None
+
         return round(self._platform.decoded_storage["charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
@@ -311,6 +344,14 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float | None:
+        if (
+            self._platform.decoded_storage is False
+            or float_to_hex(self._platform.decoded_storage["discharge_limit"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_storage["discharge_limit"] < 0
+        ):
+            return None
+
         return round(self._platform.decoded_storage["discharge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
