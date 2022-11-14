@@ -632,7 +632,10 @@ class SolarEdgeInverter:
                 ]
             )
 
-            del self.decoded_mmppt["ignore"]
+            try:
+                del self.decoded_mmppt["ignore"]
+            except KeyError:
+                pass
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
@@ -845,7 +848,10 @@ class SolarEdgeInverter:
                     )
                 )
 
-            del self.decoded_model["ignore"]
+            try:
+                del self.decoded_model["ignore"]
+            except KeyError:
+                pass
 
         """ Global Dynamic Power Control and Status """
         if self.global_power_control is True or self.global_power_control is None:
