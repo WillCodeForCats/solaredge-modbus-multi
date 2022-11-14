@@ -141,7 +141,7 @@ class SolarEdgeModbusMultiHub:
         if self._adv_site_limit_control:
             _LOGGER.warning(
                 (
-                    "Power Control Options: Export Limit Control is enabled. "
+                    "Power Control Options: Site Limit Control is enabled. "
                     "Use at your own risk!"
                 ),
             )
