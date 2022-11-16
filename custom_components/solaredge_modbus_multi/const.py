@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import Flag, IntEnum, StrEnum
 from typing import Final
 
 DOMAIN = "solaredge_modbus_multi"
@@ -31,12 +31,44 @@ ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
 
-class SunSpecNotImpl(IntEnum):
-    INT16 = 0x8000
-    UINT16 = 0xFFFF
-    INT32 = 0x80000000
-    UINT32 = 0xFFFFFFFF
-    FLOAT32 = 0x7FC00000
+class BatteryLimit(IntEnum):
+    Vmin = 0
+    Vmax = 600
+    Amin = -200
+    Amax = 200
+    Tmax = 100
+    Tmin = -30
+
+
+class ConfDefaultInt(IntEnum):
+    SCAN_INTERVAL = 300
+    PORT = 1502
+    NUMBER_INVERTERS = 1
+    DEVICE_ID = 1
+
+
+class ConfDefaultFlag(Flag):
+    DETECT_METERS = True
+    DETECT_BATTERIES = False
+    SINGLE_DEVICE_ENTITY = True
+    KEEP_MODBUS_OPEN = False
+    ADV_PWR_CONTROL = False
+    ADV_STORAGE_CONTROL = False
+    ADV_SITE_LIMIT_CONTROL = False
+    ALLOW_BATTERY_ENERGY_RESET = False
+
+
+class ConfName(StrEnum):
+    ADV_PWR_CONTROL = "advanced_power_control"
+    ADV_STORAGE_CONTROL = "adv_storage_control"
+    ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
+    NUMBER_INVERTERS = "number_of_inverters"
+    DEVICE_ID = "device_id"
+    DETECT_METERS = "detect_meters"
+    DETECT_BATTERIES = "detect_batteries"
+    SINGLE_DEVICE_ENTITY = "single_device_entity"
+    KEEP_MODBUS_OPEN = "keep_modbus_open"
+    ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
 
 
 class SunSpecAccum(IntEnum):
@@ -46,13 +78,12 @@ class SunSpecAccum(IntEnum):
     LIMIT32 = 0xFFFFFFFF
 
 
-class BatteryLimit(IntEnum):
-    Vmin = 0
-    Vmax = 600
-    Amin = -200
-    Amax = 200
-    Tmax = 100
-    Tmin = -30
+class SunSpecNotImpl(IntEnum):
+    INT16 = 0x8000
+    UINT16 = 0xFFFF
+    INT32 = 0x80000000
+    UINT32 = 0xFFFFFFFF
+    FLOAT32 = 0x7FC00000
 
 
 SUNSPEC_SF_RANGE = [

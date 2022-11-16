@@ -34,6 +34,9 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SINGLE_DEVICE_ENTITY,
     DOMAIN,
+    ConfDefaultFlag,
+    ConfDefaultInt,
+    ConfDefaultName,
 )
 
 
