@@ -1,49 +1,14 @@
-from enum import IntEnum
+from enum import Flag, IntEnum
 from typing import Final
+
+from homeassistant.backports.enum import StrEnum
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
-DEFAULT_SCAN_INTERVAL = 300
-DEFAULT_PORT = 1502
-DEFAULT_NUMBER_INVERTERS = 1
-DEFAULT_DEVICE_ID = 1
-DEFAULT_DETECT_METERS = True
-DEFAULT_DETECT_BATTERIES = False
-DEFAULT_SINGLE_DEVICE_ENTITY = True
-DEFAULT_KEEP_MODBUS_OPEN = False
-DEFAULT_ADV_PWR_CONTROL = False
-DEFAULT_ADV_STORAGE_CONTROL = False
-DEFAULT_ADV_SITE_LIMIT_CONTROL = False
-DEFAULT_ALLOW_BATTERY_ENERGY_RESET = False
-CONF_ADV_PWR_CONTROL = "advanced_power_control"
-CONF_ADV_STORAGE_CONTROL = "adv_storage_control"
-CONF_ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
-CONF_NUMBER_INVERTERS = "number_of_inverters"
-CONF_DEVICE_ID = "device_id"
-CONF_DETECT_METERS = "detect_meters"
-CONF_DETECT_BATTERIES = "detect_batteries"
-CONF_SINGLE_DEVICE_ENTITY = "single_device_entity"
-CONF_KEEP_MODBUS_OPEN = "keep_modbus_open"
-CONF_ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
-
-
-class SunSpecNotImpl(IntEnum):
-    INT16 = 0x8000
-    UINT16 = 0xFFFF
-    INT32 = 0x80000000
-    UINT32 = 0xFFFFFFFF
-    FLOAT32 = 0x7FC00000
-
-
-class SunSpecAccum(IntEnum):
-    NA16 = 0x0000
-    NA32 = 0x00000000
-    LIMIT16 = 0xFFFF
-    LIMIT32 = 0xFFFFFFFF
 
 
 class BatteryLimit(IntEnum):
@@ -53,6 +18,52 @@ class BatteryLimit(IntEnum):
     Amax = 200
     Tmax = 100
     Tmin = -30
+
+
+class ConfDefaultInt(IntEnum):
+    SCAN_INTERVAL = 300
+    PORT = 1502
+    NUMBER_INVERTERS = 1
+    DEVICE_ID = 1
+
+
+class ConfDefaultFlag(Flag):
+    DETECT_METERS = True
+    DETECT_BATTERIES = False
+    KEEP_MODBUS_OPEN = False
+    SINGLE_DEVICE_ENTITY = True
+    ADV_PWR_CONTROL = False
+    ADV_STORAGE_CONTROL = False
+    ADV_SITE_LIMIT_CONTROL = False
+    ALLOW_BATTERY_ENERGY_RESET = False
+
+
+class ConfName(StrEnum):
+    NUMBER_INVERTERS = "number_of_inverters"
+    DEVICE_ID = "device_id"
+    DETECT_METERS = "detect_meters"
+    DETECT_BATTERIES = "detect_batteries"
+    SINGLE_DEVICE_ENTITY = "single_device_entity"
+    KEEP_MODBUS_OPEN = "keep_modbus_open"
+    ADV_PWR_CONTROL = "advanced_power_control"
+    ADV_STORAGE_CONTROL = "adv_storage_control"
+    ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
+    ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
+
+
+class SunSpecAccum(IntEnum):
+    NA16 = 0x0000
+    NA32 = 0x00000000
+    LIMIT16 = 0xFFFF
+    LIMIT32 = 0xFFFFFFFF
+
+
+class SunSpecNotImpl(IntEnum):
+    INT16 = 0x8000
+    UINT16 = 0xFFFF
+    INT32 = 0x80000000
+    UINT32 = 0xFFFFFFFF
+    FLOAT32 = 0x7FC00000
 
 
 SUNSPEC_SF_RANGE = [
