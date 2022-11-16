@@ -68,6 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ConfName.ALLOW_BATTERY_ENERGY_RESET,
             ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET,
         ),
+        entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
     )
 
     coordinator = SolarEdgeCoordinator(

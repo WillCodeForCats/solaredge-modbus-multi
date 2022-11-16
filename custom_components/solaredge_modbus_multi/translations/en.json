@@ -44,13 +44,15 @@
         "title": "Power Control Options",
         "data": {
           "adv_storage_control": "Enable Storage Control",
-          "adv_site_limit_control": "Enable Site Limit Control"   
+          "adv_site_limit_control": "Enable Site Limit Control",
+          "sleep_after_write": "Inverter Command Delay (seconds)"
         },
         "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"
       }
     },
     "error": {
-      "invalid_scan_interval": "Valid interval is 1 to 86400 seconds."
+      "invalid_scan_interval": "Valid interval is 1 to 86400 seconds.",
+      "invalid_sleep_interval": "Valid interval is 0 to 10 seconds."
     }
   }
 }

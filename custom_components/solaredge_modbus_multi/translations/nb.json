@@ -44,13 +44,15 @@
         "title": "Strømkontrollalternativer",
         "data": {
           "adv_storage_control": "Aktiver lagringskontroll",
-          "adv_site_limit_control": "Aktiver Site Limit Control"   
+          "adv_site_limit_control": "Aktiver Site Limit Control",
+          "sleep_after_write": "Inverter Command Delay (sekunder)"
         },
         "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
       }
     },
     "error": {
-      "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder."
+      "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
+      "invalid_sleep_interval": "Gyldig intervall er 0 til 10 sekunder."
     }
   }
 }
