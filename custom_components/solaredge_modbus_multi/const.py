@@ -28,8 +28,8 @@ class ConfDefaultInt(IntEnum):
 class ConfDefaultFlag(Flag):
     DETECT_METERS = True
     DETECT_BATTERIES = False
-    SINGLE_DEVICE_ENTITY = True
     KEEP_MODBUS_OPEN = False
+    SINGLE_DEVICE_ENTITY = True
     ADV_PWR_CONTROL = False
     ADV_STORAGE_CONTROL = False
     ADV_SITE_LIMIT_CONTROL = False
@@ -37,15 +37,15 @@ class ConfDefaultFlag(Flag):
 
 
 class ConfName(StrEnum):
-    ADV_PWR_CONTROL = "advanced_power_control"
-    ADV_STORAGE_CONTROL = "adv_storage_control"
-    ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
     NUMBER_INVERTERS = "number_of_inverters"
     DEVICE_ID = "device_id"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
     SINGLE_DEVICE_ENTITY = "single_device_entity"
     KEEP_MODBUS_OPEN = "keep_modbus_open"
+    ADV_PWR_CONTROL = "advanced_power_control"
+    ADV_STORAGE_CONTROL = "adv_storage_control"
+    ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
 
 
