@@ -99,11 +99,11 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         int
                     ),
                     vol.Required(
-                        ConfName.NUMBER_INVERTERS,
+                        f"{ConfName.NUMBER_INVERTERS}",
                         default=user_input[ConfName.NUMBER_INVERTERS],
                     ): vol.Coerce(int),
                     vol.Required(
-                        ConfName.DEVICE_ID, default=user_input[ConfName.DEVICE_ID]
+                        f"{ConfName.DEVICE_ID}", default=user_input[ConfName.DEVICE_ID]
                     ): vol.Coerce(int),
                 },
             ),
@@ -168,27 +168,27 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         default=user_input[CONF_SCAN_INTERVAL],
                     ): vol.Coerce(int),
                     vol.Optional(
-                        ConfName.SINGLE_DEVICE_ENTITY,
+                        f"{ConfName.SINGLE_DEVICE_ENTITY}",
                         default=user_input[ConfName.SINGLE_DEVICE_ENTITY],
                     ): cv.boolean,
                     vol.Optional(
-                        ConfName.KEEP_MODBUS_OPEN,
+                        f"{ConfName.KEEP_MODBUS_OPEN}",
                         default=user_input[ConfName.KEEP_MODBUS_OPEN],
                     ): cv.boolean,
                     vol.Optional(
-                        ConfName.DETECT_METERS,
+                        f"{ConfName.DETECT_METERS}",
                         default=user_input[ConfName.DETECT_METERS],
                     ): cv.boolean,
                     vol.Optional(
-                        ConfName.DETECT_BATTERIES,
+                        f"{ConfName.DETECT_BATTERIES}",
                         default=user_input[ConfName.DETECT_BATTERIES],
                     ): cv.boolean,
                     vol.Optional(
-                        ConfName.ADV_PWR_CONTROL,
+                        f"{ConfName.ADV_PWR_CONTROL}",
                         default=user_input[ConfName.ADV_PWR_CONTROL],
                     ): cv.boolean,
                     vol.Optional(
-                        ConfName.ALLOW_BATTERY_ENERGY_RESET,
+                        f"{ConfName.ALLOW_BATTERY_ENERGY_RESET}",
                         default=user_input[ConfName.ALLOW_BATTERY_ENERGY_RESET],
                     ): cv.boolean,
                 },
@@ -221,11 +221,11 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        ConfName.ADV_STORAGE_CONTROL,
+                        f"{ConfName.ADV_STORAGE_CONTROL}",
                         default=user_input[ConfName.ADV_STORAGE_CONTROL],
                     ): cv.boolean,
                     vol.Required(
-                        ConfName.ADV_SITE_LIMIT_CONTROL,
+                        f"{ConfName.ADV_SITE_LIMIT_CONTROL}",
                         default=user_input[ConfName.ADV_SITE_LIMIT_CONTROL],
                     ): cv.boolean,
                 }

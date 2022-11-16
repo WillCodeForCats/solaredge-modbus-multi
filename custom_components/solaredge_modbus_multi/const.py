@@ -1,5 +1,7 @@
-from enum import Flag, IntEnum, StrEnum
+from enum import Flag, IntEnum
 from typing import Final
+
+from homeassistant.backports.enum import StrEnum
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
