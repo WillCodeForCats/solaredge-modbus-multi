@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 from collections import OrderedDict
@@ -496,6 +497,10 @@ class SolarEdgeModbusMultiHub:
 
                 else:
                     raise ModbusWriteError(result)
+
+        if self._sleep_after_write > 0:
+            _LOGGER.debug(f"Sleeping {self._sleep_after_write} seconds after write.")
+            await asyncio.sleep(self._sleep_after_write)
 
 
 class SolarEdgeInverter:
