@@ -9,5 +9,5 @@
   "config_flow": true,
   "iot_class": "local_polling",
   "integration_type": "hub",
-  "version": "v2.2.7-pre.7"
+  "version": "v2.2.7"
 }

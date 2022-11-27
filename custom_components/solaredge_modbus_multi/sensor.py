@@ -1917,7 +1917,12 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if self._platform.decoded_model["B_Export_Energy_WH"] == 0xFFFFFFFFFFFFFFFF:
+            if self._platform.decoded_model[
+                "B_Export_Energy_WH"
+            ] == 0xFFFFFFFFFFFFFFFF or (
+                self._platform.decoded_model["B_Export_Energy_WH"] == 0x0
+                and not self._platform.allow_battery_energy_reset
+            ):
                 return None
 
             else:
@@ -1979,7 +1984,12 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if self._platform.decoded_model["B_Import_Energy_WH"] == 0xFFFFFFFFFFFFFFFF:
+            if self._platform.decoded_model[
+                "B_Import_Energy_WH"
+            ] == 0xFFFFFFFFFFFFFFFF or (
+                self._platform.decoded_model["B_Import_Energy_WH"] == 0x0
+                and not self._platform.allow_battery_energy_reset
+            ):
                 return None
 
             else:

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 from collections import OrderedDict
@@ -75,6 +76,7 @@ class SolarEdgeModbusMultiHub:
         adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
+        sleep_after_write: int = 3,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -91,6 +93,7 @@ class SolarEdgeModbusMultiHub:
         self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
+        self._sleep_after_write = sleep_after_write
         self._lock = threading.Lock()
         self._id = name.lower()
         self._coordinator_timeout = 30
@@ -123,6 +126,7 @@ class SolarEdgeModbusMultiHub:
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
+                f"sleep_after_write={self._sleep_after_write}, "
             ),
         )
 
@@ -494,6 +498,10 @@ class SolarEdgeModbusMultiHub:
                 else:
                     raise ModbusWriteError(result)
 
+        if self._sleep_after_write > 0:
+            _LOGGER.debug(f"Sleeping {self._sleep_after_write} seconds after write.")
+            await asyncio.sleep(self._sleep_after_write)
+
 
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
@@ -632,7 +640,10 @@ class SolarEdgeInverter:
                 ]
             )
 
-            del self.decoded_mmppt["ignore"]
+            try:
+                del self.decoded_mmppt["ignore"]
+            except KeyError:
+                pass
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
@@ -845,7 +856,10 @@ class SolarEdgeInverter:
                     )
                 )
 
-            del self.decoded_model["ignore"]
+            try:
+                del self.decoded_model["ignore"]
+            except KeyError:
+                pass
 
         """ Global Dynamic Power Control and Status """
         if self.global_power_control is True or self.global_power_control is None:
@@ -990,7 +1004,11 @@ class SolarEdgeInverter:
 
                 if type(inverter_data) is ExceptionResponse:
                     if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                        del self.decoded_model["Ext_Prod_Max"]
+                        try:
+                            del self.decoded_model["Ext_Prod_Max"]
+                        except KeyError:
+                            pass
+
                         _LOGGER.debug(
                             (
                                 f"Inverter {self.inverter_unit_id}: "

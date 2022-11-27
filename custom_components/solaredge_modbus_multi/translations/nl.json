@@ -44,13 +44,15 @@
         "title": "Opties voor stroomregeling",
         "data": {
           "adv_storage_control": "Opslagbeheer inschakelen",
-          "adv_site_limit_control": "Beheer van sitelimiet inschakelen"   
+          "adv_site_limit_control": "Beheer van sitelimiet inschakelen",
+          "sleep_after_write": "Omvormer commando vertraging (seconden)"
         },
         "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico!"
       }
     },
     "error": {
-      "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden."
+      "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden.",
+      "invalid_sleep_interval": "Geldig interval is 0 tot 10 seconden."
     }
   }
 }

@@ -44,13 +44,15 @@
         "title": "Opcje sterowania zasilaniem",
         "data": {
           "adv_storage_control": "Włącz kontrolę pamięci",
-          "adv_site_limit_control": "Włącz kontrolę limitu witryny"   
+          "adv_site_limit_control": "Włącz kontrolę limitu witryny",
+          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
         },
         "description": "Ostrzeżenie: opcje te mogą naruszać umowy za media, zmieniać rozliczenia za media, mogą wymagać specjalnego sprzętu i nadpisać udostępnianie przez SolarEdge lub instalatora. Używaj na własne ryzyko!"
       }
     },
     "error": {
-      "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund."
+      "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund.",
+      "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 10 sekund."
     }
   }
 }

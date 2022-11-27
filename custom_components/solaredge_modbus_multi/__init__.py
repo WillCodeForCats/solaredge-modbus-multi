@@ -16,28 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import (
-    CONF_ADV_PWR_CONTROL,
-    CONF_ADV_SITE_LIMIT_CONTROL,
-    CONF_ADV_STORAGE_CONTROL,
-    CONF_ALLOW_BATTERY_ENERGY_RESET,
-    CONF_DETECT_BATTERIES,
-    CONF_DETECT_METERS,
-    CONF_DEVICE_ID,
-    CONF_KEEP_MODBUS_OPEN,
-    CONF_NUMBER_INVERTERS,
-    CONF_SINGLE_DEVICE_ENTITY,
-    DEFAULT_ADV_PWR_CONTROL,
-    DEFAULT_ADV_SITE_LIMIT_CONTROL,
-    DEFAULT_ADV_STORAGE_CONTROL,
-    DEFAULT_ALLOW_BATTERY_ENERGY_RESET,
-    DEFAULT_DETECT_BATTERIES,
-    DEFAULT_DETECT_METERS,
-    DEFAULT_KEEP_MODBUS_OPEN,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_SINGLE_DEVICE_ENTITY,
-    DOMAIN,
-)
+from .const import DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -70,24 +49,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data[CONF_NAME],
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
-        entry.data.get(CONF_NUMBER_INVERTERS, 1),
-        entry.data.get(CONF_DEVICE_ID, 1),
-        entry.options.get(CONF_DETECT_METERS, DEFAULT_DETECT_METERS),
-        entry.options.get(CONF_DETECT_BATTERIES, DEFAULT_DETECT_BATTERIES),
-        entry.options.get(CONF_SINGLE_DEVICE_ENTITY, DEFAULT_SINGLE_DEVICE_ENTITY),
-        entry.options.get(CONF_KEEP_MODBUS_OPEN, DEFAULT_KEEP_MODBUS_OPEN),
-        entry.options.get(CONF_ADV_PWR_CONTROL, DEFAULT_ADV_PWR_CONTROL),
-        entry.options.get(CONF_ADV_STORAGE_CONTROL, DEFAULT_ADV_STORAGE_CONTROL),
-        entry.options.get(CONF_ADV_SITE_LIMIT_CONTROL, DEFAULT_ADV_SITE_LIMIT_CONTROL),
+        entry.data.get(ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS),
+        entry.data.get(ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID),
+        entry.options.get(ConfName.DETECT_METERS, ConfDefaultFlag.DETECT_METERS),
+        entry.options.get(ConfName.DETECT_BATTERIES, ConfDefaultFlag.DETECT_BATTERIES),
         entry.options.get(
-            CONF_ALLOW_BATTERY_ENERGY_RESET, DEFAULT_ALLOW_BATTERY_ENERGY_RESET
+            ConfName.SINGLE_DEVICE_ENTITY, ConfDefaultFlag.SINGLE_DEVICE_ENTITY
         ),
+        entry.options.get(ConfName.KEEP_MODBUS_OPEN, ConfDefaultFlag.KEEP_MODBUS_OPEN),
+        entry.options.get(ConfName.ADV_PWR_CONTROL, ConfDefaultFlag.ADV_PWR_CONTROL),
+        entry.options.get(
+            ConfName.ADV_STORAGE_CONTROL, ConfDefaultFlag.ADV_STORAGE_CONTROL
+        ),
+        entry.options.get(
+            ConfName.ADV_SITE_LIMIT_CONTROL, ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL
+        ),
+        entry.options.get(
+            ConfName.ALLOW_BATTERY_ENERGY_RESET,
+            ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET,
+        ),
+        entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
     )
 
     coordinator = SolarEdgeCoordinator(
         hass,
         solaredge_hub,
-        entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        entry.options.get(CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL),
     )
 
     hass.data.setdefault(DOMAIN, {})
