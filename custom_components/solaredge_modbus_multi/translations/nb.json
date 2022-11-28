@@ -29,27 +29,30 @@
   "options": {
     "step": {
       "init": {
-        "title": "SolarEdge Modbus Options",
+        "title": "SolarEdge Modbus-alternativer",
         "data": {
           "scan_interval": "Avstemningsfrekvens (sekunder)",
           "single_device_entity": "Enkelt enhetsenhet",
           "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
-          "advanced_power_control": "Avansert strømkontroll"
+          "advanced_power_control": "Avansert strømkontroll",
+          "allow_battery_energy_reset": "La batterienergien tilbakestilles"
         }
       },
       "adv_pwr_ctl": {
-        "title": "Avansert strømkontroll",
+        "title": "Strømkontrollalternativer",
         "data": {
-          "adv_storedge_control": "Aktiver StorEdge Control",
-          "adv_export_control": "Aktiver eksportgrensekontroll"   
+          "adv_storage_control": "Aktiver lagringskontroll",
+          "adv_site_limit_control": "Aktiver Site Limit Control",
+          "sleep_after_write": "Inverter Command Delay (sekunder)"
         },
         "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
       }
     },
     "error": {
-      "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder."
+      "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
+      "invalid_sleep_interval": "Gyldig intervall er 0 til 10 sekunder."
     }
   }
 }

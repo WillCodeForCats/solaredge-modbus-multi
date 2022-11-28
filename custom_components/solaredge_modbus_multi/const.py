@@ -1,47 +1,14 @@
-from enum import IntEnum
+from enum import Flag, IntEnum
 from typing import Final
+
+from homeassistant.backports.enum import StrEnum
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
-DEFAULT_SCAN_INTERVAL = 300
-DEFAULT_PORT = 1502
-DEFAULT_NUMBER_INVERTERS = 1
-DEFAULT_DEVICE_ID = 1
-DEFAULT_DETECT_METERS = True
-DEFAULT_DETECT_BATTERIES = False
-DEFAULT_SINGLE_DEVICE_ENTITY = True
-DEFAULT_KEEP_MODBUS_OPEN = False
-DEFAULT_ADV_PWR_CONTROL = False
-DEFAULT_ADV_STOREDGE_CONTROL = False
-DEFAULT_ADV_EXPORT_CONTROL = False
-CONF_ADV_PWR_CONTROL = "advanced_power_control"
-CONF_ADV_STOREDGE_CONTROL = "adv_storedge_control"
-CONF_ADV_EXPORT_CONTROL = "adv_export_control"
-CONF_NUMBER_INVERTERS = "number_of_inverters"
-CONF_DEVICE_ID = "device_id"
-CONF_DETECT_METERS = "detect_meters"
-CONF_DETECT_BATTERIES = "detect_batteries"
-CONF_SINGLE_DEVICE_ENTITY = "single_device_entity"
-CONF_KEEP_MODBUS_OPEN = "keep_modbus_open"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
-
-
-class SunSpecNotImpl(IntEnum):
-    INT16 = 0x8000
-    UINT16 = 0xFFFF
-    INT32 = 0x80000000
-    UINT32 = 0xFFFFFFFF
-    FLOAT32 = 0x7FC00000
-
-
-class SunSpecAccum(IntEnum):
-    NA16 = 0x0000
-    NA32 = 0x00000000
-    LIMIT16 = 0xFFFF
-    LIMIT32 = 0xFFFFFFFF
 
 
 class BatteryLimit(IntEnum):
@@ -51,6 +18,54 @@ class BatteryLimit(IntEnum):
     Amax = 200
     Tmax = 100
     Tmin = -30
+
+
+class ConfDefaultInt(IntEnum):
+    SCAN_INTERVAL = 300
+    PORT = 1502
+    NUMBER_INVERTERS = 1
+    DEVICE_ID = 1
+    SLEEP_AFTER_WRITE = 3
+
+
+class ConfDefaultFlag(Flag):
+    DETECT_METERS = True
+    DETECT_BATTERIES = False
+    KEEP_MODBUS_OPEN = False
+    SINGLE_DEVICE_ENTITY = True
+    ADV_PWR_CONTROL = False
+    ADV_STORAGE_CONTROL = False
+    ADV_SITE_LIMIT_CONTROL = False
+    ALLOW_BATTERY_ENERGY_RESET = False
+
+
+class ConfName(StrEnum):
+    NUMBER_INVERTERS = "number_of_inverters"
+    DEVICE_ID = "device_id"
+    DETECT_METERS = "detect_meters"
+    DETECT_BATTERIES = "detect_batteries"
+    SINGLE_DEVICE_ENTITY = "single_device_entity"
+    KEEP_MODBUS_OPEN = "keep_modbus_open"
+    ADV_PWR_CONTROL = "advanced_power_control"
+    ADV_STORAGE_CONTROL = "adv_storage_control"
+    ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
+    ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
+    SLEEP_AFTER_WRITE = "sleep_after_write"
+
+
+class SunSpecAccum(IntEnum):
+    NA16 = 0x0000
+    NA32 = 0x00000000
+    LIMIT16 = 0xFFFF
+    LIMIT32 = 0xFFFFFFFF
+
+
+class SunSpecNotImpl(IntEnum):
+    INT16 = 0x8000
+    UINT16 = 0xFFFF
+    INT32 = 0x80000000
+    UINT32 = 0xFFFFFFFF
+    FLOAT32 = 0x7FC00000
 
 
 SUNSPEC_SF_RANGE = [
@@ -196,6 +211,7 @@ BATTERY_STATUS = {
     4: "Discharge",
     5: "Fault",
     7: "Idle",
+    10: "Power Saving",
 }
 
 RRCR_STATUS = {
@@ -221,3 +237,37 @@ MMPPT_EVENTS = {
     21: "INPUT_UNDER_VOLTAGE",
     22: "INPUT_OVER_CURRENT",
 }
+
+STORAGE_CONTROL_MODE = {
+    0: "Disabled",
+    1: "Maximize Self Consumption",
+    2: "Time of Use",
+    3: "Backup Only",
+    4: "Remote Control",
+}
+
+STORAGE_AC_CHARGE_POLICY = {
+    0: "Disabled",
+    1: "Always Allowed",
+    2: "Fixed Energy Limit",
+    3: "Percent of Production",
+}
+
+STORAGE_MODE = {
+    0: "Solar Power Only (Off)",
+    1: "Charge from Clipped Solar Power",
+    2: "Charge from Solar Power",
+    3: "Charge from Solar Power and Grid",
+    4: "Discharge to Maximize Export",
+    5: "Discharge to Minimize Import",
+    7: "Maximize Self Consumption",
+}
+
+LIMIT_CONTROL_MODE = {
+    None: "Disabled",
+    0: "Export Control (Export/Import Meter)",
+    1: "Export Control (Consumption Meter)",
+    2: "Production Control",
+}
+
+LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}

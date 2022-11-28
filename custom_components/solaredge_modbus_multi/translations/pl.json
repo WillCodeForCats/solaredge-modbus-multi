@@ -36,20 +36,23 @@
           "keep_modbus_open": "Pozostaw połączenie Modbus otwarte",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
-          "advanced_power_control": "Zaawansowana kontrola mocy"
+          "advanced_power_control": "Zaawansowana kontrola mocy",
+          "allow_battery_energy_reset": "Zezwól na zresetowanie energii baterii"
         }
       },
       "adv_pwr_ctl": {
-        "title": "Zaawansowana kontrola mocy",
+        "title": "Opcje sterowania zasilaniem",
         "data": {
-          "adv_storedge_control": "Włącz kontrolę StorEdge",
-          "adv_export_control": "Włącz kontrolę limitu eksportu"   
+          "adv_storage_control": "Włącz kontrolę pamięci",
+          "adv_site_limit_control": "Włącz kontrolę limitu witryny",
+          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
         },
         "description": "Ostrzeżenie: opcje te mogą naruszać umowy za media, zmieniać rozliczenia za media, mogą wymagać specjalnego sprzętu i nadpisać udostępnianie przez SolarEdge lub instalatora. Używaj na własne ryzyko!"
       }
     },
     "error": {
-      "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund."
+      "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund.",
+      "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 10 sekund."
     }
   }
 }

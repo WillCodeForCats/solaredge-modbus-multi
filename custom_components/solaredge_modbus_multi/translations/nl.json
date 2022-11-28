@@ -36,20 +36,23 @@
           "keep_modbus_open": "Houd Modbus-verbinding open",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
-          "advanced_power_control": "Geavanceerde stroomregeling"
+          "advanced_power_control": "Geavanceerde stroomregeling",
+          "allow_battery_energy_reset": "Batterij-energie laten resetten"
         }
       },
       "adv_pwr_ctl": {
-        "title": "Geavanceerde stroomregeling",
+        "title": "Opties voor stroomregeling",
         "data": {
-          "adv_storedge_control": "StorEdge-besturing inschakelen",
-          "adv_export_control": "Exportlimietcontrole inschakelen"   
+          "adv_storage_control": "Opslagbeheer inschakelen",
+          "adv_site_limit_control": "Beheer van sitelimiet inschakelen",
+          "sleep_after_write": "Omvormer commando vertraging (seconden)"
         },
         "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico!"
       }
     },
     "error": {
-      "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden."
+      "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden.",
+      "invalid_sleep_interval": "Geldig interval is 0 tot 10 seconden."
     }
   }
 }

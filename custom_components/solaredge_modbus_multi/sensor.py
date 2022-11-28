@@ -31,6 +31,7 @@ from .const import (
     ENERGY_VOLT_AMPERE_HOUR,
     ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
     METER_EVENTS,
+    MMPPT_EVENTS,
     RRCR_STATUS,
     SUNSPEC_DID,
     SUNSPEC_SF_RANGE,
@@ -91,6 +92,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
         entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
         entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
         if meter.single_device_entity:
@@ -354,6 +356,8 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
 
 class SerialNumber(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -374,6 +378,8 @@ class SerialNumber(SolarEdgeSensorBase):
 
 
 class Manufacturer(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -394,6 +400,8 @@ class Manufacturer(SolarEdgeSensorBase):
 
 
 class Model(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -414,6 +422,8 @@ class Model(SolarEdgeSensorBase):
 
 
 class Option(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -464,6 +474,8 @@ class Version(SolarEdgeSensorBase):
 
 
 class DeviceAddress(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -484,6 +496,8 @@ class DeviceAddress(SolarEdgeSensorBase):
 
 
 class DeviceAddressParent(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -504,6 +518,8 @@ class DeviceAddressParent(SolarEdgeSensorBase):
 
 
 class SunspecDID(SolarEdgeSensorBase):
+    """Depreciated static value sensor: may be removed in a future version."""
+
     entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1524,20 +1540,82 @@ class MeterEvents(SolarEdgeSensorBase):
 
     @property
     def extra_state_attributes(self):
+        attrs = {}
+
         try:
             m_events_active = []
-            if int(str(self._platform.decoded_model["M_Events"]), 16) == 0x0:
-                return {"description": str(m_events_active)}
+            if int(str(self._platform.decoded_model["M_Events"])) == 0x0:
+                attrs["description"] = str(m_events_active)
             else:
                 for i in range(2, 31):
-                    if int(str(self._platform.decoded_model["M_Events"]), 16) & (
-                        1 << i
-                    ):
+                    if int(str(self._platform.decoded_model["M_Events"])) & (1 << i):
                         m_events_active.append(METER_EVENTS[i])
-                return {"description": str(m_events_active)}
+                attrs["description"] = str(m_events_active)
+
+            attrs["bits"] = f"{int(self._platform.decoded_model['M_Events']):032b}"
 
         except KeyError:
             return None
+
+        return attrs
+
+
+class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_mmppt_events"
+
+    @property
+    def name(self) -> str:
+        return "MMPPT Events"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._platform.decoded_mmppt is not None:
+            return True
+        else:
+            return False
+
+    @property
+    def native_value(self):
+        try:
+            if self._platform.decoded_model["mmppt_Events"] == SunSpecNotImpl.UINT32:
+                return None
+
+            else:
+                return self._platform.decoded_model["mmppt_Events"]
+
+        except KeyError:
+            return None
+
+    @property
+    def extra_state_attributes(self):
+        attrs = {}
+
+        try:
+            mmppt_events_active = []
+            if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
+                attrs["description"] = str(mmppt_events_active)
+            else:
+                for i in range(0, 31):
+                    if int(str(self._platform.decoded_model["mmppt_Events"])) & (
+                        1 << i
+                    ):
+                        mmppt_events_active.append(MMPPT_EVENTS[i])
+                attrs["description"] = str(mmppt_events_active)
+
+            attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
+
+        except KeyError:
+            return None
+
+        return attrs
 
 
 class MeterVAhIE(SolarEdgeSensorBase):
@@ -1839,7 +1917,12 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if self._platform.decoded_model["B_Export_Energy_WH"] == 0xFFFFFFFFFFFFFFFF:
+            if self._platform.decoded_model[
+                "B_Export_Energy_WH"
+            ] == 0xFFFFFFFFFFFFFFFF or (
+                self._platform.decoded_model["B_Export_Energy_WH"] == 0x0
+                and not self._platform.allow_battery_energy_reset
+            ):
                 return None
 
             else:
@@ -1855,16 +1938,20 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        _LOGGER.warning(
-                            (
-                                "Battery Export Energy went backwards: "
-                                f"{self._platform.decoded_model['B_Export_Energy_WH']} "
-                                f"< {self._last}"
+                        if self._platform.allow_battery_energy_reset:
+                            _LOGGER.warning(
+                                (
+                                    "Battery Export Energy went backwards: "
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: E501
+                                    f"< {self._last}"
+                                )
                             )
-                        ),
 
-                        if self._platform.decoded_model["B_Export_Energy_WH"] == 0x0:
-                            self._last = None
+                            if (
+                                self._platform.decoded_model["B_Export_Energy_WH"]
+                                == 0x0
+                            ):
+                                self._last = None
 
                         return None
 
@@ -1897,7 +1984,12 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if self._platform.decoded_model["B_Import_Energy_WH"] == 0xFFFFFFFFFFFFFFFF:
+            if self._platform.decoded_model[
+                "B_Import_Energy_WH"
+            ] == 0xFFFFFFFFFFFFFFFF or (
+                self._platform.decoded_model["B_Import_Energy_WH"] == 0x0
+                and not self._platform.allow_battery_energy_reset
+            ):
                 return None
 
             else:
@@ -1913,16 +2005,20 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         )
 
                     else:
-                        _LOGGER.warning(
-                            (
-                                "Battery Import Energy went backwards: "
-                                f"{self._platform.decoded_model['B_Import_Energy_WH']} "
-                                f"< {self._last}"
-                            )
-                        ),
+                        if self._platform.allow_battery_energy_reset:
+                            _LOGGER.warning(
+                                (
+                                    "Battery Import Energy went backwards: "
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: E501
+                                    f"< {self._last}"
+                                )
+                            ),
 
-                        if self._platform.decoded_model["B_Import_Energy_WH"] == 0x0:
-                            self._last = None
+                            if (
+                                self._platform.decoded_model["B_Import_Energy_WH"]
+                                == 0x0
+                            ):
+                                self._last = None
 
                         return None
 
