@@ -37,7 +37,7 @@
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "advanced_power_control": "Power Control Options",
-          "allow_battery_energy_reset": "Allow Storage Energy to Reset"
+          "allow_battery_energy_reset": "Allow Battery Energy to Reset"
         }
       },
       "adv_pwr_ctl": {
@@ -45,7 +45,7 @@
         "data": {
           "adv_storage_control": "Enable Storage Control",
           "adv_site_limit_control": "Enable Site Limit Control",
-          "sleep_after_write": "Command Delay (seconds)"
+          "sleep_after_write": "Inverter Command Delay (seconds)"
         },
         "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"
       }
