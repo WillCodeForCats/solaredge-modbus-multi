@@ -203,7 +203,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             if user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
-            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 10:
+            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
             else:
                 return self.async_create_entry(
