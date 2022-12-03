@@ -52,7 +52,7 @@
     },
     "error": {
       "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden.",
-      "invalid_sleep_interval": "Geldig interval is 0 tot 10 seconden."
+      "invalid_sleep_interval": "Geldig interval is 0 tot 60 seconden."
     }
   }
 }

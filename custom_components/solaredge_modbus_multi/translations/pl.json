@@ -52,7 +52,7 @@
     },
     "error": {
       "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund.",
-      "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 10 sekund."
+      "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 60 sekund."
     }
   }
 }
