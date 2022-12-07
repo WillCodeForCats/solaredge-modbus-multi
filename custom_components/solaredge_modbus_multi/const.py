@@ -1,7 +1,20 @@
+import sys
 from enum import Flag, IntEnum
 from typing import Final
 
-from homeassistant.backports.enum import StrEnum
+if sys.version_info.minor >= 11:
+    # Needs Python 3.11
+    from enum import StrEnum
+else:
+    try:
+        from homeassistant.backports.enum import StrEnum
+
+    except ImportError:
+        from enum import Enum
+
+        class StrEnum(str, Enum):
+            pass
+
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
