@@ -1,5 +1,5 @@
 import sys
-from enum import Flag, IntEnum
+from enum import IntEnum
 from typing import Final
 
 if sys.version_info.minor >= 11:
@@ -41,15 +41,15 @@ class ConfDefaultInt(IntEnum):
     SLEEP_AFTER_WRITE = 3
 
 
-class ConfDefaultFlag(Flag):
-    DETECT_METERS = True
-    DETECT_BATTERIES = False
-    KEEP_MODBUS_OPEN = False
-    SINGLE_DEVICE_ENTITY = True
-    ADV_PWR_CONTROL = False
-    ADV_STORAGE_CONTROL = False
-    ADV_SITE_LIMIT_CONTROL = False
-    ALLOW_BATTERY_ENERGY_RESET = False
+class ConfDefaultFlag(IntEnum):
+    DETECT_METERS = 1
+    DETECT_BATTERIES = 0
+    KEEP_MODBUS_OPEN = 0
+    SINGLE_DEVICE_ENTITY = 1
+    ADV_PWR_CONTROL = 0
+    ADV_STORAGE_CONTROL = 0
+    ADV_SITE_LIMIT_CONTROL = 0
+    ALLOW_BATTERY_ENERGY_RESET = 0
 
 
 class ConfName(StrEnum):
