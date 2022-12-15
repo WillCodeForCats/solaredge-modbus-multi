@@ -22,7 +22,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots of the problem and/or configuration.
 
 **Logs**
-Copy any log warnings or errors in Home Assistant from "custom_components.solaredge_modbus" and "pymodbus.client.sync".
+Copy any logs in Home Assistant from "custom_components.solaredge_modbus".
 
 **Debug Logs**
 Debug logs are not always necessary, but may be required for more complex issues. You can enable debug logs by adding the following to your `configuration.yaml` file and restarting Home Assistant.
@@ -31,7 +31,6 @@ logger:
     default: warning
     logs:
         custom_components.solaredge_modbus_multi: debug
-        #pymodbus: debug #only if needed
 ```
 Debug logging will generate a large amount of data: it is recommended to configure it, collect the data needed, then remove debug logging during normal operation.
 
