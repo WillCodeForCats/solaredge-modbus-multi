@@ -8,6 +8,8 @@ Many improvements over other integrations that didn't work well with a multi-dev
 
 Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
 
+Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
+
 ## Features
 * Inverter support for 1 to 32 SolarEdge inverters.
 * Meter support for 1 to 3 meters per inverter.
@@ -22,5 +24,3 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * User friendly configuration through Config Flow.
 
 Requires Home Assistant 2022.8.0 and newer.
-
-Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
