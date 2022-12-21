@@ -21,22 +21,16 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
 
-Requires Home Assistant 2022.8.0 and newer.
-
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ## Installation
-Copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder,
+Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
 
 OR
 
-Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository.
+Copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
 
-After rebooting Home Assistant, this integration can be configured through the integration setup UI. If the integartion does not appear in Home Assistant after restarting, you may need to do one or more of the following:
-
-* Reload the Home Assistant page
-* Restart your browser
-* Clear your browser cache
+After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 
 ### Configuration
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
@@ -44,12 +38,10 @@ After rebooting Home Assistant, this integration can be configured through the i
 ### Documentation
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
-### Recommended Update Procedure (from releases older than v2.2.0)
-1. Delete integration from Settings -> Devices & Services.
-2. Update to v2.2.0 release.
-3. Add the integration under Settings -> Devices & Services.
-
-This procedure will preserve entity names. If updated in place, existing meter and battery entities will have a `_2` suffix after updating to a v2.2.x or higher release, or from a v1.x.x to a v2.x.x release. If this happens you can either update everything to use the new names, or follow the recommended update procedure to avoid renaming. This assumes the default entity names: custom names will have to be handled manually in any case.
+### Required Versions
+* Home Assistant 2022.8.0 or newer
+* Python 3.10 or newer
+* pymodbus 3.0.2 or newer
 
 ## Specifications
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
