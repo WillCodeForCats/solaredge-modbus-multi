@@ -2,12 +2,7 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ENERGY_KILO_WATT_HOUR,
-    PERCENTAGE,
-    POWER_WATT,
-    TIME_SECONDS,
-)
+from homeassistant.const import PERCENTAGE, TIME_SECONDS, UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -131,7 +126,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
     def native_unit_of_measurement(self) -> str | None:
         # kWh in AC policy "Fixed Energy Limit", % in AC policy "Percent of Production"
         if self._platform.decoded_storage["ac_charge_policy"] == 2:
-            return ENERGY_KILO_WATT_HOUR
+            return UnitOfEnergy.KILO_WATT_HOUR
         elif self._platform.decoded_storage["ac_charge_policy"] == 3:
             return PERCENTAGE
         else:
@@ -267,7 +262,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         super().__init__(inverter, config_entry, coordinator)
         self._battery = battery
         self._attr_native_min_value = 0
-        self._attr_native_unit_of_measurement = POWER_WATT
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
@@ -319,7 +314,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
         super().__init__(inverter, config_entry, coordinator)
         self._battery = battery
         self._attr_native_min_value = 0
-        self._attr_native_unit_of_measurement = POWER_WATT
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
@@ -371,7 +366,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
         super().__init__(inverter, config_entry, coordinator)
         self._attr_native_min_value = 0
         self._attr_native_max_value = 1000000
-        self._attr_native_unit_of_measurement = POWER_WATT
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
@@ -425,7 +420,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
         super().__init__(inverter, config_entry, coordinator)
         self._attr_native_min_value = 0
         self._attr_native_max_value = 1000000
-        self._attr_native_unit_of_measurement = POWER_WATT
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
