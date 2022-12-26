@@ -8,13 +8,13 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ELECTRIC_CURRENT_AMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    FREQUENCY_HERTZ,
     PERCENTAGE,
-    POWER_VOLT_AMPERE,
     POWER_VOLT_AMPERE_REACTIVE,
+    UnitOfApparentPower,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
     UnitOfEnergy,
+    UnitOfFrequency,
     UnitOfPower,
     UnitOfTemperature,
 )
@@ -566,7 +566,7 @@ class SunspecDID(SolarEdgeSensorBase):
 class ACCurrentSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.CURRENT
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
+    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -644,7 +644,7 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 class VoltageSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
+    native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -796,7 +796,7 @@ class ACPower(SolarEdgeSensorBase):
 class ACFrequency(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.FREQUENCY
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = FREQUENCY_HERTZ
+    native_unit_of_measurement = UnitOfFrequency.HERTZ
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -838,7 +838,7 @@ class ACFrequency(SolarEdgeSensorBase):
 class ACVoltAmp(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.APPARENT_POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_VOLT_AMPERE
+    native_unit_of_measurement = UnitOfApparentPower.VOLT_AMPERE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -1106,7 +1106,7 @@ class ACEnergy(SolarEdgeSensorBase):
 class DCCurrent(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.CURRENT
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
+    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     icon = "mdi:current-dc"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1149,7 +1149,7 @@ class DCCurrent(SolarEdgeSensorBase):
 class DCVoltage(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
+    native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
