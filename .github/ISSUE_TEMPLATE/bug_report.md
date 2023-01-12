@@ -6,6 +6,9 @@ labels: ''
 assignees: ''
 
 ---
+<!-- IF YOU DO NOT FILL OUT THIS TEMPLATE YOUR ISSUE WILL BE CLOSED -->
+<!-- Asking questions in a blank issue will be converted to a discussion and the issue will be closed. -->
+<!-- If you delete the template the issue will be closed and you will be asked to resubmit using the template. -->
 
 Before reporting a bug, make sure your configuration is correct, your LAN is working, and you have read about the "Known Issues" in the wiki:
 https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki
