@@ -13,9 +13,7 @@ try:
     from pymodbus.payload import BinaryPayloadDecoder
     from pymodbus.pdu import ExceptionResponse, ModbusExceptions
 except ImportError:
-    raise ImportError(
-        "pymodbus is not installed, or pymodbus version is not supported"
-    )
+    raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
 from .const import DOMAIN, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
