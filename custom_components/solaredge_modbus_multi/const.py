@@ -19,7 +19,7 @@ else:
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 # Factor to allow above rated capacity and still consider valid.
-BATTERY_RATE_ADJUSTMENT: Final = 1.03
+BATTERY_RATED_ADJUSTMENT: Final = 1.03
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"

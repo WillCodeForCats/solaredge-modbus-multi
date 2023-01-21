@@ -25,6 +25,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     BATTERY_STATUS,
+    BATTERY_RATED_ADJUSTMENT,
     DEVICE_STATUS,
     DEVICE_STATUS_DESC,
     DOMAIN,
@@ -2085,7 +2086,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
             or self._platform.decoded_model["B_Energy_Available"]
-            > self._platform.decoded_common["B_RatedEnergy"] * 1.03
+            > self._platform.decoded_common["B_RatedEnergy"] * BATTERY_RATED_ADJUSTMENT
         ):
             return None
 
