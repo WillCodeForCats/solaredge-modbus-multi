@@ -224,7 +224,7 @@ BATTERY_STATUS = {
     3: "Charge",
     4: "Discharge",
     5: "Fault",
-    6: "Preserve Charge", # This is largely undocumented, so may only apply to SE EnergyBank - when command is charge but battery is already fully charged. 
+    6: "Preserve Charge",
     7: "Idle",
     10: "Power Saving",
 }
