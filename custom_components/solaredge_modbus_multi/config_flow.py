@@ -199,10 +199,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         errors = {}
 
         if user_input is not None:
-            if user_input[ConfName.BATTERY_RATED_ADJUSTMENT] < 0:
-                errors[ConfName.BATTERY_RATED_ADJUSTMENT] = "invalid_percent"
-            elif user_input[ConfName.BATTERY_RATED_ADJUSTMENT] > 100:
-                errors[ConfName.BATTERY_RATED_ADJUSTMENT] = "invalid_percent"
+            if user_input[ConfName.BATTERY_RATING_ADJUST] < 0:
+                errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
+            elif user_input[ConfName.BATTERY_RATING_ADJUST] > 100:
+                errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
             else:
                 if self.init_info[ConfName.ADV_PWR_CONTROL] is True:
                     self.init_info = {**self.init_info, **user_input}
@@ -218,9 +218,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     ConfName.ALLOW_BATTERY_ENERGY_RESET,
                     bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
                 ),
-                ConfName.BATTERY_RATED_ADJUSTMENT: self.config_entry.options.get(
-                    ConfName.BATTERY_RATED_ADJUSTMENT,
-                    ConfDefaultInt.BATTERY_RATED_ADJUSTMENT,
+                ConfName.BATTERY_RATING_ADJUST: self.config_entry.options.get(
+                    ConfName.BATTERY_RATING_ADJUST,
+                    ConfDefaultInt.BATTERY_RATING_ADJUST,
                 ),
             }
 
@@ -233,8 +233,8 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         default=user_input[ConfName.ALLOW_BATTERY_ENERGY_RESET],
                     ): cv.boolean,
                     vol.Optional(
-                        f"{ConfName.BATTERY_RATED_ADJUSTMENT}",
-                        default=user_input[ConfName.BATTERY_RATED_ADJUSTMENT],
+                        f"{ConfName.BATTERY_RATING_ADJUST}",
+                        default=user_input[ConfName.BATTERY_RATING_ADJUST],
                     ): vol.Coerce(int),
                 }
             ),

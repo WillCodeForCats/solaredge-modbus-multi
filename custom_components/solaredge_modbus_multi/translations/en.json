@@ -53,7 +53,7 @@
         "title": "Battery Options",
         "data": {
           "allow_battery_energy_reset": "Allow Battery Energy to Reset",
-          "battery_rated_adjustment": "Battery Rating Adjustment (percent)"
+          "battery_rating_adjust": "Battery Rating Adjustment (percent)"
         }
       }
     },

@@ -77,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ),
         entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
         entry.options.get(
-            ConfName.BATTERY_RATED_ADJUSTMENT, ConfDefaultInt.BATTERY_RATED_ADJUSTMENT
+            ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
         ),
     )
 
