@@ -412,10 +412,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self._allow_battery_energy_reset
-        
+
     @property
     def battery_rating_adjust(self) -> int:
-        return self._battery_rating_adjust
+        return (self._battery_rating_adjust + 100) / 100
 
     @keep_modbus_open.setter
     def keep_modbus_open(self, value: bool) -> None:
