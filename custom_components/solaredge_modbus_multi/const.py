@@ -40,6 +40,7 @@ class ConfDefaultInt(IntEnum):
     NUMBER_INVERTERS = 1
     DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 3
+    BATTERY_RATED_ADJUSTMENT = 0
 
 
 class ConfDefaultFlag(IntEnum):
@@ -65,6 +66,7 @@ class ConfName(StrEnum):
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     SLEEP_AFTER_WRITE = "sleep_after_write"
+    BATTERY_RATED_ADJUSTMENT = "battery_rated_adjustment"
 
 
 class SunSpecAccum(IntEnum):

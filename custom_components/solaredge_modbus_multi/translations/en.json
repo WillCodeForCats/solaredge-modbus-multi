@@ -48,11 +48,19 @@
           "sleep_after_write": "Inverter Command Delay (seconds)"
         },
         "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"
+      },
+      "battery_options": {
+        "title": "Battery Options",
+        "data": {
+          "allow_battery_energy_reset": "Allow Battery Energy to Reset",
+          "battery_rated_adjustment": "Battery Rating Adjustment (percent)"
+        }
       }
     },
     "error": {
       "invalid_scan_interval": "Valid interval is 1 to 86400 seconds.",
-      "invalid_sleep_interval": "Valid interval is 0 to 60 seconds."
+      "invalid_sleep_interval": "Valid interval is 0 to 60 seconds.",
+      "invalid_percent": "Valid range is 0 to 100 percent."
     }
   }
 }

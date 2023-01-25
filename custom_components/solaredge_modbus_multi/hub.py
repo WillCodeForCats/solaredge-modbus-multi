@@ -81,6 +81,7 @@ class SolarEdgeModbusMultiHub:
         adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
         sleep_after_write: int = 3,
+        battery_rated_adjustment: int = 0,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -98,6 +99,7 @@ class SolarEdgeModbusMultiHub:
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
         self._sleep_after_write = sleep_after_write
+        self._battery_rated_adjustment = battery_rated_adjustment
         self._lock = threading.Lock()
         self._id = name.lower()
         self._coordinator_timeout = 30
@@ -131,6 +133,7 @@ class SolarEdgeModbusMultiHub:
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
                 f"sleep_after_write={self._sleep_after_write}, "
+                f"battery_rated_adjustment={self._battery_rated_adjustment}, "
             ),
         )
 

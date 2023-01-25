@@ -127,11 +127,16 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             else:
-                if user_input[ConfName.ADV_PWR_CONTROL] is True:
+                if user_input[ConfName.DETECT_BATTERIES] is True:
                     self.init_info = user_input
-                    return await self.async_step_adv_pwr_ctl()
+                    return await self.async_step_battery_options()
                 else:
-                    return self.async_create_entry(title="", data=user_input)
+                    if user_input[ConfName.ADV_PWR_CONTROL] is True:
+                        self.init_info = user_input
+                        return await self.async_step_adv_pwr_ctl()
+
+                    else:
+                        return self.async_create_entry(title="", data=user_input)
 
         else:
             user_input = {
@@ -153,10 +158,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
-                ),
-                ConfName.ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
-                    ConfName.ALLOW_BATTERY_ENERGY_RESET,
-                    bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
                 ),
             }
 
@@ -188,11 +189,54 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         f"{ConfName.ADV_PWR_CONTROL}",
                         default=user_input[ConfName.ADV_PWR_CONTROL],
                     ): cv.boolean,
+                },
+            ),
+            errors=errors,
+        )
+
+    async def async_step_battery_options(self, user_input=None) -> FlowResult:
+        """Battery Options"""
+        errors = {}
+
+        if user_input is not None:
+            if user_input[ConfName.BATTERY_RATED_ADJUSTMENT] < 0:
+                errors[ConfName.BATTERY_RATED_ADJUSTMENT] = "invalid_percent"
+            elif user_input[ConfName.BATTERY_RATED_ADJUSTMENT] > 100:
+                errors[ConfName.BATTERY_RATED_ADJUSTMENT] = "invalid_percent"
+            else:
+                if self.init_info[ConfName.ADV_PWR_CONTROL] is True:
+                    self.init_info = {**self.init_info, **user_input}
+                    return await self.async_step_adv_pwr_ctl()
+
+                return self.async_create_entry(
+                    title="", data={**self.init_info, **user_input}
+                )
+
+        else:
+            user_input = {
+                ConfName.ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
+                    ConfName.ALLOW_BATTERY_ENERGY_RESET,
+                    bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
+                ),
+                ConfName.BATTERY_RATED_ADJUSTMENT: self.config_entry.options.get(
+                    ConfName.BATTERY_RATED_ADJUSTMENT,
+                    ConfDefaultInt.BATTERY_RATED_ADJUSTMENT,
+                ),
+            }
+
+        return self.async_show_form(
+            step_id="battery_options",
+            data_schema=vol.Schema(
+                {
                     vol.Optional(
                         f"{ConfName.ALLOW_BATTERY_ENERGY_RESET}",
                         default=user_input[ConfName.ALLOW_BATTERY_ENERGY_RESET],
                     ): cv.boolean,
-                },
+                    vol.Optional(
+                        f"{ConfName.BATTERY_RATED_ADJUSTMENT}",
+                        default=user_input[ConfName.BATTERY_RATED_ADJUSTMENT],
+                    ): vol.Coerce(int),
+                }
             ),
             errors=errors,
         )
