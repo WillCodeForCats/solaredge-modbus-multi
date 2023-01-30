@@ -18,8 +18,7 @@ else:
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
-# Factor to allow above rated capacity and still consider valid.
-BATTERY_RATED_ADJUSTMENT: Final = 1.06
+
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
@@ -40,6 +39,7 @@ class ConfDefaultInt(IntEnum):
     NUMBER_INVERTERS = 1
     DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 3
+    BATTERY_RATING_ADJUST = 0
 
 
 class ConfDefaultFlag(IntEnum):
@@ -65,6 +65,7 @@ class ConfName(StrEnum):
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     SLEEP_AFTER_WRITE = "sleep_after_write"
+    BATTERY_RATING_ADJUST = "battery_rating_adjust"
 
 
 class SunSpecAccum(IntEnum):

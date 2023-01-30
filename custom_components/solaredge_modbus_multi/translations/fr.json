@@ -36,8 +36,7 @@
           "keep_modbus_open": "Garder la connection Modbus ouverte",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
-          "advanced_power_control": "Options de contrôle de l'alimentation",
-          "allow_battery_energy_reset": "Autoriser la réinitialisation de la batterie"
+          "advanced_power_control": "Options de contrôle de l'alimentation"
         }
       },
       "adv_pwr_ctl": {
@@ -48,11 +47,19 @@
           "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
         },
         "description": "Avertissement : Ces options peuvent enfreindre l'accord d'utilisation, modifier la facturation de vos services, nécessiter un équipement spécial et écraser le provisionnement par SolarEdge ou votre installateur. À utiliser à vos risques et périls!"
+      },
+      "battery_options": {
+        "title": "Options de batterie",
+        "data": {
+          "allow_battery_energy_reset": "Autoriser la réinitialisation de la batterie",
+          "battery_rating_adjust": "Ajustement de la capacité de la batterie (pourcentage)"
+        }
       }
     },
     "error": {
       "invalid_scan_interval": "L'intervalle valide est de 1 à 86 400 secondes.",
-      "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes."
+      "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
+      "invalid_percent": "La plage valide est de 0 à 100 %."
     }
   }
 }
