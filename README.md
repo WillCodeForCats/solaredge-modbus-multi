@@ -47,4 +47,5 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
 
 ## Project Sponsors
-[@bertybuttface](https://github.com/bertybuttface)
+* [@bertybuttface](https://github.com/bertybuttface)
+* [@dominikamann](https://github.com/dominikamann)
