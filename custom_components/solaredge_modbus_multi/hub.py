@@ -1633,3 +1633,7 @@ class SolarEdgeBattery:
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self.hub.allow_battery_energy_reset
+
+    @property
+    def battery_rating_adjust(self) -> int:
+        return self.hub.battery_rating_adjust
