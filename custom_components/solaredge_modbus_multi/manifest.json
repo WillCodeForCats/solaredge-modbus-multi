@@ -10,5 +10,5 @@
   "iot_class": "local_polling",
   "integration_type": "hub",
   "loggers": ["custom_components.solaredge_modbus_multi"],
-  "version": "v2.2.11-pre.1"
+  "version": "v2.2.11"
 }
