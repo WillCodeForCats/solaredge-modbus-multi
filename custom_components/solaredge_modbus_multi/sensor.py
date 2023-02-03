@@ -57,15 +57,7 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
-        if inverter.single_device_entity:
-            entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
-        else:
-            entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
-            entities.append(Manufacturer(inverter, config_entry, coordinator))
-            entities.append(Model(inverter, config_entry, coordinator))
-            entities.append(SerialNumber(inverter, config_entry, coordinator))
-            entities.append(DeviceAddress(inverter, config_entry, coordinator))
-            entities.append(SunspecDID(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
         entities.append(Version(inverter, config_entry, coordinator))
         entities.append(Status(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
@@ -95,17 +87,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
-        if meter.single_device_entity:
-            entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
-        else:
-            entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
-            entities.append(Manufacturer(meter, config_entry, coordinator))
-            entities.append(Model(meter, config_entry, coordinator))
-            entities.append(Option(meter, config_entry, coordinator))
-            entities.append(SerialNumber(meter, config_entry, coordinator))
-            entities.append(DeviceAddress(meter, config_entry, coordinator))
-            entities.append(DeviceAddressParent(meter, config_entry, coordinator))
-            entities.append(SunspecDID(meter, config_entry, coordinator))
+        entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
         entities.append(Version(meter, config_entry, coordinator))
         entities.append(MeterEvents(meter, config_entry, coordinator))
         entities.append(ACCurrentSensor(meter, config_entry, coordinator))
@@ -171,15 +153,7 @@ async def async_setup_entry(
         entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q4_C"))
 
     for battery in hub.batteries:
-        if battery.single_device_entity:
-            entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
-        else:
-            entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
-            entities.append(Manufacturer(battery, config_entry, coordinator))
-            entities.append(Model(battery, config_entry, coordinator))
-            entities.append(SerialNumber(battery, config_entry, coordinator))
-            entities.append(DeviceAddress(battery, config_entry, coordinator))
-            entities.append(DeviceAddressParent(battery, config_entry, coordinator))
+        entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
         entities.append(Version(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryAvgTemp(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryMaxTemp(battery, config_entry, coordinator))
