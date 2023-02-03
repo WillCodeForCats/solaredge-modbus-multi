@@ -56,9 +56,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
         ),
         entry.options.get(
-            ConfName.SINGLE_DEVICE_ENTITY, bool(ConfDefaultFlag.SINGLE_DEVICE_ENTITY)
-        ),
-        entry.options.get(
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
         ),
         entry.options.get(

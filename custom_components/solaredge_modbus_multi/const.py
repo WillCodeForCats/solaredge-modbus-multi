@@ -46,7 +46,6 @@ class ConfDefaultFlag(IntEnum):
     DETECT_METERS = 1
     DETECT_BATTERIES = 0
     KEEP_MODBUS_OPEN = 0
-    SINGLE_DEVICE_ENTITY = 1
     ADV_PWR_CONTROL = 0
     ADV_STORAGE_CONTROL = 0
     ADV_SITE_LIMIT_CONTROL = 0
@@ -58,7 +57,6 @@ class ConfName(StrEnum):
     DEVICE_ID = "device_id"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
-    SINGLE_DEVICE_ENTITY = "single_device_entity"
     KEEP_MODBUS_OPEN = "keep_modbus_open"
     ADV_PWR_CONTROL = "advanced_power_control"
     ADV_STORAGE_CONTROL = "adv_storage_control"

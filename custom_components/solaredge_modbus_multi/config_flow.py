@@ -143,10 +143,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
-                ConfName.SINGLE_DEVICE_ENTITY: self.config_entry.options.get(
-                    ConfName.SINGLE_DEVICE_ENTITY,
-                    bool(ConfDefaultFlag.SINGLE_DEVICE_ENTITY),
-                ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
                     ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
                 ),
@@ -169,10 +165,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_SCAN_INTERVAL,
                         default=user_input[CONF_SCAN_INTERVAL],
                     ): vol.Coerce(int),
-                    vol.Optional(
-                        f"{ConfName.SINGLE_DEVICE_ENTITY}",
-                        default=user_input[ConfName.SINGLE_DEVICE_ENTITY],
-                    ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.KEEP_MODBUS_OPEN}",
                         default=user_input[ConfName.KEEP_MODBUS_OPEN],
