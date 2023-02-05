@@ -23,7 +23,6 @@ def parse_modbus_string(s: str) -> str:
 
 
 def update_accum(self, accum_value: int) -> None:
-
     if self.last is None:
         self.last = 0
 
