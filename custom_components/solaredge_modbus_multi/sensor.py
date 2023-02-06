@@ -40,7 +40,7 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, scale_factor, update_accum, watts_to_kilowatts
+from .helpers import float_to_hex, scale_factor, update_accum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1021,6 +1021,7 @@ class ACEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -1115,7 +1116,7 @@ class ACEnergy(SolarEdgeSensorBase):
                 )
 
                 try:
-                    return watts_to_kilowatts(update_accum(self, value))
+                    return update_accum(self, value) * 0.001
                 except Exception:
                     return None
 
@@ -1937,6 +1938,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
     icon = "mdi:battery-charging-20"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1971,8 +1973,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                     if self._platform.decoded_model["B_Export_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Export_Energy_WH"]
 
-                        return watts_to_kilowatts(
-                            self._platform.decoded_model["B_Export_Energy_WH"]
+                        return (
+                            self._platform.decoded_model["B_Export_Energy_WH"] * 0.001
                         )
 
                     else:
@@ -2004,6 +2006,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
     icon = "mdi:battery-charging-100"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -2038,8 +2041,8 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                     if self._platform.decoded_model["B_Import_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Import_Energy_WH"]
 
-                        return watts_to_kilowatts(
-                            self._platform.decoded_model["B_Import_Energy_WH"]
+                        return (
+                            self._platform.decoded_model["B_Import_Energy_WH"] * 0.001
                         )
 
                     else:
@@ -2070,6 +2073,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -2095,12 +2099,13 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
             return None
 
         else:
-            return watts_to_kilowatts(self._platform.decoded_model["B_Energy_Max"])
+            return self._platform.decoded_model["B_Energy_Max"] * 0.001
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -2129,9 +2134,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             return None
 
         else:
-            return watts_to_kilowatts(
-                self._platform.decoded_model["B_Energy_Available"]
-            )
+            return self._platform.decoded_model["B_Energy_Available"] * 0.001
 
 
 class SolarEdgeBatterySOH(SolarEdgeSensorBase):

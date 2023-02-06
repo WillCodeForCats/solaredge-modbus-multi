@@ -8,10 +8,6 @@ def scale_factor(value: int, sf: int):
         return 0
 
 
-def watts_to_kilowatts(value):
-    return round(value * 0.001, 3)
-
-
 def float_to_hex(f):
     return hex(struct.unpack("<I", struct.pack("<f", f))[0])
 
