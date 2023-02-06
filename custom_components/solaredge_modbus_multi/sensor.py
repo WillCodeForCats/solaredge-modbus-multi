@@ -50,7 +50,6 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -1834,7 +1833,6 @@ class SolarEdgeBatteryVoltage(DCVoltage):
                 or self._platform.decoded_model["B_DC_Voltage"] < BatteryLimit.Vmin
                 or self._platform.decoded_model["B_DC_Voltage"] > BatteryLimit.Vmax
             ):
-
                 return None
 
             elif self._platform.decoded_model["B_Status"] in [0]:
