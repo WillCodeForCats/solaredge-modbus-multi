@@ -49,3 +49,4 @@ After rebooting Home Assistant, this integration can be configured through the i
 ## Project Sponsors
 * [@bertybuttface](https://github.com/bertybuttface)
 * [@dominikamann](https://github.com/dominikamann)
+* [@maksyms](https://github.com/maksyms)
