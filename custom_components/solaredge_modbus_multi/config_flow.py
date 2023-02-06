@@ -52,7 +52,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-
             if self._host_in_configuration_exists(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "already_configured"
             elif not host_valid(user_input[CONF_HOST]):
@@ -121,7 +120,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
 
         """Manage the options."""
         if user_input is not None:
-
             if user_input[CONF_SCAN_INTERVAL] < 1:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
