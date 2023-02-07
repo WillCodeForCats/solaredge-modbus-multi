@@ -154,15 +154,6 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        if not self._single_device_entity:
-            _LOGGER.warning(
-                (
-                    "Static information sensors are depreciated and may be removed "
-                    "in a future release. Use attributes from the 'Device' sensor. "
-                    "https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/168"  # noqa: E501
-                ),
-            )
-
         for inverter_index in range(self._number_of_inverters):
             inverter_unit_id = inverter_index + self._start_device_id
 
