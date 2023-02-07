@@ -1473,7 +1473,7 @@ class SolarEdgeBattery:
         elif self.battery_id == 2:
             self.start_address = 57856
         elif self.battery_id == 3:
-            self.start_address = 58112
+            self.start_address = 62720
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
