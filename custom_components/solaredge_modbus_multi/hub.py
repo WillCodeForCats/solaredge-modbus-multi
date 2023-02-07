@@ -302,11 +302,37 @@ class SolarEdgeModbusMultiHub:
                                 ),
                             )
                             raise DeviceInvalid(
-                                f"Duplicate b2 serial {new_battery_1.serial}"
+                                f"Duplicate b2 serial {new_battery_2.serial}"
                             )
 
                     self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
+
+                except ModbusReadError as e:
+                    await self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid:
+                    pass
+
+                try:
+                    new_battery_3 = SolarEdgeBattery(inverter_unit_id, 3, self)
+                    await self._hass.async_add_executor_job(new_battery_3.init_device)
+
+                    for battery in self.batteries:
+                        if new_battery_3.serial == battery.serial:
+                            _LOGGER.warning(
+                                (
+                                    f"Duplicate serial {new_battery_3.serial} "
+                                    f"on battery 3 inverter {inverter_unit_id}"
+                                ),
+                            )
+                            raise DeviceInvalid(
+                                f"Duplicate b3 serial {new_battery_3.serial}"
+                            )
+
+                    self.batteries.append(new_battery_3)
+                    _LOGGER.debug(f"Found battery 3 inverter {inverter_unit_id}")
 
                 except ModbusReadError as e:
                     await self.disconnect()
@@ -1446,6 +1472,8 @@ class SolarEdgeBattery:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
+        elif self.battery_id == 3:
+            self.start_address = 58112
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
