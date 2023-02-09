@@ -8,15 +8,15 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ELECTRIC_CURRENT_AMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    ENERGY_KILO_WATT_HOUR,
-    FREQUENCY_HERTZ,
     PERCENTAGE,
-    POWER_VOLT_AMPERE,
     POWER_VOLT_AMPERE_REACTIVE,
-    POWER_WATT,
-    TEMP_CELSIUS,
+    UnitOfApparentPower,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfFrequency,
+    UnitOfPower,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -40,7 +40,7 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, scale_factor, update_accum, watts_to_kilowatts
+from .helpers import float_to_hex, scale_factor, update_accum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,7 +50,6 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -206,6 +205,7 @@ async def async_setup_entry(
 
 class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
     should_poll = False
+    native_precision = None
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -566,7 +566,7 @@ class SunspecDID(SolarEdgeSensorBase):
 class ACCurrentSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.CURRENT
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
+    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -640,11 +640,15 @@ class ACCurrentSensor(SolarEdgeSensorBase):
         except TypeError:
             return None
 
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["AC_Current_SF"])
+
 
 class VoltageSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
+    native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -715,20 +719,23 @@ class VoltageSensor(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Voltage_SF"],
                 )
-                return round(value, abs(self._platform.decoded_model["AC_Voltage_SF"]))
 
         except TypeError:
             return None
+
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["AC_Voltage_SF"])
 
 
 class ACPower(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_WATT
+    native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:solar-power"
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
@@ -783,20 +790,23 @@ class ACPower(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Power_SF"],
                 )
-                return round(value, abs(self._platform.decoded_model["AC_Power_SF"]))
 
         except TypeError:
             return None
+
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["AC_Power_SF"])
 
 
 class ACFrequency(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.FREQUENCY
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = FREQUENCY_HERTZ
+    native_unit_of_measurement = UnitOfFrequency.HERTZ
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -823,22 +833,23 @@ class ACFrequency(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["AC_Frequency"],
                     self._platform.decoded_model["AC_Frequency_SF"],
-                )
-                return round(
-                    value, abs(self._platform.decoded_model["AC_Frequency_SF"])
                 )
 
         except TypeError:
             return None
 
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["AC_Frequency_SF"])
+
 
 class ACVoltAmp(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.APPARENT_POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_VOLT_AMPERE
+    native_unit_of_measurement = UnitOfApparentPower.VOLT_AMPERE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -879,14 +890,17 @@ class ACVoltAmp(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_VA_SF"],
                 )
-                return round(value, abs(self._platform.decoded_model["AC_VA_SF"]))
 
         except TypeError:
             return None
+
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["AC_VA_SF"])
 
 
 class ACVoltAmpReactive(SolarEdgeSensorBase):
@@ -933,14 +947,17 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_var_SF"],
                 )
-                return round(value, abs(self._platform.decoded_model["AC_var_SF"]))
 
         except TypeError:
             return None
+
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["AC_var_SF"])
 
 
 class ACPowerFactor(SolarEdgeSensorBase):
@@ -987,20 +1004,24 @@ class ACPowerFactor(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_PF_SF"],
                 )
-                return round(value, abs(self._platform.decoded_model["AC_PF_SF"]))
 
         except TypeError:
             return None
+
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["AC_PF_SF"])
 
 
 class ACEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -1095,7 +1116,7 @@ class ACEnergy(SolarEdgeSensorBase):
                 )
 
                 try:
-                    return watts_to_kilowatts(update_accum(self, value))
+                    return update_accum(self, value) * 0.001
                 except Exception:
                     return None
 
@@ -1106,7 +1127,7 @@ class ACEnergy(SolarEdgeSensorBase):
 class DCCurrent(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.CURRENT
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
+    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     icon = "mdi:current-dc"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1134,22 +1155,23 @@ class DCCurrent(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["I_DC_Current"],
                     self._platform.decoded_model["I_DC_Current_SF"],
-                )
-                return round(
-                    value, abs(self._platform.decoded_model["I_DC_Current_SF"])
                 )
 
         except TypeError:
             return None
 
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["I_DC_Current_SF"])
+
 
 class DCVoltage(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
+    native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -1176,22 +1198,23 @@ class DCVoltage(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["I_DC_Voltage"],
                     self._platform.decoded_model["I_DC_Voltage_SF"],
-                )
-                return round(
-                    value, abs(self._platform.decoded_model["I_DC_Voltage_SF"])
                 )
 
         except TypeError:
             return None
 
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["I_DC_Voltage_SF"])
+
 
 class DCPower(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_WATT
+    native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:solar-power"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1217,20 +1240,23 @@ class DCPower(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["I_DC_Power"],
                     self._platform.decoded_model["I_DC_Power_SF"],
                 )
-                return round(value, abs(self._platform.decoded_model["I_DC_Power_SF"]))
 
         except TypeError:
             return None
+
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["I_DC_Power_SF"])
 
 
 class HeatSinkTemperature(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = TEMP_CELSIUS
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -1256,14 +1282,17 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["I_Temp_Sink"],
                     self._platform.decoded_model["I_Temp_SF"],
                 )
-                return round(value, abs(self._platform.decoded_model["I_Temp_SF"]))
 
         except TypeError:
             return None
+
+    @property
+    def native_precision(self):
+        return abs(self._platform.decoded_model["I_Temp_SF"])
 
 
 class Status(SolarEdgeSensorBase):
@@ -1435,6 +1464,7 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
+    native_precision = 0
     icon = "mdi:percent"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1475,6 +1505,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
     state_class = SensorStateClass.MEASUREMENT
+    native_precision = 1
     icon = "mdi:angle-acute"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1505,7 +1536,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
                 return None
 
             else:
-                return round(self._platform.decoded_model["I_CosPhi"], 1)
+                return self._platform.decoded_model["I_CosPhi"]
 
         except KeyError:
             return None
@@ -1767,6 +1798,8 @@ class MetervarhIE(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
+    native_precision = 1
+
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_avg_temp"
@@ -1787,13 +1820,15 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
                 return None
 
             else:
-                return round(self._platform.decoded_model["B_Temp_Average"], 1)
+                return self._platform.decoded_model["B_Temp_Average"]
 
         except TypeError:
             return None
 
 
 class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
+    native_precision = 1
+
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_max_temp"
@@ -1818,13 +1853,15 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
                 return None
 
             else:
-                return round(self._platform.decoded_model["B_Temp_Max"], 1)
+                return self._platform.decoded_model["B_Temp_Max"]
 
         except TypeError:
             return None
 
 
 class SolarEdgeBatteryVoltage(DCVoltage):
+    native_precision = 2
+
     @property
     def native_value(self):
         try:
@@ -1834,20 +1871,21 @@ class SolarEdgeBatteryVoltage(DCVoltage):
                 or self._platform.decoded_model["B_DC_Voltage"] < BatteryLimit.Vmin
                 or self._platform.decoded_model["B_DC_Voltage"] > BatteryLimit.Vmax
             ):
-
                 return None
 
             elif self._platform.decoded_model["B_Status"] in [0]:
                 return None
 
             else:
-                return round(self._platform.decoded_model["B_DC_Voltage"], 2)
+                return self._platform.decoded_model["B_DC_Voltage"]
 
         except TypeError:
             return None
 
 
 class SolarEdgeBatteryCurrent(DCCurrent):
+    native_precision = 2
+
     @property
     def native_value(self):
         try:
@@ -1863,13 +1901,14 @@ class SolarEdgeBatteryCurrent(DCCurrent):
                 return None
 
             else:
-                return round(self._platform.decoded_model["B_DC_Current"], 2)
+                return self._platform.decoded_model["B_DC_Current"]
 
         except TypeError:
             return None
 
 
 class SolarEdgeBatteryPower(DCPower):
+    native_precision = 2
     icon = "mdi:lightning-bolt"
 
     @property
@@ -1889,7 +1928,7 @@ class SolarEdgeBatteryPower(DCPower):
                 return None
 
             else:
-                return round(self._platform.decoded_model["B_DC_Power"], 2)
+                return self._platform.decoded_model["B_DC_Power"]
 
         except TypeError:
             return None
@@ -1898,7 +1937,8 @@ class SolarEdgeBatteryPower(DCPower):
 class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
     icon = "mdi:battery-charging-20"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1933,8 +1973,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                     if self._platform.decoded_model["B_Export_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Export_Energy_WH"]
 
-                        return watts_to_kilowatts(
-                            self._platform.decoded_model["B_Export_Energy_WH"]
+                        return (
+                            self._platform.decoded_model["B_Export_Energy_WH"] * 0.001
                         )
 
                     else:
@@ -1965,7 +2005,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
     icon = "mdi:battery-charging-100"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -2000,8 +2041,8 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                     if self._platform.decoded_model["B_Import_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Import_Energy_WH"]
 
-                        return watts_to_kilowatts(
-                            self._platform.decoded_model["B_Import_Energy_WH"]
+                        return (
+                            self._platform.decoded_model["B_Import_Energy_WH"] * 0.001
                         )
 
                     else:
@@ -2030,9 +2071,9 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -2058,13 +2099,13 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
             return None
 
         else:
-            return watts_to_kilowatts(self._platform.decoded_model["B_Energy_Max"])
+            return self._platform.decoded_model["B_Energy_Max"] * 0.001
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_precision = 3
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -2085,20 +2126,22 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
             or self._platform.decoded_model["B_Energy_Available"]
-            > self._platform.decoded_common["B_RatedEnergy"]
+            > (
+                self._platform.decoded_common["B_RatedEnergy"]
+                * self._platform.battery_rating_adjust
+            )
         ):
             return None
 
         else:
-            return watts_to_kilowatts(
-                self._platform.decoded_model["B_Energy_Available"]
-            )
+            return self._platform.decoded_model["B_Energy_Available"] * 0.001
 
 
 class SolarEdgeBatterySOH(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = PERCENTAGE
     entity_category = EntityCategory.DIAGNOSTIC
+    native_unit_of_measurement = PERCENTAGE
+    native_precision = 0
     icon = "mdi:battery-heart-outline"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -2123,13 +2166,14 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
         ):
             return None
         else:
-            return round(self._platform.decoded_model["B_SOH"], 0)
+            return self._platform.decoded_model["B_SOH"]
 
 
 class SolarEdgeBatterySOE(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.BATTERY
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
+    native_precision = 0
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -2153,7 +2197,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
         ):
             return None
         else:
-            return round(self._platform.decoded_model["B_SOE"], 0)
+            return self._platform.decoded_model["B_SOE"]
 
 
 class SolarEdgeBatteryStatus(Status):

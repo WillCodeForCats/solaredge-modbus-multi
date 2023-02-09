@@ -36,8 +36,7 @@
           "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
-          "advanced_power_control": "Avansert strømkontroll",
-          "allow_battery_energy_reset": "La batterienergien tilbakestilles"
+          "advanced_power_control": "Avansert strømkontroll"
         }
       },
       "adv_pwr_ctl": {
@@ -48,11 +47,19 @@
           "sleep_after_write": "Inverter Command Delay (sekunder)"
         },
         "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
+      },
+      "battery_options": {
+        "title": "Batterialternativer",
+        "data": {
+          "allow_battery_energy_reset": "La batterienergien tilbakestilles",
+          "battery_rating_adjust": "Justering av batterikapasitet (prosent)"
+        }
       }
     },
     "error": {
       "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
-      "invalid_sleep_interval": "Gyldig intervall er 0 til 10 sekunder."
+      "invalid_sleep_interval": "Gyldig intervall er 0 til 60 sekunder.",
+      "invalid_percent": "Gyldig område er 0 til 100 prosent."
     }
   }
 }

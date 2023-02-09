@@ -1,0 +1,65 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuration SolarEdge Modbus",
+        "data": {
+          "name": "Prefix du capteur",
+          "host": "Adresse IP de l'onduleur",
+          "port": "Port Modbus/TCP",
+          "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
+          "number_of_inverters": "Nombre d'onduleurs"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "L'appareil est déjà configuré!",
+      "max_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+      "min_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+      "max_inverters": "Doit être entre 1 et 32 onduleurs.",
+      "min_inverters": "Doit être entre 1 et 32 onduleurs.",
+      "too_many_inverters": "Nombre d'onduleurs trop important pour l'adresse Modbus.",
+      "invalid_host": "Adresse IP invalide.",
+      "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
+    },
+    "abort": {
+      "already_configured": "L'appareil est déjà configuré!"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options SolarEdge Modbus",
+        "data": {
+          "scan_interval": "Fréquence de rafraichissement (en secondes)",
+          "single_device_entity": "Entité mono appareil",
+          "keep_modbus_open": "Garder la connection Modbus ouverte",
+          "detect_meters": "Auto-détecter les capteurs",
+          "detect_batteries": "Auto-détecter les batteries",
+          "advanced_power_control": "Options de contrôle de l'alimentation"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Options de contrôle de l'alimentation",
+        "data": {
+          "adv_storage_control": "Activer le contrôle du stockage",
+          "adv_site_limit_control": "Activer le contrôle des limites du site",
+          "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
+        },
+        "description": "Avertissement : Ces options peuvent enfreindre l'accord d'utilisation, modifier la facturation de vos services, nécessiter un équipement spécial et écraser le provisionnement par SolarEdge ou votre installateur. À utiliser à vos risques et périls!"
+      },
+      "battery_options": {
+        "title": "Options de batterie",
+        "data": {
+          "allow_battery_energy_reset": "Autoriser la réinitialisation de la batterie",
+          "battery_rating_adjust": "Ajustement de la capacité de la batterie (pourcentage)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "L'intervalle valide est de 1 à 86 400 secondes.",
+      "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
+      "invalid_percent": "La plage valide est de 0 à 100 %."
+    }
+  }
+}

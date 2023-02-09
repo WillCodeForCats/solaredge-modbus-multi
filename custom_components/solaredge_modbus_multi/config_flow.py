@@ -52,7 +52,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-
             if self._host_in_configuration_exists(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "already_configured"
             elif not host_valid(user_input[CONF_HOST]):
@@ -121,17 +120,21 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
 
         """Manage the options."""
         if user_input is not None:
-
             if user_input[CONF_SCAN_INTERVAL] < 1:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             else:
-                if user_input[ConfName.ADV_PWR_CONTROL] is True:
+                if user_input[ConfName.DETECT_BATTERIES] is True:
                     self.init_info = user_input
-                    return await self.async_step_adv_pwr_ctl()
+                    return await self.async_step_battery_options()
                 else:
-                    return self.async_create_entry(title="", data=user_input)
+                    if user_input[ConfName.ADV_PWR_CONTROL] is True:
+                        self.init_info = user_input
+                        return await self.async_step_adv_pwr_ctl()
+
+                    else:
+                        return self.async_create_entry(title="", data=user_input)
 
         else:
             user_input = {
@@ -139,23 +142,20 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
                 ConfName.SINGLE_DEVICE_ENTITY: self.config_entry.options.get(
-                    ConfName.SINGLE_DEVICE_ENTITY, ConfDefaultFlag.SINGLE_DEVICE_ENTITY
+                    ConfName.SINGLE_DEVICE_ENTITY,
+                    bool(ConfDefaultFlag.SINGLE_DEVICE_ENTITY),
                 ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
-                    ConfName.KEEP_MODBUS_OPEN, ConfDefaultFlag.KEEP_MODBUS_OPEN
+                    ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
                 ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
-                    ConfName.DETECT_METERS, ConfDefaultFlag.DETECT_METERS
+                    ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
                 ConfName.DETECT_BATTERIES: self.config_entry.options.get(
-                    ConfName.DETECT_BATTERIES, ConfDefaultFlag.DETECT_BATTERIES
+                    ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
                 ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_PWR_CONTROL, ConfDefaultFlag.ADV_PWR_CONTROL
-                ),
-                ConfName.ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
-                    ConfName.ALLOW_BATTERY_ENERGY_RESET,
-                    ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET,
+                    ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
                 ),
             }
 
@@ -187,11 +187,54 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         f"{ConfName.ADV_PWR_CONTROL}",
                         default=user_input[ConfName.ADV_PWR_CONTROL],
                     ): cv.boolean,
+                },
+            ),
+            errors=errors,
+        )
+
+    async def async_step_battery_options(self, user_input=None) -> FlowResult:
+        """Battery Options"""
+        errors = {}
+
+        if user_input is not None:
+            if user_input[ConfName.BATTERY_RATING_ADJUST] < 0:
+                errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
+            elif user_input[ConfName.BATTERY_RATING_ADJUST] > 100:
+                errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
+            else:
+                if self.init_info[ConfName.ADV_PWR_CONTROL] is True:
+                    self.init_info = {**self.init_info, **user_input}
+                    return await self.async_step_adv_pwr_ctl()
+
+                return self.async_create_entry(
+                    title="", data={**self.init_info, **user_input}
+                )
+
+        else:
+            user_input = {
+                ConfName.ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
+                    ConfName.ALLOW_BATTERY_ENERGY_RESET,
+                    bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
+                ),
+                ConfName.BATTERY_RATING_ADJUST: self.config_entry.options.get(
+                    ConfName.BATTERY_RATING_ADJUST,
+                    ConfDefaultInt.BATTERY_RATING_ADJUST,
+                ),
+            }
+
+        return self.async_show_form(
+            step_id="battery_options",
+            data_schema=vol.Schema(
+                {
                     vol.Optional(
                         f"{ConfName.ALLOW_BATTERY_ENERGY_RESET}",
                         default=user_input[ConfName.ALLOW_BATTERY_ENERGY_RESET],
                     ): cv.boolean,
-                },
+                    vol.Optional(
+                        f"{ConfName.BATTERY_RATING_ADJUST}",
+                        default=user_input[ConfName.BATTERY_RATING_ADJUST],
+                    ): vol.Coerce(int),
+                }
             ),
             errors=errors,
         )
@@ -203,7 +246,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             if user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
-            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 10:
+            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
             else:
                 return self.async_create_entry(
@@ -213,11 +256,12 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
         else:
             user_input = {
                 ConfName.ADV_STORAGE_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_STORAGE_CONTROL, ConfDefaultFlag.ADV_STORAGE_CONTROL
+                    ConfName.ADV_STORAGE_CONTROL,
+                    bool(ConfDefaultFlag.ADV_STORAGE_CONTROL),
                 ),
                 ConfName.ADV_SITE_LIMIT_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_SITE_LIMIT_CONTROL,
-                    ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL,
+                    bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
                 ),
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE

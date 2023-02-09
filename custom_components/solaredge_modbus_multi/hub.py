@@ -5,11 +5,15 @@ from collections import OrderedDict
 from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
-from pymodbus.client import ModbusTcpClient
-from pymodbus.constants import Endian
-from pymodbus.exceptions import ConnectionException, ModbusIOException
-from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.pdu import ExceptionResponse, ModbusExceptions
+
+try:
+    from pymodbus.client import ModbusTcpClient
+    from pymodbus.constants import Endian
+    from pymodbus.exceptions import ConnectionException, ModbusIOException
+    from pymodbus.payload import BinaryPayloadDecoder
+    from pymodbus.pdu import ExceptionResponse, ModbusExceptions
+except ImportError:
+    raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
 from .const import DOMAIN, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
@@ -101,6 +105,7 @@ class SolarEdgeModbusMultiHub:
         adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
         sleep_after_write: int = 3,
+        battery_rating_adjust: int = 0,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -118,6 +123,7 @@ class SolarEdgeModbusMultiHub:
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
         self._sleep_after_write = sleep_after_write
+        self._battery_rating_adjust = battery_rating_adjust
         self._lock = threading.Lock()
         self._id = name.lower()
         self._coordinator_timeout = 30
@@ -151,6 +157,7 @@ class SolarEdgeModbusMultiHub:
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
                 f"sleep_after_write={self._sleep_after_write}, "
+                f"battery_rating_adjust={self._battery_rating_adjust}, "
             ),
         )
 
@@ -319,7 +326,7 @@ class SolarEdgeModbusMultiHub:
                                 ),
                             )
                             raise DeviceInvalid(
-                                f"Duplicate b2 serial {new_battery_1.serial}"
+                                f"Duplicate b2 serial {new_battery_2.serial}"
                             )
 
                     self.batteries.append(new_battery_2)
@@ -429,6 +436,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self._allow_battery_energy_reset
+
+    @property
+    def battery_rating_adjust(self) -> int:
+        return (self._battery_rating_adjust + 100) / 100
 
     @keep_modbus_open.setter
     def keep_modbus_open(self, value: bool) -> None:
@@ -1670,3 +1681,7 @@ class SolarEdgeBattery:
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self.hub.allow_battery_energy_reset
+
+    @property
+    def battery_rating_adjust(self) -> int:
+        return self.hub.battery_rating_adjust

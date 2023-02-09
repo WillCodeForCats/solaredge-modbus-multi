@@ -1,7 +1,20 @@
-from enum import Flag, IntEnum
+import sys
+from enum import IntEnum
 from typing import Final
 
-from homeassistant.backports.enum import StrEnum
+if sys.version_info.minor >= 11:
+    # Needs Python 3.11
+    from enum import StrEnum
+else:
+    try:
+        from homeassistant.backports.enum import StrEnum
+
+    except ImportError:
+        from enum import Enum
+
+        class StrEnum(str, Enum):
+            pass
+
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
@@ -26,17 +39,18 @@ class ConfDefaultInt(IntEnum):
     NUMBER_INVERTERS = 1
     DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 3
+    BATTERY_RATING_ADJUST = 0
 
 
-class ConfDefaultFlag(Flag):
-    DETECT_METERS = True
-    DETECT_BATTERIES = False
-    KEEP_MODBUS_OPEN = False
-    SINGLE_DEVICE_ENTITY = True
-    ADV_PWR_CONTROL = False
-    ADV_STORAGE_CONTROL = False
-    ADV_SITE_LIMIT_CONTROL = False
-    ALLOW_BATTERY_ENERGY_RESET = False
+class ConfDefaultFlag(IntEnum):
+    DETECT_METERS = 1
+    DETECT_BATTERIES = 0
+    KEEP_MODBUS_OPEN = 0
+    SINGLE_DEVICE_ENTITY = 1
+    ADV_PWR_CONTROL = 0
+    ADV_STORAGE_CONTROL = 0
+    ADV_SITE_LIMIT_CONTROL = 0
+    ALLOW_BATTERY_ENERGY_RESET = 0
 
 
 class ConfName(StrEnum):
@@ -51,6 +65,7 @@ class ConfName(StrEnum):
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     SLEEP_AFTER_WRITE = "sleep_after_write"
+    BATTERY_RATING_ADJUST = "battery_rating_adjust"
 
 
 class SunSpecAccum(IntEnum):
@@ -210,6 +225,7 @@ BATTERY_STATUS = {
     3: "Charge",
     4: "Discharge",
     5: "Fault",
+    6: "Preserve Charge",
     7: "Idle",
     10: "Power Saving",
 }

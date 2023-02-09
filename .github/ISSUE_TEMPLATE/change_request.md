@@ -5,6 +5,9 @@ title: ''
 labels: ''
 assignees: ''
 ---
+<!-- IF YOU DO NOT FILL OUT THIS TEMPLATE YOUR ISSUE WILL BE CLOSED -->
+<!-- Asking for help or basic questions in an issue will be converted to a discussion and the issue will be closed. -->
+<!-- If you delete the template the issue will be closed and you will be asked to resubmit using the template. -->
 
 **Describe the current behavior**
 A clear and concise description of what the feature should be.

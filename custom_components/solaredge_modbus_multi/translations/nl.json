@@ -36,8 +36,7 @@
           "keep_modbus_open": "Houd Modbus-verbinding open",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
-          "advanced_power_control": "Geavanceerde stroomregeling",
-          "allow_battery_energy_reset": "Batterij-energie laten resetten"
+          "advanced_power_control": "Geavanceerde stroomregeling"
         }
       },
       "adv_pwr_ctl": {
@@ -48,11 +47,19 @@
           "sleep_after_write": "Omvormer commando vertraging (seconden)"
         },
         "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico!"
+      },
+      "battery_options": {
+        "title": "Batterij opties",
+        "data": {
+          "allow_battery_energy_reset": "Batterij-energie laten resetten",
+          "battery_rating_adjust": "Aanpassing batterijvermogen (%)"
+        }
       }
     },
     "error": {
       "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden.",
-      "invalid_sleep_interval": "Geldig interval is 0 tot 10 seconden."
+      "invalid_sleep_interval": "Geldig interval is 0 tot 60 seconden.",
+      "invalid_percent": "Het geldige bereik is 0 tot 100 procent."
     }
   }
 }

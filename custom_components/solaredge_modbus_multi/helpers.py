@@ -8,10 +8,6 @@ def scale_factor(value: int, sf: int):
         return 0
 
 
-def watts_to_kilowatts(value):
-    return round(value * 0.001, 3)
-
-
 def float_to_hex(f):
     return hex(struct.unpack("<I", struct.pack("<f", f))[0])
 
@@ -23,7 +19,6 @@ def parse_modbus_string(s: str) -> str:
 
 
 def update_accum(self, accum_value: int) -> None:
-
     if self.last is None:
         self.last = 0
 

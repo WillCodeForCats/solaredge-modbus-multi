@@ -17,7 +17,6 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -26,13 +25,12 @@ async def async_setup_entry(
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
         for inverter in hub.inverters:
-            if inverter.single_device_entity:
-                entities.append(
-                    SolarEdgeExternalProduction(inverter, config_entry, coordinator)
-                )
-                entities.append(
-                    SolarEdgeNegativeSiteLimit(inverter, config_entry, coordinator)
-                )
+            entities.append(
+                SolarEdgeExternalProduction(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolarEdgeNegativeSiteLimit(inverter, config_entry, coordinator)
+            )
 
     if entities:
         async_add_entities(entities)
