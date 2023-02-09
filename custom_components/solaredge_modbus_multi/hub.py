@@ -495,6 +495,8 @@ class SolarEdgeModbusMultiHub:
             result = self._client.read_holding_registers(address, count, **kwargs)
 
             if result.isError():
+                _LOGGER.debug(f"Unit {unit}: {result}")
+
                 if type(result) is ModbusIOException:
                     raise ModbusIOError(result)
 
