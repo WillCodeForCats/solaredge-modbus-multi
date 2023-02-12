@@ -7,11 +7,14 @@ assignees: ''
 
 ---
 <!-- IF YOU DO NOT FILL OUT THIS TEMPLATE YOUR ISSUE WILL BE CLOSED -->
-<!-- Asking for help or basic questions in an issue will be converted to a discussion and the issue will be closed. -->
 <!-- If you delete the template the issue will be closed and you will be asked to resubmit using the template. -->
 
-Before reporting a bug, make sure your configuration is correct, your LAN is working, and you have read about the "Known Issues" in the wiki:
-https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki
+<!-- DO NOT OPEN AN ISSUE TO ASK HOW TO SET UP OR CONFIGURE THE INTEGRATION -->
+<!-- READ THE INSTRUCTIONS: -->
+<!-- https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration -->
+
+<!-- Make sure your configuration is correct, your LAN is working, and you have read about "Known Issues" in the wiki: -->
+<!-- https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki -->
 
 **Describe the bug**
 A clear and concise description of what the bug is.
