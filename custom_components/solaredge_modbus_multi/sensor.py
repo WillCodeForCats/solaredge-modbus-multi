@@ -1979,7 +1979,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
                     else:
                         if self._platform.allow_battery_energy_reset:
-                            _LOGGER.warning(
+                            _LOGGER.debug(
                                 (
                                     "Battery Export Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: E501
@@ -2047,7 +2047,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
                     else:
                         if self._platform.allow_battery_energy_reset:
-                            _LOGGER.warning(
+                            _LOGGER.debug(
                                 (
                                     "Battery Import Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: E501
