@@ -1722,6 +1722,10 @@ class MeterVAhIE(SolarEdgeSensorBase):
         except TypeError:
             return None
 
+    @property
+    def suggested_display_precision(self):
+        return abs(self._platform.decoded_model["M_VAh_SF"])
+
 
 class MetervarhIE(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
@@ -1795,6 +1799,10 @@ class MetervarhIE(SolarEdgeSensorBase):
 
         except TypeError:
             return None
+
+    @property
+    def suggested_display_precision(self):
+        return abs(self._platform.decoded_model["M_varh_SF"])
 
 
 class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
