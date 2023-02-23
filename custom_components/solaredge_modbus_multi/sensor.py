@@ -205,7 +205,7 @@ async def async_setup_entry(
 
 class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
     should_poll = False
-    native_precision = None
+    suggested_display_precision = None
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -641,7 +641,7 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["AC_Current_SF"])
 
 
@@ -728,7 +728,7 @@ class VoltageSensor(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["AC_Voltage_SF"])
 
 
@@ -799,7 +799,7 @@ class ACPower(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["AC_Power_SF"])
 
 
@@ -842,7 +842,7 @@ class ACFrequency(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["AC_Frequency_SF"])
 
 
@@ -899,7 +899,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["AC_VA_SF"])
 
 
@@ -956,7 +956,7 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["AC_var_SF"])
 
 
@@ -1013,7 +1013,7 @@ class ACPowerFactor(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["AC_PF_SF"])
 
 
@@ -1021,7 +1021,7 @@ class ACEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    native_precision = 3
+    suggested_display_precision = 3
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -1164,7 +1164,7 @@ class DCCurrent(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["I_DC_Current_SF"])
 
 
@@ -1207,7 +1207,7 @@ class DCVoltage(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["I_DC_Voltage_SF"])
 
 
@@ -1249,7 +1249,7 @@ class DCPower(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["I_DC_Power_SF"])
 
 
@@ -1291,7 +1291,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
             return None
 
     @property
-    def native_precision(self):
+    def suggested_display_precision(self):
         return abs(self._platform.decoded_model["I_Temp_SF"])
 
 
@@ -1464,7 +1464,7 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
-    native_precision = 0
+    suggested_display_precision = 0
     icon = "mdi:percent"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1505,7 +1505,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
     state_class = SensorStateClass.MEASUREMENT
-    native_precision = 1
+    suggested_display_precision = 1
     icon = "mdi:angle-acute"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1798,7 +1798,7 @@ class MetervarhIE(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
-    native_precision = 1
+    suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -1827,7 +1827,7 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
 
 
 class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
-    native_precision = 1
+    suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -1860,7 +1860,7 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
 
 
 class SolarEdgeBatteryVoltage(DCVoltage):
-    native_precision = 2
+    suggested_display_precision = 2
 
     @property
     def native_value(self):
@@ -1884,7 +1884,7 @@ class SolarEdgeBatteryVoltage(DCVoltage):
 
 
 class SolarEdgeBatteryCurrent(DCCurrent):
-    native_precision = 2
+    suggested_display_precision = 2
 
     @property
     def native_value(self):
@@ -1908,7 +1908,7 @@ class SolarEdgeBatteryCurrent(DCCurrent):
 
 
 class SolarEdgeBatteryPower(DCPower):
-    native_precision = 2
+    suggested_display_precision = 2
     icon = "mdi:lightning-bolt"
 
     @property
@@ -1938,7 +1938,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    native_precision = 3
+    suggested_display_precision = 3
     icon = "mdi:battery-charging-20"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -2006,7 +2006,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    native_precision = 3
+    suggested_display_precision = 3
     icon = "mdi:battery-charging-100"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -2073,7 +2073,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    native_precision = 3
+    suggested_display_precision = 3
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -2105,7 +2105,7 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    native_precision = 3
+    suggested_display_precision = 3
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -2141,7 +2141,7 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     entity_category = EntityCategory.DIAGNOSTIC
     native_unit_of_measurement = PERCENTAGE
-    native_precision = 0
+    suggested_display_precision = 0
     icon = "mdi:battery-heart-outline"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -2173,7 +2173,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.BATTERY
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
-    native_precision = 0
+    suggested_display_precision = 0
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
