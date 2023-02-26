@@ -255,13 +255,14 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
 
 class StorageChargeLimit(SolarEdgeNumberBase):
+    native_min_value = 0
+    native_step = 1.0
+    native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, battery, config_entry, coordinator):
         super().__init__(inverter, config_entry, coordinator)
         self._battery = battery
-        self._attr_native_min_value = 0
-        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
@@ -294,7 +295,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         ):
             return None
 
-        return round(self._platform.decoded_storage["charge_limit"], 3)
+        return round(self._platform.decoded_storage["charge_limit"], 0)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -307,13 +308,14 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
 
 class StorageDischargeLimit(SolarEdgeNumberBase):
+    native_min_value = 0
+    native_step = 1.0
+    native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
     def __init__(self, inverter, battery, config_entry, coordinator):
         super().__init__(inverter, config_entry, coordinator)
         self._battery = battery
-        self._attr_native_min_value = 0
-        self._attr_native_unit_of_measurement = UnitOfPower.WATT
 
     @property
     def unique_id(self) -> str:
@@ -346,7 +348,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
         ):
             return None
 
-        return round(self._platform.decoded_storage["discharge_limit"], 3)
+        return round(self._platform.decoded_storage["discharge_limit"], 0)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
