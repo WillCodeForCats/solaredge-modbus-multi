@@ -282,7 +282,6 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_max_value(self) -> float:
-        # Return batterys max charge power
         return self._battery.decoded_common["B_MaxChargePower"]
 
     @property
@@ -335,7 +334,6 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_max_value(self) -> float:
-        # Return batterys max discharge power
         return self._battery.decoded_common["B_MaxDischargePower"]
 
     @property
