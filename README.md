@@ -50,3 +50,4 @@ After rebooting Home Assistant, this integration can be configured through the i
 * [@bertybuttface](https://github.com/bertybuttface)
 * [@dominikamann](https://github.com/dominikamann)
 * [@maksyms](https://github.com/maksyms)
+* [@pwo108](https://github.com/pwo108)
