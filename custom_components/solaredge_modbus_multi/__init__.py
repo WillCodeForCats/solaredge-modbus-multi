@@ -167,7 +167,9 @@ async def async_remove_config_entry_device(
 
 
 class SolarEdgeCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, hub, scan_interval):
+    def __init__(
+        self, hass: HomeAssistant, hub: SolarEdgeModbusMultiHub, scan_interval: int
+    ):
         super().__init__(
             hass,
             _LOGGER,
