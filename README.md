@@ -23,7 +23,7 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
-Note: The modbus interface only defines 2 batteries per inverter (even if the SolarEdge cloud monitoring platform shows more).
+Note: The modbus interface currently only defines up to 2 batteries per inverter (even if the SolarEdge cloud monitoring platform shows more).
 
 ## Installation
 Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
