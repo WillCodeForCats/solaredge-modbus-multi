@@ -9,7 +9,10 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-REDACT_CONFIG = {}
+REDACT_CONFIG = {"unique_id", "host"}
+REDACT_INVERTER = {"C_SerialNumber"}
+REDACT_METER = {"C_SerialNumber"}
+REDACT_BATTERY = {"B_SerialNumber"}
 
 
 async def async_get_config_entry_diagnostics(
@@ -31,7 +34,7 @@ async def async_get_config_entry_diagnostics(
                 "storage": inverter.decoded_storage,
             }
         }
-        data.update(inverter)
+        data.update(async_redact_data(inverter, REDACT_INVERTER))
 
     for meter in hub.meters:
         meter: dict[str, Any] = {
@@ -41,7 +44,7 @@ async def async_get_config_entry_diagnostics(
                 "model": meter.decoded_model,
             }
         }
-        data.update(meter)
+        data.update(async_redact_data(meter, REDACT_METER))
 
     for battery in hub.batteries:
         battery: dict[str, Any] = {
@@ -51,6 +54,6 @@ async def async_get_config_entry_diagnostics(
                 "model": battery.decoded_model,
             }
         }
-        data.update(battery)
+        data.update(async_redact_data(battery, REDACT_BATTERY))
 
     return data
