@@ -2079,6 +2079,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.ENERGY_STORAGE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
@@ -2111,6 +2112,7 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.ENERGY_STORAGE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
