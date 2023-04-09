@@ -58,7 +58,7 @@ async def async_setup_entry(
     for inverter in hub.inverters:
         entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
         entities.append(Version(inverter, config_entry, coordinator))
-        entities.append(Status(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeInverterStatus(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
         entities.append(ACCurrentSensor(inverter, config_entry, coordinator))
         entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "A"))
@@ -1081,10 +1081,9 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
         return abs(self._platform.decoded_model["I_Temp_SF"])
 
 
-class Status(SolarEdgeSensorBase):
+class SolarEdgeStatusSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENUM
     entity_category = EntityCategory.DIAGNOSTIC
-    options = list(DEVICE_STATUS_SUNS.values())
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -1098,13 +1097,21 @@ class Status(SolarEdgeSensorBase):
     def name(self) -> str:
         return "Status"
 
+
+class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
+    options = list(DEVICE_STATUS_SUNS.values())
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
     @property
     def native_value(self):
         try:
             if self._platform.decoded_model["I_Status"] == SunSpecNotImpl.INT16:
                 return None
 
-                return DEVICE_STATUS_SUNS[self._platform.decoded_model["I_Status"]]
+            return str(DEVICE_STATUS_SUNS[self._platform.decoded_model["I_Status"]])
 
         except KeyError:
             return None
@@ -1114,15 +1121,12 @@ class Status(SolarEdgeSensorBase):
         attrs = {}
 
         try:
-            if self._platform.decoded_model["I_Status"] in DEVICE_STATUS_SUNS:
-                attrs["description"] = DEVICE_STATUS_SUNS[
-                    self._platform.decoded_model["I_Status"]
-                ]
-
             if self._platform.decoded_model["I_Status"] in DEVICE_STATUS:
                 attrs["status_text"] = DEVICE_STATUS[
                     self._platform.decoded_model["I_Status"]
                 ]
+
+                attrs["status"] = self._platform.decoded_model["I_Status"]
 
         except KeyError:
             pass
@@ -1995,7 +1999,9 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return self._platform.decoded_model["B_SOE"]
 
 
-class SolarEdgeBatteryStatus(Status):
+class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
+    options = list(BATTERY_STATUS.values())
+
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
@@ -2007,7 +2013,7 @@ class SolarEdgeBatteryStatus(Status):
                 return None
 
             else:
-                return str(self._platform.decoded_model["B_Status"])
+                return str(BATTERY_STATUS[self._platform.decoded_model["B_Status"]])
 
         except TypeError:
             return None
@@ -2020,6 +2026,8 @@ class SolarEdgeBatteryStatus(Status):
             attrs["status_text"] = BATTERY_STATUS[
                 self._platform.decoded_model["B_Status"]
             ]
+
+            attrs["status"] = self._platform.decoded_model["B_Status"]
 
         except KeyError:
             pass
