@@ -10,5 +10,5 @@
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
   "loggers": ["custom_components.solaredge_modbus_multi"],
   "requirements": ["pymodbus>=3.1.1"],
-  "version": "2.2.14-pre.3"
+  "version": "2.2.14-pre.4"
 }
