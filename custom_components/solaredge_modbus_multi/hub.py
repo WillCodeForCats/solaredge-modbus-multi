@@ -290,7 +290,7 @@ class SolarEdgeModbusMultiHub:
                                 ),
                             )
                             raise DeviceInvalid(
-                                f"Duplicate b2 serial {new_battery_1.serial}"
+                                f"Duplicate b2 serial {new_battery_2.serial}"
                             )
 
                     self.batteries.append(new_battery_2)
