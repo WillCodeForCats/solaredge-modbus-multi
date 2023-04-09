@@ -25,8 +25,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     BATTERY_STATUS,
+    BATTERY_STATUS_TEXT,
     DEVICE_STATUS,
-    DEVICE_STATUS_SUNS,
+    DEVICE_STATUS_TEXT,
     DOMAIN,
     ENERGY_VOLT_AMPERE_HOUR,
     ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
@@ -1099,7 +1100,7 @@ class SolarEdgeStatusSensor(SolarEdgeSensorBase):
 
 
 class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
-    options = list(DEVICE_STATUS_SUNS.values())
+    options = list(DEVICE_STATUS.values())
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -1111,7 +1112,10 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
             if self._platform.decoded_model["I_Status"] == SunSpecNotImpl.INT16:
                 return None
 
-            return str(DEVICE_STATUS_SUNS[self._platform.decoded_model["I_Status"]])
+            return str(DEVICE_STATUS[self._platform.decoded_model["I_Status"]])
+
+        except TypeError:
+            return None
 
         except KeyError:
             return None
@@ -1121,8 +1125,8 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
         attrs = {}
 
         try:
-            if self._platform.decoded_model["I_Status"] in DEVICE_STATUS:
-                attrs["status_text"] = DEVICE_STATUS[
+            if self._platform.decoded_model["I_Status"] in DEVICE_STATUS_TEXT:
+                attrs["status_text"] = DEVICE_STATUS_TEXT[
                     self._platform.decoded_model["I_Status"]
                 ]
 
@@ -2012,10 +2016,12 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
             if self._platform.decoded_model["B_Status"] == SunSpecNotImpl.UINT32:
                 return None
 
-            else:
-                return str(BATTERY_STATUS[self._platform.decoded_model["B_Status"]])
+            return str(BATTERY_STATUS[self._platform.decoded_model["B_Status"]])
 
         except TypeError:
+            return None
+
+        except KeyError:
             return None
 
     @property
@@ -2023,9 +2029,10 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
         attrs = {}
 
         try:
-            attrs["status_text"] = BATTERY_STATUS[
-                self._platform.decoded_model["B_Status"]
-            ]
+            if self._platform.decoded_model["B_Status"] in BATTERY_STATUS_TEXT:
+                attrs["status_text"] = BATTERY_STATUS_TEXT[
+                    self._platform.decoded_model["B_Status"]
+                ]
 
             attrs["status"] = self._platform.decoded_model["B_Status"]
 

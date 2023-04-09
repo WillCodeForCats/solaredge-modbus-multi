@@ -106,7 +106,7 @@ SUNSPEC_SF_RANGE = [
 ]
 
 # parameter names per sunspec
-DEVICE_STATUS_SUNS = {
+DEVICE_STATUS = {
     1: "I_STATUS_OFF",
     2: "I_STATUS_SLEEPING",
     3: "I_STATUS_STARTING",
@@ -118,9 +118,7 @@ DEVICE_STATUS_SUNS = {
 }
 
 # English descriptions of parameter names
-DEVICE_STATUS = {
-    SunSpecNotImpl.INT16: None,
-    0: "Unknown",
+DEVICE_STATUS_TEXT = {
     1: "Off",
     2: "Sleeping (Auto-Shutdown)",
     3: "Grid Monitoring",
@@ -217,6 +215,18 @@ METER_EVENTS = {
 }
 
 BATTERY_STATUS = {
+    0: "B_STATUS_OFF",
+    1: "B_STATUS_STANDBY",
+    2: "B_STATUS_INIT",
+    3: "B_STATUS_CHARGE",
+    4: "B_STATUS_DISCHARGE",
+    5: "B_STATUS_FAULT",
+    6: "B_STATUS_PRESERVE_CHARGE",
+    7: "B_STATUS_IDLE",
+    10: "B_STATUS_POWER_SAVING",
+}
+
+BATTERY_STATUS_TEXT = {
     0: "Off",
     1: "Standby",
     2: "Init",
