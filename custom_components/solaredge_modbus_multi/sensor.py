@@ -26,7 +26,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     BATTERY_STATUS,
     DEVICE_STATUS,
-    DEVICE_STATUS_DESC,
+    DEVICE_STATUS_SUNS,
     DOMAIN,
     ENERGY_VOLT_AMPERE_HOUR,
     ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
@@ -1052,7 +1052,9 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 
 
 class Status(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.ENUM
     entity_category = EntityCategory.DIAGNOSTIC
+    options = list(DEVICE_STATUS_SUNS.values())
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
@@ -1072,10 +1074,9 @@ class Status(SolarEdgeSensorBase):
             if self._platform.decoded_model["I_Status"] == SunSpecNotImpl.INT16:
                 return None
 
-            else:
-                return str(self._platform.decoded_model["I_Status"])
+                return DEVICE_STATUS_SUNS[self._platform.decoded_model["I_Status"]]
 
-        except TypeError:
+        except KeyError:
             return None
 
     @property
@@ -1083,8 +1084,8 @@ class Status(SolarEdgeSensorBase):
         attrs = {}
 
         try:
-            if self._platform.decoded_model["I_Status"] in DEVICE_STATUS_DESC:
-                attrs["description"] = DEVICE_STATUS_DESC[
+            if self._platform.decoded_model["I_Status"] in DEVICE_STATUS_SUNS:
+                attrs["description"] = DEVICE_STATUS_SUNS[
                     self._platform.decoded_model["I_Status"]
                 ]
 

@@ -106,7 +106,7 @@ SUNSPEC_SF_RANGE = [
 ]
 
 # parameter names per sunspec
-DEVICE_STATUS_DESC = {
+DEVICE_STATUS_SUNS = {
     1: "I_STATUS_OFF",
     2: "I_STATUS_SLEEPING",
     3: "I_STATUS_STARTING",
