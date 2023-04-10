@@ -1130,7 +1130,7 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
                     self._platform.decoded_model["I_Status"]
                 ]
 
-                attrs["status"] = self._platform.decoded_model["I_Status"]
+                attrs["status_value"] = self._platform.decoded_model["I_Status"]
 
         except KeyError:
             pass
@@ -1169,7 +1169,7 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
                     self._platform.decoded_model["B_Status"]
                 ]
 
-            attrs["status"] = self._platform.decoded_model["B_Status"]
+            attrs["status_value"] = self._platform.decoded_model["B_Status"]
 
         except KeyError:
             pass
