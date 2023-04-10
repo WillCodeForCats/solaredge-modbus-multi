@@ -1138,6 +1138,62 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
         return attrs
 
 
+class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
+    options = list(BATTERY_STATUS.values())
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def native_value(self):
+        try:
+            if self._platform.decoded_model["B_Status"] == SunSpecNotImpl.UINT32:
+                return None
+
+            return str(BATTERY_STATUS[self._platform.decoded_model["B_Status"]])
+
+        except TypeError:
+            return None
+
+        except KeyError:
+            return None
+
+    @property
+    def extra_state_attributes(self):
+        attrs = {}
+
+        try:
+            if self._platform.decoded_model["B_Status"] in BATTERY_STATUS_TEXT:
+                attrs["status_text"] = BATTERY_STATUS_TEXT[
+                    self._platform.decoded_model["B_Status"]
+                ]
+
+            attrs["status"] = self._platform.decoded_model["B_Status"]
+
+        except KeyError:
+            pass
+
+        return attrs
+
+
+class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def available(self) -> bool:
+        if (
+            self._platform.global_power_control is not True
+            or self._platform.online is not True
+        ):
+            return False
+
+        else:
+            return True
+
+
 class StatusVendor(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
 
@@ -1180,23 +1236,6 @@ class StatusVendor(SolarEdgeSensorBase):
 
         except KeyError:
             return None
-
-
-class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
-
-    @property
-    def available(self) -> bool:
-        if (
-            self._platform.global_power_control is not True
-            or self._platform.online is not True
-        ):
-            return False
-
-        else:
-            return True
 
 
 class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
@@ -2001,42 +2040,3 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return None
         else:
             return self._platform.decoded_model["B_SOE"]
-
-
-class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
-    options = list(BATTERY_STATUS.values())
-
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
-
-    @property
-    def native_value(self):
-        try:
-            if self._platform.decoded_model["B_Status"] == SunSpecNotImpl.UINT32:
-                return None
-
-            return str(BATTERY_STATUS[self._platform.decoded_model["B_Status"]])
-
-        except TypeError:
-            return None
-
-        except KeyError:
-            return None
-
-    @property
-    def extra_state_attributes(self):
-        attrs = {}
-
-        try:
-            if self._platform.decoded_model["B_Status"] in BATTERY_STATUS_TEXT:
-                attrs["status_text"] = BATTERY_STATUS_TEXT[
-                    self._platform.decoded_model["B_Status"]
-                ]
-
-            attrs["status"] = self._platform.decoded_model["B_Status"]
-
-        except KeyError:
-            pass
-
-        return attrs
