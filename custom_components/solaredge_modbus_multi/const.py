@@ -229,7 +229,7 @@ BATTERY_STATUS = {
 BATTERY_STATUS_TEXT = {
     0: "Off",
     1: "Standby",
-    2: "Init",
+    2: "Initializing",
     3: "Charge",
     4: "Discharge",
     5: "Fault",
