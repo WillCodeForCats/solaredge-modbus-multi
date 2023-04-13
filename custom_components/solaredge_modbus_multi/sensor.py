@@ -1628,8 +1628,8 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
     @property
     def extra_state_attributes(self):
         attrs = {}
-
         mmppt_events_active = []
+
         if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
             attrs["description"] = str(mmppt_events_active)
         else:
