@@ -1628,23 +1628,23 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
     @property
     def extra_state_attributes(self):
         attrs = {}
+        mmppt_events_active = []
 
-        try:
-            mmppt_events_active = []
-            if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
-                attrs["description"] = str(mmppt_events_active)
-            else:
-                for i in range(0, 31):
+        if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
+            attrs["description"] = str(mmppt_events_active)
+        else:
+            for i in range(0, 31):
+                try:
                     if int(str(self._platform.decoded_model["mmppt_Events"])) & (
                         1 << i
                     ):
                         mmppt_events_active.append(MMPPT_EVENTS[i])
-                attrs["description"] = str(mmppt_events_active)
+                except KeyError:
+                    pass
 
-            attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
+            attrs["events"] = str(mmppt_events_active)
 
-        except KeyError:
-            return None
+        attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
 
         return attrs
 
