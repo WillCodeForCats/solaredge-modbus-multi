@@ -1631,7 +1631,7 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
         mmppt_events_active = []
 
         if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
-            attrs["description"] = str(mmppt_events_active)
+            attrs["events"] = str(mmppt_events_active)
         else:
             for i in range(0, 31):
                 try:
@@ -1642,8 +1642,7 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
                 except KeyError:
                     pass
 
-            attrs["events"] = str(mmppt_events_active)
-
+        attrs["events"] = str(mmppt_events_active)
         attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
 
         return attrs
