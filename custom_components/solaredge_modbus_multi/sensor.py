@@ -1575,7 +1575,7 @@ class MeterEvents(SolarEdgeSensorBase):
         m_events_active = []
 
         if int(str(self._platform.decoded_model["M_Events"])) == 0x0:
-            attrs["description"] = str(m_events_active)
+            attrs["events"] = str(m_events_active)
         else:
             for i in range(2, 31):
                 try:
