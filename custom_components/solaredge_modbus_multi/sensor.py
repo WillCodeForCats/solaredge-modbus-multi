@@ -91,7 +91,8 @@ async def async_setup_entry(
         entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
         entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
         entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
+        if inverter.is_mmppt:
+            entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
         if meter.single_device_entity:
@@ -1605,13 +1606,6 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return "MMPPT Events"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        if self._platform.decoded_mmppt is not None:
-            return True
-        else:
-            return False
 
     @property
     def native_value(self):
