@@ -91,7 +91,6 @@ async def async_setup_entry(
         entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
         entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
         entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
-
         if inverter.is_mmppt:
             entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
