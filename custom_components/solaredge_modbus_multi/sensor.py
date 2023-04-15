@@ -91,7 +91,8 @@ async def async_setup_entry(
         entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
         entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
         entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
+        if inverter.is_mmppt:
+            entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
         if meter.single_device_entity:
@@ -1572,21 +1573,21 @@ class MeterEvents(SolarEdgeSensorBase):
     @property
     def extra_state_attributes(self):
         attrs = {}
+        m_events_active = []
 
-        try:
-            m_events_active = []
-            if int(str(self._platform.decoded_model["M_Events"])) == 0x0:
-                attrs["description"] = str(m_events_active)
-            else:
-                for i in range(2, 31):
+        if int(str(self._platform.decoded_model["M_Events"])) == 0x0:
+            attrs["events"] = str(m_events_active)
+        else:
+            for i in range(2, 31):
+                try:
                     if int(str(self._platform.decoded_model["M_Events"])) & (1 << i):
                         m_events_active.append(METER_EVENTS[i])
-                attrs["description"] = str(m_events_active)
 
-            attrs["bits"] = f"{int(self._platform.decoded_model['M_Events']):032b}"
+                except KeyError:
+                    pass
 
-        except KeyError:
-            return None
+        attrs["bits"] = f"{int(self._platform.decoded_model['M_Events']):032b}"
+        attrs["events"] = str(m_events_active)
 
         return attrs
 
@@ -1607,13 +1608,6 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
         return "MMPPT Events"
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
-        if self._platform.decoded_mmppt is not None:
-            return True
-        else:
-            return False
-
-    @property
     def native_value(self):
         try:
             if self._platform.decoded_model["mmppt_Events"] == SunSpecNotImpl.UINT32:
@@ -1628,23 +1622,22 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
     @property
     def extra_state_attributes(self):
         attrs = {}
+        mmppt_events_active = []
 
-        try:
-            mmppt_events_active = []
-            if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
-                attrs["description"] = str(mmppt_events_active)
-            else:
-                for i in range(0, 31):
+        if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
+            attrs["events"] = str(mmppt_events_active)
+        else:
+            for i in range(0, 31):
+                try:
                     if int(str(self._platform.decoded_model["mmppt_Events"])) & (
                         1 << i
                     ):
                         mmppt_events_active.append(MMPPT_EVENTS[i])
-                attrs["description"] = str(mmppt_events_active)
+                except KeyError:
+                    pass
 
-            attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
-
-        except KeyError:
-            return None
+        attrs["events"] = str(mmppt_events_active)
+        attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
 
         return attrs
 
@@ -2079,6 +2072,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.ENERGY_STORAGE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
@@ -2111,6 +2105,7 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.ENERGY_STORAGE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
