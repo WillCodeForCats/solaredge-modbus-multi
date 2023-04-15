@@ -672,6 +672,7 @@ class SolarEdgeInverter:
             ):
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
                 self.decoded_mmppt = None
+
             else:
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
@@ -1130,6 +1131,13 @@ class SolarEdgeInverter:
     @property
     def single_device_entity(self) -> bool:
         return self.hub._single_device_entity
+
+    @property
+    def is_mmppt(self) -> bool:
+        if self.decoded_mmppt is None:
+            return False
+
+        return True
 
 
 class SolarEdgeMeter:

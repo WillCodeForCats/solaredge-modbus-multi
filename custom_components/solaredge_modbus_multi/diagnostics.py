@@ -30,6 +30,7 @@ async def async_get_config_entry_diagnostics(
             f"inverter_unit_id_{inverter.inverter_unit_id}": {
                 "common": inverter.decoded_common,
                 "model": inverter.decoded_model,
+                "is_mmppt": inverter.is_mmppt,
                 "mmppt": inverter.decoded_mmppt,
                 "storage": inverter.decoded_storage,
             }
