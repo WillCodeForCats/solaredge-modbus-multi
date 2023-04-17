@@ -1122,7 +1122,7 @@ class SolarEdgeInverter:
             return False
 
         return True
-        
+
 
 class SolarEdgeMeter:
     def __init__(
