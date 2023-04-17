@@ -660,6 +660,7 @@ class SolarEdgeInverter:
             ):
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
                 self.decoded_mmppt = None
+
             else:
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
@@ -1115,6 +1116,13 @@ class SolarEdgeInverter:
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
 
+    @property
+    def is_mmppt(self) -> bool:
+        if self.decoded_mmppt is None:
+            return False
+
+        return True
+        
 
 class SolarEdgeMeter:
     def __init__(
