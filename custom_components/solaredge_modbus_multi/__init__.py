@@ -1,4 +1,5 @@
 """The SolarEdge Modbus Integration."""
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -185,10 +186,48 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         try:
             async with async_timeout.timeout(self._hub.coordinator_timeout):
-                return await self._hub.async_refresh_modbus_data()
+                # return await self._hub.async_refresh_modbus_data()
+                return await self._refresh_modbus_data_with_retry(
+                    DataUpdateFailed, 4, wait_ms=200
+                )
 
         except HubInitFailed as e:
             raise UpdateFailed(f"{e}")
 
         except DataUpdateFailed as e:
             raise UpdateFailed(f"{e}")
+
+    async def _refresh_modbus_data_with_retry(
+        self,
+        ex_type=Exception,
+        limit=0,
+        wait_ms=100,
+        wait_increase_ratio=2,
+    ):
+        """
+        Retry a function invocation until no exception occurs
+        :param ex_type: retry only if exception is subclass of this type
+        :param limit: maximum number of invocation attempts
+        :param wait_ms: initial wait time after each attempt in milliseconds.
+        :param wait_increase_ratio: increase wait by multiplying by this after each try.
+        :return: result of first successful invocation
+        :raises: last invocation exception if attempts exhausted
+                 or exception is not an instance of ex_type
+        """
+        attempt = 1
+        while True:
+            try:
+                return await self._hub.async_refresh_modbus_data()
+            except Exception as ex:
+                if not isinstance(ex, ex_type):
+                    raise ex
+                if 0 < limit <= attempt:
+                    _LOGGER.warning("no more attempts")
+                    raise ex
+
+                _LOGGER.error("failed execution attempt #%d", attempt, exc_info=ex)
+
+                attempt += 1
+                _LOGGER.debug("waiting %d ms before attempt #%d", wait_ms, attempt)
+                await asyncio.sleep(wait_ms / 1000)
+                wait_ms *= wait_increase_ratio
