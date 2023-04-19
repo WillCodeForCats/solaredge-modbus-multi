@@ -204,7 +204,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         wait_increase_ratio=2,
     ):
         """
-        Retry a function invocation until no exception occurs
+        Retry refresh until no exception occurs or retries exhaust
         :param ex_type: retry only if exception is subclass of this type
         :param limit: maximum number of invocation attempts
         :param wait_ms: initial wait time after each attempt in milliseconds.
@@ -224,11 +224,11 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug("no more data refresh retry attempts")
                     raise ex
 
-                _LOGGER.debug("failed data refresh attempt #%d", attempt, exc_info=ex)
+                _LOGGER.debug(f"failed data refresh attempt #{attempt}", exc_info=ex)
 
                 attempt += 1
                 _LOGGER.debug(
-                    "waiting %d ms before data refresh attempt #%d", wait_ms, attempt
+                    f"waiting {wait_ms} ms before data refresh attempt #{attempt}"
                 )
                 await asyncio.sleep(wait_ms / 1000)
                 wait_ms *= wait_increase_ratio
