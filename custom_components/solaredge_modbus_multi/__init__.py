@@ -187,7 +187,9 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         try:
             async with async_timeout.timeout(self._hub.coordinator_timeout):
                 return await self._refresh_modbus_data_with_retry(
-                    DataUpdateFailed, 4, wait_ms=200
+                    ex_type=DataUpdateFailed,
+                    limit=4,
+                    wait_ms=200,
                 )
 
         except HubInitFailed as e:
@@ -221,14 +223,14 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                 if not isinstance(ex, ex_type):
                     raise ex
                 if 0 < limit <= attempt:
-                    _LOGGER.debug("no more data refresh retry attempts")
+                    _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
                     raise ex
 
-                _LOGGER.debug(f"failed data refresh attempt #{attempt}", exc_info=ex)
+                _LOGGER.debug(f"Failed data refresh attempt #{attempt}", exc_info=ex)
 
                 attempt += 1
                 _LOGGER.debug(
-                    f"waiting {wait_ms} ms before data refresh attempt #{attempt}"
+                    f"Waiting {wait_ms} ms before data refresh attempt #{attempt}"
                 )
                 await asyncio.sleep(wait_ms / 1000)
                 wait_ms *= wait_increase_ratio
