@@ -222,12 +222,14 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                 if not isinstance(ex, ex_type):
                     raise ex
                 if 0 < limit <= attempt:
-                    _LOGGER.warning("no more attempts")
+                    _LOGGER.debug("no more data refresh retry attempts")
                     raise ex
 
-                _LOGGER.error("failed execution attempt #%d", attempt, exc_info=ex)
+                _LOGGER.debug("failed data refresh attempt #%d", attempt, exc_info=ex)
 
                 attempt += 1
-                _LOGGER.debug("waiting %d ms before attempt #%d", wait_ms, attempt)
+                _LOGGER.debug(
+                    "waiting %d ms before data refresh attempt #%d", wait_ms, attempt
+                )
                 await asyncio.sleep(wait_ms / 1000)
                 wait_ms *= wait_increase_ratio
