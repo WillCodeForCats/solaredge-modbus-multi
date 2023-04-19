@@ -189,7 +189,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                 return await self._refresh_modbus_data_with_retry(
                     ex_type=DataUpdateFailed,
                     limit=4,
-                    wait_ms=200,
+                    wait_ms=400,
                 )
 
         except HubInitFailed as e:
