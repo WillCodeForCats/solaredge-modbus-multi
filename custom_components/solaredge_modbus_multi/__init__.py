@@ -186,7 +186,6 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         try:
             async with async_timeout.timeout(self._hub.coordinator_timeout):
-                # return await self._hub.async_refresh_modbus_data()
                 return await self._refresh_modbus_data_with_retry(
                     DataUpdateFailed, 4, wait_ms=200
                 )
