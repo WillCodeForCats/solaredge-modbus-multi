@@ -115,7 +115,7 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = None
 
         self.initalized = False
-        self.online = False
+        self._online = False
 
         _LOGGER.debug(
             (
@@ -340,13 +340,13 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"Setup failed: {e}")
 
         if not self.is_socket_open():
-            self.online = False
+            self._online = False
             raise DataUpdateFailed(
                 f"Could not open Modbus/TCP connection to {self._host}"
             )
 
         else:
-            self.online = True
+            self._online = True
             try:
                 for inverter in self.inverters:
                     await self._hass.async_add_executor_job(inverter.read_modbus_data)
@@ -356,18 +356,18 @@ class SolarEdgeModbusMultiHub:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
             except ModbusReadError as e:
-                self.online = False
+                self._online = False
                 await self.disconnect()
                 raise DataUpdateFailed(f"Update failed: {e}")
 
             except DeviceInvalid as e:
-                self.online = False
+                self._online = False
                 if not self._keep_modbus_open:
                     await self.disconnect()
                 raise DataUpdateFailed(f"Invalid device: {e}")
 
             except ConnectionException as e:
-                self.online = False
+                self._online = False
                 await self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
@@ -375,6 +375,10 @@ class SolarEdgeModbusMultiHub:
             await self.disconnect()
 
         return True
+
+    @property
+    def online(self):
+        return self._online
 
     @property
     def name(self):
@@ -442,7 +446,7 @@ class SolarEdgeModbusMultiHub:
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
-        self.online = False
+        self._online = False
         await self.disconnect()
         self._client = None
 
@@ -473,14 +477,14 @@ class SolarEdgeModbusMultiHub:
 
         except ConnectionException as e:
             _LOGGER.error(f"Write command failed: {e}")
-            self.online = False
+            self._online = False
             await self.disconnect()
 
         else:
             if result.isError():
                 if type(result) is ModbusIOException:
                     _LOGGER.error("Write command failed: No response from device.")
-                    self.online = False
+                    self._online = False
                     await self.disconnect()
 
                 elif type(result) is ExceptionResponse:
@@ -491,7 +495,7 @@ class SolarEdgeModbusMultiHub:
                                 f"Illegal address {hex(self._wr_address)}"
                             ),
                         )
-                        self.online = False
+                        self._online = False
                         await self.disconnect()
 
                 else:
