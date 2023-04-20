@@ -74,7 +74,6 @@ class SolarEdgeModbusMultiHub:
         start_device_id: int = 1,
         detect_meters: bool = True,
         detect_batteries: bool = False,
-        single_device_entity: bool = True,
         keep_modbus_open: bool = False,
         advanced_power_control: bool = False,
         adv_storage_control: bool = False,
@@ -92,7 +91,6 @@ class SolarEdgeModbusMultiHub:
         self._start_device_id = start_device_id
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
-        self._single_device_entity = single_device_entity
         self._keep_modbus_open = keep_modbus_open
         self._advanced_power_control = advanced_power_control
         self._adv_storage_control = adv_storage_control
@@ -126,7 +124,6 @@ class SolarEdgeModbusMultiHub:
                 f"start_device_id={self._start_device_id}, "
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
-                f"single_device_entity={self._single_device_entity}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"advanced_power_control={self._advanced_power_control}, "
                 f"adv_storage_control={self._adv_storage_control}, "
@@ -154,15 +151,6 @@ class SolarEdgeModbusMultiHub:
                 (
                     "Power Control Options: Site Limit Control is enabled. "
                     "Use at your own risk!"
-                ),
-            )
-
-        if not self._single_device_entity:
-            _LOGGER.warning(
-                (
-                    "Static information sensors are depreciated and may be removed "
-                    "in a future release. Use attributes from the 'Device' sensor. "
-                    "https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/168"  # noqa: E501
                 ),
             )
 
@@ -1129,10 +1117,6 @@ class SolarEdgeInverter:
         return self._device_info
 
     @property
-    def single_device_entity(self) -> bool:
-        return self.hub._single_device_entity
-
-    @property
     def is_mmppt(self) -> bool:
         if self.decoded_mmppt is None:
             return False
@@ -1432,10 +1416,6 @@ class SolarEdgeMeter:
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
 
-    @property
-    def single_device_entity(self) -> bool:
-        return self.hub._single_device_entity
-
 
 class SolarEdgeBattery:
     def __init__(
@@ -1633,10 +1613,6 @@ class SolarEdgeBattery:
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
-
-    @property
-    def single_device_entity(self) -> bool:
-        return self.hub._single_device_entity
 
     @property
     def allow_battery_energy_reset(self) -> bool:
