@@ -31,6 +31,8 @@ class BatteryLimit(IntEnum):
     Amax = 200
     Tmax = 100
     Tmin = -30
+    ChargeMax = 50000
+    DischargeMax = 50000
 
 
 class ConfDefaultInt(IntEnum):
