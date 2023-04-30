@@ -98,7 +98,6 @@ class SolarEdgeModbusMultiHub:
         start_device_id: int = 1,
         detect_meters: bool = True,
         detect_batteries: bool = False,
-        single_device_entity: bool = True,
         keep_modbus_open: bool = False,
         advanced_power_control: bool = False,
         adv_storage_control: bool = False,
@@ -116,7 +115,6 @@ class SolarEdgeModbusMultiHub:
         self._start_device_id = start_device_id
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
-        self._single_device_entity = single_device_entity
         self._keep_modbus_open = keep_modbus_open
         self._advanced_power_control = advanced_power_control
         self._adv_storage_control = adv_storage_control
@@ -141,7 +139,7 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = None
 
         self.initalized = False
-        self.online = False
+        self._online = False
 
         _LOGGER.debug(
             (
@@ -150,7 +148,6 @@ class SolarEdgeModbusMultiHub:
                 f"start_device_id={self._start_device_id}, "
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
-                f"single_device_entity={self._single_device_entity}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"advanced_power_control={self._advanced_power_control}, "
                 f"adv_storage_control={self._adv_storage_control}, "
@@ -178,15 +175,6 @@ class SolarEdgeModbusMultiHub:
                 (
                     "Power Control Options: Site Limit Control is enabled. "
                     "Use at your own risk!"
-                ),
-            )
-
-        if not self._single_device_entity:
-            _LOGGER.warning(
-                (
-                    "Static information sensors are depreciated and may be removed "
-                    "in a future release. Use attributes from the 'Device' sensor. "
-                    "https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/168"  # noqa: E501
                 ),
             )
 
@@ -376,13 +364,13 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"Setup failed: {e}")
 
         if not self.is_socket_open():
-            self.online = False
+            self._online = False
             raise DataUpdateFailed(
                 f"Could not open Modbus/TCP connection to {self._host}"
             )
 
         else:
-            self.online = True
+            self._online = True
             try:
                 for inverter in self.inverters:
                     await self._hass.async_add_executor_job(inverter.read_modbus_data)
@@ -392,18 +380,18 @@ class SolarEdgeModbusMultiHub:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
             except ModbusReadError as e:
-                self.online = False
+                self._online = False
                 await self.disconnect()
                 raise DataUpdateFailed(f"Update failed: {e}")
 
             except DeviceInvalid as e:
-                self.online = False
+                self._online = False
                 if not self._keep_modbus_open:
                     await self.disconnect()
                 raise DataUpdateFailed(f"Invalid device: {e}")
 
             except ConnectionException as e:
-                self.online = False
+                self._online = False
                 await self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
@@ -411,6 +399,10 @@ class SolarEdgeModbusMultiHub:
             await self.disconnect()
 
         return True
+
+    @property
+    def online(self):
+        return self._online
 
     @property
     def name(self):
@@ -478,7 +470,7 @@ class SolarEdgeModbusMultiHub:
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
-        self.online = False
+        self._online = False
         await self.disconnect()
         self._client = None
 
@@ -535,14 +527,14 @@ class SolarEdgeModbusMultiHub:
 
         except ConnectionException as e:
             _LOGGER.error(f"Write command failed: {e}")
-            self.online = False
+            self._online = False
             await self.disconnect()
 
         else:
             if result.isError():
                 if type(result) is ModbusIOException:
                     _LOGGER.error("Write command failed: No response from device.")
-                    self.online = False
+                    self._online = False
                     await self.disconnect()
 
                 elif type(result) is ExceptionResponse:
@@ -553,7 +545,7 @@ class SolarEdgeModbusMultiHub:
                                 f"Illegal address {hex(self._wr_address)}"
                             ),
                         )
-                        self.online = False
+                        self._online = False
                         await self.disconnect()
 
                 else:
@@ -722,6 +714,7 @@ class SolarEdgeInverter:
             ):
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
                 self.decoded_mmppt = None
+
             else:
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
@@ -1174,8 +1167,11 @@ class SolarEdgeInverter:
         return self._device_info
 
     @property
-    def single_device_entity(self) -> bool:
-        return self.hub._single_device_entity
+    def is_mmppt(self) -> bool:
+        if self.decoded_mmppt is None:
+            return False
+
+        return True
 
 
 class SolarEdgeMeter:
@@ -1470,10 +1466,6 @@ class SolarEdgeMeter:
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
 
-    @property
-    def single_device_entity(self) -> bool:
-        return self.hub._single_device_entity
-
 
 class SolarEdgeBattery:
     def __init__(
@@ -1671,10 +1663,6 @@ class SolarEdgeBattery:
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info
-
-    @property
-    def single_device_entity(self) -> bool:
-        return self.hub._single_device_entity
 
     @property
     def allow_battery_energy_reset(self) -> bool:

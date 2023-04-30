@@ -4,7 +4,7 @@
 
 Home Assistant integration `solaredge-modbus-multi` was designed for SolarEdge inverters using Modbus/TCP. It supports single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
 
-It is designed to communicate locally using Modbus/TCP where you have a single Leader (Master) inverter connected with one or more Follower (Slave) inverters chained using the RS485 bus. Inverters can have up to three meters and two batteries.
+It is designed to communicate locally using Modbus/TCP where you have a single Leader inverter connected with one or more Follower inverters chained using the RS485 bus. Inverters support up to three meters and two batteries over modbus.
 
 Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
 
@@ -23,6 +23,8 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
+Note: The modbus interface currently only defines up to 2 batteries per inverter (even if the SolarEdge cloud monitoring platform shows more).
+
 ## Installation
 Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
 
@@ -39,7 +41,7 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ### Required Versions
-* Home Assistant 2023.2.0 or newer
+* Home Assistant 2023.4.0 or newer
 * Python 3.10 or newer
 * pymodbus 3.1.1 or newer
 

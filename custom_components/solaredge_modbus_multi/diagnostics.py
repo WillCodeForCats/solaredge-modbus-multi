@@ -1,0 +1,78 @@
+"""Diagnostics support for SolarEdge Modbus Multi Device."""
+from __future__ import annotations
+
+from typing import Any
+
+from homeassistant.components.diagnostics import async_redact_data
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+
+from .const import DOMAIN
+from .helpers import float_to_hex
+
+REDACT_CONFIG = {"unique_id", "host"}
+REDACT_INVERTER = {"identifiers", "C_SerialNumber"}
+REDACT_METER = {"identifiers", "C_SerialNumber"}
+REDACT_BATTERY = {"identifiers", "B_SerialNumber"}
+
+
+def format_values(format_input) -> Any:
+    if isinstance(format_input, dict):
+        for name, value in iter(format_input.items()):
+            if isinstance(value, float):
+                display_value = float_to_hex(value)
+            else:
+                display_value = hex(value) if isinstance(value, int) else value
+
+            format_input[name] = display_value
+
+    return format_input
+
+
+async def async_get_config_entry_diagnostics(
+    hass: HomeAssistant, config_entry: ConfigEntry
+) -> dict[str, Any]:
+    """Return diagnostics for a config entry."""
+    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+
+    data: dict[str, Any] = {
+        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG)
+    }
+
+    for inverter in hub.inverters:
+        inverter: dict[str, Any] = {
+            f"inverter_unit_id_{inverter.inverter_unit_id}": {
+                "device_info": inverter.device_info,
+                "common": inverter.decoded_common,
+                "model": format_values(inverter.decoded_model),
+                "is_mmppt": inverter.is_mmppt,
+                "mmppt": format_values(inverter.decoded_mmppt),
+                "storage": format_values(inverter.decoded_storage),
+            }
+        }
+
+        data.update(async_redact_data(inverter, REDACT_INVERTER))
+
+    for meter in hub.meters:
+        meter: dict[str, Any] = {
+            f"meter_id_{meter.meter_id}": {
+                "device_info": meter.device_info,
+                "inverter_unit_id": meter.inverter_unit_id,
+                "common": meter.decoded_common,
+                "model": format_values(meter.decoded_model),
+            }
+        }
+        data.update(async_redact_data(meter, REDACT_METER))
+
+    for battery in hub.batteries:
+        battery: dict[str, Any] = {
+            f"battery_id_{battery.battery_id}": {
+                "device_info": battery.device_info,
+                "inverter_unit_id": battery.inverter_unit_id,
+                "common": battery.decoded_common,
+                "model": format_values(battery.decoded_model),
+            }
+        }
+        data.update(async_redact_data(battery, REDACT_BATTERY))
+
+    return data
