@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadBuilder
 
-from .const import DOMAIN, SunSpecNotImpl
+from .const import DOMAIN, BatteryLimit, SunSpecNotImpl
 from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
@@ -282,7 +282,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_max_value(self) -> float:
-        return self._battery.decoded_common["B_MaxChargePower"]
+        return BatteryLimit.ChargeMax
 
     @property
     def native_value(self) -> float | None:
@@ -334,7 +334,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_max_value(self) -> float:
-        return self._battery.decoded_common["B_MaxDischargePower"]
+        return BatteryLimit.DischargeMax
 
     @property
     def native_value(self) -> float | None:
