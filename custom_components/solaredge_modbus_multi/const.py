@@ -33,14 +33,16 @@ class RetrySettings(IntEnum):
 
 
 class BatteryLimit(IntEnum):
-    Vmin = 0
-    Vmax = 600
-    Amin = -200
-    Amax = 200
-    Tmax = 100
-    Tmin = -30
-    ChargeMax = 50000
-    DischargeMax = 50000
+    """Configure battery limits for input and display validation."""
+
+    Vmin = 0  # volts
+    Vmax = 600  # volts
+    Amin = -200  # amps
+    Amax = 200  # amps
+    Tmax = 100  # degrees C
+    Tmin = -30  # degrees C
+    ChargeMax = 50000  # watts
+    DischargeMax = 50000  # watts
 
 
 class ConfDefaultInt(IntEnum):
