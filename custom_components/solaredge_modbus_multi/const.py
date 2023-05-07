@@ -24,6 +24,14 @@ ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
 
+class RetrySettings(IntEnum):
+    """Retry settings when opening a connection to the inverter fails."""
+
+    Time = 800  # first attempt in milliseconds
+    Ratio = 2  # time multiplier between each attempt
+    Limit = 4  # number of attempts before failing
+
+
 class BatteryLimit(IntEnum):
     Vmin = 0
     Vmax = 600
