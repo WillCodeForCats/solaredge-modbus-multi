@@ -517,7 +517,7 @@ class SolarEdgeInverter:
         self.has_parent = False
         self.global_power_control = None
         self.advanced_power_control = None
-        self._has_site_limit_control = None
+        self.site_limit_control = None
 
     def init_device(self) -> None:
         inverter_data = self.hub.read_holding_registers(
@@ -950,7 +950,7 @@ class SolarEdgeInverter:
                 self.advanced_power_control = True
 
         """ Site Limit Control """
-        if self._has_site_limit_control is True or self._has_site_limit_control is None:
+        if self.site_limit_control is True or self.site_limit_control is None:
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=57344, count=4
             )
@@ -964,7 +964,7 @@ class SolarEdgeInverter:
 
                 if type(inverter_data) is ExceptionResponse:
                     if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                        self._has_site_limit_control = False
+                        self.site_limit_control = False
                         _LOGGER.debug(
                             (
                                 f"Inverter {self.inverter_unit_id}: "
@@ -972,11 +972,11 @@ class SolarEdgeInverter:
                             )
                         )
 
-                if self._has_site_limit_control is not False:
+                if self.site_limit_control is not False:
                     raise ModbusReadError(inverter_data)
 
             else:
-                self._has_site_limit_control = True
+                self.site_limit_control = True
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     inverter_data.registers,
@@ -1020,7 +1020,7 @@ class SolarEdgeInverter:
                             )
                         )
 
-                if self._has_site_limit_control is not False:
+                if self.site_limit_control is not False:
                     raise ModbusReadError(inverter_data)
 
             else:
