@@ -513,8 +513,9 @@ class SolarEdgeInverter:
         self.decoded_common = []
         self.decoded_model = []
         self.decoded_mmppt = []
-        self.decoded_storage = []
+        self.decoded_storage_control = []
         self.has_parent = False
+        self.has_battery = None
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
@@ -1046,7 +1047,16 @@ class SolarEdgeInverter:
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {display_value}")
 
         """ Power Control Options: Storage Control """
-        if self.hub.option_storage_control is True and self.decoded_storage is not None:
+        if (
+            self.hub.option_storage_control is True
+            and self.decoded_storage_control is not None
+        ):
+            if self.has_battery is None:
+                self.has_battery = False
+                for battery in self.hub.batteries:
+                    if self.inverter_unit_id == battery.inverter_unit_id:
+                        self.has_battery = True
+
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=57348, count=14
             )
@@ -1060,7 +1070,7 @@ class SolarEdgeInverter:
 
                 if type(inverter_data) is ExceptionResponse:
                     if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
-                        self.decoded_storage = False
+                        self.decoded_storage_control = False
                         _LOGGER.debug(
                             (
                                 f"Inverter {self.inverter_unit_id}: "
@@ -1068,7 +1078,7 @@ class SolarEdgeInverter:
                             )
                         )
 
-                if self.decoded_storage is not None:
+                if self.decoded_storage_control is not None:
                     raise ModbusReadError(inverter_data)
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1077,7 +1087,7 @@ class SolarEdgeInverter:
                 wordorder=Endian.Little,
             )
 
-            self.decoded_storage = OrderedDict(
+            self.decoded_storage_control = OrderedDict(
                 [
                     ("control_mode", decoder.decode_16bit_uint()),
                     ("ac_charge_policy", decoder.decode_16bit_uint()),
@@ -1091,7 +1101,7 @@ class SolarEdgeInverter:
                 ]
             )
 
-            for name, value in iter(self.decoded_storage.items()):
+            for name, value in iter(self.decoded_storage_control.items()):
                 if isinstance(value, float):
                     display_value = float_to_hex(value)
                 else:
