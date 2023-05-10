@@ -1049,7 +1049,7 @@ class SolarEdgeInverter:
         """ Power Control Options: Storage Control """
         if (
             self.hub.option_storage_control is True
-            and self.decoded_storage_control is not None
+            and self.decoded_storage_control is not False
         ):
             if self.has_battery is None:
                 self.has_battery = False
@@ -1078,37 +1078,38 @@ class SolarEdgeInverter:
                             )
                         )
 
-                if self.decoded_storage_control is not None:
+                if self.decoded_storage_control is not False:
                     raise ModbusReadError(inverter_data)
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers,
-                byteorder=Endian.Big,
-                wordorder=Endian.Little,
-            )
-
-            self.decoded_storage_control = OrderedDict(
-                [
-                    ("control_mode", decoder.decode_16bit_uint()),
-                    ("ac_charge_policy", decoder.decode_16bit_uint()),
-                    ("ac_charge_limit", decoder.decode_32bit_float()),
-                    ("backup_reserve", decoder.decode_32bit_float()),
-                    ("default_mode", decoder.decode_16bit_uint()),
-                    ("command_timeout", decoder.decode_32bit_uint()),
-                    ("command_mode", decoder.decode_16bit_uint()),
-                    ("charge_limit", decoder.decode_32bit_float()),
-                    ("discharge_limit", decoder.decode_32bit_float()),
-                ]
-            )
-
-            for name, value in iter(self.decoded_storage_control.items()):
-                if isinstance(value, float):
-                    display_value = float_to_hex(value)
-                else:
-                    display_value = hex(value) if isinstance(value, int) else value
-                _LOGGER.debug(
-                    f"Inverter {self.inverter_unit_id}: {name} {display_value}"
+            else:
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.Big,
+                    wordorder=Endian.Little,
                 )
+
+                self.decoded_storage_control = OrderedDict(
+                    [
+                        ("control_mode", decoder.decode_16bit_uint()),
+                        ("ac_charge_policy", decoder.decode_16bit_uint()),
+                        ("ac_charge_limit", decoder.decode_32bit_float()),
+                        ("backup_reserve", decoder.decode_32bit_float()),
+                        ("default_mode", decoder.decode_16bit_uint()),
+                        ("command_timeout", decoder.decode_32bit_uint()),
+                        ("command_mode", decoder.decode_16bit_uint()),
+                        ("charge_limit", decoder.decode_32bit_float()),
+                        ("discharge_limit", decoder.decode_32bit_float()),
+                    ]
+                )
+
+                for name, value in iter(self.decoded_storage_control.items()):
+                    if isinstance(value, float):
+                        display_value = float_to_hex(value)
+                    else:
+                        display_value = hex(value) if isinstance(value, int) else value
+                    _LOGGER.debug(
+                        f"Inverter {self.inverter_unit_id}: {name} {display_value}"
+                    )
 
     async def write_registers(self, address, payload):
         """Write inverter register."""
