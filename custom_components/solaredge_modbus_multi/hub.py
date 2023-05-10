@@ -1047,65 +1047,58 @@ class SolarEdgeInverter:
 
         """ Power Control Options: Storage Control """
         if self.hub.option_storage_control is True and self.decoded_storage is not None:
-            for battery in self.hub.batteries:
-                if self.inverter_unit_id != battery.inverter_unit_id:
-                    continue
+            inverter_data = self.hub.read_holding_registers(
+                unit=self.inverter_unit_id, address=57348, count=14
+            )
+            if inverter_data.isError():
+                _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
 
-                inverter_data = self.hub.read_holding_registers(
-                    unit=self.inverter_unit_id, address=57348, count=14
-                )
-                if inverter_data.isError():
-                    _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
+                if type(inverter_data) is ModbusIOException:
+                    raise ModbusReadError(
+                        f"No response from inverter ID {self.inverter_unit_id}"
+                    )
 
-                    if type(inverter_data) is ModbusIOException:
-                        raise ModbusReadError(
-                            f"No response from inverter ID {self.inverter_unit_id}"
+                if type(inverter_data) is ExceptionResponse:
+                    if inverter_data.exception_code == ModbusExceptions.IllegalAddress:
+                        self.decoded_storage = False
+                        _LOGGER.debug(
+                            (
+                                f"Inverter {self.inverter_unit_id}: "
+                                "storage control NOT available"
+                            )
                         )
 
-                    if type(inverter_data) is ExceptionResponse:
-                        if (
-                            inverter_data.exception_code
-                            == ModbusExceptions.IllegalAddress
-                        ):
-                            self.decoded_storage = False
-                            _LOGGER.debug(
-                                (
-                                    f"Inverter {self.inverter_unit_id}: "
-                                    "storage control NOT available"
-                                )
-                            )
+                if self.decoded_storage is not None:
+                    raise ModbusReadError(inverter_data)
 
-                    if self.decoded_storage is not None:
-                        raise ModbusReadError(inverter_data)
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                inverter_data.registers,
+                byteorder=Endian.Big,
+                wordorder=Endian.Little,
+            )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.Big,
-                    wordorder=Endian.Little,
+            self.decoded_storage = OrderedDict(
+                [
+                    ("control_mode", decoder.decode_16bit_uint()),
+                    ("ac_charge_policy", decoder.decode_16bit_uint()),
+                    ("ac_charge_limit", decoder.decode_32bit_float()),
+                    ("backup_reserve", decoder.decode_32bit_float()),
+                    ("default_mode", decoder.decode_16bit_uint()),
+                    ("command_timeout", decoder.decode_32bit_uint()),
+                    ("command_mode", decoder.decode_16bit_uint()),
+                    ("charge_limit", decoder.decode_32bit_float()),
+                    ("discharge_limit", decoder.decode_32bit_float()),
+                ]
+            )
+
+            for name, value in iter(self.decoded_storage.items()):
+                if isinstance(value, float):
+                    display_value = float_to_hex(value)
+                else:
+                    display_value = hex(value) if isinstance(value, int) else value
+                _LOGGER.debug(
+                    f"Inverter {self.inverter_unit_id}: {name} {display_value}"
                 )
-
-                self.decoded_storage = OrderedDict(
-                    [
-                        ("control_mode", decoder.decode_16bit_uint()),
-                        ("ac_charge_policy", decoder.decode_16bit_uint()),
-                        ("ac_charge_limit", decoder.decode_32bit_float()),
-                        ("backup_reserve", decoder.decode_32bit_float()),
-                        ("default_mode", decoder.decode_16bit_uint()),
-                        ("command_timeout", decoder.decode_32bit_uint()),
-                        ("command_mode", decoder.decode_16bit_uint()),
-                        ("charge_limit", decoder.decode_32bit_float()),
-                        ("discharge_limit", decoder.decode_32bit_float()),
-                    ]
-                )
-
-                for name, value in iter(self.decoded_storage.items()):
-                    if isinstance(value, float):
-                        display_value = float_to_hex(value)
-                    else:
-                        display_value = hex(value) if isinstance(value, int) else value
-                    _LOGGER.debug(
-                        f"Inverter {self.inverter_unit_id}: {name} {display_value}"
-                    )
 
     async def write_registers(self, address, payload):
         """Write inverter register."""
