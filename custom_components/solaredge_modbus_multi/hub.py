@@ -15,7 +15,7 @@ try:
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
-from .const import DOMAIN, SunSpecNotImpl
+from .const import DOMAIN, INVERTER_TIMEOUT, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -100,7 +100,6 @@ class SolarEdgeModbusMultiHub:
         self._battery_rating_adjust = battery_rating_adjust
         self._lock = threading.Lock()
         self._id = name.lower()
-        self._coordinator_timeout = 30
         self._client = None
         self._id = name.lower()
         self._lock = threading.Lock()
@@ -420,8 +419,9 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def coordinator_timeout(self) -> int:
-        _LOGGER.debug(f"coordinator timeout is {self._coordinator_timeout}")
-        return self._coordinator_timeout
+        this_timeout = INVERTER_TIMEOUT * self._number_of_inverters
+        _LOGGER.debug(f"coordinator timeout is {this_timeout}")
+        return this_timeout
 
     async def disconnect(self) -> None:
         """Disconnect modbus client."""

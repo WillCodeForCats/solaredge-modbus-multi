@@ -23,6 +23,8 @@ DEFAULT_NAME = "SolarEdge"
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
+INVERTER_TIMEOUT = 5
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
