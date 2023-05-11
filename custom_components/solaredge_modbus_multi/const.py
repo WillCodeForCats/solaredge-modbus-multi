@@ -170,6 +170,7 @@ VENDOR_STATUS = {
     83: "AC Frequency Too Low",
     84: "AC Frequency Too Low",
     95: "Hardware Error",
+    97: "Vin Buck Max",
     104: "Temperature Too High",
     106: "Hardware Error",
     107: "Battery Communication Error",
@@ -181,6 +182,7 @@ VENDOR_STATUS = {
     150: "Arc Fault Detected",
     151: "Arc Fault Detected",
     153: "Hardware Error",
+    256: "Arc Detected",
 }
 
 SUNSPEC_DID = {
