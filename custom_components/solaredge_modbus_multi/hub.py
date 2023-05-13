@@ -690,40 +690,7 @@ class SolarEdgeInverter:
 
     def read_modbus_data(self) -> None:
         inverter_data = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=40069, count=2
-        )
-        if inverter_data.isError():
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
-            raise ModbusReadError(inverter_data)
-
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            inverter_data.registers, byteorder=Endian.Big
-        )
-
-        decoded_ident = OrderedDict(
-            [
-                ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-            ]
-        )
-
-        for name, value in iter(decoded_ident.items()):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
-
-        if (
-            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or decoded_ident["C_SunSpec_DID"] not in [101, 102, 103]
-            or decoded_ident["C_SunSpec_Length"] != 50
-        ):
-            raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
-
-        inverter_data = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=40071, count=38
+            unit=self.inverter_unit_id, address=40069, count=40
         )
         if inverter_data.isError():
             _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {inverter_data}")
@@ -735,7 +702,8 @@ class SolarEdgeInverter:
 
         self.decoded_model = OrderedDict(
             [
-                ("C_SunSpec_DID", decoded_ident["C_SunSpec_DID"]),
+                ("C_SunSpec_DID", decoder.decode_16bit_uint()),
+                ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                 ("AC_Current", decoder.decode_16bit_uint()),
                 ("AC_Current_A", decoder.decode_16bit_uint()),
                 ("AC_Current_B", decoder.decode_16bit_uint()),
@@ -775,6 +743,13 @@ class SolarEdgeInverter:
                 ("I_Status_Vendor", decoder.decode_16bit_int()),
             ]
         )
+
+        if (
+            self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+            or self.decoded_model["C_SunSpec_DID"] not in [101, 102, 103]
+            or self.decoded_model["C_SunSpec_Length"] != 50
+        ):
+            raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
         """ Multiple MPPT Extension """
         if self.decoded_mmppt is not None:
@@ -1273,49 +1248,7 @@ class SolarEdgeMeter:
         meter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id,
             address=self.start_address + 67,
-            count=2,
-        )
-        if meter_data.isError():
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} "
-                    f"meter {self.meter_id}: {meter_data}"
-                ),
-            )
-            raise ModbusReadError(f"Meter read error: {meter_data}")
-
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            meter_data.registers, byteorder=Endian.Big
-        )
-
-        decoded_ident = OrderedDict(
-            [
-                ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-            ]
-        )
-
-        for name, value in iter(decoded_ident.items()):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
-
-        if (
-            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or decoded_ident["C_SunSpec_DID"] not in [201, 202, 203, 204]
-            or decoded_ident["C_SunSpec_Length"] != 105
-        ):
-            raise DeviceInvalid(
-                f"Meter on inverter {self.inverter_unit_id} not usable."
-            )
-
-        meter_data = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id,
-            address=self.start_address + 69,
-            count=105,
+            count=107,
         )
         if meter_data.isError():
             _LOGGER.error(f"Meter read error: {meter_data}")
@@ -1327,7 +1260,8 @@ class SolarEdgeMeter:
 
         self.decoded_model = OrderedDict(
             [
-                ("C_SunSpec_DID", decoded_ident["C_SunSpec_DID"]),
+                ("C_SunSpec_DID", decoder.decode_16bit_uint()),
+                ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                 ("AC_Current", decoder.decode_16bit_int()),
                 ("AC_Current_A", decoder.decode_16bit_int()),
                 ("AC_Current_B", decoder.decode_16bit_int()),
@@ -1409,6 +1343,15 @@ class SolarEdgeMeter:
                     f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
                     f"{name} {hex(value) if isinstance(value, int) else value}"
                 ),
+            )
+
+        if (
+            self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+            or self.decoded_model["C_SunSpec_DID"] not in [201, 202, 203, 204]
+            or self.decoded_model["C_SunSpec_Length"] != 105
+        ):
+            raise DeviceInvalid(
+                f"Meter on inverter {self.inverter_unit_id} not usable."
             )
 
     @property
