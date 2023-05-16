@@ -761,7 +761,7 @@ class SolarEdgeInverter:
 
             else:
                 self.decoded_mmppt = None
-                raise DataUpdateFailed(
+                raise DeviceInvalid(
                     f"Inverter {self.inverter_unit_id} MMPPT must be 2 or 3 units"
                 )
 
