@@ -261,7 +261,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, inverter, battery, config_entry, coordinator):
+    def __init__(self, inverter, config_entry, coordinator):
         super().__init__(inverter, config_entry, coordinator)
 
     @property
@@ -316,7 +316,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, inverter, battery, config_entry, coordinator):
+    def __init__(self, inverter, config_entry, coordinator):
         super().__init__(inverter, config_entry, coordinator)
 
     @property
