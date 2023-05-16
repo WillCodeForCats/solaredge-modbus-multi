@@ -761,7 +761,10 @@ class SolarEdgeInverter:
                 mmppt_registers = 68
 
             else:
-                raise NotImplementedError()
+                self.decoded_mmppt = None
+                raise DataUpdateFailed(
+                    f"Inverter {self.inverter_unit_id} MMPPT must be 2 or 3 units"
+                )
 
             inverter_data = self.hub.read_holding_registers(
                 unit=self.inverter_unit_id, address=40123, count=mmppt_registers
