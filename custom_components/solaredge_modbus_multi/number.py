@@ -34,8 +34,11 @@ async def async_setup_entry(
             entities.append(StorageACChargeLimit(inverter, config_entry, coordinator))
             entities.append(StorageBackupReserve(inverter, config_entry, coordinator))
             entities.append(StorageCommandTimeout(inverter, config_entry, coordinator))
-            entities.append(StorageChargeLimit(inverter, config_entry, coordinator))
-            entities.append(StorageDischargeLimit(inverter, config_entry, coordinator))
+            if inverter.has_battery is True:
+                entities.append(StorageChargeLimit(inverter, config_entry, coordinator))
+                entities.append(
+                    StorageDischargeLimit(inverter, config_entry, coordinator)
+                )
 
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
@@ -273,10 +276,6 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         return "Storage Charge Limit"
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
-        return self._platform.has_battery is True
-
-    @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
@@ -326,10 +325,6 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     @property
     def name(self) -> str:
         return "Storage Discharge Limit"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        return self._platform.has_battery is True
 
     @property
     def available(self) -> bool:
