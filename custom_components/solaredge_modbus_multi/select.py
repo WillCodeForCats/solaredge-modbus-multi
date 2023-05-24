@@ -262,6 +262,13 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
         self._attr_options = list(self._options.values())
 
     @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
+        )
+
+    @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_limit_control_mode"
 
@@ -311,6 +318,10 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = LIMIT_CONTROL
         self._attr_options = list(self._options.values())
+
+    @property
+    def available(self) -> bool:
+        return super().available and "E_Lim_Ctl" in self._platform.decoded_model.keys()
 
     @property
     def unique_id(self) -> str:
