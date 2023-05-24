@@ -513,7 +513,7 @@ class SolarEdgeInverter:
         self.decoded_common = []
         self.decoded_model = []
         self.decoded_mmppt = []
-        self.decoded_storage_control = []
+        self.decoded_storage_control = None
         self.has_parent = False
         self.has_battery = None
         self.global_power_control = None
