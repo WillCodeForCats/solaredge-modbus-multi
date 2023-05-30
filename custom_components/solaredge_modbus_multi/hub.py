@@ -40,13 +40,37 @@ class DeviceInitFailed(SolarEdgeException):
 
 
 class ModbusReadError(SolarEdgeException):
-    """Raised when a modbus read fails"""
+    """Raised when a modbus read fails (generic)"""
+
+    pass
+
+
+class ModbusIllegalFunction(SolarEdgeException):
+    """Raised when a modbus address is invalid"""
+
+    pass
+
+
+class ModbusIllegalAddress(SolarEdgeException):
+    """Raised when a modbus address is invalid"""
+
+    pass
+
+
+class ModbusIllegalValue(SolarEdgeException):
+    """Raised when a modbus address is invalid"""
+
+    pass
+
+
+class ModbusIOError(SolarEdgeException):
+    """Raised when a modbus IO error occurs"""
 
     pass
 
 
 class ModbusWriteError(SolarEdgeException):
-    """Raised when a modbus write fails"""
+    """Raised when a modbus write fails (generic)"""
 
     pass
 
@@ -455,6 +479,32 @@ class SolarEdgeModbusMultiHub:
         with self._lock:
             kwargs = {"slave": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
+
+    def modbus_read_holding_registers(self, unit, address, count):
+        """Read holding registers."""
+        with self._lock:
+            kwargs = {"slave": unit} if unit else {}
+            result = self._client.read_holding_registers(address, count, **kwargs)
+
+            if result.isError():
+                _LOGGER.debug(f"Unit {unit}: {result}")
+
+                if type(result) is ModbusIOException:
+                    raise ModbusIOError(result)
+
+                if type(result) is ExceptionResponse:
+                    if result.exception_code == ModbusExceptions.IllegalAddress:
+                        raise ModbusIllegalAddress(result)
+
+                    if result.exception_code == ModbusExceptions.IllegalFunction:
+                        raise ModbusIllegalFunction(result)
+
+                    if result.exception_code == ModbusExceptions.IllegalValue:
+                        raise ModbusIllegalValue(result)
+
+                raise ModbusReadError(result)
+
+            return result
 
     def _write_registers(self):
         """Write registers."""
