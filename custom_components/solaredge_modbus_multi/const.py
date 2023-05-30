@@ -24,13 +24,25 @@ ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
 
+class RetrySettings(IntEnum):
+    """Retry settings when opening a connection to the inverter fails."""
+
+    Time = 800  # first attempt in milliseconds
+    Ratio = 2  # time multiplier between each attempt
+    Limit = 4  # number of attempts before failing
+
+
 class BatteryLimit(IntEnum):
-    Vmin = 0
-    Vmax = 600
-    Amin = -200
-    Amax = 200
-    Tmax = 100
-    Tmin = -30
+    """Configure battery limits for input and display validation."""
+
+    Vmin = 0  # volts
+    Vmax = 600  # volts
+    Amin = -200  # amps
+    Amax = 200  # amps
+    Tmax = 100  # degrees C
+    Tmin = -30  # degrees C
+    ChargeMax = 50000  # watts
+    DischargeMax = 50000  # watts
 
 
 class ConfDefaultInt(IntEnum):
@@ -142,12 +154,12 @@ VENDOR_STATUS = {
     35: "AC Frequency Too Low",
     41: "AC Voltage Too Low",
     44: "No Country Selected",
-    64: "AC Voltage Too High",
-    65: "AC Voltage Too High",
-    66: "AC Voltage Too High",
     61: "AC Voltage Too Low",
     62: "AC Voltage Too Low",
     63: "AC Voltage Too Low",
+    64: "AC Voltage Too High",
+    65: "AC Voltage Too High",
+    66: "AC Voltage Too High",
     67: "AC Voltage Too Low",
     68: "AC Voltage Too Low",
     69: "AC Voltage Too Low",
@@ -158,6 +170,7 @@ VENDOR_STATUS = {
     83: "AC Frequency Too Low",
     84: "AC Frequency Too Low",
     95: "Hardware Error",
+    97: "Vin Buck Max",
     104: "Temperature Too High",
     106: "Hardware Error",
     107: "Battery Communication Error",
@@ -169,6 +182,7 @@ VENDOR_STATUS = {
     150: "Arc Fault Detected",
     151: "Arc Fault Detected",
     153: "Hardware Error",
+    256: "Arc Detected",
 }
 
 SUNSPEC_DID = {

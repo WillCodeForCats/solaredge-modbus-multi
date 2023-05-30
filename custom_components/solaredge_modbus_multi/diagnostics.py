@@ -43,11 +43,15 @@ async def async_get_config_entry_diagnostics(
         inverter: dict[str, Any] = {
             f"inverter_unit_id_{inverter.inverter_unit_id}": {
                 "device_info": inverter.device_info,
+                "global_power_control": inverter.global_power_control,
+                "advanced_power_control": inverter.advanced_power_control,
+                "site_limit_control": inverter.site_limit_control,
                 "common": inverter.decoded_common,
                 "model": format_values(inverter.decoded_model),
                 "is_mmppt": inverter.is_mmppt,
                 "mmppt": format_values(inverter.decoded_mmppt),
-                "storage": format_values(inverter.decoded_storage),
+                "has_battery": inverter.has_battery,
+                "storage_control": format_values(inverter.decoded_storage_control),
             }
         }
 

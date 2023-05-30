@@ -33,16 +33,13 @@ async def async_setup_entry(
 
     """ Power Control Options: Storage Control """
     if hub.option_storage_control is True:
-        for battery in hub.batteries:
-            for inverter in hub.inverters:
-                if inverter.inverter_unit_id != battery.inverter_unit_id:
-                    continue
-                entities.append(StorageControlMode(inverter, config_entry, coordinator))
-                entities.append(
-                    StorageACChargePolicy(inverter, config_entry, coordinator)
-                )
-                entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
-                entities.append(StorageCommandMode(inverter, config_entry, coordinator))
+        for inverter in hub.inverters:
+            if inverter.decoded_storage_control is False:
+                continue
+            entities.append(StorageControlMode(inverter, config_entry, coordinator))
+            entities.append(StorageACChargePolicy(inverter, config_entry, coordinator))
+            entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
+            entities.append(StorageCommandMode(inverter, config_entry, coordinator))
 
     """ Power Control Options: Site Limit Control """
     if hub.option_export_control is True:
@@ -111,8 +108,12 @@ class StorageControlMode(SolarEdgeSelectBase):
         return "Storage Control Mode"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage["control_mode"]]
+        return self._options[self._platform.decoded_storage_control["control_mode"]]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -136,16 +137,21 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         return "AC Charge Policy"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def current_option(self) -> str | None:
         if (
-            self._platform.decoded_storage is False
-            or self._platform.decoded_storage["ac_charge_policy"]
+            self._platform.decoded_storage_control is False
+            or self._platform.decoded_storage_control["ac_charge_policy"]
             == SunSpecNotImpl.UINT16
-            or self._platform.decoded_storage["ac_charge_policy"] not in self._options
+            or self._platform.decoded_storage_control["ac_charge_policy"]
+            not in self._options
         ):
             return None
 
-        return self._options[self._platform.decoded_storage["ac_charge_policy"]]
+        return self._options[self._platform.decoded_storage_control["ac_charge_policy"]]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -169,23 +175,29 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         return "Storage Default Mode"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storage["control_mode"] == 4
+            and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
     @property
     def current_option(self) -> str | None:
         if (
-            self._platform.decoded_storage is False
-            or self._platform.decoded_storage["default_mode"] == SunSpecNotImpl.UINT16
-            or self._platform.decoded_storage["default_mode"] not in self._options
+            self._platform.decoded_storage_control is False
+            or self._platform.decoded_storage_control["default_mode"]
+            == SunSpecNotImpl.UINT16
+            or self._platform.decoded_storage_control["default_mode"]
+            not in self._options
         ):
             return None
 
-        return self._options[self._platform.decoded_storage["default_mode"]]
+        return self._options[self._platform.decoded_storage_control["default_mode"]]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -209,24 +221,30 @@ class StorageCommandMode(SolarEdgeSelectBase):
         return "Storage Command Mode"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storage["control_mode"] == 4
+            and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
     @property
     def current_option(self) -> str:
         if (
-            self._platform.decoded_storage is False
-            or self._platform.decoded_storage["command_mode"] == SunSpecNotImpl.UINT16
-            or self._platform.decoded_storage["command_mode"] not in self._options
+            self._platform.decoded_storage_control is False
+            or self._platform.decoded_storage_control["command_mode"]
+            == SunSpecNotImpl.UINT16
+            or self._platform.decoded_storage_control["command_mode"]
+            not in self._options
         ):
             return None
 
         try:
-            return self._options[self._platform.decoded_storage["command_mode"]]
+            return self._options[self._platform.decoded_storage_control["command_mode"]]
         except KeyError:
             return STATE_UNKNOWN
 
@@ -242,6 +260,13 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = LIMIT_CONTROL_MODE
         self._attr_options = list(self._options.values())
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
+        )
 
     @property
     def unique_id(self) -> str:
@@ -293,6 +318,10 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = LIMIT_CONTROL
         self._attr_options = list(self._options.values())
+
+    @property
+    def available(self) -> bool:
+        return super().available and "E_Lim_Ctl" in self._platform.decoded_model.keys()
 
     @property
     def unique_id(self) -> str:
