@@ -965,8 +965,10 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-        """ Site Limit Control """
+        """ Power Control Options: Site Limit Control """
         if self.site_limit_control is True or self.site_limit_control is None:
+        
+            """ Site Limit and Mode """
             try:
                 inverter_data = self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=57344, count=4
