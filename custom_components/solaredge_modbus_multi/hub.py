@@ -1374,66 +1374,55 @@ class SolarEdgeBattery:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
     def init_device(self) -> None:
-        battery_info = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=self.start_address, count=76
-        )
-        if battery_info.isError():
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} "
-                    f"battery {self.battery_id}: {battery_info}"
-                ),
+        try:
+            battery_info = self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=self.start_address, count=76
             )
 
-            if type(battery_info) is ModbusIOException:
-                raise DeviceInvalid(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                battery_info.registers,
+                byteorder=Endian.Big,
+                wordorder=Endian.Little,
+            )
+            self.decoded_common = OrderedDict(
+                [
+                    (
+                        "B_Manufacturer",
+                        parse_modbus_string(decoder.decode_string(32)),
+                    ),
+                    ("B_Model", parse_modbus_string(decoder.decode_string(32))),
+                    ("B_Version", parse_modbus_string(decoder.decode_string(32))),
+                    (
+                        "B_SerialNumber",
+                        parse_modbus_string(decoder.decode_string(32)),
+                    ),
+                    ("B_Device_Address", decoder.decode_16bit_uint()),
+                    ("Reserved", decoder.decode_16bit_uint()),
+                    ("B_RatedEnergy", decoder.decode_32bit_float()),
+                    ("B_MaxChargePower", decoder.decode_32bit_float()),
+                    ("B_MaxDischargePower", decoder.decode_32bit_float()),
+                    ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
+                    ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
+                ]
+            )
+
+            for name, value in iter(self.decoded_common.items()):
+                if isinstance(value, float):
+                    display_value = float_to_hex(value)
+                else:
+                    display_value = hex(value) if isinstance(value, int) else value
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
+                        f"{name} {display_value}"
+                    ),
                 )
 
-            if type(battery_info) is ExceptionResponse:
-                if battery_info.exception_code == ModbusExceptions.IllegalAddress:
-                    raise DeviceInvalid(battery_info)
+        except ModbusIOError:
+            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
-            raise ModbusReadError(battery_info)
-
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_info.registers,
-            byteorder=Endian.Big,
-            wordorder=Endian.Little,
-        )
-        self.decoded_common = OrderedDict(
-            [
-                (
-                    "B_Manufacturer",
-                    parse_modbus_string(decoder.decode_string(32)),
-                ),
-                ("B_Model", parse_modbus_string(decoder.decode_string(32))),
-                ("B_Version", parse_modbus_string(decoder.decode_string(32))),
-                (
-                    "B_SerialNumber",
-                    parse_modbus_string(decoder.decode_string(32)),
-                ),
-                ("B_Device_Address", decoder.decode_16bit_uint()),
-                ("Reserved", decoder.decode_16bit_uint()),
-                ("B_RatedEnergy", decoder.decode_32bit_float()),
-                ("B_MaxChargePower", decoder.decode_32bit_float()),
-                ("B_MaxDischargePower", decoder.decode_32bit_float()),
-                ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
-                ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
-            ]
-        )
-
-        for name, value in iter(self.decoded_common.items()):
-            if isinstance(value, float):
-                display_value = float_to_hex(value)
-            else:
-                display_value = hex(value) if isinstance(value, int) else value
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                    f"{name} {display_value}"
-                ),
-            )
+        except ModbusIllegalAddress:
+            raise DeviceInvalid(f"Battery {self.battery_id} unsupported address")
 
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
@@ -1475,14 +1464,11 @@ class SolarEdgeBattery:
         }
 
     def read_modbus_data(self) -> None:
-        battery_data = self.hub.read_holding_registers(
+        battery_data = self.hub.modbus_read_holding_registers(
             unit=self.inverter_unit_id,
             address=self.start_address + 108,
             count=46,
         )
-        if battery_data.isError():
-            _LOGGER.error(f"Battery read error: {battery_data}")
-            raise ModbusReadError(f"Battery read error: {battery_data}")
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             battery_data.registers,
