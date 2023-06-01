@@ -164,7 +164,7 @@ class SolarEdgeModbusMultiHub:
                 f"Could not open Modbus/TCP connection to {self.hub_host}"
             )
 
-        if self._adv_storage_control:
+        if self.option_storage_control:
             _LOGGER.warning(
                 (
                     "Power Control Options: Storage Control is enabled. "
@@ -172,7 +172,7 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        if self._adv_site_limit_control:
+        if self.option_site_limit_control:
             _LOGGER.warning(
                 (
                     "Power Control Options: Site Limit Control is enabled. "
