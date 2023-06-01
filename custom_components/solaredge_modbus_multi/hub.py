@@ -424,7 +424,7 @@ class SolarEdgeModbusMultiHub:
         return self._adv_storage_control
 
     @property
-    def option_export_control(self) -> bool:
+    def option_site_limit_control(self) -> bool:
         return self._adv_site_limit_control
 
     @property
@@ -966,9 +966,11 @@ class SolarEdgeInverter:
                 )
 
         """ Power Control Options: Site Limit Control """
-        if self.site_limit_control is True or self.site_limit_control is None:
-        
-            """ Site Limit and Mode """
+        if (
+            self.hub.option_site_limit_control is True
+            and self.site_limit_control is not False
+        ):
+            """Site Limit and Mode"""
             try:
                 inverter_data = self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=57344, count=4
@@ -1033,7 +1035,7 @@ class SolarEdgeInverter:
                     pass
 
                 _LOGGER.debug(
-                    (f"Inverter {self.inverter_unit_id}: " "Ext_Prod_Max NOT available")
+                    (f"Inverter {self.inverter_unit_id}: Ext_Prod_Max NOT available")
                 )
 
             except ModbusIOError:
