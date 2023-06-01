@@ -1160,89 +1160,60 @@ class SolarEdgeMeter:
                 )
 
     def init_device(self) -> None:
-        meter_info = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id, address=self.start_address, count=2
-        )
-        if meter_info.isError():
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} "
-                    f"meter {self.meter_id}: {meter_info}"
-                ),
+        try:
+            meter_info = self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id,
+                address=self.start_address,
+                count=67,
+            )
+            if meter_info.isError():
+                _LOGGER.debug(meter_info)
+                raise ModbusReadError(meter_info)
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                meter_info.registers, byteorder=Endian.Big
+            )
+            self.decoded_common = OrderedDict(
+                [
+                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
+                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
+                    (
+                        "C_Manufacturer",
+                        parse_modbus_string(decoder.decode_string(32)),
+                    ),
+                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
+                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
+                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
+                    (
+                        "C_SerialNumber",
+                        parse_modbus_string(decoder.decode_string(32)),
+                    ),
+                    ("C_Device_address", decoder.decode_16bit_uint()),
+                ]
             )
 
-            if type(meter_info) is ModbusIOException:
-                raise DeviceInvalid(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+            for name, value in iter(self.decoded_common.items()):
+                _LOGGER.debug(
+                    (
+                        f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                    ),
                 )
 
-            if type(meter_info) is ExceptionResponse:
-                if meter_info.exception_code == ModbusExceptions.IllegalAddress:
-                    raise DeviceInvalid(meter_info)
+            if (
+                self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+                or self.decoded_common["C_SunSpec_DID"] != 0x0001
+                or self.decoded_common["C_SunSpec_Length"] != 65
+            ):
+                raise DeviceInvalid(
+                    f"Meter {self.meter_id} ident incorrect or not installed."
+                )
 
-            raise ModbusReadError(meter_info)
+        except ModbusIOError:
+            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            meter_info.registers, byteorder=Endian.Big
-        )
-        decoded_ident = OrderedDict(
-            [
-                ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-            ]
-        )
-
-        for name, value in iter(decoded_ident.items()):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
-
-        if (
-            decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or decoded_ident["C_SunSpec_DID"] != 0x0001
-            or decoded_ident["C_SunSpec_Length"] != 65
-        ):
-            raise DeviceInvalid("Meter {self.meter_id} not usable.")
-
-        meter_info = self.hub.read_holding_registers(
-            unit=self.inverter_unit_id,
-            address=self.start_address + 2,
-            count=65,
-        )
-        if meter_info.isError():
-            _LOGGER.debug(meter_info)
-            raise ModbusReadError(meter_info)
-
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            meter_info.registers, byteorder=Endian.Big
-        )
-        self.decoded_common = OrderedDict(
-            [
-                (
-                    "C_Manufacturer",
-                    parse_modbus_string(decoder.decode_string(32)),
-                ),
-                ("C_Model", parse_modbus_string(decoder.decode_string(32))),
-                ("C_Option", parse_modbus_string(decoder.decode_string(16))),
-                ("C_Version", parse_modbus_string(decoder.decode_string(16))),
-                (
-                    "C_SerialNumber",
-                    parse_modbus_string(decoder.decode_string(32)),
-                ),
-                ("C_Device_address", decoder.decode_16bit_uint()),
-            ]
-        )
-
-        for name, value in iter(self.decoded_common.items()):
-            _LOGGER.debug(
-                (
-                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
-                ),
-            )
+        except ModbusIllegalAddress:
+            raise DeviceInvalid(f"Meter {self.meter_id}: unsupported address")
 
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
@@ -1266,14 +1237,11 @@ class SolarEdgeMeter:
         }
 
     def read_modbus_data(self) -> None:
-        meter_data = self.hub.read_holding_registers(
+        meter_data = self.hub.modbus_read_holding_registers(
             unit=self.inverter_unit_id,
             address=self.start_address + 67,
             count=107,
         )
-        if meter_data.isError():
-            _LOGGER.error(f"Meter read error: {meter_data}")
-            raise ModbusReadError(f"Meter read error: {meter_data}")
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             meter_data.registers, byteorder=Endian.Big
@@ -1372,7 +1340,7 @@ class SolarEdgeMeter:
             or self.decoded_model["C_SunSpec_Length"] != 105
         ):
             raise DeviceInvalid(
-                f"Meter on inverter {self.inverter_unit_id} not usable."
+                f"Meter {self.meter_id} ident incorrect or not installed."
             )
 
     @property
