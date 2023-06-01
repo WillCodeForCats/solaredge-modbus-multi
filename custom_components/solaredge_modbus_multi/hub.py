@@ -480,12 +480,6 @@ class SolarEdgeModbusMultiHub:
         await self.disconnect()
         self._client = None
 
-    def read_holding_registers(self, unit, address, count):
-        """Read holding registers."""
-        with self._lock:
-            kwargs = {"slave": unit} if unit else {}
-            return self._client.read_holding_registers(address, count, **kwargs)
-
     def modbus_read_holding_registers(self, unit, address, count):
         """Read holding registers."""
         with self._lock:
