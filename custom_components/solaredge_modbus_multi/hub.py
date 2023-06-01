@@ -1060,7 +1060,7 @@ class SolarEdgeInverter:
                         self.has_battery = True
 
             try:
-                inverter_data = self.hub.read_holding_registers(
+                inverter_data = self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=57348, count=14
                 )
 
