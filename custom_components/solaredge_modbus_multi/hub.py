@@ -160,7 +160,9 @@ class SolarEdgeModbusMultiHub:
 
     async def _async_init_solaredge(self) -> None:
         if not self.is_socket_open():
-            raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
+            raise HubInitFailed(
+                f"Could not open Modbus/TCP connection to {self.hub_host}"
+            )
 
         if self._adv_storage_control:
             _LOGGER.warning(
@@ -192,7 +194,7 @@ class SolarEdgeModbusMultiHub:
 
             except DeviceInvalid as e:
                 """Inverters are required"""
-                _LOGGER.error(f"Inverter device ID {inverter_unit_id}: {e}")
+                _LOGGER.error(f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}")
                 raise HubInitFailed(f"{e}")
 
             if self._detect_meters:
@@ -366,7 +368,7 @@ class SolarEdgeModbusMultiHub:
         if not self.is_socket_open():
             self._online = False
             raise DataUpdateFailed(
-                f"Could not open Modbus/TCP connection to {self._host}"
+                f"Could not open Modbus/TCP connection to {self.hub_host}"
             )
 
         else:
@@ -412,6 +414,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def hub_id(self) -> str:
         return self._id
+
+    @property
+    def hub_host(self) -> str:
+        return self._host
 
     @property
     def option_storage_control(self) -> bool:
