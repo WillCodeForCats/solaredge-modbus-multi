@@ -931,7 +931,7 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-        """ Power Control Options """
+        """ Advanced Power Control """
         if self.advanced_power_control is True or self.advanced_power_control is None:
             try:
                 inverter_data = self.hub.modbus_read_holding_registers(
