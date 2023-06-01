@@ -221,7 +221,8 @@ class SolarEdgeModbusMultiHub:
                     await self.disconnect()
                     raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid:
+                except DeviceInvalid as e:
+                    _LOGGER.debug(f"I{inverter_unit_id}M1: {e}")
                     pass
 
                 try:
@@ -247,7 +248,8 @@ class SolarEdgeModbusMultiHub:
                     await self.disconnect()
                     raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid:
+                except DeviceInvalid as e:
+                    _LOGGER.debug(f"I{inverter_unit_id}M2: {e}")
                     pass
 
                 try:
@@ -273,7 +275,8 @@ class SolarEdgeModbusMultiHub:
                     await self.disconnect()
                     raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid:
+                except DeviceInvalid as e:
+                    _LOGGER.debug(f"I{inverter_unit_id}M3: {e}")
                     pass
 
             if self._detect_batteries:
@@ -300,7 +303,8 @@ class SolarEdgeModbusMultiHub:
                     await self.disconnect()
                     raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid:
+                except DeviceInvalid as e:
+                    _LOGGER.debug(f"I{inverter_unit_id}B1: {e}")
                     pass
 
                 try:
@@ -326,7 +330,8 @@ class SolarEdgeModbusMultiHub:
                     await self.disconnect()
                     raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid:
+                except DeviceInvalid as e:
+                    _LOGGER.debug(f"I{inverter_unit_id}B2: {e}")
                     pass
 
         try:
