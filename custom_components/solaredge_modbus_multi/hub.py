@@ -916,7 +916,9 @@ class SolarEdgeInverter:
 
             else:
                 decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers, byteorder=Endian.Big
+                    inverter_data.registers,
+                    byteorder=Endian.Big,
+                    wordorder=Endian.Little,
                 )
 
                 self.decoded_model.update(
