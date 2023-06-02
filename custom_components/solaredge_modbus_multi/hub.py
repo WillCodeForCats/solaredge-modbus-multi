@@ -1242,94 +1242,100 @@ class SolarEdgeMeter:
         }
 
     def read_modbus_data(self) -> None:
-        meter_data = self.hub.modbus_read_holding_registers(
-            unit=self.inverter_unit_id,
-            address=self.start_address + 67,
-            count=107,
-        )
+        try:
+            meter_data = self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id,
+                address=self.start_address + 67,
+                count=107,
+            )
 
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            meter_data.registers, byteorder=Endian.Big
-        )
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                meter_data.registers, byteorder=Endian.Big
+            )
 
-        self.decoded_model = OrderedDict(
-            [
-                ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-                ("AC_Current", decoder.decode_16bit_int()),
-                ("AC_Current_A", decoder.decode_16bit_int()),
-                ("AC_Current_B", decoder.decode_16bit_int()),
-                ("AC_Current_C", decoder.decode_16bit_int()),
-                ("AC_Current_SF", decoder.decode_16bit_int()),
-                ("AC_Voltage_LN", decoder.decode_16bit_int()),
-                ("AC_Voltage_AN", decoder.decode_16bit_int()),
-                ("AC_Voltage_BN", decoder.decode_16bit_int()),
-                ("AC_Voltage_CN", decoder.decode_16bit_int()),
-                ("AC_Voltage_LL", decoder.decode_16bit_int()),
-                ("AC_Voltage_AB", decoder.decode_16bit_int()),
-                ("AC_Voltage_BC", decoder.decode_16bit_int()),
-                ("AC_Voltage_CA", decoder.decode_16bit_int()),
-                ("AC_Voltage_SF", decoder.decode_16bit_int()),
-                ("AC_Frequency", decoder.decode_16bit_int()),
-                ("AC_Frequency_SF", decoder.decode_16bit_int()),
-                ("AC_Power", decoder.decode_16bit_int()),
-                ("AC_Power_A", decoder.decode_16bit_int()),
-                ("AC_Power_B", decoder.decode_16bit_int()),
-                ("AC_Power_C", decoder.decode_16bit_int()),
-                ("AC_Power_SF", decoder.decode_16bit_int()),
-                ("AC_VA", decoder.decode_16bit_int()),
-                ("AC_VA_A", decoder.decode_16bit_int()),
-                ("AC_VA_B", decoder.decode_16bit_int()),
-                ("AC_VA_C", decoder.decode_16bit_int()),
-                ("AC_VA_SF", decoder.decode_16bit_int()),
-                ("AC_var", decoder.decode_16bit_int()),
-                ("AC_var_A", decoder.decode_16bit_int()),
-                ("AC_var_B", decoder.decode_16bit_int()),
-                ("AC_var_C", decoder.decode_16bit_int()),
-                ("AC_var_SF", decoder.decode_16bit_int()),
-                ("AC_PF", decoder.decode_16bit_int()),
-                ("AC_PF_A", decoder.decode_16bit_int()),
-                ("AC_PF_B", decoder.decode_16bit_int()),
-                ("AC_PF_C", decoder.decode_16bit_int()),
-                ("AC_PF_SF", decoder.decode_16bit_int()),
-                ("AC_Energy_WH_Exported", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_Exported_A", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_Exported_B", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_Exported_C", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_Imported", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_Imported_A", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_Imported_B", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_Imported_C", decoder.decode_32bit_uint()),
-                ("AC_Energy_WH_SF", decoder.decode_16bit_int()),
-                ("M_VAh_Exported", decoder.decode_32bit_uint()),
-                ("M_VAh_Exported_A", decoder.decode_32bit_uint()),
-                ("M_VAh_Exported_B", decoder.decode_32bit_uint()),
-                ("M_VAh_Exported_C", decoder.decode_32bit_uint()),
-                ("M_VAh_Imported", decoder.decode_32bit_uint()),
-                ("M_VAh_Imported_A", decoder.decode_32bit_uint()),
-                ("M_VAh_Imported_B", decoder.decode_32bit_uint()),
-                ("M_VAh_Imported_C", decoder.decode_32bit_uint()),
-                ("M_VAh_SF", decoder.decode_16bit_int()),
-                ("M_varh_Import_Q1", decoder.decode_32bit_uint()),
-                ("M_varh_Import_Q1_A", decoder.decode_32bit_uint()),
-                ("M_varh_Import_Q1_B", decoder.decode_32bit_uint()),
-                ("M_varh_Import_Q1_C", decoder.decode_32bit_uint()),
-                ("M_varh_Import_Q2", decoder.decode_32bit_uint()),
-                ("M_varh_Import_Q2_A", decoder.decode_32bit_uint()),
-                ("M_varh_Import_Q2_B", decoder.decode_32bit_uint()),
-                ("M_varh_Import_Q2_C", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q3", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q3_A", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q3_B", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q3_C", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q4", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q4_A", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q4_B", decoder.decode_32bit_uint()),
-                ("M_varh_Export_Q4_C", decoder.decode_32bit_uint()),
-                ("M_varh_SF", decoder.decode_16bit_int()),
-                ("M_Events", decoder.decode_32bit_uint()),
-            ]
-        )
+            self.decoded_model = OrderedDict(
+                [
+                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
+                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
+                    ("AC_Current", decoder.decode_16bit_int()),
+                    ("AC_Current_A", decoder.decode_16bit_int()),
+                    ("AC_Current_B", decoder.decode_16bit_int()),
+                    ("AC_Current_C", decoder.decode_16bit_int()),
+                    ("AC_Current_SF", decoder.decode_16bit_int()),
+                    ("AC_Voltage_LN", decoder.decode_16bit_int()),
+                    ("AC_Voltage_AN", decoder.decode_16bit_int()),
+                    ("AC_Voltage_BN", decoder.decode_16bit_int()),
+                    ("AC_Voltage_CN", decoder.decode_16bit_int()),
+                    ("AC_Voltage_LL", decoder.decode_16bit_int()),
+                    ("AC_Voltage_AB", decoder.decode_16bit_int()),
+                    ("AC_Voltage_BC", decoder.decode_16bit_int()),
+                    ("AC_Voltage_CA", decoder.decode_16bit_int()),
+                    ("AC_Voltage_SF", decoder.decode_16bit_int()),
+                    ("AC_Frequency", decoder.decode_16bit_int()),
+                    ("AC_Frequency_SF", decoder.decode_16bit_int()),
+                    ("AC_Power", decoder.decode_16bit_int()),
+                    ("AC_Power_A", decoder.decode_16bit_int()),
+                    ("AC_Power_B", decoder.decode_16bit_int()),
+                    ("AC_Power_C", decoder.decode_16bit_int()),
+                    ("AC_Power_SF", decoder.decode_16bit_int()),
+                    ("AC_VA", decoder.decode_16bit_int()),
+                    ("AC_VA_A", decoder.decode_16bit_int()),
+                    ("AC_VA_B", decoder.decode_16bit_int()),
+                    ("AC_VA_C", decoder.decode_16bit_int()),
+                    ("AC_VA_SF", decoder.decode_16bit_int()),
+                    ("AC_var", decoder.decode_16bit_int()),
+                    ("AC_var_A", decoder.decode_16bit_int()),
+                    ("AC_var_B", decoder.decode_16bit_int()),
+                    ("AC_var_C", decoder.decode_16bit_int()),
+                    ("AC_var_SF", decoder.decode_16bit_int()),
+                    ("AC_PF", decoder.decode_16bit_int()),
+                    ("AC_PF_A", decoder.decode_16bit_int()),
+                    ("AC_PF_B", decoder.decode_16bit_int()),
+                    ("AC_PF_C", decoder.decode_16bit_int()),
+                    ("AC_PF_SF", decoder.decode_16bit_int()),
+                    ("AC_Energy_WH_Exported", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_Exported_A", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_Exported_B", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_Exported_C", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_Imported", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_Imported_A", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_Imported_B", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_Imported_C", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_SF", decoder.decode_16bit_int()),
+                    ("M_VAh_Exported", decoder.decode_32bit_uint()),
+                    ("M_VAh_Exported_A", decoder.decode_32bit_uint()),
+                    ("M_VAh_Exported_B", decoder.decode_32bit_uint()),
+                    ("M_VAh_Exported_C", decoder.decode_32bit_uint()),
+                    ("M_VAh_Imported", decoder.decode_32bit_uint()),
+                    ("M_VAh_Imported_A", decoder.decode_32bit_uint()),
+                    ("M_VAh_Imported_B", decoder.decode_32bit_uint()),
+                    ("M_VAh_Imported_C", decoder.decode_32bit_uint()),
+                    ("M_VAh_SF", decoder.decode_16bit_int()),
+                    ("M_varh_Import_Q1", decoder.decode_32bit_uint()),
+                    ("M_varh_Import_Q1_A", decoder.decode_32bit_uint()),
+                    ("M_varh_Import_Q1_B", decoder.decode_32bit_uint()),
+                    ("M_varh_Import_Q1_C", decoder.decode_32bit_uint()),
+                    ("M_varh_Import_Q2", decoder.decode_32bit_uint()),
+                    ("M_varh_Import_Q2_A", decoder.decode_32bit_uint()),
+                    ("M_varh_Import_Q2_B", decoder.decode_32bit_uint()),
+                    ("M_varh_Import_Q2_C", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q3", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q3_A", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q3_B", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q3_C", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q4", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q4_A", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q4_B", decoder.decode_32bit_uint()),
+                    ("M_varh_Export_Q4_C", decoder.decode_32bit_uint()),
+                    ("M_varh_SF", decoder.decode_16bit_int()),
+                    ("M_Events", decoder.decode_32bit_uint()),
+                ]
+            )
+
+        except ModbusIOError:
+            raise ModbusReadError(
+                f"No response from inverter ID {self.inverter_unit_id}"
+            )
 
         for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
@@ -1469,51 +1475,57 @@ class SolarEdgeBattery:
         }
 
     def read_modbus_data(self) -> None:
-        battery_data = self.hub.modbus_read_holding_registers(
-            unit=self.inverter_unit_id,
-            address=self.start_address + 108,
-            count=46,
-        )
+        try:
+            battery_data = self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id,
+                address=self.start_address + 108,
+                count=46,
+            )
 
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            battery_data.registers,
-            byteorder=Endian.Big,
-            wordorder=Endian.Little,
-        )
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                battery_data.registers,
+                byteorder=Endian.Big,
+                wordorder=Endian.Little,
+            )
 
-        self.decoded_model = OrderedDict(
-            [
-                ("B_Temp_Average", decoder.decode_32bit_float()),
-                ("B_Temp_Max", decoder.decode_32bit_float()),
-                ("B_DC_Voltage", decoder.decode_32bit_float()),
-                ("B_DC_Current", decoder.decode_32bit_float()),
-                ("B_DC_Power", decoder.decode_32bit_float()),
-                ("B_Export_Energy_WH", decoder.decode_64bit_uint()),
-                ("B_Import_Energy_WH", decoder.decode_64bit_uint()),
-                ("B_Energy_Max", decoder.decode_32bit_float()),
-                ("B_Energy_Available", decoder.decode_32bit_float()),
-                ("B_SOH", decoder.decode_32bit_float()),
-                ("B_SOE", decoder.decode_32bit_float()),
-                ("B_Status", decoder.decode_32bit_uint()),
-                ("B_Status_Vendor", decoder.decode_32bit_uint()),
-                ("B_Event_Log1", decoder.decode_16bit_uint()),
-                ("B_Event_Log2", decoder.decode_16bit_uint()),
-                ("B_Event_Log3", decoder.decode_16bit_uint()),
-                ("B_Event_Log4", decoder.decode_16bit_uint()),
-                ("B_Event_Log5", decoder.decode_16bit_uint()),
-                ("B_Event_Log6", decoder.decode_16bit_uint()),
-                ("B_Event_Log7", decoder.decode_16bit_uint()),
-                ("B_Event_Log8", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor1", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor2", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor3", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor4", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor5", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor6", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor7", decoder.decode_16bit_uint()),
-                ("B_Event_Log_Vendor8", decoder.decode_16bit_uint()),
-            ]
-        )
+            self.decoded_model = OrderedDict(
+                [
+                    ("B_Temp_Average", decoder.decode_32bit_float()),
+                    ("B_Temp_Max", decoder.decode_32bit_float()),
+                    ("B_DC_Voltage", decoder.decode_32bit_float()),
+                    ("B_DC_Current", decoder.decode_32bit_float()),
+                    ("B_DC_Power", decoder.decode_32bit_float()),
+                    ("B_Export_Energy_WH", decoder.decode_64bit_uint()),
+                    ("B_Import_Energy_WH", decoder.decode_64bit_uint()),
+                    ("B_Energy_Max", decoder.decode_32bit_float()),
+                    ("B_Energy_Available", decoder.decode_32bit_float()),
+                    ("B_SOH", decoder.decode_32bit_float()),
+                    ("B_SOE", decoder.decode_32bit_float()),
+                    ("B_Status", decoder.decode_32bit_uint()),
+                    ("B_Status_Vendor", decoder.decode_32bit_uint()),
+                    ("B_Event_Log1", decoder.decode_16bit_uint()),
+                    ("B_Event_Log2", decoder.decode_16bit_uint()),
+                    ("B_Event_Log3", decoder.decode_16bit_uint()),
+                    ("B_Event_Log4", decoder.decode_16bit_uint()),
+                    ("B_Event_Log5", decoder.decode_16bit_uint()),
+                    ("B_Event_Log6", decoder.decode_16bit_uint()),
+                    ("B_Event_Log7", decoder.decode_16bit_uint()),
+                    ("B_Event_Log8", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor1", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor2", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor3", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor4", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor5", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor6", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor7", decoder.decode_16bit_uint()),
+                    ("B_Event_Log_Vendor8", decoder.decode_16bit_uint()),
+                ]
+            )
+
+        except ModbusIOError:
+            raise ModbusReadError(
+                f"No response from inverter ID {self.inverter_unit_id}"
+            )
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
