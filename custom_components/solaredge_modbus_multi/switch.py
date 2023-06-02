@@ -68,7 +68,9 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
         self.async_write_ha_state()
 
 
-class SolarEdgeELimitControlModeBase(SolarEdgeSwitchBase):
+class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
+    entity_category = EntityCategory.CONFIG
+
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
@@ -79,14 +81,6 @@ class SolarEdgeELimitControlModeBase(SolarEdgeSwitchBase):
             super().available
             and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
         )
-
-
-class SolarEdgeExternalProduction(SolarEdgeELimitControlModeBase):
-    entity_category = EntityCategory.CONFIG
-
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
 
     @property
     def unique_id(self) -> str:
@@ -130,12 +124,19 @@ class SolarEdgeExternalProduction(SolarEdgeELimitControlModeBase):
         await self.async_update()
 
 
-class SolarEdgeNegativeSiteLimit(SolarEdgeELimitControlModeBase):
+class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     entity_category = EntityCategory.CONFIG
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
+        )
 
     @property
     def unique_id(self) -> str:
