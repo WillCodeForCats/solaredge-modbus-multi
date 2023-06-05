@@ -5,6 +5,7 @@ from collections import OrderedDict
 from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 
 try:
     from pymodbus.client import ModbusTcpClient
@@ -67,6 +68,7 @@ class SolarEdgeModbusMultiHub:
     def __init__(
         self,
         hass: HomeAssistant,
+        entry_id: str,
         name: str,
         host: str,
         port: int,
@@ -87,6 +89,7 @@ class SolarEdgeModbusMultiHub:
         self._name = name
         self._host = host
         self._port = port
+        self._entry_id = entry_id
         self._number_of_inverters = number_of_inverters
         self._start_device_id = start_device_id
         self._detect_meters = detect_meters
@@ -136,6 +139,15 @@ class SolarEdgeModbusMultiHub:
 
     async def _async_init_solaredge(self) -> None:
         if not self.is_socket_open():
+            ir.async_create_issue(
+                self._hass,
+                DOMAIN,
+                "check_configuration",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="check_configuration",
+                data={"entry_id": self._entry_id},
+            )
             raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
 
         if self._adv_storage_control:
@@ -341,12 +353,23 @@ class SolarEdgeModbusMultiHub:
 
         if not self.is_socket_open():
             self._online = False
+            ir.async_create_issue(
+                self._hass,
+                DOMAIN,
+                "check_configuration",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="check_configuration",
+                data={"entry_id": self._entry_id},
+            )
             raise DataUpdateFailed(
                 f"Could not open Modbus/TCP connection to {self._host}"
             )
 
         else:
             self._online = True
+            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+
             try:
                 for inverter in self.inverters:
                     await self._hass.async_add_executor_job(inverter.read_modbus_data)
