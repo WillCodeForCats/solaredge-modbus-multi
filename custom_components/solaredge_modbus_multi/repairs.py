@@ -1,8 +1,6 @@
 """Repairs for SolarEdge Modbus Multi Device."""
 from __future__ import annotations
 
-import ipaddress
-import re
 from typing import cast
 
 import homeassistant.helpers.config_validation as cv
@@ -13,17 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 
-from .const import ConfName
-
-
-def host_valid(host):
-    """Return True if hostname or IP address is valid."""
-    try:
-        if ipaddress.ip_address(host).version == (4 or 6):
-            return True
-    except ValueError:
-        disallowed = re.compile(r"[^a-zA-Z\d\-]")
-        return all(x and not disallowed.search(x) for x in host.split("."))
+from .const import ConfName, host_valid
 
 
 class CheckConfigurationRepairFlow(RepairsFlow):
