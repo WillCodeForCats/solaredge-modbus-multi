@@ -367,8 +367,9 @@ class SolarEdgeModbusMultiHub:
             )
 
         else:
+            if not self.online:
+                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
             self._online = True
-            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
             try:
                 for inverter in self.inverters:
