@@ -1,6 +1,5 @@
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from helpers import host_valid
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
@@ -8,6 +7,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import DEFAULT_NAME, DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName
+from .helpers import host_valid
 
 
 @callback

@@ -11,7 +11,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 
-from .const import ConfName, host_valid
+from .const import ConfName
+from .helpers import host_valid
 
 
 class CheckConfigurationRepairFlow(RepairsFlow):
