@@ -1497,7 +1497,6 @@ class SolarEdgeBattery:
 
         self.manufacturer = self.decoded_common["B_Manufacturer"]
         self.model = self.decoded_common["B_Model"]
-        self.option = None
         self.fw_version = self.decoded_common["B_Version"]
         self.serial = self.decoded_common["B_SerialNumber"]
         self.device_address = self.decoded_common["B_Device_Address"]
@@ -1588,7 +1587,6 @@ class SolarEdgeBattery:
             manufacturer=self.manufacturer,
             model=self.model,
             sw_version=self.fw_version,
-            hw_version=self.option,
         )
 
     @property
