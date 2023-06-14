@@ -60,5 +60,33 @@
       "invalid_sleep_interval": "Geldig interval is 0 tot 60 seconden.",
       "invalid_percent": "Het geldige bereik is 0 tot 100 procent."
     }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Controleer de Modbus-configuratie",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Controleer de Modbus-configuratie",
+            "description": "Er is een fout opgetreden bij het openen van een Modbus/TCP-verbinding.\n\nBevestig uw configuratie.",
+            "data": {
+              "host": "omvormer IP-adres",
+              "port": "Modbus/TCP Port",
+              "device_id": "Omvormer Modbus-adres (apparaat-ID)",
+              "number_of_inverters": "Aantal aangesloten omvormers"
+            }
+          }
+        },
+        "error": {
+          "max_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+          "min_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+          "max_inverters": "Moet tussen 1 en 32 omvormers zijn.",
+          "min_inverters": "Moet tussen 1 en 32 omvormers zijn.",
+          "too_many_inverters": "Aantal omvormers te hoog voor Device ID.",
+          "invalid_host": "Ongeldig IP-adres.",
+          "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
+        }
+      }
+    }
   }
 }

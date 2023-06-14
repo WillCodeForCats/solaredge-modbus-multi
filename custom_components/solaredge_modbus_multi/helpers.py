@@ -1,3 +1,5 @@
+import ipaddress
+import re
 import struct
 
 
@@ -32,3 +34,13 @@ def update_accum(self, accum_value: int) -> None:
         return accum_value
     else:
         raise ValueError("update_accum must be an increasing value.")
+
+
+def host_valid(host):
+    """Return True if hostname or IP address is valid."""
+    try:
+        if ipaddress.ip_address(host).version == (4 or 6):
+            return True
+    except ValueError:
+        disallowed = re.compile(r"[^a-zA-Z\d\-]")
+        return all(x and not disallowed.search(x) for x in host.split("."))

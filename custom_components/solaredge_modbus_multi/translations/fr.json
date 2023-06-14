@@ -60,5 +60,33 @@
       "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
       "invalid_percent": "La plage valide est de 0 à 100 %."
     }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Vérifier la configuration Modbus",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Vérifier la configuration Modbus",
+            "description": "Une erreur s'est produite lors de la tentative d'ouverture d'une connexion Modbus/TCP.\n\nVeuillez confirmer votre configuration.",
+            "data": {
+              "host": "Adresse IP de l'onduleur",
+              "port": "Port Modbus/TCP",
+              "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
+              "number_of_inverters": "Nombre d'onduleurs"
+            }
+          }
+        },
+        "error": {
+          "max_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+          "min_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+          "max_inverters": "Doit être entre 1 et 32 onduleurs.",
+          "min_inverters": "Doit être entre 1 et 32 onduleurs.",
+          "too_many_inverters": "Nombre d'onduleurs trop important pour l'adresse Modbus.",
+          "invalid_host": "Adresse IP invalide.",
+          "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
+        }
+      }
+    }
   }
 }

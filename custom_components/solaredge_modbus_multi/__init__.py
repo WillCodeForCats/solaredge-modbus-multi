@@ -47,6 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass,
+        entry.entry_id,
         entry.data[CONF_NAME],
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
