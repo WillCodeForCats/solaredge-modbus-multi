@@ -3,7 +3,6 @@ import logging
 import threading
 from collections import OrderedDict
 
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
