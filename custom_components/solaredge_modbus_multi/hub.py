@@ -3,8 +3,10 @@ import logging
 import threading
 from collections import OrderedDict
 
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.entity import DeviceInfo
 
 try:
     from pymodbus.client import ModbusTcpClient
@@ -703,15 +705,6 @@ class SolarEdgeInverter:
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
-        self._device_info = {
-            "identifiers": {(DOMAIN, f"{self.model}_{self.serial}")},
-            "name": self.name,
-            "manufacturer": self.manufacturer,
-            "model": self.model,
-            "sw_version": self.fw_version,
-            "hw_version": self.option,
-        }
-
     def read_modbus_data(self) -> None:
         inverter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id, address=40069, count=40
@@ -1122,8 +1115,16 @@ class SolarEdgeInverter:
         return self.hub.online
 
     @property
-    def device_info(self) -> Optional[Dict[str, Any]]:
-        return self._device_info
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"{self.model}_{self.serial}")},
+            name=self.name,
+            manufacturer=self.manufacturer,
+            model=self.model,
+            sw_version=self.fw_version,
+            hw_version=self.option,
+        )
 
     @property
     def is_mmppt(self) -> bool:
@@ -1265,15 +1266,6 @@ class SolarEdgeMeter:
         inerter_serial = self.inverter_common["C_SerialNumber"]
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
-        self._device_info = {
-            "identifiers": {(DOMAIN, self.uid_base)},
-            "name": self.name,
-            "manufacturer": self.manufacturer,
-            "model": self.model,
-            "sw_version": self.fw_version,
-            "hw_version": self.option,
-        }
-
     def read_modbus_data(self) -> None:
         meter_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id,
@@ -1390,8 +1382,16 @@ class SolarEdgeMeter:
         return self.hub.online
 
     @property
-    def device_info(self) -> Optional[Dict[str, Any]]:
-        return self._device_info
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.uid_base)},
+            name=self.name,
+            manufacturer=self.manufacturer,
+            model=self.model,
+            sw_version=self.fw_version,
+            hw_version=self.option,
+        )
 
 
 class SolarEdgeBattery:
@@ -1507,14 +1507,6 @@ class SolarEdgeBattery:
         inerter_serial = self.inverter_common["C_SerialNumber"]
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
-        self._device_info = {
-            "identifiers": {(DOMAIN, self.uid_base)},
-            "name": self.name,
-            "manufacturer": self.manufacturer,
-            "model": self.model,
-            "sw_version": self.fw_version,
-        }
-
     def read_modbus_data(self) -> None:
         battery_data = self.hub.read_holding_registers(
             unit=self.inverter_unit_id,
@@ -1588,8 +1580,15 @@ class SolarEdgeBattery:
         return self.hub.online
 
     @property
-    def device_info(self) -> Optional[Dict[str, Any]]:
-        return self._device_info
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.uid_base)},
+            name=self.name,
+            manufacturer=self.manufacturer,
+            model=self.model,
+            sw_version=self.fw_version,
+        )
 
     @property
     def allow_battery_energy_reset(self) -> bool:
