@@ -2,7 +2,6 @@ import asyncio
 import logging
 import threading
 from collections import OrderedDict
-from typing import Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
@@ -369,7 +368,7 @@ class SolarEdgeModbusMultiHub:
 
         self.initalized = True
 
-    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> bool:
+    async def async_refresh_modbus_data(self) -> bool:
         if not self.is_socket_open():
             await self.connect()
 
