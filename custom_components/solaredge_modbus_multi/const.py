@@ -1,3 +1,6 @@
+"""Constants used by SolarEdge Modbus Multi components."""
+from __future__ import annotations
+
 import sys
 from enum import IntEnum
 from typing import Final
