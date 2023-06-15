@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import ipaddress
-import re
 import struct
+
+from .const import DOMAIN_REGEX
 
 
 def scale_factor(value: int, sf: int):
@@ -43,6 +44,6 @@ def host_valid(host):
     try:
         if ipaddress.ip_address(host).version == (4 or 6):
             return True
+
     except ValueError:
-        disallowed = re.compile(r"[^a-zA-Z\d\-]")
-        return all(x and not disallowed.search(x) for x in host.split("."))
+        return DOMAIN_REGEX.match(host)
