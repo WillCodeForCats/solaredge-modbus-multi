@@ -31,18 +31,12 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry):
         return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
-    def _host_in_configuration_exists(self, host) -> bool:
-        """Return True if host exists in configuration."""
-        if host in solaredge_modbus_multi_entries(self.hass):
-            return True
-        return False
-
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
 
         if user_input is not None:
-            if self._host_in_configuration_exists(user_input[CONF_HOST]):
+            if host in solaredge_modbus_multi_entries(self.hass):
                 errors[CONF_HOST] = "already_configured"
             elif not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
