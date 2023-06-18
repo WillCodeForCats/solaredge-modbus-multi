@@ -1824,11 +1824,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                                 )
                             )
 
-                            if (
-                                self._platform.decoded_model["B_Export_Energy_WH"]
-                                == 0x0
-                            ):
-                                self._last = None
+                            self._last = None
 
                         return None
 
@@ -1850,6 +1846,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._last = None
+        self._count = 0
 
     @property
     def unique_id(self) -> str:
@@ -1892,11 +1889,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                                 )
                             ),
 
-                            if (
-                                self._platform.decoded_model["B_Import_Energy_WH"]
-                                == 0x0
-                            ):
-                                self._last = None
+                            self._last = None
 
                         return None
 
