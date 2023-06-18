@@ -1585,3 +1585,7 @@ class SolarEdgeBattery:
     @property
     def battery_rating_adjust(self) -> int:
         return self.hub.battery_rating_adjust
+
+    @property
+    def battery_energy_reset_cycles(self) -> int:
+        return self.hub.battery_energy_reset_cycles
