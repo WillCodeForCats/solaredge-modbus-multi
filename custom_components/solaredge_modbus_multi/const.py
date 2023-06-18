@@ -1,3 +1,7 @@
+"""Constants used by SolarEdge Modbus Multi components."""
+from __future__ import annotations
+
+import re
 import sys
 from enum import IntEnum
 from typing import Final
@@ -22,6 +26,18 @@ DEFAULT_NAME = "SolarEdge"
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
+
+# from voluptuous/validators.py
+DOMAIN_REGEX = re.compile(
+    # start anchor, because fullmatch is not available in python 2.7
+    "(?:"
+    # domain
+    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
+    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # end anchor, because fullmatch is not available in python 2.7
+    r")\Z",
+    re.IGNORECASE,
+)
 
 
 class RetrySettings(IntEnum):

@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+import ipaddress
 import struct
+
+from .const import DOMAIN_REGEX
 
 
 def scale_factor(value: int, sf: int):
@@ -32,3 +37,13 @@ def update_accum(self, accum_value: int) -> None:
         return accum_value
     else:
         raise ValueError("update_accum must be an increasing value.")
+
+
+def host_valid(host):
+    """Return True if hostname or IP address is valid."""
+    try:
+        if ipaddress.ip_address(host).version == (4 or 6):
+            return True
+
+    except ValueError:
+        return DOMAIN_REGEX.match(host)

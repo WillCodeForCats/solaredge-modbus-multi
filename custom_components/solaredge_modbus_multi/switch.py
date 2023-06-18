@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from homeassistant.components.switch import SwitchEntity
@@ -25,7 +27,7 @@ async def async_setup_entry(
     entities = []
 
     """ Power Control Options: Site Limit Control """
-    if hub.option_export_control is True:
+    if hub.option_site_limit_control is True:
         for inverter in hub.inverters:
             entities.append(
                 SolarEdgeExternalProduction(inverter, config_entry, coordinator)

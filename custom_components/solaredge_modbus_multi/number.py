@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from homeassistant.components.number import NumberEntity
@@ -41,7 +43,7 @@ async def async_setup_entry(
                 )
 
     """ Power Control Options: Site Limit Control """
-    if hub.option_export_control is True:
+    if hub.option_site_limit_control is True:
         for inverter in hub.inverters:
             entities.append(SolarEdgeSiteLimit(inverter, config_entry, coordinator))
             entities.append(
