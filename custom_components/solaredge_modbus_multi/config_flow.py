@@ -31,15 +31,15 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry):
         return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle the initial step."""
         errors = {}
 
         if user_input is not None:
-            if host in solaredge_modbus_multi_entries(self.hass):
-                errors[CONF_HOST] = "already_configured"
-            elif not host_valid(user_input[CONF_HOST]):
+            if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
+            elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
+                errors[CONF_HOST] = "already_configured"
             elif user_input[CONF_PORT] < 1:
                 errors[CONF_PORT] = "invalid_tcp_port"
             elif user_input[CONF_PORT] > 65535:
