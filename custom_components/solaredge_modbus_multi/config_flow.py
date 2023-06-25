@@ -24,7 +24,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Solaredge Modbus configflow."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     @staticmethod
     @callback
