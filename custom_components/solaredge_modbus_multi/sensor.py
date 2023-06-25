@@ -1825,7 +1825,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                                 )
                             )
 
-                            ++self._count
+                            self._count += 1
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 self._last = None
@@ -1894,7 +1894,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                                 )
                             ),
 
-                            ++self._count
+                            self._count += 1
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 self._last = None
