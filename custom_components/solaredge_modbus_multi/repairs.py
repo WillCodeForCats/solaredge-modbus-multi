@@ -39,6 +39,8 @@ class CheckConfigurationRepairFlow(RepairsFlow):
         errors = {}
 
         if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+
             if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
             elif user_input[CONF_PORT] < 1:
