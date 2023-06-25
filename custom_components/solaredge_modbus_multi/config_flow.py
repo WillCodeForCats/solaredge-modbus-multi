@@ -1,3 +1,4 @@
+"""Config flow for the SolarEdge Modbus Multi integration."""
 from __future__ import annotations
 
 import homeassistant.helpers.config_validation as cv
@@ -21,7 +22,7 @@ def solaredge_modbus_multi_entries(hass: HomeAssistant):
 
 
 class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Solaredge Modbus configflow."""
+    """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 1
 
@@ -31,7 +32,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input=None) -> FlowResult:
-        """Handle the initial step."""
+        """Handle the initial config flow step."""
         errors = {}
 
         if user_input is not None:
@@ -94,14 +95,16 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle an options flow for SolarEdge Modbus Multi."""
+
     def __init__(self, config_entry: ConfigEntry):
         """Initialize options flow."""
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None) -> FlowResult:
+        """Handle the initial options flow step."""
         errors = {}
 
-        """Manage the options."""
         if user_input is not None:
             if user_input[CONF_SCAN_INTERVAL] < 1:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
