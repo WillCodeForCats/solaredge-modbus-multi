@@ -51,6 +51,7 @@
         "title": "Batterieoptionen",
         "data": {
           "allow_battery_energy_reset": "Batterieenergie zurücksetzen lassen",
+          "battery_energy_reset_cycles": "Aktualisierungszyklen zum Zurücksetzen der Batterieenergie",
           "battery_rating_adjust": "Anpassung der Batterieleistung (Prozent)"
         }
       }

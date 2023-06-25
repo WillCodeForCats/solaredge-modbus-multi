@@ -1,3 +1,4 @@
+"""Config flow for the SolarEdge Modbus Multi integration."""
 from __future__ import annotations
 
 import homeassistant.helpers.config_validation as cv
@@ -16,36 +17,32 @@ from .helpers import host_valid
 def solaredge_modbus_multi_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
     return set(
-        entry.data[CONF_HOST] for entry in hass.config_entries.async_entries(DOMAIN)
+        entry.data[CONF_HOST].lower()
+        for entry in hass.config_entries.async_entries(DOMAIN)
     )
 
 
 class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Solaredge Modbus configflow."""
+    """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry):
         return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
-    def _host_in_configuration_exists(self, host) -> bool:
-        """Return True if host exists in configuration."""
-        if host in solaredge_modbus_multi_entries(self.hass):
-            return True
-        return False
-
-    async def async_step_user(self, user_input=None):
-        """Handle the initial step."""
+    async def async_step_user(self, user_input=None) -> FlowResult:
+        """Handle the initial config flow step."""
         errors = {}
 
         if user_input is not None:
-            if self._host_in_configuration_exists(user_input[CONF_HOST]):
-                errors[CONF_HOST] = "already_configured"
-            elif not host_valid(user_input[CONF_HOST]):
+            user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+
+            if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
+            elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
+                errors[CONF_HOST] = "already_configured"
             elif user_input[CONF_PORT] < 1:
                 errors[CONF_PORT] = "invalid_tcp_port"
             elif user_input[CONF_PORT] > 65535:
@@ -101,14 +98,16 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle an options flow for SolarEdge Modbus Multi."""
+
     def __init__(self, config_entry: ConfigEntry):
         """Initialize options flow."""
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None) -> FlowResult:
+        """Handle the initial options flow step."""
         errors = {}
 
-        """Manage the options."""
         if user_input is not None:
             if user_input[CONF_SCAN_INTERVAL] < 1:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
@@ -198,6 +197,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                     ConfName.ALLOW_BATTERY_ENERGY_RESET,
                     bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
                 ),
+                ConfName.BATTERY_ENERGY_RESET_CYCLES: self.config_entry.options.get(
+                    ConfName.BATTERY_ENERGY_RESET_CYCLES,
+                    ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
+                ),
                 ConfName.BATTERY_RATING_ADJUST: self.config_entry.options.get(
                     ConfName.BATTERY_RATING_ADJUST,
                     ConfDefaultInt.BATTERY_RATING_ADJUST,
@@ -212,6 +215,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         f"{ConfName.ALLOW_BATTERY_ENERGY_RESET}",
                         default=user_input[ConfName.ALLOW_BATTERY_ENERGY_RESET],
                     ): cv.boolean,
+                    vol.Optional(
+                        f"{ConfName.BATTERY_ENERGY_RESET_CYCLES}",
+                        default=user_input[ConfName.BATTERY_ENERGY_RESET_CYCLES],
+                    ): vol.Coerce(int),
                     vol.Optional(
                         f"{ConfName.BATTERY_RATING_ADJUST}",
                         default=user_input[ConfName.BATTERY_RATING_ADJUST],
