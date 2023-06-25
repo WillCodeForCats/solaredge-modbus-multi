@@ -17,7 +17,8 @@ from .helpers import host_valid
 def solaredge_modbus_multi_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
     return set(
-        entry.data[CONF_HOST] for entry in hass.config_entries.async_entries(DOMAIN)
+        entry.data[CONF_HOST].lower()
+        for entry in hass.config_entries.async_entries(DOMAIN)
     )
 
 
@@ -36,6 +37,8 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+
             if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
             elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
