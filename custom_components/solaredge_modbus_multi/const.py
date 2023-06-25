@@ -68,6 +68,7 @@ class ConfDefaultInt(IntEnum):
     DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 3
     BATTERY_RATING_ADJUST = 0
+    BATTERY_ENERGY_RESET_CYCLES = 0
 
 
 class ConfDefaultFlag(IntEnum):
@@ -92,6 +93,7 @@ class ConfName(StrEnum):
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
+    BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
 
 
 class SunSpecAccum(IntEnum):

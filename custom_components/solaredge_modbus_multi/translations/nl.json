@@ -51,6 +51,7 @@
         "title": "Batterij opties",
         "data": {
           "allow_battery_energy_reset": "Batterij-energie laten resetten",
+          "battery_energy_reset_cycles": "Update cycli om de batterij-energie te resetten",
           "battery_rating_adjust": "Aanpassing batterijvermogen (%)"
         }
       }

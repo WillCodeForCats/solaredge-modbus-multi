@@ -51,6 +51,7 @@
         "title": "Batterialternativer",
         "data": {
           "allow_battery_energy_reset": "La batterienergien tilbakestilles",
+          "battery_energy_reset_cycles": "Oppdater sykluser for å tilbakestille batterienergi",
           "battery_rating_adjust": "Justering av batterikapasitet (prosent)"
         }
       }
