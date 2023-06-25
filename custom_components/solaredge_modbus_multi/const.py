@@ -62,6 +62,8 @@ class BatteryLimit(IntEnum):
 
 
 class ConfDefaultInt(IntEnum):
+    """Defaults for options that are integers."""
+
     SCAN_INTERVAL = 300
     PORT = 1502
     NUMBER_INVERTERS = 1
@@ -72,6 +74,8 @@ class ConfDefaultInt(IntEnum):
 
 
 class ConfDefaultFlag(IntEnum):
+    """Defaults for options that are booleans."""
+
     DETECT_METERS = 1
     DETECT_BATTERIES = 0
     KEEP_MODBUS_OPEN = 0
