@@ -144,7 +144,7 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = None
 
         self.initalized = False
-        self._online = False
+        self._online = True
 
         _LOGGER.debug(
             (
