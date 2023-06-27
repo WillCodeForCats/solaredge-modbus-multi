@@ -27,8 +27,6 @@ DEFAULT_NAME = "SolarEdge"
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
-INVERTER_TIMEOUT = 5000  # milliseconds
-
 # from voluptuous/validators.py
 DOMAIN_REGEX = re.compile(
     # start anchor, because fullmatch is not available in python 2.7
@@ -40,6 +38,13 @@ DOMAIN_REGEX = re.compile(
     r")\Z",
     re.IGNORECASE,
 )
+
+
+class SolarEdgeTimeouts(IntEnum):
+    """Timeouts in milliseconds."""
+
+    Inverter = 5000
+    Device = 1200
 
 
 class RetrySettings(IntEnum):
