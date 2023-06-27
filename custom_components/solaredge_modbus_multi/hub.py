@@ -129,7 +129,6 @@ class SolarEdgeModbusMultiHub:
         self._sleep_after_write = sleep_after_write
         self._battery_rating_adjust = battery_rating_adjust
         self._battery_energy_reset_cycles = battery_energy_reset_cycles
-        self._coordinator_timeout = 30
         self._client = None
         self._id = name.lower()
         self._lock = threading.Lock()
