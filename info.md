@@ -1,4 +1,4 @@
-## SolarEdge Modbus Multi Integration
+## SolarEdge Modbus Multi
 
 Integrates SolarEdge inverters with Modbus/TCP local polling. Single inverters, multiple inverters, meters, and batteries are supported.
 
