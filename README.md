@@ -1,10 +1,10 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-# SolarEdge Modbus Multi Device
+# SolarEdge Modbus Multi
 
-Home Assistant integration `solaredge-modbus-multi` was designed for SolarEdge inverters using Modbus/TCP. It supports single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
+Home Assistant integration `solaredge-modbus-multi` supports SolarEdge inverters with Modbus/TCP local polling. It works with single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
 
-It is designed to communicate locally using Modbus/TCP where you have a single Leader inverter connected with one or more Follower inverters chained using the RS485 bus. Inverters support up to three meters and two batteries over modbus.
+It is designed to communicate locally using Modbus/TCP where you have a single Leader inverter connected with one or more Follower inverters chained using the RS485 bus. Each inverter can connect to three meters and two batteries.
 
 Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
 
