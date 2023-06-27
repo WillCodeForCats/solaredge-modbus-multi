@@ -560,14 +560,12 @@ class SolarEdgeModbusMultiHub:
 
         except ConnectionException as e:
             _LOGGER.error(f"Write command failed: {e}")
-            self._online = False
             await self.disconnect()
 
         else:
             if result.isError():
                 if type(result) is ModbusIOException:
                     _LOGGER.error("Write command failed: No response from device.")
-                    self._online = False
                     await self.disconnect()
 
                 elif type(result) is ExceptionResponse:
@@ -578,7 +576,6 @@ class SolarEdgeModbusMultiHub:
                                 f"Illegal address {hex(self._wr_address)}"
                             ),
                         )
-                        self._online = False
                         await self.disconnect()
 
                 else:
