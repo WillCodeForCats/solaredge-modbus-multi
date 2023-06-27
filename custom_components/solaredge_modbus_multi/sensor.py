@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import re
 
@@ -1780,6 +1782,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._last = None
+        self._count = 0
 
     @property
     def unique_id(self) -> str:
@@ -1822,11 +1825,11 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                                 )
                             )
 
-                            if (
-                                self._platform.decoded_model["B_Export_Energy_WH"]
-                                == 0x0
-                            ):
+                            self._count += 1
+
+                            if self._count > self._platform.battery_energy_reset_cycles:
                                 self._last = None
+                                self._count = 0
 
                         return None
 
@@ -1848,6 +1851,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._last = None
+        self._count = 0
 
     @property
     def unique_id(self) -> str:
@@ -1890,11 +1894,11 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                                 )
                             ),
 
-                            if (
-                                self._platform.decoded_model["B_Import_Energy_WH"]
-                                == 0x0
-                            ):
+                            self._count += 1
+
+                            if self._count > self._platform.battery_energy_reset_cycles:
                                 self._last = None
+                                self._count = 0
 
                         return None
 

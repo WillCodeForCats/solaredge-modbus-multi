@@ -1,10 +1,10 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-# SolarEdge Modbus Multi Device
+# SolarEdge Modbus Multi
 
-Home Assistant integration `solaredge-modbus-multi` was designed for SolarEdge inverters using Modbus/TCP. It supports single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
+Home Assistant integration `solaredge-modbus-multi` supports SolarEdge inverters with Modbus/TCP local polling. It works with single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
 
-It is designed to communicate locally using Modbus/TCP where you have a single Leader inverter connected with one or more Follower inverters chained using the RS485 bus. Inverters support up to three meters and two batteries over modbus.
+It is designed to communicate locally using Modbus/TCP where you have a single Leader inverter connected with one or more Follower inverters chained using the RS485 bus. Each inverter can connect to three meters and two batteries.
 
 Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
 
@@ -12,11 +12,12 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * Inverter support for 1 to 32 SolarEdge inverters.
 * Meter support for 1 to 3 meters per inverter.
 * Battery support for 1 or 2 batteries per inverter.
+* Supports site limit and storage controls.
 * Automatically detects meters and batteries.
 * Supports Three Phase Inverters with Synergy Technology.
 * Polling frequency configuration option (1 to 86400 seconds).
 * Configurable starting inverter device ID.
-* Connects using Modbus/TCP - no cloud dependencies.
+* Connects locally using Modbus/TCP - no cloud dependencies.
 * Informational sensor for device and its attributes
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
@@ -53,3 +54,4 @@ After rebooting Home Assistant, this integration can be configured through the i
 * [@dominikamann](https://github.com/dominikamann)
 * [@maksyms](https://github.com/maksyms)
 * [@pwo108](https://github.com/pwo108)
+* [@barrown](https://github.com/barrown)

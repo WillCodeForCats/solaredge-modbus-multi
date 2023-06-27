@@ -51,6 +51,7 @@
         "title": "Opcje baterii",
         "data": {
           "allow_battery_energy_reset": "Zezwól na zresetowanie energii baterii",
+          "battery_energy_reset_cycles": "Zaktualizuj cykle, aby zresetować energię baterii",
           "battery_rating_adjust": "Regulacja oceny baterii (w procentach)"
         }
       }
@@ -59,6 +60,34 @@
       "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund.",
       "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 60 sekund.",
       "invalid_percent": "Prawidłowy zakres wynosi od 0 do 100 procent."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Sprawdź konfigurację Modbus",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Sprawdź konfigurację Modbus",
+            "description": "Wystąpił błąd podczas próby otwarcia połączenia Modbus/TCP.\n\nPotwierdź konfigurację.",
+            "data": {
+              "host": "Adres IP inwertera",
+              "port": "Modbus/TCP Port",
+              "device_id": "Adres Modbus Inwertera (Device ID)",
+              "number_of_inverters": "Ilość inwerterów"
+            }
+          }
+        },
+        "error": {
+          "max_device_id": "Device ID musi być pomiędzy  1 i 247.",
+          "min_device_id": "Device ID musi być pomiędzy  1 i 247.",
+          "max_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
+          "min_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
+          "too_many_inverters": "Liczba inwerterów za duża dla Device ID.",
+          "invalid_host": "Błędny adres IP.",
+          "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535."
+        }
+      }
     }
   }
 }

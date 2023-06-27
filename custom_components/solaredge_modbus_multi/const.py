@@ -1,3 +1,7 @@
+"""Constants used by SolarEdge Modbus Multi components."""
+from __future__ import annotations
+
+import re
 import sys
 from enum import IntEnum
 from typing import Final
@@ -24,6 +28,18 @@ ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
 INVERTER_TIMEOUT = 5000  # milliseconds
+
+# from voluptuous/validators.py
+DOMAIN_REGEX = re.compile(
+    # start anchor, because fullmatch is not available in python 2.7
+    "(?:"
+    # domain
+    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
+    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # end anchor, because fullmatch is not available in python 2.7
+    r")\Z",
+    re.IGNORECASE,
+)
 
 
 class RetrySettings(IntEnum):
@@ -54,6 +70,7 @@ class ConfDefaultInt(IntEnum):
     DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 3
     BATTERY_RATING_ADJUST = 0
+    BATTERY_ENERGY_RESET_CYCLES = 0
 
 
 class ConfDefaultFlag(IntEnum):
@@ -78,6 +95,7 @@ class ConfName(StrEnum):
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
+    BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
 
 
 class SunSpecAccum(IntEnum):
@@ -156,12 +174,12 @@ VENDOR_STATUS = {
     35: "AC Frequency Too Low",
     41: "AC Voltage Too Low",
     44: "No Country Selected",
-    64: "AC Voltage Too High",
-    65: "AC Voltage Too High",
-    66: "AC Voltage Too High",
     61: "AC Voltage Too Low",
     62: "AC Voltage Too Low",
     63: "AC Voltage Too Low",
+    64: "AC Voltage Too High",
+    65: "AC Voltage Too High",
+    66: "AC Voltage Too High",
     67: "AC Voltage Too Low",
     68: "AC Voltage Too Low",
     69: "AC Voltage Too Low",

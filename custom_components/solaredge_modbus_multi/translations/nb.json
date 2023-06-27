@@ -51,6 +51,7 @@
         "title": "Batterialternativer",
         "data": {
           "allow_battery_energy_reset": "La batterienergien tilbakestilles",
+          "battery_energy_reset_cycles": "Oppdater sykluser for å tilbakestille batterienergi",
           "battery_rating_adjust": "Justering av batterikapasitet (prosent)"
         }
       }
@@ -59,6 +60,34 @@
       "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
       "invalid_sleep_interval": "Gyldig intervall er 0 til 60 sekunder.",
       "invalid_percent": "Gyldig område er 0 til 100 prosent."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Sjekk Modbus-konfigurasjon",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Sjekk Modbus-konfigurasjon",
+            "description": "Det oppstod en feil under forsøk på å åpne en Modbus/TCP-tilkobling.\n\nBekreft konfigurasjonen.",
+            "data": {
+              "host": "IP-adres van omvormer",
+              "port": "Modbus/TCP-poort",
+              "device_id": "Inverter Modbus-adresse (enhets-ID)",
+              "number_of_inverters": "Antall omformere koblet sammen"
+            }
+          }
+        },
+        "error": {
+          "max_device_id": "Enhets-ID må være mellom 1 og 247.",
+          "min_device_id": "Enhets-ID må være mellom 1 og 247.",
+          "max_inverters": "Må være mellom 1 og 32 omformere.",
+          "min_inverters": "Må være mellom 1 og 32 omformere.",
+          "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+          "invalid_host": "Ugyldig IP-adresse.",
+          "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
+        }
+      }
     }
   }
 }

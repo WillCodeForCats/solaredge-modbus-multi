@@ -1,4 +1,6 @@
-"""The SolarEdge Modbus Integration."""
+"""The SolarEdge Modbus Multi Integration."""
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import timedelta
@@ -32,7 +34,7 @@ PLATFORMS: list[str] = [
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up SolarEdge Modbus from a config entry."""
+    """Set up SolarEdge Modbus Muti from a config entry."""
 
     entry_updates: dict[str, Any] = {}
     if CONF_SCAN_INTERVAL in entry.data:
@@ -47,6 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass,
+        entry.entry_id,
         entry.data[CONF_NAME],
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
@@ -76,6 +79,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
         entry.options.get(
             ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
+        ),
+        entry.options.get(
+            ConfName.BATTERY_ENERGY_RESET_CYCLES,
+            bool(ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES),
         ),
     )
 
@@ -212,6 +219,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         :return: result of first successful invocation
         :raises: last invocation exception if attempts exhausted
                  or exception is not an instance of ex_type
+        Credit: https://gist.github.com/davidohana/c0518ff6a6b95139e905c8a8caef9995
         """
         attempt = 1
         while True:

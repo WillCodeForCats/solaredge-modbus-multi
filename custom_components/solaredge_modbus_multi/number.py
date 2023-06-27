@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from homeassistant.components.number import NumberEntity
@@ -28,28 +30,20 @@ async def async_setup_entry(
 
     """ Power Control Options: Storage Control """
     if hub.option_storage_control is True:
-        for battery in hub.batteries:
-            for inverter in hub.inverters:
-                if inverter.inverter_unit_id != battery.inverter_unit_id:
-                    continue
+        for inverter in hub.inverters:
+            if inverter.decoded_storage_control is False:
+                continue
+            entities.append(StorageACChargeLimit(inverter, config_entry, coordinator))
+            entities.append(StorageBackupReserve(inverter, config_entry, coordinator))
+            entities.append(StorageCommandTimeout(inverter, config_entry, coordinator))
+            if inverter.has_battery is True:
+                entities.append(StorageChargeLimit(inverter, config_entry, coordinator))
                 entities.append(
-                    StorageACChargeLimit(inverter, config_entry, coordinator)
-                )
-                entities.append(
-                    StorageBackupReserve(inverter, config_entry, coordinator)
-                )
-                entities.append(
-                    StorageCommandTimeout(inverter, config_entry, coordinator)
-                )
-                entities.append(
-                    StorageChargeLimit(inverter, battery, config_entry, coordinator)
-                )
-                entities.append(
-                    StorageDischargeLimit(inverter, battery, config_entry, coordinator)
+                    StorageDischargeLimit(inverter, config_entry, coordinator)
                 )
 
     """ Power Control Options: Site Limit Control """
-    if hub.option_export_control is True:
+    if hub.option_site_limit_control is True:
         for inverter in hub.inverters:
             entities.append(SolarEdgeSiteLimit(inverter, config_entry, coordinator))
             entities.append(
@@ -115,18 +109,22 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         return "AC Charge Limit"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def available(self) -> bool:
         # Available for AC charge policies 2 & 3
-        return self._platform.online and self._platform.decoded_storage[
+        return self._platform.online and self._platform.decoded_storage_control[
             "ac_charge_policy"
         ] in [2, 3]
 
     @property
     def native_unit_of_measurement(self) -> str | None:
         # kWh in AC policy "Fixed Energy Limit", % in AC policy "Percent of Production"
-        if self._platform.decoded_storage["ac_charge_policy"] == 2:
+        if self._platform.decoded_storage_control["ac_charge_policy"] == 2:
             return UnitOfEnergy.KILO_WATT_HOUR
-        elif self._platform.decoded_storage["ac_charge_policy"] == 3:
+        elif self._platform.decoded_storage_control["ac_charge_policy"] == 3:
             return PERCENTAGE
         else:
             return None
@@ -138,9 +136,9 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
     @property
     def native_max_value(self) -> float:
         # 100MWh in AC policy "Fixed Energy Limit"
-        if self._platform.decoded_storage["ac_charge_policy"] == 2:
+        if self._platform.decoded_storage_control["ac_charge_policy"] == 2:
             return 100000000
-        elif self._platform.decoded_storage["ac_charge_policy"] == 3:
+        elif self._platform.decoded_storage_control["ac_charge_policy"] == 3:
             return 100
         else:
             return 0
@@ -148,14 +146,14 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
     @property
     def native_value(self) -> float | None:
         if (
-            self._platform.decoded_storage is False
-            or float_to_hex(self._platform.decoded_storage["ac_charge_limit"])
+            self._platform.decoded_storage_control is False
+            or float_to_hex(self._platform.decoded_storage_control["ac_charge_limit"])
             == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage["ac_charge_limit"] < 0
+            or self._platform.decoded_storage_control["ac_charge_limit"] < 0
         ):
             return None
 
-        return round(self._platform.decoded_storage["ac_charge_limit"], 3)
+        return round(self._platform.decoded_storage_control["ac_charge_limit"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -185,17 +183,21 @@ class StorageBackupReserve(SolarEdgeNumberBase):
         return "Backup Reserve"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def native_value(self) -> float | None:
         if (
-            self._platform.decoded_storage is False
-            or float_to_hex(self._platform.decoded_storage["backup_reserve"])
+            self._platform.decoded_storage_control is False
+            or float_to_hex(self._platform.decoded_storage_control["backup_reserve"])
             == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage["backup_reserve"] < 0
-            or self._platform.decoded_storage["backup_reserve"] > 100
+            or self._platform.decoded_storage_control["backup_reserve"] < 0
+            or self._platform.decoded_storage_control["backup_reserve"] > 100
         ):
             return None
 
-        return round(self._platform.decoded_storage["backup_reserve"], 3)
+        return round(self._platform.decoded_storage_control["backup_reserve"], 3)
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -225,24 +227,28 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
         return "Storage Command Timeout"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def available(self) -> bool:
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storage["control_mode"] == 4
+            and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
     @property
     def native_value(self) -> int | None:
         if (
-            self._platform.decoded_storage is False
-            or self._platform.decoded_storage["command_timeout"]
+            self._platform.decoded_storage_control is False
+            or self._platform.decoded_storage_control["command_timeout"]
             == SunSpecNotImpl.UINT32
-            or self._platform.decoded_storage["command_timeout"] > 86400
+            or self._platform.decoded_storage_control["command_timeout"] > 86400
         ):
             return None
 
-        return int(self._platform.decoded_storage["command_timeout"])
+        return int(self._platform.decoded_storage_control["command_timeout"])
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -260,9 +266,8 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, inverter, battery, config_entry, coordinator):
+    def __init__(self, inverter, config_entry, coordinator):
         super().__init__(inverter, config_entry, coordinator)
-        self._battery = battery
 
     @property
     def unique_id(self) -> str:
@@ -277,7 +282,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storage["control_mode"] == 4
+            and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
     @property
@@ -287,14 +292,14 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     @property
     def native_value(self) -> float | None:
         if (
-            self._platform.decoded_storage is False
-            or float_to_hex(self._platform.decoded_storage["charge_limit"])
+            self._platform.decoded_storage_control is False
+            or float_to_hex(self._platform.decoded_storage_control["charge_limit"])
             == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage["charge_limit"] < 0
+            or self._platform.decoded_storage_control["charge_limit"] < 0
         ):
             return None
 
-        return int(self._platform.decoded_storage["charge_limit"])
+        return int(self._platform.decoded_storage_control["charge_limit"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
@@ -312,9 +317,8 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, inverter, battery, config_entry, coordinator):
+    def __init__(self, inverter, config_entry, coordinator):
         super().__init__(inverter, config_entry, coordinator)
-        self._battery = battery
 
     @property
     def unique_id(self) -> str:
@@ -329,7 +333,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
         # Available only in remote control mode
         return (
             self._platform.online
-            and self._platform.decoded_storage["control_mode"] == 4
+            and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
     @property
@@ -339,14 +343,14 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     @property
     def native_value(self) -> float | None:
         if (
-            self._platform.decoded_storage is False
-            or float_to_hex(self._platform.decoded_storage["discharge_limit"])
+            self._platform.decoded_storage_control is False
+            or float_to_hex(self._platform.decoded_storage_control["discharge_limit"])
             == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage["discharge_limit"] < 0
+            or self._platform.decoded_storage_control["discharge_limit"] < 0
         ):
             return None
 
-        return int(self._platform.decoded_storage["discharge_limit"])
+        return int(self._platform.decoded_storage_control["discharge_limit"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")

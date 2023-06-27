@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from homeassistant.components.switch import SwitchEntity
@@ -23,7 +25,7 @@ async def async_setup_entry(
     entities = []
 
     """ Power Control Options: Site Limit Control """
-    if hub.option_export_control is True:
+    if hub.option_site_limit_control is True:
         for inverter in hub.inverters:
             entities.append(
                 SolarEdgeExternalProduction(inverter, config_entry, coordinator)
@@ -76,6 +78,13 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         """Initialize the sensor."""
 
     @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
+        )
+
+    @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_external_production"
 
@@ -123,6 +132,13 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
+        )
 
     @property
     def unique_id(self) -> str:
