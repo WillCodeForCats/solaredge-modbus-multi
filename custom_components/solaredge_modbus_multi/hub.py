@@ -471,6 +471,14 @@ class SolarEdgeModbusMultiHub:
     def battery_energy_reset_cycles(self) -> int:
         return self._battery_energy_reset_cycles
 
+    @property
+    def number_of_meters(self) -> int:
+        return self.meters.count()
+
+    @property
+    def number_of_batteries(self) -> int:
+        return self.batteries.count()
+
     @keep_modbus_open.setter
     def keep_modbus_open(self, value: bool) -> None:
         if value is True:
