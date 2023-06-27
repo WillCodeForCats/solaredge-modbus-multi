@@ -1,6 +1,6 @@
 {
   "domain": "solaredge_modbus_multi",
-  "name": "SolarEdge Modbus Multi Device",
+  "name": "SolarEdge Modbus Multi",
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
   "dependencies": [],
