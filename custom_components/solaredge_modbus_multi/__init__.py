@@ -189,13 +189,12 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            async with async_timeout.timeout(self._hub.coordinator_timeout):
-                return await self._refresh_modbus_data_with_retry(
-                    ex_type=DataUpdateFailed,
-                    limit=RetrySettings.Limit,
-                    wait_ms=RetrySettings.Time,
-                    wait_ratio=RetrySettings.Ratio,
-                )
+            return await self._refresh_modbus_data_with_retry(
+                ex_type=DataUpdateFailed,
+                limit=RetrySettings.Limit,
+                wait_ms=RetrySettings.Time,
+                wait_ratio=RetrySettings.Ratio,
+            )
 
         except HubInitFailed as e:
             raise UpdateFailed(f"{e}")
@@ -224,7 +223,8 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         attempt = 1
         while True:
             try:
-                return await self._hub.async_refresh_modbus_data()
+                async with async_timeout.timeout(self._hub.coordinator_timeout):
+                    return await self._hub.async_refresh_modbus_data()
             except Exception as ex:
                 if not isinstance(ex, ex_type):
                     raise ex
