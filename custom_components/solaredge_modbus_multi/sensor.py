@@ -1191,14 +1191,7 @@ class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.global_power_control is not True
-            or self._platform.online is not True
-        ):
-            return False
-
-        else:
-            return True
+        return super().available and self._platform.global_power_control
 
 
 class StatusVendor(SolarEdgeSensorBase):
