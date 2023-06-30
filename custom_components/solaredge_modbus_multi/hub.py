@@ -606,51 +606,7 @@ class SolarEdgeInverter:
     def init_device(self) -> None:
         try:
             inverter_data = self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40000, count=4
-            )
-
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.Big
-            )
-
-            decoded_ident = OrderedDict(
-                [
-                    ("C_SunSpec_ID", decoder.decode_32bit_uint()),
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-                ]
-            )
-
-            for name, value in iter(decoded_ident.items()):
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                    ),
-                )
-
-            if (
-                decoded_ident["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
-                or decoded_ident["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-                or decoded_ident["C_SunSpec_ID"] != 0x53756E53
-                or decoded_ident["C_SunSpec_DID"] != 0x0001
-                or decoded_ident["C_SunSpec_Length"] != 65
-            ):
-                raise DeviceInvalid(
-                    f"ID {self.inverter_unit_id} is not a SunSpec inverter."
-                )
-
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
-
-        except ModbusIllegalAddress:
-            raise DeviceInvalid(
-                f"ID {self.inverter_unit_id} is not a SunSpec inverter."
-            )
-
-        try:
-            inverter_data = self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40004, count=65
+                unit=self.inverter_unit_id, address=40000, count=69
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -659,6 +615,9 @@ class SolarEdgeInverter:
 
             self.decoded_common = OrderedDict(
                 [
+                    ("C_SunSpec_ID", decoder.decode_32bit_uint()),
+                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
+                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
                         "C_Manufacturer",
                         parse_modbus_string(decoder.decode_string(32)),
@@ -686,6 +645,22 @@ class SolarEdgeInverter:
 
         except ModbusIOError:
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
+
+        except ModbusIllegalAddress:
+            raise DeviceInvalid(
+                f"ID {self.inverter_unit_id} is not a SunSpec inverter."
+            )
+
+        if (
+            self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
+            or self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+            or self.decoded_common["C_SunSpec_ID"] != 0x53756E53
+            or self.decoded_common["C_SunSpec_DID"] != 0x0001
+            or self.decoded_common["C_SunSpec_Length"] != 65
+        ):
+            raise DeviceInvalid(
+                f"ID {self.inverter_unit_id} is not a SunSpec inverter."
+            )
 
         try:
             mmppt_common = self.hub.modbus_read_holding_registers(
