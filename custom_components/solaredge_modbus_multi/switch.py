@@ -204,10 +204,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     @property
     def is_on(self) -> bool | None:
         try:
-            if self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1:
-                return True
-            else:
-                return False
+            return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1
 
         except KeyError:
             return None
