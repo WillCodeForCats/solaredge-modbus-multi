@@ -191,7 +191,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
-        return super().available and self._platform.advanced_power_control is True
+        return super().available and self._platform.advanced_power_control
 
     @property
     def unique_id(self) -> str:
