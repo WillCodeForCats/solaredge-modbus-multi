@@ -115,7 +115,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         # Available for AC charge policies 2 & 3
-        return self._platform.online and self._platform.decoded_storage_control[
+        return super().available and self._platform.decoded_storage_control[
             "ac_charge_policy"
         ] in [2, 3]
 
@@ -234,7 +234,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
     def available(self) -> bool:
         # Available only in remote control mode
         return (
-            self._platform.online
+            super().available
             and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
@@ -281,7 +281,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     def available(self) -> bool:
         # Available only in remote control mode
         return (
-            self._platform.online
+            super().available
             and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
@@ -332,7 +332,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     def available(self) -> bool:
         # Available only in remote control mode
         return (
-            self._platform.online
+            super().available
             and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
@@ -382,7 +382,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         try:
-            return self._platform.online and (
+            return super().available and (
                 (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1
                 or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 1) & 1
                 or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2) & 1
@@ -437,7 +437,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     def available(self) -> bool:
         try:
             return (
-                self._platform.online
+                super().available
                 and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
             )
 
