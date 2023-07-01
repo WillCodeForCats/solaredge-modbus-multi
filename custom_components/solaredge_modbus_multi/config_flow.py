@@ -4,7 +4,7 @@ from __future__ import annotations
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
@@ -29,7 +29,8 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry):
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input=None) -> FlowResult:
@@ -97,7 +98,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
+class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
     """Handle an options flow for SolarEdge Modbus Multi."""
 
     def __init__(self, config_entry: ConfigEntry):
