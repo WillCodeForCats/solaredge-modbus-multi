@@ -298,6 +298,14 @@ MMPPT_EVENTS = {
     22: "INPUT_OVER_CURRENT",
 }
 
+REACTIVE_POWER_CONFIG = {
+    0: "Fixed CosPhi",
+    1: "Fixed Q",
+    2: "CosPhi(P)",
+    3: "Q(U) + Q(P)",
+    4: "RRCR",
+}
+
 STORAGE_CONTROL_MODE = {
     0: "Disabled",
     1: "Maximize Self Consumption",
