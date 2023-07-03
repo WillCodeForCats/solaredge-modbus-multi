@@ -27,18 +27,17 @@ async def async_setup_entry(
     entities = []
 
     """ Power Control Options: Site Limit Control """
-    if hub.option_site_limit_control is True:
-        for inverter in hub.inverters:
+    for inverter in hub.inverters:
+        if hub.option_site_limit_control is True:
             entities.append(
                 SolarEdgeExternalProduction(inverter, config_entry, coordinator)
             )
             entities.append(
                 SolarEdgeNegativeSiteLimit(inverter, config_entry, coordinator)
             )
-            if inverter.advanced_power_control:
-                entities.append(
-                    SolarEdgeGridControl(inverter, config_entry, coordinator)
-                )
+
+        if inverter.advanced_power_control:
+            entities.append(SolarEdgeGridControl(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
