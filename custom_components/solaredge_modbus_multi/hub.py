@@ -103,7 +103,6 @@ class SolarEdgeModbusMultiHub:
         detect_meters: bool = True,
         detect_batteries: bool = False,
         keep_modbus_open: bool = False,
-        advanced_power_control: bool = False,
         adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
@@ -122,7 +121,6 @@ class SolarEdgeModbusMultiHub:
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
         self._keep_modbus_open = keep_modbus_open
-        self._advanced_power_control = advanced_power_control
         self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
@@ -154,7 +152,6 @@ class SolarEdgeModbusMultiHub:
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
-                f"advanced_power_control={self._advanced_power_control}, "
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
