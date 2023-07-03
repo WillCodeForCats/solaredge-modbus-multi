@@ -35,8 +35,10 @@ async def async_setup_entry(
             entities.append(
                 SolarEdgeNegativeSiteLimit(inverter, config_entry, coordinator)
             )
-        if inverter.advanced_power_control:
-            entities.append(SolarEdgeGridControl(inverter, config_entry, coordinator))
+            if inverter.advanced_power_control:
+                entities.append(
+                    SolarEdgeGridControl(inverter, config_entry, coordinator)
+                )
 
     if entities:
         async_add_entities(entities)
