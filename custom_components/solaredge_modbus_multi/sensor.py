@@ -207,7 +207,7 @@ class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        return self._platform.online
+        return super().available and self._platform.online
 
     @callback
     def _handle_coordinator_update(self) -> None:

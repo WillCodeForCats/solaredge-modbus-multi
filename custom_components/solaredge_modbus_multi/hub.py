@@ -142,7 +142,7 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = None
 
         self.initalized = False
-        self._online = False
+        self._online = True
 
         _LOGGER.debug(
             (
@@ -408,18 +408,15 @@ class SolarEdgeModbusMultiHub:
                     await self._hass.async_add_executor_job(battery.read_modbus_data)
 
             except ModbusReadError as e:
-                self._online = False
                 await self.disconnect()
                 raise DataUpdateFailed(f"Update failed: {e}")
 
             except DeviceInvalid as e:
-                self._online = False
                 if not self._keep_modbus_open:
                     await self.disconnect()
                 raise DataUpdateFailed(f"Invalid device: {e}")
 
             except ConnectionException as e:
-                self._online = False
                 await self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
@@ -557,14 +554,12 @@ class SolarEdgeModbusMultiHub:
 
         except ConnectionException as e:
             _LOGGER.error(f"Write command failed: {e}")
-            self._online = False
             await self.disconnect()
 
         else:
             if result.isError():
                 if type(result) is ModbusIOException:
                     _LOGGER.error("Write command failed: No response from device.")
-                    self._online = False
                     await self.disconnect()
 
                 elif type(result) is ExceptionResponse:
@@ -575,7 +570,6 @@ class SolarEdgeModbusMultiHub:
                                 f"Illegal address {hex(self._wr_address)}"
                             ),
                         )
-                        self._online = False
                         await self.disconnect()
 
                 else:
