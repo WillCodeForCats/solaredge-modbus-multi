@@ -10,7 +10,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 
 try:
-    from pymodbus.client import ModbusTcpClient
+    from pymodbus.client import AsyncModbusTcpClient
     from pymodbus.constants import Endian
     from pymodbus.exceptions import ConnectionException, ModbusIOException
     from pymodbus.payload import BinaryPayloadDecoder
@@ -161,7 +161,7 @@ class SolarEdgeModbusMultiHub:
         )
 
     async def _async_init_solaredge(self) -> None:
-        if not self.is_socket_open():
+        if not self.is_connected:
             ir.async_create_issue(
                 self._hass,
                 DOMAIN,
@@ -368,7 +368,7 @@ class SolarEdgeModbusMultiHub:
         self.initalized = True
 
     async def async_refresh_modbus_data(self) -> bool:
-        if not self.is_socket_open():
+        if not self.is_connected:
             await self.connect()
 
         if not self.initalized:
@@ -379,7 +379,7 @@ class SolarEdgeModbusMultiHub:
                 await self.disconnect()
                 raise HubInitFailed(f"Setup failed: {e}")
 
-        if not self.is_socket_open():
+        if not self.is_connected:
             self._online = False
             ir.async_create_issue(
                 self._hass,
@@ -481,25 +481,24 @@ class SolarEdgeModbusMultiHub:
         return self._coordinator_timeout
 
     async def disconnect(self) -> None:
-        """Disconnect modbus client."""
-        async with self._lock:
-            if self._client is not None:
-                await self._hass.async_add_executor_job(self._client.close)
+        if self._client is not None:
+            await self._client.close()
 
     async def connect(self) -> None:
         """Connect modbus client."""
         async with self._lock:
             if self._client is None:
-                self._client = ModbusTcpClient(host=self._host, port=self._port)
+                self._client = AsyncModbusTcpClient(host=self._host, port=self._port)
 
-            await self._hass.async_add_executor_job(self._client.connect)
+            await self._client.connect()
 
-    def is_socket_open(self) -> bool:
+    @property
+    def is_connected(self) -> bool:
         """Check modbus client connection status."""
         if self._client is None:
             return False
 
-        return self._client.is_socket_open()
+        return self._client.connected
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
@@ -507,20 +506,16 @@ class SolarEdgeModbusMultiHub:
         await self.disconnect()
         self._client = None
 
-    def _read_holding_registers(self) -> None:
-        kwargs = {"slave": self._rr_unit} if self._rr_unit else {}
-        return self._client.read_holding_registers(
-            self._rr_address, self._rr_count, **kwargs
-        )
-
     async def modbus_read_holding_registers(self, unit, address, rcount):
         self._rr_unit = unit
         self._rr_address = address
         self._rr_count = rcount
 
         async with self._lock:
-            result = await self._hass.async_add_executor_job(
-                self._read_holding_registers
+            kwargs = {"slave": self._rr_unit} if self._rr_unit else {}
+
+            result = await self._client.read_holding_registers(
+                self._rr_address, self._rr_count, **kwargs
             )
 
         if result.isError():
@@ -543,23 +538,20 @@ class SolarEdgeModbusMultiHub:
 
         return result
 
-    def _write_registers(self) -> None:
-        kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
-        return self._client.write_registers(
-            self._wr_address, self._wr_payload, **kwargs
-        )
-
     async def write_registers(self, unit: int, address: int, payload) -> None:
         self._wr_unit = unit
         self._wr_address = address
         self._wr_payload = payload
 
         try:
-            if not self.is_socket_open():
+            if not self.is_connected:
                 await self.connect()
 
             async with self._lock:
-                result = await self._hass.async_add_executor_job(self._write_registers)
+                kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
+                result = await self._client.write_registers(
+                    self._wr_address, self._wr_payload, **kwargs
+                )
 
             if self._sleep_after_write > 0:
                 _LOGGER.debug(
