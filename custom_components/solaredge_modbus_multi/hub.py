@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import threading
 from collections import OrderedDict
 
 from homeassistant.core import HomeAssistant
@@ -131,7 +130,7 @@ class SolarEdgeModbusMultiHub:
         self._coordinator_timeout = 30
         self._client = None
         self._id = name.lower()
-        self._lock = threading.Lock()
+        self._lock = asyncio.Lock()
         self.inverters = []
         self.meters = []
         self.batteries = []
@@ -195,7 +194,7 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
-                await self._hass.async_add_executor_job(new_inverter.init_device)
+                await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
             except ModbusReadError as e:
@@ -210,7 +209,7 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 try:
                     new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
-                    await self._hass.async_add_executor_job(new_meter_1.init_device)
+                    await new_meter_1.init_device()
 
                     for meter in self.meters:
                         if new_meter_1.serial == meter.serial:
@@ -237,7 +236,7 @@ class SolarEdgeModbusMultiHub:
 
                 try:
                     new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
-                    await self._hass.async_add_executor_job(new_meter_2.init_device)
+                    await new_meter_2.init_device()
 
                     for meter in self.meters:
                         if new_meter_2.serial == meter.serial:
@@ -264,7 +263,7 @@ class SolarEdgeModbusMultiHub:
 
                 try:
                     new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
-                    await self._hass.async_add_executor_job(new_meter_3.init_device)
+                    await new_meter_3.init_device()
 
                     for meter in self.meters:
                         if new_meter_3.serial == meter.serial:
@@ -292,7 +291,7 @@ class SolarEdgeModbusMultiHub:
             if self._detect_batteries:
                 try:
                     new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
-                    await self._hass.async_add_executor_job(new_battery_1.init_device)
+                    await new_battery_1.init_device()
 
                     for battery in self.batteries:
                         if new_battery_1.serial == battery.serial:
@@ -319,7 +318,7 @@ class SolarEdgeModbusMultiHub:
 
                 try:
                     new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
-                    await self._hass.async_add_executor_job(new_battery_2.init_device)
+                    await new_battery_2.init_device()
 
                     for battery in self.batteries:
                         if new_battery_2.serial == battery.serial:
@@ -346,13 +345,13 @@ class SolarEdgeModbusMultiHub:
 
         try:
             for inverter in self.inverters:
-                await self._hass.async_add_executor_job(inverter.read_modbus_data)
+                await inverter.read_modbus_data()
 
             for meter in self.meters:
-                await self._hass.async_add_executor_job(meter.read_modbus_data)
+                await meter.read_modbus_data()
 
             for battery in self.batteries:
-                await self._hass.async_add_executor_job(battery.read_modbus_data)
+                await battery.read_modbus_data()
 
         except ModbusReadError as e:
             await self.disconnect()
@@ -402,11 +401,11 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 for inverter in self.inverters:
-                    await self._hass.async_add_executor_job(inverter.read_modbus_data)
+                    await inverter.read_modbus_data()
                 for meter in self.meters:
-                    await self._hass.async_add_executor_job(meter.read_modbus_data)
+                    await meter.read_modbus_data()
                 for battery in self.batteries:
-                    await self._hass.async_add_executor_job(battery.read_modbus_data)
+                    await battery.read_modbus_data()
 
             except ModbusReadError as e:
                 await self.disconnect()
@@ -483,12 +482,13 @@ class SolarEdgeModbusMultiHub:
 
     async def disconnect(self) -> None:
         """Disconnect modbus client."""
-        if self._client is not None:
-            await self._hass.async_add_executor_job(self._client.close)
+        async with self._lock:
+            if self._client is not None:
+                await self._hass.async_add_executor_job(self._client.close)
 
     async def connect(self) -> None:
         """Connect modbus client."""
-        with self._lock:
+        async with self._lock:
             if self._client is None:
                 self._client = ModbusTcpClient(host=self._host, port=self._port)
 
@@ -496,11 +496,10 @@ class SolarEdgeModbusMultiHub:
 
     def is_socket_open(self) -> bool:
         """Check modbus client connection status."""
-        with self._lock:
-            if self._client is None:
-                return False
+        if self._client is None:
+            return False
 
-            return self._client.is_socket_open()
+        return self._client.is_socket_open()
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
@@ -508,11 +507,21 @@ class SolarEdgeModbusMultiHub:
         await self.disconnect()
         self._client = None
 
-    def modbus_read_holding_registers(self, unit, address, count):
-        """Read holding registers."""
-        with self._lock:
-            kwargs = {"slave": unit} if unit else {}
-            result = self._client.read_holding_registers(address, count, **kwargs)
+    def _read_holding_registers(self) -> None:
+        kwargs = {"slave": self._rr_unit} if self._rr_unit else {}
+        return self._client.read_holding_registers(
+            self._rr_address, self._rr_count, **kwargs
+        )
+
+    async def modbus_read_holding_registers(self, unit, address, rcount):
+        self._rr_unit = unit
+        self._rr_address = address
+        self._rr_count = rcount
+
+        async with self._lock:
+            result = await self._hass.async_add_executor_job(
+                self._read_holding_registers
+            )
 
             if result.isError():
                 _LOGGER.debug(f"Unit {unit}: {result}")
@@ -535,10 +544,10 @@ class SolarEdgeModbusMultiHub:
             return result
 
     def _write_registers(self) -> None:
-        with self._lock:
-            return self._client.write_registers(
-                self._wr_address, self._wr_payload, self._wr_unit
-            )
+        kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
+        return self._client.write_registers(
+            self._wr_address, self._wr_payload, **kwargs
+        )
 
     async def write_registers(self, unit: int, address: int, payload) -> None:
         self._wr_unit = unit
@@ -546,16 +555,22 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = payload
 
         try:
-            if not self.is_socket_open():
-                await self.connect()
+            async with self._lock:
+                if not self.is_socket_open():
+                    await self.connect()
 
-            result = await self._hass.async_add_executor_job(self._write_registers)
+                result = await self._hass.async_add_executor_job(self._write_registers)
 
-            if self._sleep_after_write > 0:
-                _LOGGER.debug(
-                    f"Sleeping {self._sleep_after_write} seconds after write."
-                )
-                await asyncio.sleep(self._sleep_after_write)
+                if self._sleep_after_write > 0:
+                    _LOGGER.debug(
+                        f"Sleeping {self._sleep_after_write} seconds after write."
+                    )
+                    await asyncio.sleep(self._sleep_after_write)
+
+        except asyncio.TimeoutError:
+            raise HomeAssistantError(
+                f"Timeout while tyring to send command to inverter ID {self._wr_unit}."
+            )
 
         except ConnectionException as e:
             _LOGGER.error(f"Connection failed: {e}")
@@ -613,10 +628,10 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
 
-    def init_device(self) -> None:
+    async def init_device(self) -> None:
         try:
-            inverter_data = self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40000, count=69
+            inverter_data = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=40000, rcount=69
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -673,8 +688,8 @@ class SolarEdgeInverter:
             )
 
         try:
-            mmppt_common = self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40121, count=9
+            mmppt_common = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=40121, rcount=9
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -735,10 +750,10 @@ class SolarEdgeInverter:
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
-    def read_modbus_data(self) -> None:
+    async def read_modbus_data(self) -> None:
         try:
-            inverter_data = self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40069, count=40
+            inverter_data = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=40069, rcount=40
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -816,8 +831,8 @@ class SolarEdgeInverter:
                 )
 
             try:
-                inverter_data = self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40123, count=mmppt_registers
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=40123, rcount=mmppt_registers
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -899,8 +914,8 @@ class SolarEdgeInverter:
         """ Global Dynamic Power Control and Status """
         if self.global_power_control is True or self.global_power_control is None:
             try:
-                inverter_data = self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61440, count=4
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=61440, rcount=4
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -937,8 +952,8 @@ class SolarEdgeInverter:
         """ Advanced Power Control """
         if self.advanced_power_control is True or self.advanced_power_control is None:
             try:
-                inverter_data = self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61762, count=2
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=61762, rcount=2
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -977,8 +992,8 @@ class SolarEdgeInverter:
         ):
             """Site Limit and Mode"""
             try:
-                inverter_data = self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57344, count=4
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=57344, rcount=4
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1015,8 +1030,8 @@ class SolarEdgeInverter:
 
             """ External Production Max Power """
             try:
-                inverter_data = self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57362, count=2
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=57362, rcount=2
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1067,8 +1082,8 @@ class SolarEdgeInverter:
                         self.has_battery = True
 
             try:
-                inverter_data = self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57348, count=14
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=57348, rcount=14
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1178,12 +1193,12 @@ class SolarEdgeMeter:
                     f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
                 )
 
-    def init_device(self) -> None:
+    async def init_device(self) -> None:
         try:
-            meter_info = self.hub.modbus_read_holding_registers(
+            meter_info = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id,
                 address=self.start_address,
-                count=67,
+                rcount=67,
             )
             if meter_info.isError():
                 _LOGGER.debug(meter_info)
@@ -1246,12 +1261,12 @@ class SolarEdgeMeter:
         inerter_serial = self.inverter_common["C_SerialNumber"]
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
-    def read_modbus_data(self) -> None:
+    async def read_modbus_data(self) -> None:
         try:
-            meter_data = self.hub.modbus_read_holding_registers(
+            meter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id,
                 address=self.start_address + 67,
-                count=107,
+                rcount=107,
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1397,10 +1412,10 @@ class SolarEdgeBattery:
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
-    def init_device(self) -> None:
+    async def init_device(self) -> None:
         try:
-            battery_info = self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=self.start_address, count=76
+            battery_info = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=self.start_address, rcount=76
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1479,12 +1494,12 @@ class SolarEdgeBattery:
         inerter_serial = self.inverter_common["C_SerialNumber"]
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
-    def read_modbus_data(self) -> None:
+    async def read_modbus_data(self) -> None:
         try:
-            battery_data = self.hub.modbus_read_holding_registers(
+            battery_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id,
                 address=self.start_address + 108,
-                count=46,
+                rcount=46,
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
