@@ -559,30 +559,39 @@ class SolarEdgeModbusMultiHub:
 
         except ConnectionException as e:
             _LOGGER.error(f"Write command failed: {e}")
-            raise HomeAssistantError("Connection to device failed.")
+            raise HomeAssistantError(
+                f"Connection to inverter ID {self._wr_unit} failed."
+            )
 
         if result.isError():
             if type(result) is ModbusIOException:
-                _LOGGER.error("Write command failed: No response from device.")
+                _LOGGER.error(
+                    f"Write failed: No response from inverter ID {self._wr_unit}."
+                )
 
                 if not self.keep_modbus_open:
                     await self.disconnect()
 
-                raise HomeAssistantError("No response from device.")
+                raise HomeAssistantError(
+                    "No response from inverter ID {self._wr_unit}."
+                )
 
             elif type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
                     _LOGGER.error(
                         (
-                            "Write command failed: "
-                            f"Illegal address {hex(self._wr_address)}"
+                            "Write failed: "
+                            f"Illegal address {hex(self._wr_address)} "
+                            f"at unit ID {self._wr_unit}"
                         ),
                     )
 
                     if not self.keep_modbus_open:
                         await self.disconnect()
 
-                    raise HomeAssistantError("Command not supported by device.")
+                    raise HomeAssistantError(
+                        "Command not supported by device at ID {self._wr_unit}."
+                    )
 
             else:
                 raise ModbusWriteError(result)
