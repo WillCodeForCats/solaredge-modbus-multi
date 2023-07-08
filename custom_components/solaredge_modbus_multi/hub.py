@@ -558,43 +558,45 @@ class SolarEdgeModbusMultiHub:
                 await asyncio.sleep(self._sleep_after_write)
 
         except ConnectionException as e:
-            _LOGGER.error(f"Write command failed: {e}")
+            _LOGGER.error(f"Connection failed: {e}")
             raise HomeAssistantError(
                 f"Connection to inverter ID {self._wr_unit} failed."
             )
 
         if result.isError():
+            if not self.keep_modbus_open:
+                await self.disconnect()
+
             if type(result) is ModbusIOException:
                 _LOGGER.error(
                     f"Write failed: No response from inverter ID {self._wr_unit}."
                 )
 
-                if not self.keep_modbus_open:
-                    await self.disconnect()
-
                 raise HomeAssistantError(
                     "No response from inverter ID {self._wr_unit}."
                 )
 
-            elif type(result) is ExceptionResponse:
+            if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.error(
-                        (
-                            "Write failed: "
-                            f"Illegal address {hex(self._wr_address)} "
-                            f"at unit ID {self._wr_unit}"
-                        ),
-                    )
-
-                    if not self.keep_modbus_open:
-                        await self.disconnect()
+                    _LOGGER.debug(f"Write IllegalAddress: {result}")
 
                     raise HomeAssistantError(
-                        "Command not supported by device at ID {self._wr_unit}."
+                        "Address not supported at device at ID {self._wr_unit}."
                     )
 
-            else:
-                raise ModbusWriteError(result)
+                if result.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"Write IllegalFunction: {result}")
+                    raise HomeAssistantError(
+                        "Function not supported by device at ID {self._wr_unit}."
+                    )
+
+                if result.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"Write IllegalValue: {result}")
+                    raise HomeAssistantError(
+                        "Value invalid for device at ID {self._wr_unit}."
+                    )
+
+            raise ModbusWriteError(result)
 
 
 class SolarEdgeInverter:
