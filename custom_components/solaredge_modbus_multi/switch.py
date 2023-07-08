@@ -1,6 +1,8 @@
+"""Switch platform for SolarEdge Modbus Multi."""
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -47,7 +49,7 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
     should_poll = False
     _attr_has_entity_name = True
 
-    def __init__(self, platform, config_entry, coordinator):
+    def __init__(self, platform, config_entry, coordinator) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator)
         """Initialize the sensor."""
@@ -78,7 +80,7 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
 class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     entity_category = EntityCategory.CONFIG
 
-    def __init__(self, platform, config_entry, coordinator):
+    def __init__(self, platform, config_entry, coordinator) -> None:
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
@@ -112,7 +114,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         except KeyError:
             return None
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
         set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits | (1 << 10)
@@ -121,7 +123,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         await self._platform.write_registers(address=57344, payload=set_bits)
         await self.async_update()
 
-    async def async_turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
         set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits & ~(1 << 10)
@@ -134,7 +136,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     entity_category = EntityCategory.CONFIG
 
-    def __init__(self, platform, config_entry, coordinator):
+    def __init__(self, platform, config_entry, coordinator) -> None:
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
@@ -164,7 +166,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         except KeyError:
             return None
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
         set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits | (1 << 11)
@@ -173,7 +175,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         await self._platform.write_registers(address=57344, payload=set_bits)
         await self.async_update()
 
-    async def async_turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
         set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
         set_bits = set_bits & ~(1 << 11)
@@ -186,7 +188,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 class SolarEdgeGridControl(SolarEdgeSwitchBase):
     entity_category = EntityCategory.CONFIG
 
-    def __init__(self, platform, config_entry, coordinator):
+    def __init__(self, platform, config_entry, coordinator) -> None:
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
@@ -210,7 +212,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         except KeyError:
             return None
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_int(0x1)
@@ -219,7 +221,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         )
         await self.async_update()
 
-    async def async_turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x0")
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
         builder.add_32bit_int(0x0)
