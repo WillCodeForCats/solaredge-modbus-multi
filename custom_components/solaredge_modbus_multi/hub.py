@@ -523,25 +523,25 @@ class SolarEdgeModbusMultiHub:
                 self._read_holding_registers
             )
 
-            if result.isError():
-                _LOGGER.debug(f"Unit {unit}: {result}")
+        if result.isError():
+            _LOGGER.debug(f"Unit {unit}: {result}")
 
-                if type(result) is ModbusIOException:
-                    raise ModbusIOError(result)
+            if type(result) is ModbusIOException:
+                raise ModbusIOError(result)
 
-                if type(result) is ExceptionResponse:
-                    if result.exception_code == ModbusExceptions.IllegalAddress:
-                        raise ModbusIllegalAddress(result)
+            if type(result) is ExceptionResponse:
+                if result.exception_code == ModbusExceptions.IllegalAddress:
+                    raise ModbusIllegalAddress(result)
 
-                    if result.exception_code == ModbusExceptions.IllegalFunction:
-                        raise ModbusIllegalFunction(result)
+                if result.exception_code == ModbusExceptions.IllegalFunction:
+                    raise ModbusIllegalFunction(result)
 
-                    if result.exception_code == ModbusExceptions.IllegalValue:
-                        raise ModbusIllegalValue(result)
+                if result.exception_code == ModbusExceptions.IllegalValue:
+                    raise ModbusIllegalValue(result)
 
-                raise ModbusReadError(result)
+            raise ModbusReadError(result)
 
-            return result
+        return result
 
     def _write_registers(self) -> None:
         kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
@@ -555,17 +555,17 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = payload
 
         try:
-            async with self._lock:
-                if not self.is_socket_open():
-                    await self.connect()
+            if not self.is_socket_open():
+                await self.connect()
 
+            async with self._lock:
                 result = await self._hass.async_add_executor_job(self._write_registers)
 
-                if self._sleep_after_write > 0:
-                    _LOGGER.debug(
-                        f"Sleeping {self._sleep_after_write} seconds after write."
-                    )
-                    await asyncio.sleep(self._sleep_after_write)
+            if self._sleep_after_write > 0:
+                _LOGGER.debug(
+                    f"Sleeping {self._sleep_after_write} seconds after write."
+                )
+                await asyncio.sleep(self._sleep_after_write)
 
         except asyncio.TimeoutError:
             raise HomeAssistantError(
