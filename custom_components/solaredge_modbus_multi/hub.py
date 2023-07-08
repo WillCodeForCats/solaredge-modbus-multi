@@ -6,6 +6,7 @@ import threading
 from collections import OrderedDict
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 
@@ -533,51 +534,69 @@ class SolarEdgeModbusMultiHub:
 
             return result
 
-    def _write_registers(self):
-        """Write registers."""
+    def _write_registers(self) -> None:
         with self._lock:
-            kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
             return self._client.write_registers(
-                self._wr_address, self._wr_payload, **kwargs
+                self._wr_address, self._wr_payload, self._wr_unit
             )
 
-    async def write_registers(self, unit, address, payload):
+    async def write_registers(self, unit: int, address: int, payload) -> None:
         self._wr_unit = unit
         self._wr_address = address
         self._wr_payload = payload
 
-        if not self.is_socket_open():
-            await self.connect()
-
         try:
+            if not self.is_socket_open():
+                await self.connect()
+
             result = await self._hass.async_add_executor_job(self._write_registers)
 
+            if self._sleep_after_write > 0:
+                _LOGGER.debug(
+                    f"Sleeping {self._sleep_after_write} seconds after write."
+                )
+                await asyncio.sleep(self._sleep_after_write)
+
         except ConnectionException as e:
-            _LOGGER.error(f"Write command failed: {e}")
-            await self.disconnect()
+            _LOGGER.error(f"Connection failed: {e}")
+            raise HomeAssistantError(
+                f"Connection to inverter ID {self._wr_unit} failed."
+            )
 
-        else:
-            if result.isError():
-                if type(result) is ModbusIOException:
-                    _LOGGER.error("Write command failed: No response from device.")
-                    await self.disconnect()
+        if result.isError():
+            if not self.keep_modbus_open:
+                await self.disconnect()
 
-                elif type(result) is ExceptionResponse:
-                    if result.exception_code == ModbusExceptions.IllegalAddress:
-                        _LOGGER.error(
-                            (
-                                "Write command failed: "
-                                f"Illegal address {hex(self._wr_address)}"
-                            ),
-                        )
-                        await self.disconnect()
+            if type(result) is ModbusIOException:
+                _LOGGER.error(
+                    f"Write failed: No response from inverter ID {self._wr_unit}."
+                )
 
-                else:
-                    raise ModbusWriteError(result)
+                raise HomeAssistantError(
+                    "No response from inverter ID {self._wr_unit}."
+                )
 
-        if self._sleep_after_write > 0:
-            _LOGGER.debug(f"Sleeping {self._sleep_after_write} seconds after write.")
-            await asyncio.sleep(self._sleep_after_write)
+            if type(result) is ExceptionResponse:
+                if result.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(f"Write IllegalAddress: {result}")
+
+                    raise HomeAssistantError(
+                        "Address not supported at device at ID {self._wr_unit}."
+                    )
+
+                if result.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"Write IllegalFunction: {result}")
+                    raise HomeAssistantError(
+                        "Function not supported by device at ID {self._wr_unit}."
+                    )
+
+                if result.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"Write IllegalValue: {result}")
+                    raise HomeAssistantError(
+                        "Value invalid for device at ID {self._wr_unit}."
+                    )
+
+            raise ModbusWriteError(result)
 
 
 class SolarEdgeInverter:
