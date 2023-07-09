@@ -171,7 +171,9 @@ class SolarEdgeModbusMultiHub:
                 translation_key="check_configuration",
                 data={"entry_id": self._entry_id},
             )
-            raise HubInitFailed(f"Could not open Modbus/TCP connection to {self._host}")
+            raise HubInitFailed(
+                f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
+            )
 
         if self.option_storage_control:
             _LOGGER.warning(
@@ -391,7 +393,7 @@ class SolarEdgeModbusMultiHub:
                 data={"entry_id": self._entry_id},
             )
             raise DataUpdateFailed(
-                f"Could not open Modbus/TCP connection to {self.hub_host}"
+                f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
             )
 
         else:
@@ -441,6 +443,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def hub_host(self) -> str:
         return self._host
+
+    @property
+    def hub_port(self) -> int:
+        return self._port
 
     @property
     def option_storage_control(self) -> bool:
