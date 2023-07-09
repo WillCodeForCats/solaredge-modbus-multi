@@ -502,14 +502,6 @@ class SolarEdgeModbusMultiHub:
         _LOGGER.debug(f"coordinator timeout is {self._coordinator_timeout}")
         return self._coordinator_timeout
 
-    def disconnect(self) -> None:
-        self._client.close()
-
-    async def connect(self) -> None:
-        """Connect modbus client."""
-        async with self._lock:
-            await self._client.connect()
-
     @property
     def is_connected(self) -> bool:
         """Check modbus client connection status."""
@@ -517,6 +509,14 @@ class SolarEdgeModbusMultiHub:
             return False
 
         return self._client.connected
+
+    def disconnect(self) -> None:
+        self._client.close()
+
+    async def connect(self) -> None:
+        """Connect modbus client."""
+        async with self._lock:
+            await self._client.connect()
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
