@@ -138,7 +138,7 @@ class SolarEdgeModbusMultiHub:
         self._wr_address = None
         self._wr_payload = None
 
-        self.initalized = False
+        self._initalized = False
         self._online = True
 
         self._client = AsyncModbusTcpClient(
@@ -382,7 +382,7 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"Setup failed: {e}")
 
         if not self.is_connected:
-            self._online = False
+            self.online = False
             ir.async_create_issue(
                 self._hass,
                 DOMAIN,
@@ -399,7 +399,7 @@ class SolarEdgeModbusMultiHub:
         else:
             if not self.online:
                 ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-            self._online = True
+            self.online = True
 
             try:
                 for inverter in self.inverters:
@@ -431,6 +431,24 @@ class SolarEdgeModbusMultiHub:
     def online(self):
         return self._online
 
+    @online.setter
+    def online(self, value: bool) -> None:
+        if value is True:
+            self._online = True
+        else:
+            self._online = False
+
+    @property
+    def initalized(self):
+        return self._initalized
+
+    @initalized.setter
+    def initalized(self, value: bool) -> None:
+        if value is True:
+            self._initalized = True
+        else:
+            self._initalized = False
+
     @property
     def name(self):
         """Return the name of this hub."""
@@ -460,6 +478,13 @@ class SolarEdgeModbusMultiHub:
     def keep_modbus_open(self) -> bool:
         return self._keep_modbus_open
 
+    @keep_modbus_open.setter
+    def keep_modbus_open(self, value: bool) -> None:
+        if value is True:
+            self._keep_modbus_open = True
+        else:
+            self._keep_modbus_open = False
+
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self._allow_battery_energy_reset
@@ -471,15 +496,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def battery_energy_reset_cycles(self) -> int:
         return self._battery_energy_reset_cycles
-
-    @keep_modbus_open.setter
-    def keep_modbus_open(self, value: bool) -> None:
-        if value is True:
-            self._keep_modbus_open = True
-        else:
-            self._keep_modbus_open = False
-
-        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
     @property
     def coordinator_timeout(self) -> int:
@@ -504,7 +520,7 @@ class SolarEdgeModbusMultiHub:
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
-        self._online = False
+        self.online = False
         self.disconnect()
         self._client = None
 
