@@ -51,7 +51,7 @@ class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
 
     Time = 800  # first attempt in milliseconds
-    Ratio = 2  # time multiplier between each attempt
+    Ratio = 3  # time multiplier between each attempt
     Limit = 4  # number of attempts before failing
 
 
