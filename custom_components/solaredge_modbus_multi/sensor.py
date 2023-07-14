@@ -1817,6 +1817,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
                     else:
                         if self._platform.allow_battery_energy_reset:
+                            self._count += 1
                             _LOGGER.debug(
                                 (
                                     "B_Export_Energy went backwards: "
@@ -1825,8 +1826,6 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
                             )
-
-                            self._count += 1
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 _LOGGER.debug(
@@ -1890,6 +1889,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
                     else:
                         if self._platform.allow_battery_energy_reset:
+                            self._count += 1
                             _LOGGER.debug(
                                 (
                                     "B_Import_Energy went backwards: "
@@ -1898,8 +1898,6 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
                             ),
-
-                            self._count += 1
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 _LOGGER.debug(
