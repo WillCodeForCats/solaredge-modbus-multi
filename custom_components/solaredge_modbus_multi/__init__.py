@@ -228,7 +228,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
                     raise ex
 
-                _LOGGER.debug(f"Failed data refresh attempt #{attempt}", exc_info=ex)
+                _LOGGER.debug(f"Failed data refresh attempt #{attempt}")
 
                 attempt += 1
                 _LOGGER.debug(
