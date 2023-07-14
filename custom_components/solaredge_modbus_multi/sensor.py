@@ -1821,7 +1821,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                                 (
                                     "Battery Export Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: E501
-                                    f"< {self._last}"
+                                    f"< {self._last} cycle {self._count}"
                                 )
                             )
 
@@ -1890,7 +1890,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                                 (
                                     "Battery Import Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: E501
-                                    f"< {self._last}"
+                                    f"< {self._last} cycle {self._count}"
                                 )
                             ),
 
