@@ -1829,7 +1829,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 _LOGGER.debug(
-                                    "B_Export_Energy reset at cycle {self._count}"
+                                    f"B_Export_Energy reset at cycle {self._count}"
                                 )
                                 self._last = None
                                 self._count = 0
@@ -1901,7 +1901,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 _LOGGER.debug(
-                                    "B_Import_Energy reset at cycle {self._count}"
+                                    f"B_Import_Energy reset at cycle {self._count}"
                                 )
                                 self._last = None
                                 self._count = 0
