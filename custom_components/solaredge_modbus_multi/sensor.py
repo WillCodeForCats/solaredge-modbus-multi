@@ -207,7 +207,7 @@ class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        return self._platform.online
+        return super().available and self._platform.online
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -1817,17 +1817,20 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 
                     else:
                         if self._platform.allow_battery_energy_reset:
+                            self._count += 1
                             _LOGGER.debug(
                                 (
-                                    "Battery Export Energy went backwards: "
+                                    "B_Export_Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: E501
-                                    f"< {self._last}"
+                                    f"< {self._last} cycle {self._count} of "
+                                    f"{self._platform.battery_energy_reset_cycles}"
                                 )
                             )
 
-                            self._count += 1
-
                             if self._count > self._platform.battery_energy_reset_cycles:
+                                _LOGGER.debug(
+                                    f"B_Export_Energy reset at cycle {self._count}"
+                                )
                                 self._last = None
                                 self._count = 0
 
@@ -1886,17 +1889,20 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
                     else:
                         if self._platform.allow_battery_energy_reset:
+                            self._count += 1
                             _LOGGER.debug(
                                 (
-                                    "Battery Import Energy went backwards: "
+                                    "B_Import_Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: E501
-                                    f"< {self._last}"
+                                    f"< {self._last} cycle {self._count} of "
+                                    f"{self._platform.battery_energy_reset_cycles}"
                                 )
                             ),
 
-                            self._count += 1
-
                             if self._count > self._platform.battery_energy_reset_cycles:
+                                _LOGGER.debug(
+                                    f"B_Import_Energy reset at cycle {self._count}"
+                                )
                                 self._last = None
                                 self._count = 0
 

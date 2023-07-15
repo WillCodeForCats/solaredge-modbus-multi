@@ -63,9 +63,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
         ),
         entry.options.get(
-            ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
-        ),
-        entry.options.get(
             ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
         ),
         entry.options.get(
@@ -76,7 +73,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ConfName.ALLOW_BATTERY_ENERGY_RESET,
             bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
         ),
-        entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
         entry.options.get(
             ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
         ),
@@ -232,7 +228,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
                     raise ex
 
-                _LOGGER.debug(f"Failed data refresh attempt #{attempt}", exc_info=ex)
+                _LOGGER.debug(f"Failed data refresh attempt #{attempt}")
 
                 attempt += 1
                 _LOGGER.debug(
