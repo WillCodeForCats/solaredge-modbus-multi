@@ -519,9 +519,16 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def coordinator_timeout(self) -> int:
-        this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
-        this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
-        this_timeout += SolarEdgeTimeouts.Device * self.number_of_batteries
+        if not self.initalized:
+            this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
+            this_timeout += SolarEdgeTimeouts.Device * 3  # max 3 per inverter
+            this_timeout += SolarEdgeTimeouts.Device * 2  # max 2 per inverter
+
+        else:
+            this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
+            this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
+            this_timeout += SolarEdgeTimeouts.Device * self.number_of_batteries
+
         this_timeout = this_timeout / 1000
 
         _LOGGER.debug(f"coordinator timeout is {this_timeout}")
