@@ -43,7 +43,7 @@ DOMAIN_REGEX = re.compile(
 class SolarEdgeTimeouts(IntEnum):
     """Timeouts in milliseconds."""
 
-    Inverter = 5000
+    Inverter = 8400
     Device = 1200
 
 
