@@ -498,11 +498,11 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def number_of_meters(self) -> int:
-        return self.meters.count()
+        return len(self.meters)
 
     @property
     def number_of_batteries(self) -> int:
-        return self.batteries.count()
+        return len(self.batteries)
 
     @property
     def number_of_inverters(self) -> int:
