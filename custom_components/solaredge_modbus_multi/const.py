@@ -45,6 +45,7 @@ class SolarEdgeTimeouts(IntEnum):
 
     Inverter = 8400
     Device = 1200
+    Init = 1200
 
 
 class RetrySettings(IntEnum):

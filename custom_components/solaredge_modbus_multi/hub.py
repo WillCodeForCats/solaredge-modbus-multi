@@ -521,7 +521,7 @@ class SolarEdgeModbusMultiHub:
     def coordinator_timeout(self) -> int:
         if not self.initalized:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
-            this_timeout += SolarEdgeTimeouts.Device * self.number_of_inverters
+            this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 2  # max 2 per inverter
 
