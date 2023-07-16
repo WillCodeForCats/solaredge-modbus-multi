@@ -1811,6 +1811,9 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                     if self._platform.decoded_model["B_Export_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Export_Energy_WH"]
 
+                        if self._platform.allow_battery_energy_reset:
+                            self._count = 0
+
                         return (
                             self._platform.decoded_model["B_Export_Energy_WH"] * 0.001
                         )
@@ -1882,6 +1885,9 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 
                     if self._platform.decoded_model["B_Import_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Import_Energy_WH"]
+
+                        if self._platform.allow_battery_energy_reset:
+                            self._count = 0
 
                         return (
                             self._platform.decoded_model["B_Import_Energy_WH"] * 0.001
