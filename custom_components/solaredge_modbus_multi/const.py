@@ -60,7 +60,7 @@ class BatteryLimit(IntEnum):
     """Configure battery limits for input and display validation."""
 
     Vmin = 0  # volts
-    Vmax = 600  # volts
+    Vmax = 1000  # volts
     Amin = -200  # amps
     Amax = 200  # amps
     Tmax = 100  # degrees C
