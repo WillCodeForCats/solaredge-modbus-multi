@@ -421,6 +421,10 @@ class SolarEdgeModbusMultiHub:
                 self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
+            except asyncio.TimeoutError as e:
+                self.disconnect()
+                raise DataUpdateFailed(f"Modbus timeout: {e}")
+
         if not self._keep_modbus_open:
             self.disconnect()
 
