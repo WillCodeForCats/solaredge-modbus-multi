@@ -657,7 +657,7 @@ class SolarEdgeModbusMultiHub:
 
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
-        self.inverter_unit_id = device_id
+        self._inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
@@ -668,6 +668,8 @@ class SolarEdgeInverter:
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
+
+        self._online = True
 
     async def init_device(self) -> None:
         try:
@@ -1177,7 +1179,25 @@ class SolarEdgeInverter:
     @property
     def online(self) -> bool:
         """Device is online."""
-        return self.hub.online
+        return self.hub.online and self._online
+
+    @online.setter
+    def online(self, value: bool) -> None:
+        if value is True:
+            self._online = True
+        else:
+            self._online = False
+
+    @property
+    def inverter_unit_id(self) -> int:
+        return self._inverter_unit_id
+
+    @inverter_unit_id.setter
+    def inverter_unit_id(self, value: int) -> None:
+        if value not in [1, 247]:
+            raise ValueError("Invalid inverter unit ID.")
+
+        self._inverter_unit_id = value
 
     @property
     def device_info(self) -> DeviceInfo:
