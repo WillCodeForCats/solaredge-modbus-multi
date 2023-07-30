@@ -1495,6 +1495,8 @@ class SolarEdgeBattery:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
 
+        self._online = True
+
         if self.battery_id == 1:
             self.start_address = 57600
         elif self.battery_id == 2:
@@ -1657,7 +1659,14 @@ class SolarEdgeBattery:
     @property
     def online(self) -> bool:
         """Device is online."""
-        return self.hub.online
+        return self.hub.online and self._online
+
+    @online.setter
+    def online(self, value: bool) -> None:
+        if value is True:
+            self._online = True
+        else:
+            self._online = False
 
     @property
     def inverter_unit_id(self) -> int:
