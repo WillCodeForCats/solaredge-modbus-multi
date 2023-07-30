@@ -1251,6 +1251,8 @@ class SolarEdgeMeter:
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
 
+        self._online = True
+
         if self.meter_id == 1:
             self.start_address = self.start_address + 121
         elif self.meter_id == 2:
@@ -1456,7 +1458,14 @@ class SolarEdgeMeter:
     @property
     def online(self) -> bool:
         """Device is online."""
-        return self.hub.online
+        return self.hub.online and self._online
+
+    @online.setter
+    def online(self, value: bool) -> None:
+        if value is True:
+            self._online = True
+        else:
+            self._online = False
 
     @property
     def inverter_unit_id(self) -> int:
