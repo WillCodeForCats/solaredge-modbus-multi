@@ -402,9 +402,27 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 for inverter in self.inverters:
-                    await inverter.read_modbus_data()
+                    try:
+                        await inverter.read_modbus_data()
+                        if not inverter.online:
+                            _LOGGER.warning(
+                                f"Inverter ID {inverter.inverter_unit_id} ",
+                                "returned online.",
+                            )
+                            inverter.online = True
+
+                    except asyncio.TimeoutError as e:
+                        _LOGGER.debug(f"I{inverter.inverter_unit_id} timeout: {e}")
+                        if inverter.online:
+                            _LOGGER.warning(
+                                "Timeout while updating inverter ID "
+                                f"{inverter.inverter_unit_id}."
+                            )
+                            inverter.online = False
+
                 for meter in self.meters:
                     await meter.read_modbus_data()
+
                 for battery in self.batteries:
                     await battery.read_modbus_data()
 
