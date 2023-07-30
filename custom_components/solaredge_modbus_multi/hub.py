@@ -132,6 +132,7 @@ class SolarEdgeModbusMultiHub:
         self.batteries = []
         self.inverter_common = {}
         self.mmppt_common = {}
+        self.offline_units = []
 
         self._wr_unit = None
         self._wr_address = None
@@ -409,6 +410,13 @@ class SolarEdgeModbusMultiHub:
                                 f"Inverter ID {inverter.inverter_unit_id} ",
                                 "returned online.",
                             )
+
+                            try:
+                                while inverter.inverter_unit_id in self.offline_units:
+                                    self.offline_units.remove(inverter.inverter_unit_id)
+                            except ValueError:
+                                pass
+
                             inverter.online = True
 
                     except asyncio.TimeoutError as e:
@@ -418,13 +426,23 @@ class SolarEdgeModbusMultiHub:
                                 "Timeout while updating inverter ID "
                                 f"{inverter.inverter_unit_id}."
                             )
+
+                            self.offline_units.append(inverter.inverter_unit_id)
                             inverter.online = False
 
                 for meter in self.meters:
-                    await meter.read_modbus_data()
+                    if meter.inverter_unit_id in self.offline_units:
+                        meter.online = False
+                    else:
+                        meter.online = True
+                        await meter.read_modbus_data()
 
                 for battery in self.batteries:
-                    await battery.read_modbus_data()
+                    if battery.inverter_unit_id in self.offline_units:
+                        battery.online = False
+                    else:
+                        meter.online = True
+                        await battery.read_modbus_data()
 
             except ModbusReadError as e:
                 self.disconnect()
