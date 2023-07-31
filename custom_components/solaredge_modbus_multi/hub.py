@@ -445,7 +445,7 @@ class SolarEdgeModbusMultiHub:
                     if battery.inverter_unit_id in self.offline_units:
                         battery.online = False
                     else:
-                        meter.online = True
+                        battery.online = True
                         await battery.read_modbus_data()
 
             except ModbusReadError as e:
