@@ -367,6 +367,10 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
             raise HubInitFailed(f"Connection failed: {e}")
 
+        except asyncio.TimeoutError as e:
+            self.disconnect()
+            raise HubInitFailed(f"Modbus timeout: {e}")
+
         self.initalized = True
 
     async def async_refresh_modbus_data(self) -> bool:
