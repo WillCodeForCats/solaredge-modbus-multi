@@ -1522,8 +1522,8 @@ class SolarEdgeBattery:
 
         if (
             len(self.decoded_common["B_Manufacturer"]) == 0
-            or len(self.decoded_common["B_Model"]) == 0
-            or len(self.decoded_common["B_SerialNumber"]) == 0
+            and len(self.decoded_common["B_Model"]) == 0
+            and len(self.decoded_common["B_SerialNumber"]) == 0
         ):
             raise DeviceInvalid("Battery {self.battery_id} not usable.")
 
