@@ -1525,7 +1525,7 @@ class SolarEdgeBattery:
             or len(self.decoded_common["B_Model"]) == 0
             or len(self.decoded_common["B_SerialNumber"]) == 0
         ):
-            raise DeviceInvalid("Battery {self.battery_id} not usable.")
+            raise DeviceInvalid(f"Battery {self.battery_id} not usable.")
 
         self.manufacturer = self.decoded_common["B_Manufacturer"]
         self.model = self.decoded_common["B_Model"]
