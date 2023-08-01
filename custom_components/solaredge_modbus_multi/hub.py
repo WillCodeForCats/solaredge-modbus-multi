@@ -1234,7 +1234,7 @@ class SolarEdgeInverter:
 
     @inverter_unit_id.setter
     def inverter_unit_id(self, value: int) -> None:
-        if value not in [1, 247]:
+        if value not in range(1, 248):
             raise ValueError("Invalid inverter unit ID.")
 
         self._inverter_unit_id = value
@@ -1495,7 +1495,7 @@ class SolarEdgeMeter:
 
     @inverter_unit_id.setter
     def inverter_unit_id(self, value: int) -> None:
-        if value not in [1, 247]:
+        if value not in range(1, 248):
             raise ValueError("Invalid inverter unit ID.")
 
         self._inverter_unit_id = value
@@ -1705,7 +1705,7 @@ class SolarEdgeBattery:
 
     @inverter_unit_id.setter
     def inverter_unit_id(self, value: int) -> None:
-        if value not in [1, 247]:
+        if value not in range(1, 248):
             raise ValueError("Invalid inverter unit ID.")
 
         self._inverter_unit_id = value
