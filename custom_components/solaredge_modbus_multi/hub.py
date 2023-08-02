@@ -225,6 +225,7 @@ class SolarEdgeModbusMultiHub:
                                 f"Duplicate m1 serial {new_meter_1.serial}"
                             )
 
+                    new_meter_1.via_device = new_inverter.uid_base
                     self.meters.append(new_meter_1)
                     _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
 
@@ -252,6 +253,7 @@ class SolarEdgeModbusMultiHub:
                                 f"Duplicate m2 serial {new_meter_2.serial}"
                             )
 
+                    new_meter_2.via_device = new_inverter.uid_base
                     self.meters.append(new_meter_2)
                     _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
 
@@ -279,6 +281,7 @@ class SolarEdgeModbusMultiHub:
                                 f"Duplicate m3 serial {new_meter_3.serial}"
                             )
 
+                    new_meter_3.via_device = new_inverter.uid_base
                     self.meters.append(new_meter_3)
                     _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
 
@@ -307,6 +310,7 @@ class SolarEdgeModbusMultiHub:
                                 f"Duplicate b1 serial {new_battery_1.serial}"
                             )
 
+                    new_battery_1.via_device = new_inverter.uid_base
                     self.batteries.append(new_battery_1)
                     _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
 
@@ -334,6 +338,7 @@ class SolarEdgeModbusMultiHub:
                                 f"Duplicate b2 serial {new_battery_2.serial}"
                             )
 
+                    new_battery_2.via_device = new_inverter.uid_base
                     self.batteries.append(new_battery_2)
                     _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
 
@@ -1243,7 +1248,7 @@ class SolarEdgeInverter:
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, f"{self.model}_{self.serial}")},
+            identifiers={(DOMAIN, self.uid_base)},
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
@@ -1272,6 +1277,7 @@ class SolarEdgeMeter:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
+        self._via_device = None
 
         self._online = True
 
@@ -1510,7 +1516,16 @@ class SolarEdgeMeter:
             model=self.model,
             sw_version=self.fw_version,
             hw_version=self.option,
+            via_device=self.via_device,
         )
+
+    @property
+    def via_device(self) -> tuple[str, str]:
+        return self._via_device
+
+    @via_device.setter
+    def via_device(self, device: str) -> None:
+        self._via_device = (DOMAIN, device)
 
 
 class SolarEdgeBattery:
@@ -1525,6 +1540,7 @@ class SolarEdgeBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
+        self._via_device = None
 
         self._online = True
 
@@ -1600,10 +1616,10 @@ class SolarEdgeBattery:
 
         if (
             len(self.decoded_common["B_Manufacturer"]) == 0
-            or len(self.decoded_common["B_Model"]) == 0
-            or len(self.decoded_common["B_SerialNumber"]) == 0
+            and len(self.decoded_common["B_Model"]) == 0
+            and len(self.decoded_common["B_SerialNumber"]) == 0
         ):
-            raise DeviceInvalid("Battery {self.battery_id} not usable.")
+            raise DeviceInvalid(f"Battery {self.battery_id} not usable.")
 
         self.manufacturer = self.decoded_common["B_Manufacturer"]
         self.model = self.decoded_common["B_Model"]
@@ -1719,7 +1735,16 @@ class SolarEdgeBattery:
             manufacturer=self.manufacturer,
             model=self.model,
             sw_version=self.fw_version,
+            via_device=self.via_device,
         )
+
+    @property
+    def via_device(self) -> tuple[str, str]:
+        return self._via_device
+
+    @via_device.setter
+    def via_device(self, device: str) -> None:
+        self._via_device = (DOMAIN, device)
 
     @property
     def allow_battery_energy_reset(self) -> bool:
