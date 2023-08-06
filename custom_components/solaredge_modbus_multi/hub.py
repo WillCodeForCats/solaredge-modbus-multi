@@ -1183,6 +1183,9 @@ class SolarEdgeInverter:
         """Write inverter register."""
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
+    def clear_offline_units(self) -> None:
+        self.hub.clear_offline_units()
+
     @property
     def online(self) -> bool:
         """Device is online."""
