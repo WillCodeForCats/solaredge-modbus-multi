@@ -414,6 +414,7 @@ class SolarEdgeModbusMultiHub:
                 for inverter in self.inverters:
                     try:
                         await inverter.read_modbus_data()
+
                         if not inverter.online:
                             _LOGGER.warning(
                                 f"Inverter ID {inverter.inverter_unit_id} ",
@@ -430,6 +431,7 @@ class SolarEdgeModbusMultiHub:
 
                     except asyncio.TimeoutError as e:
                         _LOGGER.debug(f"I{inverter.inverter_unit_id} timeout: {e}")
+
                         if inverter.online:
                             _LOGGER.warning(
                                 "Timeout while updating inverter ID "
