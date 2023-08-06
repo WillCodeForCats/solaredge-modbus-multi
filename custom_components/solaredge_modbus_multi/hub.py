@@ -1531,9 +1531,16 @@ class SolarEdgeBattery:
             self.decoded_common["B_SerialNumber"]
         )
 
+        # Remove ASCII control characters from descriptive strings
         ascii_ctrl_chars = dict.fromkeys(range(32))
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
+        ].translate(ascii_ctrl_chars)
+        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].translate(
+            ascii_ctrl_chars
+        )
+        self.decoded_common["B_SerialNumber"] = self.decoded_common[
+            "B_SerialNumber"
         ].translate(ascii_ctrl_chars)
 
         if (
