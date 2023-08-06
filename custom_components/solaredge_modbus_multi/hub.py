@@ -132,7 +132,7 @@ class SolarEdgeModbusMultiHub:
         self.batteries = []
         self.inverter_common = {}
         self.mmppt_common = {}
-        self.offline_units = []
+        self._offline_units = []
 
         self._wr_unit = None
         self._wr_address = None
@@ -412,44 +412,50 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 for inverter in self.inverters:
+                    if inverter.inverter_unit_id in self._offline_units:
+                        _LOGGER.debug(f"Skipped I{inverter.inverter_unit_id}")
+                        continue
+
                     try:
                         await inverter.read_modbus_data()
 
                         if not inverter.online:
-                            _LOGGER.warning(
-                                f"Inverter ID {inverter.inverter_unit_id} ",
-                                "returned online.",
-                            )
-
                             try:
-                                while inverter.inverter_unit_id in self.offline_units:
-                                    self.offline_units.remove(inverter.inverter_unit_id)
+                                while inverter.inverter_unit_id in self._offline_units:
+                                    self._offline_units.remove(
+                                        inverter.inverter_unit_id
+                                    )
                             except ValueError:
                                 pass
 
                             inverter.online = True
 
+                            _LOGGER.warning(
+                                f"Inverter ID {inverter.inverter_unit_id} recovered.",
+                            )
+
                     except asyncio.TimeoutError as e:
                         _LOGGER.debug(f"I{inverter.inverter_unit_id} timeout: {e}")
 
                         if inverter.online:
-                            _LOGGER.warning(
-                                "Timeout while updating inverter ID "
-                                f"{inverter.inverter_unit_id}."
-                            )
-
-                            self.offline_units.append(inverter.inverter_unit_id)
                             inverter.online = False
 
+                            _LOGGER.warning(
+                                f"Inverter ID {inverter.inverter_unit_id} went offline."
+                            )
+
+                        if inverter.inverter_unit_id not in self._offline_units:
+                            self._offline_units.append(inverter.inverter_unit_id)
+
                 for meter in self.meters:
-                    if meter.inverter_unit_id in self.offline_units:
+                    if meter.inverter_unit_id in self._offline_units:
                         meter.online = False
                     else:
                         meter.online = True
                         await meter.read_modbus_data()
 
                 for battery in self.batteries:
-                    if battery.inverter_unit_id in self.offline_units:
+                    if battery.inverter_unit_id in self._offline_units:
                         battery.online = False
                     else:
                         battery.online = True
@@ -476,6 +482,11 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
 
         return True
+
+    def clear_offline_units(self) -> None:
+        if self._offline_units:
+            _LOGGER.debug(f"Retry offline units: {self._offline_units}")
+            self._offline_units.clear()
 
     @property
     def online(self):
