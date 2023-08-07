@@ -1497,7 +1497,7 @@ class SolarEdgeBattery:
                         parse_modbus_string(decoder.decode_string(32)),
                     ),
                     ("B_Device_Address", decoder.decode_16bit_uint()),
-                    ("Reserved", decoder.decode_16bit_uint()),
+                    ("ignore", decoder.skip_bytes(2)),
                     ("B_RatedEnergy", decoder.decode_32bit_float()),
                     ("B_MaxChargePower", decoder.decode_32bit_float()),
                     ("B_MaxDischargePower", decoder.decode_32bit_float()),
@@ -1505,6 +1505,11 @@ class SolarEdgeBattery:
                     ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
                 ]
             )
+
+            try:
+                del self.decoded_common["ignore"]
+            except KeyError:
+                pass
 
             for name, value in iter(self.decoded_common.items()):
                 if isinstance(value, float):
