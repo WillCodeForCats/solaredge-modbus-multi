@@ -431,7 +431,10 @@ class SolarEdgeModbusMultiHub:
                             inverter.online = True
 
                             _LOGGER.warning(
-                                f"Inverter ID {inverter.inverter_unit_id} recovered.",
+                                (
+                                    f"Inverter ID {inverter.inverter_unit_id} at "
+                                    f"{self.hub_host}:{self.hub_port} recovered."
+                                ),
                             )
 
                     except asyncio.TimeoutError as e:
@@ -441,7 +444,10 @@ class SolarEdgeModbusMultiHub:
                             inverter.online = False
 
                             _LOGGER.warning(
-                                f"Inverter ID {inverter.inverter_unit_id} went offline."
+                                (
+                                    f"Inverter ID {inverter.inverter_unit_id} at "
+                                    f"{self.hub_host}:{self.hub_port} went offline."
+                                ),
                             )
 
                         if inverter.inverter_unit_id not in self._offline_units:
