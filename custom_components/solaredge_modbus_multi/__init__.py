@@ -185,14 +185,14 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
             self._hub.keep_modbus_open = True
 
-    def next_time(self, minutes: int):
-        return datetime.now() + timedelta(minutes=minutes)
+    def next_time(self, milliseconds: int):
+        return datetime.now() + timedelta(milliseconds=milliseconds)
 
     async def _async_update_data(self):
         try:
             if datetime.now() > self._next_time:
                 self._next_time = self.next_time(RetrySettings.Offline)
-                self._hub.clear_offline_units()
+                self._hub.retry_offline_units()
 
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
