@@ -105,5 +105,5 @@ class SolarEdgeRetryOfflineUnitsButton(SolarEdgeButtonBase):
         return not super().available
 
     async def async_press(self) -> None:
-        self._platform.clear_offline_units()
+        self._platform.retry_offline_units()
         await self.async_update()

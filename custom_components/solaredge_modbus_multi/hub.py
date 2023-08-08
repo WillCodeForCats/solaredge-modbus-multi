@@ -483,7 +483,7 @@ class SolarEdgeModbusMultiHub:
 
         return True
 
-    def clear_offline_units(self) -> None:
+    def retry_offline_units(self) -> None:
         if self._offline_units:
             _LOGGER.debug(f"Retry offline units: {self._offline_units}")
             self._offline_units.clear()
@@ -1234,8 +1234,8 @@ class SolarEdgeInverter:
         """Write inverter register."""
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
-    def clear_offline_units(self) -> None:
-        self.hub.clear_offline_units()
+    def retry_offline_units(self) -> None:
+        self.hub.retry_offline_units()
 
     @property
     def online(self) -> bool:
