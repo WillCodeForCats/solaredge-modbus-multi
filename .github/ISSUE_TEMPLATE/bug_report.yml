@@ -8,6 +8,8 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+        Do not use this form to ask how to set up or configure the integration.
+        Make sure you have read the "Known Issues" in the wiki before submitting this form.
   - type: textarea
     id: what-happened
     attributes:
