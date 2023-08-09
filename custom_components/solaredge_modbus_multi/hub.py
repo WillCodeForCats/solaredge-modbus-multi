@@ -1549,11 +1549,11 @@ class SolarEdgeBattery:
         ].translate(ascii_ctrl_chars)
 
         if (
-            len(self.decoded_common["B_Manufacturer"]) == 0
-            or len(self.decoded_common["B_Model"]) == 0
-            or len(self.decoded_common["B_SerialNumber"]) == 0
+            float_to_hex(self._platform.decoded_common["B_RatedEnergy"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self.decoded_common["B_RatedEnergy"] < 0
         ):
-            raise DeviceInvalid(f"Battery {self.battery_id} not usable.")
+            raise DeviceInvalid(f"Battery {self.battery_id} rating < 0")
 
         self.manufacturer = self.decoded_common["B_Manufacturer"]
         self.model = self.decoded_common["B_Model"]
