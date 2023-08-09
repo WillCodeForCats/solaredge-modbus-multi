@@ -58,7 +58,7 @@ body:
     id: installation
     attributes:
       label: Installation Type
-      description: Your issue must be duplicated in an HAOS VM. If your issue is related to running a Core installation you will need to do your own debugging.
+      description: Your issue must be duplicated in an HAOS VM. If your issue is related to dependencies in a Supervised or Core installation you will need to do your own debugging.
       multiple: false
       options:
         - HAOS
