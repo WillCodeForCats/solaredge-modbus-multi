@@ -1548,7 +1548,7 @@ class SolarEdgeBattery:
             "B_SerialNumber"
         ].translate(ascii_ctrl_chars)
 
-        if self.decoded_common["B_Device_Address"] == 0xFF or (
+        if (
             len(self.decoded_common["B_Manufacturer"]) == 0
             or len(self.decoded_common["B_Model"]) == 0
             or len(self.decoded_common["B_SerialNumber"]) == 0
