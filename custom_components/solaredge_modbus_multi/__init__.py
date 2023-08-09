@@ -162,7 +162,7 @@ async def async_remove_config_entry_device(
 
     for device_id in this_device_ids:
         if device_id in known_devices:
-            _LOGGER.error(f"Failed to remove device entry: device {device_id} in use")
+            _LOGGER.error(f"Unable to remove entry: device {device_id} is in use")
             return False
 
     return True
