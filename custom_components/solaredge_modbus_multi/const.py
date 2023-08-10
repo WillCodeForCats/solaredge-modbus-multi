@@ -54,6 +54,7 @@ class RetrySettings(IntEnum):
     Time = 800  # first attempt in milliseconds
     Ratio = 3  # time multiplier between each attempt
     Limit = 4  # number of attempts before failing
+    Offline = 5000  # time to retry offline units in milliseconds
 
 
 class BatteryLimit(IntEnum):

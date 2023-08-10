@@ -27,6 +27,9 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         entities.append(SolarEdgeRefreshButton(inverter, config_entry, coordinator))
+        entities.append(
+            SolarEdgeRetryOfflineUnitsButton(inverter, config_entry, coordinator)
+        )
 
     if entities:
         async_add_entities(entities)
@@ -79,4 +82,28 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
         return "Refresh"
 
     async def async_press(self) -> None:
+        await self.async_update()
+
+
+class SolarEdgeRetryOfflineUnitsButton(SolarEdgeButtonBase):
+    entity_category = EntityCategory.CONFIG
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_retry_offline_units"
+
+    @property
+    def name(self) -> str:
+        return "Retry Offline Units"
+
+    @property
+    def available(self) -> bool:
+        return not super().available
+
+    async def async_press(self) -> None:
+        self._platform.retry_offline_units()
         await self.async_update()
