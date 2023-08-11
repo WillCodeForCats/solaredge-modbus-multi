@@ -775,7 +775,7 @@ class SolarEdgeInverter:
 
             self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
@@ -837,7 +837,7 @@ class SolarEdgeInverter:
             else:
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise ModbusReadError(
                 f"No response from inverter ID {self.inverter_unit_id}"
             )
@@ -918,7 +918,7 @@ class SolarEdgeInverter:
             ):
                 raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise ModbusReadError(
                 f"No response from inverter ID {self.inverter_unit_id}"
             )
@@ -1013,7 +1013,7 @@ class SolarEdgeInverter:
                 except KeyError:
                     pass
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1051,7 +1051,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1087,7 +1087,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1130,7 +1130,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1165,7 +1165,7 @@ class SolarEdgeInverter:
                     (f"Inverter {self.inverter_unit_id}: Ext_Prod_Max NOT available")
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1231,7 +1231,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1374,7 +1374,7 @@ class SolarEdgeMeter:
                     f"Meter {self.meter_id} ident incorrect or not installed."
                 )
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
@@ -1483,7 +1483,7 @@ class SolarEdgeMeter:
                 ]
             )
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise ModbusReadError(
                 f"No response from inverter ID {self.inverter_unit_id}"
             )
@@ -1618,7 +1618,7 @@ class SolarEdgeBattery:
                     ),
                 )
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
@@ -1710,7 +1710,7 @@ class SolarEdgeBattery:
                 ]
             )
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise ModbusReadError(
                 f"No response from inverter ID {self.inverter_unit_id}"
             )
