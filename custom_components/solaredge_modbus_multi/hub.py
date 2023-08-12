@@ -1551,9 +1551,9 @@ class SolarEdgeBattery:
         if (
             float_to_hex(self.decoded_common["B_RatedEnergy"])
             == hex(SunSpecNotImpl.FLOAT32)
-            or self.decoded_common["B_RatedEnergy"] < 0
+            or self.decoded_common["B_RatedEnergy"] <= 0
         ):
-            raise DeviceInvalid(f"Battery {self.battery_id} rating < 0")
+            raise DeviceInvalid(f"Battery {self.battery_id} not usable (rating <=0)")
 
         self.manufacturer = self.decoded_common["B_Manufacturer"]
         self.model = self.decoded_common["B_Model"]
