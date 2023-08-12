@@ -18,7 +18,7 @@ try:
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
-from .const import DOMAIN, ModbusTimeouts, SolarEdgeTimeouts, SunSpecNotImpl
+from .const import DOMAIN, ModbusDefaults, SolarEdgeTimeouts, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -141,7 +141,7 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._online = True
 
-        self._mb_client_timeout = ModbusTimeouts.Client
+        self._mb_client_timeout = ModbusDefaults.ClientTimeout
         self._client = None
 
         _LOGGER.debug(
@@ -631,7 +631,7 @@ class SolarEdgeModbusMultiHub:
                 self._client = AsyncModbusTcpClient(
                     host=self._host,
                     port=self._port,
-                    reconnect_delay=0,
+                    reconnect_delay=ModbusDefaults.ReconnectDelay,
                     timeout=self.mb_client_timeout,
                 )
 

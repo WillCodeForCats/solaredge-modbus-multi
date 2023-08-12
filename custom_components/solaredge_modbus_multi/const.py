@@ -40,10 +40,11 @@ DOMAIN_REGEX = re.compile(
 )
 
 
-class ModbusTimeouts(IntEnum):
+class ModbusDefaults(IntEnum):
     """Timeouts in milliseconds."""
 
     Client = 3000
+    ReconnectDelay = 0
 
 
 class SolarEdgeTimeouts(IntEnum):
