@@ -1616,7 +1616,7 @@ class SolarEdgeBattery:
                         parse_modbus_string(decoder.decode_string(32)),
                     ),
                     ("B_Device_Address", decoder.decode_16bit_uint()),
-                    ("Reserved", decoder.decode_16bit_uint()),
+                    ("ignore", decoder.skip_bytes(2)),
                     ("B_RatedEnergy", decoder.decode_32bit_float()),
                     ("B_MaxChargePower", decoder.decode_32bit_float()),
                     ("B_MaxDischargePower", decoder.decode_32bit_float()),
@@ -1624,6 +1624,11 @@ class SolarEdgeBattery:
                     ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
                 ]
             )
+
+            try:
+                del self.decoded_common["ignore"]
+            except KeyError:
+                pass
 
             for name, value in iter(self.decoded_common.items()):
                 if isinstance(value, float):
@@ -1663,11 +1668,11 @@ class SolarEdgeBattery:
         ].translate(ascii_ctrl_chars)
 
         if (
-            len(self.decoded_common["B_Manufacturer"]) == 0
-            or len(self.decoded_common["B_Model"]) == 0
-            or len(self.decoded_common["B_SerialNumber"]) == 0
+            float_to_hex(self.decoded_common["B_RatedEnergy"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self.decoded_common["B_RatedEnergy"] <= 0
         ):
-            raise DeviceInvalid(f"Battery {self.battery_id} not usable.")
+            raise DeviceInvalid(f"Battery {self.battery_id} not usable (rating <=0)")
 
         self.manufacturer = self.decoded_common["B_Manufacturer"]
         self.model = self.decoded_common["B_Model"]
