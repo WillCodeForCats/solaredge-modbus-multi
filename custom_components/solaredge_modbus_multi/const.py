@@ -41,10 +41,10 @@ DOMAIN_REGEX = re.compile(
 
 
 class ModbusDefaults(IntEnum):
-    """Timeouts in milliseconds."""
+    """Values to pass to pymodbus"""
 
-    Client = 3000
-    ReconnectDelay = 0
+    Timeout = 3000  # Milliseconds to wait for a modbus response
+    ReconnectDelay = 0  # Don't use pymodbus reconnect
 
 
 class SolarEdgeTimeouts(IntEnum):

@@ -141,7 +141,7 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._online = True
 
-        self._mb_client_timeout = ModbusDefaults.ClientTimeout
+        self._mb_client_timeout = ModbusDefaults.Timeout
         self._client = None
 
         _LOGGER.debug(
