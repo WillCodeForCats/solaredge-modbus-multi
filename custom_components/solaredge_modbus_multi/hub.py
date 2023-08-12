@@ -1549,7 +1549,7 @@ class SolarEdgeBattery:
         ].translate(ascii_ctrl_chars)
 
         if (
-            float_to_hex(self._platform.decoded_common["B_RatedEnergy"])
+            float_to_hex(self.decoded_common["B_RatedEnergy"])
             == hex(SunSpecNotImpl.FLOAT32)
             or self.decoded_common["B_RatedEnergy"] < 0
         ):
