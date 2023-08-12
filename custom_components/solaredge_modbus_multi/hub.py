@@ -18,7 +18,7 @@ try:
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
-from .const import DOMAIN, SolarEdgeTimeouts, SunSpecNotImpl
+from .const import DOMAIN, ModbusTimeouts, SolarEdgeTimeouts, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -141,9 +141,8 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._online = True
 
-        self._client = AsyncModbusTcpClient(
-            host=self._host, port=self._port, reconnect_delay=0
-        )
+        self._mb_client_timeout = ModbusTimeouts.Client
+        self._client = None
 
         _LOGGER.debug(
             (
@@ -604,6 +603,14 @@ class SolarEdgeModbusMultiHub:
         return this_timeout
 
     @property
+    def mb_client_timeout(self) -> int:
+        return self._mb_client_timeout / 1000
+
+    @mb_client_timeout.setter
+    def mb_client_timeout(self, value: int) -> None:
+        return self._mb_client_timeout / 1000
+
+    @property
     def is_connected(self) -> bool:
         """Check modbus client connection status."""
         if self._client is None:
@@ -617,6 +624,14 @@ class SolarEdgeModbusMultiHub:
     async def connect(self) -> None:
         """Connect modbus client."""
         async with self._lock:
+            if self._client is None:
+                self._client = AsyncModbusTcpClient(
+                    host=self._host,
+                    port=self._port,
+                    reconnect_delay=0,
+                    timeout=self.mb_client_timeout,
+                )
+
             await self._client.connect()
 
     async def shutdown(self) -> None:
