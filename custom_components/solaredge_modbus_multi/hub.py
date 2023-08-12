@@ -639,9 +639,10 @@ class SolarEdgeModbusMultiHub:
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
-        self.online = False
-        self.disconnect()
-        self._client = None
+        async with self._lock:
+            self.online = False
+            self.disconnect()
+            self._client = None
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         self._rr_unit = unit
