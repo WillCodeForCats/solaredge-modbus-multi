@@ -604,14 +604,12 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def mb_client_timeout(self) -> int:
-        this_timeout = self._mb_client_timeout / 1000
-
-        _LOGGER.debug(f"modbus client timeout is {this_timeout}")
-        return this_timeout
+        _LOGGER.debug(f"modbus client timeout is {self._mb_client_timeout}")
+        return self._mb_client_timeout
 
     @mb_client_timeout.setter
     def mb_client_timeout(self, value: int) -> None:
-        self._mb_client_timeout == value * 1000
+        self._mb_client_timeout == value
 
     @property
     def is_connected(self) -> bool:

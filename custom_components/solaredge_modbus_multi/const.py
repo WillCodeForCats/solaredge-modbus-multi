@@ -43,7 +43,7 @@ DOMAIN_REGEX = re.compile(
 class ModbusDefaults(IntEnum):
     """Values to pass to pymodbus"""
 
-    Timeout = 3000  # Milliseconds to wait for a modbus response
+    Timeout = 3  # Seconds to wait for a modbus response
     ReconnectDelay = 0  # Don't use pymodbus reconnect
 
 
