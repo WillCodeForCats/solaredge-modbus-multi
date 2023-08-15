@@ -1068,7 +1068,10 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                if self.hub.mb_client_timeout < ModbusDefaults.TimeoutMax:
+                    self.hub.mb_client_timeout += ModbusDefaults.TimeoutIncrease
+
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1104,7 +1107,10 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                if self.hub.mb_client_timeout < ModbusDefaults.TimeoutMax:
+                    self.hub.mb_client_timeout += ModbusDefaults.TimeoutIncrease
+
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
