@@ -63,7 +63,6 @@ class RetrySettings(IntEnum):
     Time = 800  # first attempt in milliseconds
     Ratio = 3  # time multiplier between each attempt
     Limit = 4  # number of attempts before failing
-    Offline = 5000  # time to retry offline units in milliseconds
 
 
 class BatteryLimit(IntEnum):
@@ -86,6 +85,7 @@ class ConfDefaultInt(IntEnum):
     PORT = 1502
     NUMBER_INVERTERS = 1
     DEVICE_ID = 1
+    SLEEP_AFTER_WRITE = 3
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
 
@@ -112,6 +112,7 @@ class ConfName(StrEnum):
     ADV_STORAGE_CONTROL = "adv_storage_control"
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
+    SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
 

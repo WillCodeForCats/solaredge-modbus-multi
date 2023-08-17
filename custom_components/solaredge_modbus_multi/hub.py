@@ -106,6 +106,7 @@ class SolarEdgeModbusMultiHub:
         adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
+        sleep_after_write: int = 3,
         battery_rating_adjust: int = 0,
         battery_energy_reset_cycles: int = 0,
     ):
@@ -123,6 +124,7 @@ class SolarEdgeModbusMultiHub:
         self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
+        self._sleep_after_write = sleep_after_write
         self._battery_rating_adjust = battery_rating_adjust
         self._battery_energy_reset_cycles = battery_energy_reset_cycles
         self._id = name.lower()
@@ -132,7 +134,6 @@ class SolarEdgeModbusMultiHub:
         self.batteries = []
         self.inverter_common = {}
         self.mmppt_common = {}
-        self._offline_units = []
 
         self._wr_unit = None
         self._wr_address = None
@@ -155,6 +156,7 @@ class SolarEdgeModbusMultiHub:
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
+                f"sleep_after_write={self._sleep_after_write}, "
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
             ),
         )
@@ -411,60 +413,11 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 for inverter in self.inverters:
-                    if inverter.inverter_unit_id in self._offline_units:
-                        _LOGGER.debug(f"Skipped I{inverter.inverter_unit_id}")
-                        continue
-
-                    try:
-                        await inverter.read_modbus_data()
-
-                        if not inverter.online:
-                            try:
-                                while inverter.inverter_unit_id in self._offline_units:
-                                    self._offline_units.remove(
-                                        inverter.inverter_unit_id
-                                    )
-                            except ValueError:
-                                pass
-
-                            inverter.online = True
-
-                            _LOGGER.warning(
-                                (
-                                    f"Inverter ID {inverter.inverter_unit_id} at "
-                                    f"{self.hub_host}:{self.hub_port} recovered."
-                                ),
-                            )
-
-                    except asyncio.TimeoutError as e:
-                        _LOGGER.debug(f"I{inverter.inverter_unit_id} timeout: {e}")
-
-                        if inverter.online:
-                            inverter.online = False
-
-                            _LOGGER.warning(
-                                (
-                                    f"Inverter ID {inverter.inverter_unit_id} at "
-                                    f"{self.hub_host}:{self.hub_port} went offline."
-                                ),
-                            )
-
-                        if inverter.inverter_unit_id not in self._offline_units:
-                            self._offline_units.append(inverter.inverter_unit_id)
-
+                    await inverter.read_modbus_data()
                 for meter in self.meters:
-                    if meter.inverter_unit_id in self._offline_units:
-                        meter.online = False
-                    else:
-                        meter.online = True
-                        await meter.read_modbus_data()
-
+                    await meter.read_modbus_data()
                 for battery in self.batteries:
-                    if battery.inverter_unit_id in self._offline_units:
-                        battery.online = False
-                    else:
-                        battery.online = True
-                        await battery.read_modbus_data()
+                    await battery.read_modbus_data()
 
             except ModbusReadError as e:
                 self.disconnect()
@@ -487,11 +440,6 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
 
         return True
-
-    def retry_offline_units(self) -> None:
-        if self._offline_units:
-            _LOGGER.debug(f"Retry offline units: {self._offline_units}")
-            self._offline_units.clear()
 
     @property
     def online(self):
@@ -689,6 +637,12 @@ class SolarEdgeModbusMultiHub:
                     self._wr_address, self._wr_payload, **kwargs
                 )
 
+            if self._sleep_after_write > 0:
+                _LOGGER.debug(
+                    f"Sleeping {self._sleep_after_write} seconds after write."
+                )
+                await asyncio.sleep(self._sleep_after_write)
+
         except asyncio.TimeoutError:
             raise HomeAssistantError(
                 f"Timeout while tyring to send command to inverter ID {self._wr_unit}."
@@ -738,7 +692,7 @@ class SolarEdgeModbusMultiHub:
 
 class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
-        self._inverter_unit_id = device_id
+        self.inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
@@ -749,8 +703,6 @@ class SolarEdgeInverter:
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
-
-        self._online = True
 
     async def init_device(self) -> None:
         try:
@@ -1263,31 +1215,10 @@ class SolarEdgeInverter:
         """Write inverter register."""
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
-    def retry_offline_units(self) -> None:
-        self.hub.retry_offline_units()
-
     @property
     def online(self) -> bool:
         """Device is online."""
-        return self.hub.online and self._online
-
-    @online.setter
-    def online(self, value: bool) -> None:
-        if value is True:
-            self._online = True
-        else:
-            self._online = False
-
-    @property
-    def inverter_unit_id(self) -> int:
-        return self._inverter_unit_id
-
-    @inverter_unit_id.setter
-    def inverter_unit_id(self, value: int) -> None:
-        if value not in range(1, 248):
-            raise ValueError("Invalid inverter unit ID.")
-
-        self._inverter_unit_id = value
+        return self.hub.online
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1313,7 +1244,7 @@ class SolarEdgeMeter:
     def __init__(
         self, device_id: int, meter_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
-        self._inverter_unit_id = device_id
+        self.inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
@@ -1323,8 +1254,6 @@ class SolarEdgeMeter:
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
         self._via_device = None
-
-        self._online = True
 
         if self.meter_id == 1:
             self.start_address = self.start_address + 121
@@ -1531,25 +1460,7 @@ class SolarEdgeMeter:
     @property
     def online(self) -> bool:
         """Device is online."""
-        return self.hub.online and self._online
-
-    @online.setter
-    def online(self, value: bool) -> None:
-        if value is True:
-            self._online = True
-        else:
-            self._online = False
-
-    @property
-    def inverter_unit_id(self) -> int:
-        return self._inverter_unit_id
-
-    @inverter_unit_id.setter
-    def inverter_unit_id(self, value: int) -> None:
-        if value not in range(1, 248):
-            raise ValueError("Invalid inverter unit ID.")
-
-        self._inverter_unit_id = value
+        return self.hub.online
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1577,7 +1488,7 @@ class SolarEdgeBattery:
     def __init__(
         self, device_id: int, battery_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
-        self._inverter_unit_id = device_id
+        self.inverter_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
@@ -1586,8 +1497,6 @@ class SolarEdgeBattery:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self._via_device = None
-
-        self._online = True
 
         if self.battery_id == 1:
             self.start_address = 57600
@@ -1763,25 +1672,7 @@ class SolarEdgeBattery:
     @property
     def online(self) -> bool:
         """Device is online."""
-        return self.hub.online and self._online
-
-    @online.setter
-    def online(self, value: bool) -> None:
-        if value is True:
-            self._online = True
-        else:
-            self._online = False
-
-    @property
-    def inverter_unit_id(self) -> int:
-        return self._inverter_unit_id
-
-    @inverter_unit_id.setter
-    def inverter_unit_id(self, value: int) -> None:
-        if value not in range(1, 248):
-            raise ValueError("Invalid inverter unit ID.")
-
-        self._inverter_unit_id = value
+        return self.hub.online
 
     @property
     def device_info(self) -> DeviceInfo:
