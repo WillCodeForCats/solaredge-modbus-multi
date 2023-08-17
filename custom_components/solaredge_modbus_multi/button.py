@@ -78,5 +78,9 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
     def name(self) -> str:
         return "Refresh"
 
+    @property
+    def available(self) -> bool:
+        return True
+
     async def async_press(self) -> None:
         await self.async_update()
