@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 import async_timeout
@@ -179,21 +179,13 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
         self._hub = hub
-        self._next_time = self.next_time(RetrySettings.Offline)
 
         if scan_interval < 10 and not self._hub.keep_modbus_open:
             _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
             self._hub.keep_modbus_open = True
 
-    def next_time(self, milliseconds: int):
-        return datetime.now() + timedelta(milliseconds=milliseconds)
-
     async def _async_update_data(self):
         try:
-            if datetime.now() > self._next_time:
-                self._next_time = self.next_time(RetrySettings.Offline)
-                self._hub.retry_offline_units()
-
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
                 limit=RetrySettings.Limit,
@@ -230,14 +222,14 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             try:
                 async with async_timeout.timeout(self._hub.coordinator_timeout):
                     return await self._hub.async_refresh_modbus_data()
-            except Exception as e:
-                if not isinstance(e, ex_type):
-                    raise e
+            except Exception as ex:
+                if not isinstance(ex, ex_type):
+                    raise ex
                 if 0 < limit <= attempt:
                     _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
-                    raise e
+                    raise ex
 
-                _LOGGER.debug(f"Failed data refresh attempt #{attempt}: {e}")
+                _LOGGER.debug(f"Failed data refresh attempt #{attempt}")
 
                 attempt += 1
                 _LOGGER.debug(
