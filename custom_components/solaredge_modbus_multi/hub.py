@@ -106,6 +106,7 @@ class SolarEdgeModbusMultiHub:
         adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
         allow_battery_energy_reset: bool = False,
+        sleep_after_write: int = 3,
         battery_rating_adjust: int = 0,
         battery_energy_reset_cycles: int = 0,
     ):
@@ -123,6 +124,7 @@ class SolarEdgeModbusMultiHub:
         self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
         self._allow_battery_energy_reset = allow_battery_energy_reset
+        self._sleep_after_write = sleep_after_write
         self._battery_rating_adjust = battery_rating_adjust
         self._battery_energy_reset_cycles = battery_energy_reset_cycles
         self._id = name.lower()
@@ -155,6 +157,7 @@ class SolarEdgeModbusMultiHub:
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
+                f"sleep_after_write={self._sleep_after_write}, "
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
             ),
         )
@@ -616,6 +619,12 @@ class SolarEdgeModbusMultiHub:
                 result = await self._client.write_registers(
                     self._wr_address, self._wr_payload, **kwargs
                 )
+
+            if self._sleep_after_write > 0:
+                _LOGGER.debug(
+                    f"Sleeping {self._sleep_after_write} seconds after write."
+                )
+                await asyncio.sleep(self._sleep_after_write)
 
         except asyncio.TimeoutError:
             raise HomeAssistantError(
