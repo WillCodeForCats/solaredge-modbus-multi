@@ -675,11 +675,11 @@ class SolarEdgeModbusMultiHub:
                     self._wr_address, self._wr_payload, **kwargs
                 )
 
-            if self._sleep_after_write > 0:
-                _LOGGER.debug(
-                    f"Sleeping {self._sleep_after_write} seconds after write."
-                )
-                await asyncio.sleep(self._sleep_after_write)
+                if self._sleep_after_write > 0:
+                    _LOGGER.debug(
+                        f"Sleeping {self._sleep_after_write} seconds after write."
+                    )
+                    await asyncio.sleep(self._sleep_after_write)
 
         except asyncio.TimeoutError:
             raise HomeAssistantError(
