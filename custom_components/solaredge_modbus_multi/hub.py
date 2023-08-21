@@ -557,7 +557,7 @@ class SolarEdgeModbusMultiHub:
 
     @mb_client_timeout.setter
     def mb_client_timeout(self, value: int) -> None:
-        self._mb_client_timeout == value
+        self._mb_client_timeout = value
 
     @property
     def is_connected(self) -> bool:
