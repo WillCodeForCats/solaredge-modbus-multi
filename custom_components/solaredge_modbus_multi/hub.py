@@ -18,7 +18,7 @@ try:
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
-from .const import DOMAIN, SolarEdgeTimeouts, SunSpecNotImpl
+from .const import DOMAIN, ModbusDefaults, SolarEdgeTimeouts, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -142,9 +142,8 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._online = True
 
-        self._client = AsyncModbusTcpClient(
-            host=self._host, port=self._port, reconnect_delay=0
-        )
+        self._mb_client_timeout = ModbusDefaults.Timeout
+        self._client = None
 
         _LOGGER.debug(
             (
@@ -552,6 +551,15 @@ class SolarEdgeModbusMultiHub:
         return this_timeout
 
     @property
+    def mb_client_timeout(self) -> int:
+        _LOGGER.debug(f"modbus client timeout is {self._mb_client_timeout}")
+        return self._mb_client_timeout
+
+    @mb_client_timeout.setter
+    def mb_client_timeout(self, value: int) -> None:
+        self._mb_client_timeout == value
+
+    @property
     def is_connected(self) -> bool:
         """Check modbus client connection status."""
         if self._client is None:
@@ -560,18 +568,28 @@ class SolarEdgeModbusMultiHub:
         return self._client.connected
 
     def disconnect(self) -> None:
-        self._client.close()
+        if self._client is not None:
+            self._client.close()
 
     async def connect(self) -> None:
         """Connect modbus client."""
         async with self._lock:
+            if self._client is None:
+                self._client = AsyncModbusTcpClient(
+                    host=self._host,
+                    port=self._port,
+                    reconnect_delay=ModbusDefaults.ReconnectDelay,
+                    timeout=self.mb_client_timeout,
+                )
+
             await self._client.connect()
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
-        self.online = False
-        self.disconnect()
-        self._client = None
+        async with self._lock:
+            self.online = False
+            self.disconnect()
+            self._client = None
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         self._rr_unit = unit
@@ -1003,7 +1021,10 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                if self.hub.mb_client_timeout < ModbusDefaults.TimeoutMax:
+                    self.hub.mb_client_timeout += ModbusDefaults.TimeoutIncrease
+
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1039,7 +1060,10 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                if self.hub.mb_client_timeout < ModbusDefaults.TimeoutMax:
+                    self.hub.mb_client_timeout += ModbusDefaults.TimeoutIncrease
+
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )

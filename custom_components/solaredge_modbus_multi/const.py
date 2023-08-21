@@ -40,6 +40,15 @@ DOMAIN_REGEX = re.compile(
 )
 
 
+class ModbusDefaults(IntEnum):
+    """Values to pass to pymodbus"""
+
+    Timeout = 3  # Seconds to wait for a modbus response
+    TimeoutMax = 6  # Maximum timeout increase in seconds
+    TimeoutIncrease = 3  # Seconds to increase the timeout by
+    ReconnectDelay = 0  # Don't use pymodbus reconnect
+
+
 class SolarEdgeTimeouts(IntEnum):
     """Timeouts in milliseconds."""
 
