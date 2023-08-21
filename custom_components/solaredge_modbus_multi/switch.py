@@ -219,7 +219,9 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write_registers(
             address=61762, payload=builder.to_registers()
         )
-        await self.async_update()
+        # await self.async_update()
+        self._platform.decoded_model["I_AdvPwrCtrlEn"] = 0x1
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x0")
@@ -228,4 +230,6 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write_registers(
             address=61762, payload=builder.to_registers()
         )
-        await self.async_update()
+        # await self.async_update()
+        self._platform.decoded_model["I_AdvPwrCtrlEn"] = 0x0
+        self.async_write_ha_state()
