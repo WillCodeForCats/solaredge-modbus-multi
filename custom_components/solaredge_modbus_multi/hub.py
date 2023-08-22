@@ -555,11 +555,6 @@ class SolarEdgeModbusMultiHub:
         _LOGGER.debug(f"modbus client timeout is {self._mb_client_timeout}")
         return self._mb_client_timeout
 
-    @mb_client_timeout.setter
-    def mb_client_timeout(self, value: int) -> None:
-        _LOGGER.debug(f"setting modbus client timeout to {value}")
-        self._mb_client_timeout = value
-
     @property
     def is_connected(self) -> bool:
         """Check modbus client connection status."""
@@ -1023,9 +1018,6 @@ class SolarEdgeInverter:
                 )
 
             except (ModbusIOError, asyncio.TimeoutError):
-                if self.hub.mb_client_timeout < ModbusDefaults.TimeoutMax:
-                    self.hub.mb_client_timeout += ModbusDefaults.TimeoutIncrease
-
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1062,9 +1054,6 @@ class SolarEdgeInverter:
                 )
 
             except (ModbusIOError, asyncio.TimeoutError):
-                if self.hub.mb_client_timeout < ModbusDefaults.TimeoutMax:
-                    self.hub.mb_client_timeout += ModbusDefaults.TimeoutIncrease
-
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
