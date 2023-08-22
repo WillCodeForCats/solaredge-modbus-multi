@@ -35,7 +35,8 @@
           "keep_modbus_open": "Keep Modbus Connection Open",
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
-          "advanced_power_control": "Power Control Options"
+          "advanced_power_control": "Power Control Options",
+          "mb_client_timeout": "Modbus Client Timeout"
         }
       },
       "adv_pwr_ctl": {
@@ -59,7 +60,8 @@
     "error": {
       "invalid_scan_interval": "Valid interval is 1 to 86400 seconds.",
       "invalid_sleep_interval": "Valid interval is 0 to 60 seconds.",
-      "invalid_percent": "Valid range is 0 to 100 percent."
+      "invalid_percent": "Valid range is 0 to 100 percent.",
+      "invalid_mb_client_timeout": "Valid timeout is 3 to 10 seconds."
     }
   },
   "issues": {

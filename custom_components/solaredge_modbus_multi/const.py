@@ -41,11 +41,8 @@ DOMAIN_REGEX = re.compile(
 
 
 class ModbusDefaults(IntEnum):
-    """Values to pass to pymodbus"""
+    """Values for pymodbus library."""
 
-    Timeout = 3  # Seconds to wait for a modbus response
-    TimeoutMax = 6  # Maximum timeout increase in seconds
-    TimeoutIncrease = 3  # Seconds to increase the timeout by
     ReconnectDelay = 0  # Don't use pymodbus reconnect
 
 
@@ -88,6 +85,7 @@ class ConfDefaultInt(IntEnum):
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
+    MODBUS_CLIENT_TIMEOUT = 3
 
 
 class ConfDefaultFlag(IntEnum):
@@ -103,6 +101,8 @@ class ConfDefaultFlag(IntEnum):
 
 
 class ConfName(StrEnum):
+    """Configuration option names."""
+
     NUMBER_INVERTERS = "number_of_inverters"
     DEVICE_ID = "device_id"
     DETECT_METERS = "detect_meters"
@@ -115,6 +115,7 @@ class ConfName(StrEnum):
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
+    MODBUS_CLIENT_TIMEOUT = "mb_client_timeout"
 
 
 class SunSpecAccum(IntEnum):

@@ -35,7 +35,8 @@
           "keep_modbus_open": "Houd Modbus-verbinding open",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
-          "advanced_power_control": "Geavanceerde stroomregeling"
+          "advanced_power_control": "Geavanceerde stroomregeling",
+          "mb_client_timeout": "Modbus-client time-out"
         }
       },
       "adv_pwr_ctl": {
@@ -59,7 +60,8 @@
     "error": {
       "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden.",
       "invalid_sleep_interval": "Geldig interval is 0 tot 60 seconden.",
-      "invalid_percent": "Het geldige bereik is 0 tot 100 procent."
+      "invalid_percent": "Het geldige bereik is 0 tot 100 procent.",
+      "invalid_mb_client_timeout": "Geldige time-out is 3 tot 10 seconden."
     }
   },
   "issues": {
