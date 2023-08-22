@@ -35,7 +35,8 @@
           "keep_modbus_open": "Pozostaw połączenie Modbus otwarte",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
-          "advanced_power_control": "Zaawansowana kontrola mocy"
+          "advanced_power_control": "Zaawansowana kontrola mocy",
+          "mb_client_timeout": "Limit czasu klienta Modbus"
         }
       },
       "adv_pwr_ctl": {
@@ -59,7 +60,8 @@
     "error": {
       "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund.",
       "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 60 sekund.",
-      "invalid_percent": "Prawidłowy zakres wynosi od 0 do 100 procent."
+      "invalid_percent": "Prawidłowy zakres wynosi od 0 do 100 procent.",
+      "invalid_mb_client_timeout": "Prawidłowy limit czasu wynosi od 3 do 10 sekund."
     }
   },
   "issues": {
