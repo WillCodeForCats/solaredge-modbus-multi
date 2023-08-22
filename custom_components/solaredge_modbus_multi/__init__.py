@@ -84,7 +84,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ),
         entry.options.get(
             ConfName.MODBUS_CLIENT_TIMEOUT,
-            bool(ConfDefaultInt.MODBUS_CLIENT_TIMEOUT),
+            ConfDefaultInt.MODBUS_CLIENT_TIMEOUT,
         ),
     )
 
