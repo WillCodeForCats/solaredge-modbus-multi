@@ -743,7 +743,7 @@ class SolarEdgeInverter:
 
             self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
@@ -805,7 +805,7 @@ class SolarEdgeInverter:
             else:
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise ModbusReadError(
                 f"No response from inverter ID {self.inverter_unit_id}"
             )
@@ -886,9 +886,18 @@ class SolarEdgeInverter:
             ):
                 raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
+            _LOGGER.debug(
+                (
+                    f"No response from inverter ID {self.inverter_unit_id} "
+                    "while reading basic data points"
+                )
+            )
             raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
+                (
+                    f"No response from inverter ID {self.inverter_unit_id} "
+                    "while reading basic data points"
+                )
             )
 
         """ Multiple MPPT Extension """
@@ -981,9 +990,18 @@ class SolarEdgeInverter:
                 except KeyError:
                     pass
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                _LOGGER.debug(
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading mmppt units"
+                    )
+                )
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id}"
+                        "while reading mmppt units"
+                    )
                 )
 
         """ Global Dynamic Power Control and Status """
@@ -1020,8 +1038,17 @@ class SolarEdgeInverter:
                 )
 
             except (ModbusIOError, asyncio.TimeoutError):
+                _LOGGER.debug(
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading global power control"
+                    )
+                )
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading global power control"
+                    )
                 )
 
         """ Advanced Power Control """
@@ -1056,8 +1083,17 @@ class SolarEdgeInverter:
                 )
 
             except (ModbusIOError, asyncio.TimeoutError):
+                _LOGGER.debug(
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading advanced power control"
+                    )
+                )
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading advanced power control"
+                    )
                 )
 
         """ Power Control Options: Site Limit Control """
@@ -1098,9 +1134,18 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                _LOGGER.debug(
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading site limit control"
+                    )
+                )
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading site limit control"
+                    )
                 )
 
             """ External Production Max Power """
@@ -1133,9 +1178,18 @@ class SolarEdgeInverter:
                     (f"Inverter {self.inverter_unit_id}: Ext_Prod_Max NOT available")
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                _LOGGER.debug(
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading external production max"
+                    )
+                )
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading external production max"
+                    )
                 )
 
         for name, value in iter(self.decoded_model.items()):
@@ -1199,9 +1253,18 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except ModbusIOError:
+            except (ModbusIOError, asyncio.TimeoutError):
+                _LOGGER.debug(
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading storage control"
+                    )
+                )
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    (
+                        f"No response from inverter ID {self.inverter_unit_id} "
+                        "while reading storage control"
+                    )
                 )
 
     async def write_registers(self, address, payload):
