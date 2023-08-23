@@ -743,7 +743,7 @@ class SolarEdgeInverter:
 
             self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
@@ -805,7 +805,7 @@ class SolarEdgeInverter:
             else:
                 _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
 
-        except ModbusIOError:
+        except (ModbusIOError, asyncio.TimeoutError):
             raise ModbusReadError(
                 f"No response from inverter ID {self.inverter_unit_id}"
             )
