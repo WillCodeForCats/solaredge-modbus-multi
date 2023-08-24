@@ -1457,11 +1457,11 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
             return False
 
     @property
-    def native_value(self):
+    def native_value(self) -> int:
         return self._platform.decoded_model["mmppt_Events"]
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> str:
         attrs = {}
         mmppt_events_active = []
 
