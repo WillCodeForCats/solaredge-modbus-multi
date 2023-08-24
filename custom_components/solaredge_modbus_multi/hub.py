@@ -224,9 +224,6 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 1 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInvalid(
-                                f"Duplicate m1 serial {new_meter_1.serial}"
-                            )
 
                     new_meter_1.via_device = new_inverter.uid_base
                     self.meters.append(new_meter_1)
@@ -252,9 +249,6 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 2 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInvalid(
-                                f"Duplicate m2 serial {new_meter_2.serial}"
-                            )
 
                     new_meter_2.via_device = new_inverter.uid_base
                     self.meters.append(new_meter_2)
@@ -279,9 +273,6 @@ class SolarEdgeModbusMultiHub:
                                     f"Duplicate serial {new_meter_3.serial} "
                                     f"on meter 3 inverter {inverter_unit_id}"
                                 ),
-                            )
-                            raise DeviceInvalid(
-                                f"Duplicate m3 serial {new_meter_3.serial}"
                             )
 
                     new_meter_3.via_device = new_inverter.uid_base
