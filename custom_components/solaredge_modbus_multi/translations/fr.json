@@ -35,8 +35,7 @@
           "keep_modbus_open": "Garder la connection Modbus ouverte",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
-          "advanced_power_control": "Options de contrôle de l'alimentation",
-          "mb_client_timeout": "Délai d'expiration du client Modbus"
+          "advanced_power_control": "Options de contrôle de l'alimentation"
         }
       },
       "adv_pwr_ctl": {
@@ -60,8 +59,7 @@
     "error": {
       "invalid_scan_interval": "L'intervalle valide est de 1 à 86 400 secondes.",
       "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
-      "invalid_percent": "La plage valide est de 0 à 100 %.",
-      "invalid_mb_client_timeout": "Le délai d'attente valide est de 3 à 10 secondes."
+      "invalid_percent": "La plage valide est de 0 à 100 %."
     }
   },
   "issues": {

@@ -35,8 +35,7 @@
           "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
-          "advanced_power_control": "Avansert strømkontroll",
-          "mb_client_timeout": "Modbus Client Timeout"
+          "advanced_power_control": "Avansert strømkontroll"
         }
       },
       "adv_pwr_ctl": {
@@ -60,8 +59,7 @@
     "error": {
       "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
       "invalid_sleep_interval": "Gyldig intervall er 0 til 60 sekunder.",
-      "invalid_percent": "Gyldig område er 0 til 100 prosent.",
-      "invalid_mb_client_timeout": "Gyldig tidsavbrudd er 3 til 10 sekunder."
+      "invalid_percent": "Gyldig område er 0 til 100 prosent."
     }
   },
   "issues": {

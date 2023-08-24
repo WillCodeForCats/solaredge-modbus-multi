@@ -35,8 +35,7 @@
           "keep_modbus_open": "Modbus-Verbindung geöffnet lassen",
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
-          "advanced_power_control": "Erweiterte Leistungssteuerung",
-          "mb_client_timeout": "Zeitüberschreitung des Modbus-Clients"
+          "advanced_power_control": "Erweiterte Leistungssteuerung"
         }
       },
       "adv_pwr_ctl": {
@@ -60,8 +59,7 @@
     "error": {
       "invalid_scan_interval": "Gültiges Intervall ist 1 bis 86400 Sekunden.",
       "invalid_sleep_interval": "Gültiges Intervall ist 0 bis 60 Sekunden.",
-      "invalid_percent": "Gültiges Bereich ist 0 bis 100 Prozent.",
-      "invalid_mb_client_timeout": "Das gültige Timeout beträgt 3 bis 10 Sekunden."
+      "invalid_percent": "Gültiges Bereich ist 0 bis 100 Prozent."
     }
   },
   "issues": {

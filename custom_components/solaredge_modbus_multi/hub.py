@@ -109,7 +109,6 @@ class SolarEdgeModbusMultiHub:
         sleep_after_write: int = 3,
         battery_rating_adjust: int = 0,
         battery_energy_reset_cycles: int = 0,
-        mb_client_timeout: int = 3,
         adv_power_control: bool = False,
     ):
         """Initialize the Modbus hub."""
@@ -129,7 +128,6 @@ class SolarEdgeModbusMultiHub:
         self._sleep_after_write = sleep_after_write
         self._battery_rating_adjust = battery_rating_adjust
         self._battery_energy_reset_cycles = battery_energy_reset_cycles
-        self._mb_client_timeout = mb_client_timeout
         self._adv_power_control = adv_power_control
         self._id = name.lower()
         self._lock = asyncio.Lock()
@@ -146,6 +144,7 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._online = True
 
+        self._mb_client_timeout = ModbusDefaults.Timeout
         self._client = None
 
         _LOGGER.debug(
@@ -161,7 +160,6 @@ class SolarEdgeModbusMultiHub:
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
                 f"sleep_after_write={self._sleep_after_write}, "
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
-                f"mb_client_timeout={self._mb_client_timeout}, "
                 f"adv_power_control={self._adv_power_control}"
             ),
         )

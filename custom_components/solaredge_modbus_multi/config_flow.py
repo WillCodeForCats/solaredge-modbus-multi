@@ -114,10 +114,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
-            elif user_input[ConfName.MODBUS_CLIENT_TIMEOUT] < 3:
-                errors[ConfName.MODBUS_CLIENT_TIMEOUT] = "invalid_mb_client_timeout"
-            elif user_input[ConfName.MODBUS_CLIENT_TIMEOUT] > 10:
-                errors[ConfName.MODBUS_CLIENT_TIMEOUT] = "invalid_mb_client_timeout"
             else:
                 if user_input[ConfName.DETECT_BATTERIES] is True:
                     self.init_info = user_input
@@ -134,9 +130,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             user_input = {
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
-                ),
-                ConfName.MODBUS_CLIENT_TIMEOUT: self.config_entry.options.get(
-                    ConfName.MODBUS_CLIENT_TIMEOUT, ConfDefaultInt.MODBUS_CLIENT_TIMEOUT
                 ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
                     ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
@@ -159,10 +152,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
                         default=user_input[CONF_SCAN_INTERVAL],
-                    ): vol.Coerce(int),
-                    vol.Optional(
-                        f"{ConfName.MODBUS_CLIENT_TIMEOUT}",
-                        default=user_input[ConfName.MODBUS_CLIENT_TIMEOUT],
                     ): vol.Coerce(int),
                     vol.Optional(
                         f"{ConfName.KEEP_MODBUS_OPEN}",
