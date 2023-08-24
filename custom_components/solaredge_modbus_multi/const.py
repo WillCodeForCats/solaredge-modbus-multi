@@ -40,11 +40,26 @@ DOMAIN_REGEX = re.compile(
 )
 
 
+class ModbusDefaults(IntEnum):
+    """Values to pass to pymodbus"""
+
+    Timeout = 3  # Seconds to wait for a modbus response
+    ReconnectDelay = 0  # Don't use pymodbus reconnect
+
+
+class SolarEdgeTimeouts(IntEnum):
+    """Timeouts in milliseconds."""
+
+    Inverter = 8400
+    Device = 1200
+    Init = 1200
+
+
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
 
     Time = 800  # first attempt in milliseconds
-    Ratio = 2  # time multiplier between each attempt
+    Ratio = 3  # time multiplier between each attempt
     Limit = 4  # number of attempts before failing
 
 
@@ -52,7 +67,7 @@ class BatteryLimit(IntEnum):
     """Configure battery limits for input and display validation."""
 
     Vmin = 0  # volts
-    Vmax = 600  # volts
+    Vmax = 1000  # volts
     Amin = -200  # amps
     Amax = 200  # amps
     Tmax = 100  # degrees C
@@ -68,7 +83,7 @@ class ConfDefaultInt(IntEnum):
     PORT = 1502
     NUMBER_INVERTERS = 1
     DEVICE_ID = 1
-    SLEEP_AFTER_WRITE = 3
+    SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
 

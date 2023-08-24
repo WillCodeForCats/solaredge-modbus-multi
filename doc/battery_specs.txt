@@ -7,6 +7,10 @@ BYD Battery-Box Premium LVS 4.0, 8.0, 12.0, 16.0, 20.0, 24.0
 40-62 V DC
 130 A DC
 
+Note: in issue #370 a SolarEdge Home Battery with SE8K-RWS inverter reported battery
+voltages as high as 825 VDC when it's supposed to be a 48VDC nominal system.
+
+
 
 SE5000-XXS / SE6000-XXS
 LG Chem RESU7H

@@ -1,0 +1,84 @@
+name: Bug Report
+description: Create a report to help us improve or fix a problem.
+labels: []
+assignees:
+  - octocat
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        Do not use this form to ask how to set up or configure the integration.
+        Make sure you have read the "Known Issues" in the wiki before submitting this form.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots of the problem and/or configuration.
+  - type: textarea
+    id: diagnostic-file
+    attributes:
+      label: Diagnostic File
+      description: Drag and drop to attach your diagnostic file. The diagnostic file is a snapshot. Make sure it's taken at the exact time the issue is happening.
+    validations:
+      required: true
+  - type: textarea
+    id: log-file
+    attributes:
+      label: Debug logs
+      description: Debug logs are not always necessary, but may be required for more complex issues. You can enable debug logs in Home Assistant. Debug logging will generate a large amount of data. Turn on debug only to observe the isseue then turn off debug during normal operation.
+      render: shell
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant Version
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: solaredge-modbus-multi Version
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation Type
+      description: Your issue must be duplicated in an HAOS VM. If your issue is related to dependencies in a Supervised or Core installation you will need to do your own debugging.
+      multiple: false
+      options:
+        - HAOS
+        - Container
+        - Supervised
+        - Core
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Read the Instructions
+      description: Make sure your configuration is correct, your LAN is working, and you have read about "Known Issues" in the wiki. Do not open an issue to ask how to set up or configure the integration.
+      options:
+        - label: I have read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki
+          required: true
+        - label: My configuration follows https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
+          required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.

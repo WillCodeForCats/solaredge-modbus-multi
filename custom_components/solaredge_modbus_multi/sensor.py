@@ -83,9 +83,14 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+
+        if hub.option_advanced_power_control is True:
+            entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
+            entities.append(
+                SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
+            )
+            entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+
         if inverter.is_mmppt:
             entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
@@ -207,7 +212,7 @@ class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        return self._platform.online
+        return super().available and self._platform.online
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -1245,7 +1250,7 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_rrcr"
+        return f"{self._platform.uid_base}_rrcr"
 
     @property
     def name(self) -> str:
@@ -1307,7 +1312,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_active_power_limit"
+        return f"{self._platform.uid_base}_active_power_limit"
 
     @property
     def name(self) -> str:
@@ -1348,7 +1353,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_cosphi"
+        return f"{self._platform.uid_base}_cosphi"
 
     @property
     def name(self) -> str:
@@ -1826,23 +1831,29 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                     if self._platform.decoded_model["B_Export_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Export_Energy_WH"]
 
+                        if self._platform.allow_battery_energy_reset:
+                            self._count = 0
+
                         return (
                             self._platform.decoded_model["B_Export_Energy_WH"] * 0.001
                         )
 
                     else:
                         if self._platform.allow_battery_energy_reset:
+                            self._count += 1
                             _LOGGER.debug(
                                 (
-                                    "Battery Export Energy went backwards: "
+                                    "B_Export_Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: E501
-                                    f"< {self._last}"
+                                    f"< {self._last} cycle {self._count} of "
+                                    f"{self._platform.battery_energy_reset_cycles}"
                                 )
                             )
 
-                            self._count += 1
-
                             if self._count > self._platform.battery_energy_reset_cycles:
+                                _LOGGER.debug(
+                                    f"B_Export_Energy reset at cycle {self._count}"
+                                )
                                 self._last = None
                                 self._count = 0
 
@@ -1895,23 +1906,29 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                     if self._platform.decoded_model["B_Import_Energy_WH"] >= self._last:
                         self._last = self._platform.decoded_model["B_Import_Energy_WH"]
 
+                        if self._platform.allow_battery_energy_reset:
+                            self._count = 0
+
                         return (
                             self._platform.decoded_model["B_Import_Energy_WH"] * 0.001
                         )
 
                     else:
                         if self._platform.allow_battery_energy_reset:
+                            self._count += 1
                             _LOGGER.debug(
                                 (
-                                    "Battery Import Energy went backwards: "
+                                    "B_Import_Energy went backwards: "
                                     f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: E501
-                                    f"< {self._last}"
+                                    f"< {self._last} cycle {self._count} of "
+                                    f"{self._platform.battery_energy_reset_cycles}"
                                 )
                             ),
 
-                            self._count += 1
-
                             if self._count > self._platform.battery_energy_reset_cycles:
+                                _LOGGER.debug(
+                                    f"B_Import_Energy reset at cycle {self._count}"
+                                )
                                 self._last = None
                                 self._count = 0
 
