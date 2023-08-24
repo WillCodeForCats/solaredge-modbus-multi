@@ -86,10 +86,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ConfName.MODBUS_CLIENT_TIMEOUT,
             ConfDefaultInt.MODBUS_CLIENT_TIMEOUT,
         ),
-        entry.options.get(
-            ConfName.ADV_PWR_CONTROL,
-            bool(ConfDefaultFlag.ADV_PWR_CONTROL),
-        ),
     )
 
     coordinator = SolarEdgeCoordinator(

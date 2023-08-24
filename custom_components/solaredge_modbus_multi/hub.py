@@ -110,7 +110,6 @@ class SolarEdgeModbusMultiHub:
         battery_rating_adjust: int = 0,
         battery_energy_reset_cycles: int = 0,
         mb_client_timeout: int = 3,
-        adv_power_control: bool = False,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -130,7 +129,6 @@ class SolarEdgeModbusMultiHub:
         self._battery_rating_adjust = battery_rating_adjust
         self._battery_energy_reset_cycles = battery_energy_reset_cycles
         self._mb_client_timeout = mb_client_timeout
-        self._adv_power_control = adv_power_control
         self._id = name.lower()
         self._lock = asyncio.Lock()
         self.inverters = []
@@ -162,7 +160,6 @@ class SolarEdgeModbusMultiHub:
                 f"sleep_after_write={self._sleep_after_write}, "
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
                 f"mb_client_timeout={self._mb_client_timeout}, "
-                f"adv_power_control={self._adv_power_control}"
             ),
         )
 
@@ -483,10 +480,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def option_site_limit_control(self) -> bool:
         return self._adv_site_limit_control
-
-    @property
-    def option_advanced_power_control(self) -> bool:
-        return self._adv_power_control
 
     @property
     def keep_modbus_open(self) -> bool:
@@ -985,9 +978,7 @@ class SolarEdgeInverter:
                 )
 
         """ Global Dynamic Power Control and Status """
-        if self.hub.option_advanced_power_control and (
-            self.global_power_control is True or self.global_power_control is None
-        ):
+        if self.global_power_control is True or self.global_power_control is None:
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61440, rcount=4
@@ -1025,9 +1016,7 @@ class SolarEdgeInverter:
                 )
 
         """ Advanced Power Control """
-        if self.hub.option_advanced_power_control and (
-            self.advanced_power_control is True or self.advanced_power_control is None
-        ):
+        if self.advanced_power_control is True or self.advanced_power_control is None:
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61762, rcount=2
