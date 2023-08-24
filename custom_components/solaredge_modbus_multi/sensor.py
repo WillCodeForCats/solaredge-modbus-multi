@@ -83,9 +83,14 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+
+        if hub.option_advanced_power_control is True:
+            entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
+            entities.append(
+                SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
+            )
+            entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+
         if inverter.is_mmppt:
             entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
@@ -1248,7 +1253,7 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_rrcr"
+        return f"{self._platform.uid_base}_rrcr"
 
     @property
     def name(self) -> str:
@@ -1310,7 +1315,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_active_power_limit"
+        return f"{self._platform.uid_base}_active_power_limit"
 
     @property
     def name(self) -> str:
@@ -1351,7 +1356,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_cosphi"
+        return f"{self._platform.uid_base}_cosphi"
 
     @property
     def name(self) -> str:

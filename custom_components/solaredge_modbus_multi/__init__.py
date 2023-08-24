@@ -80,11 +80,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ),
         entry.options.get(
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
-            bool(ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES),
+            ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         ),
         entry.options.get(
             ConfName.MODBUS_CLIENT_TIMEOUT,
             ConfDefaultInt.MODBUS_CLIENT_TIMEOUT,
+        ),
+        entry.options.get(
+            ConfName.ADV_PWR_CONTROL,
+            bool(ConfDefaultFlag.ADV_PWR_CONTROL),
         ),
     )
 
