@@ -144,7 +144,6 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._online = True
 
-        self._mb_client_timeout = ModbusDefaults.Timeout
         self._client = None
 
         _LOGGER.debug(
@@ -558,11 +557,6 @@ class SolarEdgeModbusMultiHub:
         return this_timeout
 
     @property
-    def mb_client_timeout(self) -> int:
-        _LOGGER.debug(f"modbus client timeout is {self._mb_client_timeout}")
-        return self._mb_client_timeout
-
-    @property
     def is_connected(self) -> bool:
         """Check modbus client connection status."""
         if self._client is None:
@@ -582,7 +576,7 @@ class SolarEdgeModbusMultiHub:
                     host=self._host,
                     port=self._port,
                     reconnect_delay=ModbusDefaults.ReconnectDelay,
-                    timeout=self.mb_client_timeout,
+                    timeout=ModbusDefaults.Timeout,
                 )
 
             await self._client.connect()
