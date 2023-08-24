@@ -978,7 +978,9 @@ class SolarEdgeInverter:
                 )
 
         """ Global Dynamic Power Control and Status """
-        if self.global_power_control is True or self.global_power_control is None:
+        if self.hub.option_detect_extras is True and (
+            self.global_power_control is True or self.global_power_control is None
+        ):
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61440, rcount=4
@@ -1016,7 +1018,9 @@ class SolarEdgeInverter:
                 )
 
         """ Advanced Power Control """
-        if self.advanced_power_control is True or self.advanced_power_control is None:
+        if self.hub.option_detect_extras is True and (
+            self.advanced_power_control is True or self.advanced_power_control is None
+        ):
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61762, rcount=2
