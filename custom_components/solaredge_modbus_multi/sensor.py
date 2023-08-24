@@ -83,14 +83,9 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
-
-        if hub.option_advanced_power_control is True:
-            entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
-            entities.append(
-                SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
-            )
-            entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
-
+        entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
         if inverter.is_mmppt:
             entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 

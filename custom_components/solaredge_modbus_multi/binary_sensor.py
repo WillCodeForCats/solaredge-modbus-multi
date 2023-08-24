@@ -26,10 +26,7 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
-        if (
-            hub.option_advanced_power_control is True
-            and inverter.advanced_power_control
-        ):
+        if inverter.advanced_power_control:
             entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
 
     if entities:
