@@ -35,6 +35,7 @@
           "keep_modbus_open": "Garder la connection Modbus ouverte",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
+          "detect_extras": "Détection automatique des entités supplémentaires",
           "advanced_power_control": "Options de contrôle de l'alimentation"
         }
       },

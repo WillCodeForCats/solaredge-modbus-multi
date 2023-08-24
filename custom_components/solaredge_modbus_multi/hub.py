@@ -102,6 +102,7 @@ class SolarEdgeModbusMultiHub:
         start_device_id: int = 1,
         detect_meters: bool = True,
         detect_batteries: bool = False,
+        detect_extras: bool = True,
         keep_modbus_open: bool = False,
         adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
@@ -120,6 +121,7 @@ class SolarEdgeModbusMultiHub:
         self._start_device_id = start_device_id
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
+        self._detect_extras = detect_extras
         self._keep_modbus_open = keep_modbus_open
         self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
@@ -127,6 +129,7 @@ class SolarEdgeModbusMultiHub:
         self._sleep_after_write = sleep_after_write
         self._battery_rating_adjust = battery_rating_adjust
         self._battery_energy_reset_cycles = battery_energy_reset_cycles
+
         self._id = name.lower()
         self._lock = asyncio.Lock()
         self.inverters = []
@@ -151,6 +154,7 @@ class SolarEdgeModbusMultiHub:
                 f"start_device_id={self._start_device_id}, "
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
+                f"detect_extras={self._detect_extras}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
@@ -477,6 +481,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def option_site_limit_control(self) -> bool:
         return self._adv_site_limit_control
+
+    @property
+    def option_detect_extras(self) -> bool:
+        return self._detect_extras
 
     @property
     def keep_modbus_open(self) -> bool:
