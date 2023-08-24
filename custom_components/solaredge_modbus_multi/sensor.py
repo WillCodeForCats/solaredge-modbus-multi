@@ -1441,16 +1441,19 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
         return "MMPPT Events"
 
     @property
-    def native_value(self):
+    def available(self) -> bool:
         try:
             if self._platform.decoded_model["mmppt_Events"] == SunSpecNotImpl.UINT32:
-                return None
+                return False
 
-            else:
-                return self._platform.decoded_model["mmppt_Events"]
+            return super().available
 
         except KeyError:
-            return None
+            return False
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["mmppt_Events"]
 
     @property
     def extra_state_attributes(self):
