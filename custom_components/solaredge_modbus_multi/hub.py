@@ -1267,7 +1267,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-    async def write_registers(self, address, payload):
+    async def write_registers(self, address, payload) -> None:
         """Write inverter register."""
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
