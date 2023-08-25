@@ -84,7 +84,7 @@ async def async_setup_entry(
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
 
-        if hub.option_advanced_power_control is True:
+        if hub.option_detect_extras:
             entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
             entities.append(
                 SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)

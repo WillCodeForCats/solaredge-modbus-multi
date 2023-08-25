@@ -140,6 +140,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 ConfName.DETECT_BATTERIES: self.config_entry.options.get(
                     ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
                 ),
+                ConfName.DETECT_EXTRAS: self.config_entry.options.get(
+                    ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
+                ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
                 ),
@@ -164,6 +167,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     vol.Optional(
                         f"{ConfName.DETECT_BATTERIES}",
                         default=user_input[ConfName.DETECT_BATTERIES],
+                    ): cv.boolean,
+                    vol.Optional(
+                        f"{ConfName.DETECT_EXTRAS}",
+                        default=user_input[ConfName.DETECT_EXTRAS],
                     ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.ADV_PWR_CONTROL}",

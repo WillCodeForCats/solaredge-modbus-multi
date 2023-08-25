@@ -60,6 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(
             ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
         ),
+        entry.options.get(ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)),
         entry.options.get(
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
         ),
@@ -81,10 +82,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
-        ),
-        entry.options.get(
-            ConfName.ADV_PWR_CONTROL,
-            bool(ConfDefaultFlag.ADV_PWR_CONTROL),
         ),
     )
 
