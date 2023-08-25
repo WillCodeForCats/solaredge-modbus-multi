@@ -1012,7 +1012,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except (ModbusIOError, asyncio.TimeoutError):
+            except ModbusIOError:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
@@ -1050,7 +1050,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except (ModbusIOError, asyncio.TimeoutError):
+            except ModbusIOError:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
