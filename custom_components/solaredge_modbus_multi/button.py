@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -26,15 +26,13 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
-        if hub.option_detect_extras and inverter.advanced_power_control:
-            entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeRefreshButton(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
 
 
-class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
-    should_poll = False
+class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -65,32 +63,24 @@ class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
         self.async_write_ha_state()
 
 
-class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
-    entity_category = EntityCategory.DIAGNOSTIC
+class SolarEdgeRefreshButton(SolarEdgeButtonBase):
+    entity_category = EntityCategory.CONFIG
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
 
     @property
-    def available(self) -> bool:
-        return super().available and self._platform.advanced_power_control is True
-
-    @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_adv_pwr_ctrl_en"
+        return f"{self._platform.uid_base}_refresh"
 
     @property
     def name(self) -> str:
-        return "Advanced Power Control"
+        return "Refresh"
 
     @property
-    def is_on(self) -> bool | None:
-        try:
-            if self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1:
-                return True
+    def available(self) -> bool:
+        return True
 
-            return False
-
-        except KeyError:
-            return None
+    async def async_press(self) -> None:
+        await self.async_update()

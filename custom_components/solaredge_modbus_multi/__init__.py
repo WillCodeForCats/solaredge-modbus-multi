@@ -26,6 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SENSOR,
@@ -59,6 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(
             ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
         ),
+        entry.options.get(ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)),
         entry.options.get(
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
         ),
@@ -73,12 +75,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ConfName.ALLOW_BATTERY_ENERGY_RESET,
             bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
         ),
+        entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
         entry.options.get(
             ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
         ),
         entry.options.get(
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
-            bool(ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES),
+            ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         ),
     )
 
@@ -161,7 +164,7 @@ async def async_remove_config_entry_device(
 
     for device_id in this_device_ids:
         if device_id in known_devices:
-            _LOGGER.error(f"Failed to remove device entry: device {device_id} in use")
+            _LOGGER.error(f"Unable to remove entry: device {device_id} is in use")
             return False
 
     return True
@@ -185,13 +188,12 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            async with async_timeout.timeout(self._hub.coordinator_timeout):
-                return await self._refresh_modbus_data_with_retry(
-                    ex_type=DataUpdateFailed,
-                    limit=RetrySettings.Limit,
-                    wait_ms=RetrySettings.Time,
-                    wait_ratio=RetrySettings.Ratio,
-                )
+            return await self._refresh_modbus_data_with_retry(
+                ex_type=DataUpdateFailed,
+                limit=RetrySettings.Limit,
+                wait_ms=RetrySettings.Time,
+                wait_ratio=RetrySettings.Ratio,
+            )
 
         except HubInitFailed as e:
             raise UpdateFailed(f"{e}")
@@ -220,7 +222,8 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         attempt = 1
         while True:
             try:
-                return await self._hub.async_refresh_modbus_data()
+                async with async_timeout.timeout(self._hub.coordinator_timeout):
+                    return await self._hub.async_refresh_modbus_data()
             except Exception as ex:
                 if not isinstance(ex, ex_type):
                     raise ex
