@@ -36,15 +36,15 @@
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "detect_extras": "Auto-Detect Additional Entities",
-          "advanced_power_control": "Power Control Options"
+          "advanced_power_control": "Power Control Options",
+          "sleep_after_write": "Inverter Command Delay (seconds)"
         }
       },
       "adv_pwr_ctl": {
         "title": "Power Control Options",
         "data": {
           "adv_storage_control": "Enable Storage Control",
-          "adv_site_limit_control": "Enable Site Limit Control",
-          "sleep_after_write": "Inverter Command Delay (seconds)"
+          "adv_site_limit_control": "Enable Site Limit Control"
         },
         "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"
       },
