@@ -18,7 +18,7 @@ try:
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
-from .const import DOMAIN, SolarEdgeTimeouts, SunSpecNotImpl
+from .const import DOMAIN, ModbusDefaults, SolarEdgeTimeouts, SunSpecNotImpl
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -102,6 +102,7 @@ class SolarEdgeModbusMultiHub:
         start_device_id: int = 1,
         detect_meters: bool = True,
         detect_batteries: bool = False,
+        detect_extras: bool = True,
         keep_modbus_open: bool = False,
         adv_storage_control: bool = False,
         adv_site_limit_control: bool = False,
@@ -120,6 +121,7 @@ class SolarEdgeModbusMultiHub:
         self._start_device_id = start_device_id
         self._detect_meters = detect_meters
         self._detect_batteries = detect_batteries
+        self._detect_extras = detect_extras
         self._keep_modbus_open = keep_modbus_open
         self._adv_storage_control = adv_storage_control
         self._adv_site_limit_control = adv_site_limit_control
@@ -127,6 +129,7 @@ class SolarEdgeModbusMultiHub:
         self._sleep_after_write = sleep_after_write
         self._battery_rating_adjust = battery_rating_adjust
         self._battery_energy_reset_cycles = battery_energy_reset_cycles
+
         self._id = name.lower()
         self._lock = asyncio.Lock()
         self.inverters = []
@@ -142,9 +145,7 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._online = True
 
-        self._client = AsyncModbusTcpClient(
-            host=self._host, port=self._port, reconnect_delay=0
-        )
+        self._client = None
 
         _LOGGER.debug(
             (
@@ -153,6 +154,7 @@ class SolarEdgeModbusMultiHub:
                 f"start_device_id={self._start_device_id}, "
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
+                f"detect_extras={self._detect_extras}, "
                 f"keep_modbus_open={self._keep_modbus_open}, "
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
@@ -223,9 +225,6 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 1 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInvalid(
-                                f"Duplicate m1 serial {new_meter_1.serial}"
-                            )
 
                     new_meter_1.via_device = new_inverter.uid_base
                     self.meters.append(new_meter_1)
@@ -251,9 +250,6 @@ class SolarEdgeModbusMultiHub:
                                     f"on meter 2 inverter {inverter_unit_id}"
                                 ),
                             )
-                            raise DeviceInvalid(
-                                f"Duplicate m2 serial {new_meter_2.serial}"
-                            )
 
                     new_meter_2.via_device = new_inverter.uid_base
                     self.meters.append(new_meter_2)
@@ -278,9 +274,6 @@ class SolarEdgeModbusMultiHub:
                                     f"Duplicate serial {new_meter_3.serial} "
                                     f"on meter 3 inverter {inverter_unit_id}"
                                 ),
-                            )
-                            raise DeviceInvalid(
-                                f"Duplicate m3 serial {new_meter_3.serial}"
                             )
 
                     new_meter_3.via_device = new_inverter.uid_base
@@ -490,6 +483,10 @@ class SolarEdgeModbusMultiHub:
         return self._adv_site_limit_control
 
     @property
+    def option_detect_extras(self) -> bool:
+        return self._detect_extras
+
+    @property
     def keep_modbus_open(self) -> bool:
         return self._keep_modbus_open
 
@@ -560,18 +557,28 @@ class SolarEdgeModbusMultiHub:
         return self._client.connected
 
     def disconnect(self) -> None:
-        self._client.close()
+        if self._client is not None:
+            self._client.close()
 
     async def connect(self) -> None:
         """Connect modbus client."""
         async with self._lock:
+            if self._client is None:
+                self._client = AsyncModbusTcpClient(
+                    host=self._host,
+                    port=self._port,
+                    reconnect_delay=ModbusDefaults.ReconnectDelay,
+                    timeout=ModbusDefaults.Timeout,
+                )
+
             await self._client.connect()
 
     async def shutdown(self) -> None:
         """Shut down the hub."""
-        self.online = False
-        self.disconnect()
-        self._client = None
+        async with self._lock:
+            self.online = False
+            self.disconnect()
+            self._client = None
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         self._rr_unit = unit
@@ -971,7 +978,9 @@ class SolarEdgeInverter:
                 )
 
         """ Global Dynamic Power Control and Status """
-        if self.global_power_control is True or self.global_power_control is None:
+        if self.hub.option_detect_extras is True and (
+            self.global_power_control is True or self.global_power_control is None
+        ):
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61440, rcount=4
@@ -1009,7 +1018,9 @@ class SolarEdgeInverter:
                 )
 
         """ Advanced Power Control """
-        if self.advanced_power_control is True or self.advanced_power_control is None:
+        if self.hub.option_detect_extras is True and (
+            self.advanced_power_control is True or self.advanced_power_control is None
+        ):
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61762, rcount=2
@@ -1188,7 +1199,7 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-    async def write_registers(self, address, payload):
+    async def write_registers(self, address, payload) -> None:
         """Write inverter register."""
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
