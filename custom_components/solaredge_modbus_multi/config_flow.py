@@ -114,6 +114,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
+            elif user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
+                errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
+            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
+                errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
             else:
                 if user_input[ConfName.DETECT_BATTERIES] is True:
                     self.init_info = user_input
@@ -146,6 +150,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
                 ),
+                ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
+                    ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
+                ),
             }
 
         return self.async_show_form(
@@ -176,6 +183,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                         f"{ConfName.ADV_PWR_CONTROL}",
                         default=user_input[ConfName.ADV_PWR_CONTROL],
                     ): cv.boolean,
+                    vol.Optional(
+                        f"{ConfName.SLEEP_AFTER_WRITE}",
+                        default=user_input[ConfName.SLEEP_AFTER_WRITE],
+                    ): vol.Coerce(int),
                 },
             ),
             errors=errors,
@@ -241,14 +252,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
         errors = {}
 
         if user_input is not None:
-            if user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
-                errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
-            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
-                errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
-            else:
-                return self.async_create_entry(
-                    title="", data={**self.init_info, **user_input}
-                )
+            return self.async_create_entry(
+                title="", data={**self.init_info, **user_input}
+            )
 
         else:
             user_input = {
@@ -259,9 +265,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 ConfName.ADV_SITE_LIMIT_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_SITE_LIMIT_CONTROL,
                     bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
-                ),
-                ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
-                    ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
                 ),
             }
 
@@ -277,10 +280,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                         f"{ConfName.ADV_SITE_LIMIT_CONTROL}",
                         default=user_input[ConfName.ADV_SITE_LIMIT_CONTROL],
                     ): cv.boolean,
-                    vol.Optional(
-                        f"{ConfName.SLEEP_AFTER_WRITE}",
-                        default=user_input[ConfName.SLEEP_AFTER_WRITE],
-                    ): vol.Coerce(int),
                 }
             ),
             errors=errors,
