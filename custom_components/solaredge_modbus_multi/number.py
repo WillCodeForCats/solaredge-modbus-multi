@@ -502,10 +502,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.global_power_control is True:
-            return True
-        else:
-            return False
+        return self._platform.global_power_control
 
     @property
     def available(self) -> bool:
