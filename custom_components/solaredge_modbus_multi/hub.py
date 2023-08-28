@@ -610,14 +610,6 @@ class SolarEdgeModbusMultiHub:
 
             raise ModbusReadError(result)
 
-        _LOGGER.debug(f"len rcount : {len(result.registers)} {rcount}")
-
-        if len(result.registers) != rcount:
-            _LOGGER.error(f"len != rcount : {len(result.registers)} != {rcount}")
-            raise ModbusReadError(
-                f"Result doesn't match request on inverter ID {rcount}"
-            )
-
         return result
 
     async def write_registers(self, unit: int, address: int, payload) -> None:
