@@ -581,13 +581,15 @@ class SolarEdgeModbusMultiHub:
             self._client = None
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
-        """Read holding registers from inverter."""
+        self._rr_unit = unit
+        self._rr_address = address
+        self._rr_count = rcount
 
         async with self._lock:
-            kwargs = {"slave": unit} if unit else {}
+            kwargs = {"slave": self._rr_unit} if self._rr_unit else {}
 
             result = await self._client.read_holding_registers(
-                address, rcount, **kwargs
+                self._rr_address, self._rr_count, **kwargs
             )
 
         if result.isError():
@@ -619,15 +621,19 @@ class SolarEdgeModbusMultiHub:
         return result
 
     async def write_registers(self, unit: int, address: int, payload) -> None:
-        """Write holding registers from inverter."""
+        self._wr_unit = unit
+        self._wr_address = address
+        self._wr_payload = payload
 
         try:
             if not self.is_connected:
                 await self.connect()
 
             async with self._lock:
-                kwargs = {"slave": unit} if unit else {}
-                result = await self._client.write_registers(address, payload, **kwargs)
+                kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
+                result = await self._client.write_registers(
+                    self._wr_address, self._wr_payload, **kwargs
+                )
 
                 if self._sleep_after_write > 0:
                     _LOGGER.debug(
@@ -637,39 +643,47 @@ class SolarEdgeModbusMultiHub:
 
         except asyncio.TimeoutError:
             raise HomeAssistantError(
-                f"Timeout while sending command to inverter ID {unit}."
+                f"Timeout while tyring to send command to inverter ID {self._wr_unit}."
             )
 
         except ConnectionException as e:
             _LOGGER.error(f"Connection failed: {e}")
-            raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
+            raise HomeAssistantError(
+                f"Connection to inverter ID {self._wr_unit} failed."
+            )
 
         if result.isError():
             if not self.keep_modbus_open:
                 self.disconnect()
 
             if type(result) is ModbusIOException:
-                _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
+                _LOGGER.error(
+                    f"Write failed: No response from inverter ID {self._wr_unit}."
+                )
 
-                raise HomeAssistantError("No response from inverter ID {unit}.")
+                raise HomeAssistantError(
+                    "No response from inverter ID {self._wr_unit}."
+                )
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
                     _LOGGER.debug(f"Write IllegalAddress: {result}")
 
                     raise HomeAssistantError(
-                        "Address not supported at device at ID {unit}."
+                        "Address not supported at device at ID {self._wr_unit}."
                     )
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
                     _LOGGER.debug(f"Write IllegalFunction: {result}")
                     raise HomeAssistantError(
-                        "Function not supported by device at ID {unit}."
+                        "Function not supported by device at ID {self._wr_unit}."
                     )
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
                     _LOGGER.debug(f"Write IllegalValue: {result}")
-                    raise HomeAssistantError("Value invalid for device at ID {unit}.")
+                    raise HomeAssistantError(
+                        "Value invalid for device at ID {self._wr_unit}."
+                    )
 
             raise ModbusWriteError(result)
 
