@@ -188,6 +188,10 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
+            while self._hub.has_write:
+                _LOGGER.debug(f"Waiting for write {self._hub.has_write}")
+                await asyncio.sleep(1)
+
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
                 limit=RetrySettings.Limit,
