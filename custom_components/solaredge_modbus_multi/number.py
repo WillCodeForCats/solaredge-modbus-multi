@@ -164,7 +164,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57350, payload=builder.to_registers()
@@ -208,7 +208,7 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57352, payload=builder.to_registers()
@@ -259,7 +259,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_uint(int(value))
         await self._platform.write_registers(
             address=57355, payload=builder.to_registers()
@@ -310,7 +310,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57358, payload=builder.to_registers()
@@ -361,7 +361,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57360, payload=builder.to_registers()
@@ -415,7 +415,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57346, payload=builder.to_registers()
@@ -472,7 +472,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57362, payload=builder.to_registers()
@@ -525,7 +525,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_16bit_uint(int(value))
         await self._platform.write_registers(
             address=61441, payload=builder.to_registers()
@@ -579,7 +579,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=61442, payload=builder.to_registers()
