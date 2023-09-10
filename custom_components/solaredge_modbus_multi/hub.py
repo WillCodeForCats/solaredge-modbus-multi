@@ -500,7 +500,9 @@ class SolarEdgeModbusMultiHub:
         _LOGGER.debug(f"len rcount : {len(result.registers)} {self._rr_count}")
 
         if len(result.registers) != rcount:
-            _LOGGER.error(f"len != rcount : {len(result.registers)} != {self._rr_count}")
+            _LOGGER.error(
+                f"len != rcount : {len(result.registers)} != {self._rr_count}"
+            )
             raise ModbusReadError(
                 f"Result doesn't match request on inverter ID {self._rr_count}"
             )
