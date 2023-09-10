@@ -724,7 +724,7 @@ class SolarEdgeInverter:
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.Big
+                inverter_data.registers, byteorder=Endian.BIG
             )
 
             self.decoded_common = OrderedDict(
@@ -782,7 +782,7 @@ class SolarEdgeInverter:
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
-                mmppt_common.registers, byteorder=Endian.Big
+                mmppt_common.registers, byteorder=Endian.BIG
             )
 
             self.decoded_mmppt = OrderedDict(
@@ -846,7 +846,7 @@ class SolarEdgeInverter:
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.Big
+                inverter_data.registers, byteorder=Endian.BIG
             )
 
             self.decoded_model = OrderedDict(
@@ -925,7 +925,7 @@ class SolarEdgeInverter:
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers, byteorder=Endian.Big
+                    inverter_data.registers, byteorder=Endian.BIG
                 )
 
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
@@ -1011,8 +1011,8 @@ class SolarEdgeInverter:
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     inverter_data.registers,
-                    byteorder=Endian.Big,
-                    wordorder=Endian.Little,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
                 )
 
                 self.decoded_model.update(
@@ -1051,8 +1051,8 @@ class SolarEdgeInverter:
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     inverter_data.registers,
-                    byteorder=Endian.Big,
-                    wordorder=Endian.Little,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
                 )
 
                 self.decoded_model.update(
@@ -1091,8 +1091,8 @@ class SolarEdgeInverter:
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     inverter_data.registers,
-                    byteorder=Endian.Big,
-                    wordorder=Endian.Little,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
                 )
 
                 self.decoded_model.update(
@@ -1129,8 +1129,8 @@ class SolarEdgeInverter:
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     inverter_data.registers,
-                    byteorder=Endian.Big,
-                    wordorder=Endian.Little,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
                 )
 
                 self.decoded_model.update(
@@ -1181,8 +1181,8 @@ class SolarEdgeInverter:
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     inverter_data.registers,
-                    byteorder=Endian.Big,
-                    wordorder=Endian.Little,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
                 )
 
                 self.decoded_storage_control = OrderedDict(
@@ -1299,7 +1299,7 @@ class SolarEdgeMeter:
                 raise ModbusReadError(meter_info)
 
             decoder = BinaryPayloadDecoder.fromRegisters(
-                meter_info.registers, byteorder=Endian.Big
+                meter_info.registers, byteorder=Endian.BIG
             )
             self.decoded_common = OrderedDict(
                 [
@@ -1364,7 +1364,7 @@ class SolarEdgeMeter:
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
-                meter_data.registers, byteorder=Endian.Big
+                meter_data.registers, byteorder=Endian.BIG
             )
 
             self.decoded_model = OrderedDict(
@@ -1524,8 +1524,8 @@ class SolarEdgeBattery:
 
             decoder = BinaryPayloadDecoder.fromRegisters(
                 battery_info.registers,
-                byteorder=Endian.Big,
-                wordorder=Endian.Little,
+                byteorder=Endian.BIG,
+                wordorder=Endian.LITTLE,
             )
             self.decoded_common = OrderedDict(
                 [
@@ -1620,8 +1620,8 @@ class SolarEdgeBattery:
 
             decoder = BinaryPayloadDecoder.fromRegisters(
                 battery_data.registers,
-                byteorder=Endian.Big,
-                wordorder=Endian.Little,
+                byteorder=Endian.BIG,
+                wordorder=Endian.LITTLE,
             )
 
             self.decoded_model = OrderedDict(

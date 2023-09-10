@@ -214,7 +214,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_int(0x1)
         await self._platform.write_registers(
             address=61762, payload=builder.to_registers()
@@ -223,7 +223,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x0")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_int(0x0)
         await self._platform.write_registers(
             address=61762, payload=builder.to_registers()
