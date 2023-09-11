@@ -77,6 +77,8 @@ body:
           required: true
         - label: My configuration follows https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
           required: true
+        - label: This issue is not about a template error (template errors should not be reported as an issue, read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Design-Notes)
+          required: true
   - type: textarea
     id: additional-context
     attributes:
