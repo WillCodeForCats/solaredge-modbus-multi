@@ -366,9 +366,9 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
             raise HubInitFailed(f"Connection failed: {e}")
 
-        except asyncio.TimeoutError as e:
+        except ModbusIOException as e:
             self.disconnect()
-            raise HubInitFailed(f"Modbus timeout: {e}")
+            raise HubInitFailed(f"Modbus error: {e}")
 
         self.initalized = True
 
@@ -431,9 +431,9 @@ class SolarEdgeModbusMultiHub:
                 self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
-            except asyncio.TimeoutError as e:
+            except ModbusIOException as e:
                 self.disconnect()
-                raise DataUpdateFailed(f"Modbus timeout: {e}")
+                raise DataUpdateFailed(f"Modbus error: {e}")
 
         if not self._keep_modbus_open:
             self.disconnect()
@@ -537,11 +537,11 @@ class SolarEdgeModbusMultiHub:
                 self.has_write = None
                 _LOGGER.debug(f"Finished with write {address}.")
 
-        except asyncio.TimeoutError:
+        except ModbusIOException as e:
             self.disconnect()
 
             raise HomeAssistantError(
-                f"Timeout while sending command to inverter ID {self._wr_unit}."
+                f"Error sending command to inverter ID {self._wr_unit}: {e}."
             )
 
         except ConnectionException as e:
