@@ -939,14 +939,14 @@ class DCCurrent(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        return (
-            super().available
-            and not self._platform.decoded_model["I_DC_Current"]
-            == SunSpecNotImpl.UINT16
-            and not self._platform.decoded_model["I_DC_Current_SF"]
-            == SunSpecNotImpl.INT16
-            and self._platform.decoded_model["I_DC_Current_SF"] in SUNSPEC_SF_RANGE
-        )
+        if (
+            self._platform.decoded_model["I_DC_Current"] == SunSpecNotImpl.UINT16
+            or self._platform.decoded_model["I_DC_Current_SF"] == SunSpecNotImpl.INT16
+            or self._platform.decoded_model["I_DC_Current_SF"] not in SUNSPEC_SF_RANGE
+        ):
+            return False
+
+        return super().available
 
     @property
     def native_value(self):
@@ -1748,17 +1748,21 @@ class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
     @property
     def available(self) -> bool:
         try:
-            return (
-                super().available
-                and not float_to_hex(self._platform.decoded_model["B_DC_Current"])
+            if (
+                float_to_hex(self._platform.decoded_model["B_DC_Current"])
                 == hex(SunSpecNotImpl.FLOAT32)
-                and not self._platform.decoded_model["B_DC_Current"] < BatteryLimit.Amin
-                and not self._platform.decoded_model["B_DC_Current"] > BatteryLimit.Amax
-                and self._platform.decoded_model["B_Status"] not in [0]
-            )
+                or self._platform.decoded_model["B_DC_Current"] < BatteryLimit.Amin
+                or self._platform.decoded_model["B_DC_Current"] > BatteryLimit.Amax
+            ):
+                return False
+
+            if self._platform.decoded_model["B_Status"] in [0]:
+                return None
 
         except TypeError:
             return False
+
+        return super().available
 
     @property
     def native_value(self):
