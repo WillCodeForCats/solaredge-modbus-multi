@@ -72,8 +72,8 @@ class BatteryLimit(IntEnum):
     Amax = 200  # amps
     Tmax = 100  # degrees C
     Tmin = -30  # degrees C
-    ChargeMax = 50000  # watts
-    DischargeMax = 50000  # watts
+    ChargeMax = 1000000  # watts
+    DischargeMax = 1000000  # watts
 
 
 class ConfDefaultInt(IntEnum):
