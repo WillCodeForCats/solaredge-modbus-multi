@@ -84,7 +84,7 @@ async def async_setup_entry(
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
 
-        if hub.option_advanced_power_control is True:
+        if hub.option_detect_extras:
             entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
             entities.append(
                 SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
@@ -1301,6 +1301,8 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 
 
 class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
+    """Global Dynamic Power Control: Inverter Active Power Limit"""
+
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
     suggested_display_precision = 0
@@ -1320,10 +1322,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.global_power_control is True:
-            return True
-        else:
-            return False
+        return self._platform.global_power_control
 
     @property
     def native_value(self):
@@ -1343,6 +1342,8 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
 
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
+    """Global Dynamic Power Control: Inverter CosPhi"""
+
     state_class = SensorStateClass.MEASUREMENT
     suggested_display_precision = 1
     icon = "mdi:angle-acute"
@@ -1361,7 +1362,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return False
+        return self._platform.global_power_control
 
     @property
     def native_value(self):

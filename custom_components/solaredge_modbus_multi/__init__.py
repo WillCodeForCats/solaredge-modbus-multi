@@ -6,7 +6,6 @@ import logging
 from datetime import timedelta
 from typing import Any
 
-import async_timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -60,6 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(
             ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
         ),
+        entry.options.get(ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)),
         entry.options.get(
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
         ),
@@ -81,10 +81,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
-        ),
-        entry.options.get(
-            ConfName.ADV_PWR_CONTROL,
-            bool(ConfDefaultFlag.ADV_PWR_CONTROL),
         ),
     )
 
@@ -191,6 +187,10 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
+            while self._hub.has_write:
+                _LOGGER.debug(f"Waiting for write {self._hub.has_write}")
+                await asyncio.sleep(1)
+
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
                 limit=RetrySettings.Limit,
@@ -225,7 +225,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         attempt = 1
         while True:
             try:
-                async with async_timeout.timeout(self._hub.coordinator_timeout):
+                async with asyncio.timeout(self._hub.coordinator_timeout):
                     return await self._hub.async_refresh_modbus_data()
             except Exception as ex:
                 if not isinstance(ex, ex_type):

@@ -35,15 +35,16 @@
           "keep_modbus_open": "Houd Modbus-verbinding open",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
-          "advanced_power_control": "Geavanceerde stroomregeling"
+          "detect_extras": "Automatische detectie van aanvullende entiteiten",
+          "advanced_power_control": "Geavanceerde stroomregeling",
+          "sleep_after_write": "Omvormer commando vertraging (seconden)"
         }
       },
       "adv_pwr_ctl": {
         "title": "Opties voor stroomregeling",
         "data": {
           "adv_storage_control": "Opslagbeheer inschakelen",
-          "adv_site_limit_control": "Beheer van sitelimiet inschakelen",
-          "sleep_after_write": "Omvormer commando vertraging (seconden)"
+          "adv_site_limit_control": "Beheer van sitelimiet inschakelen"
         },
         "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico!"
       },

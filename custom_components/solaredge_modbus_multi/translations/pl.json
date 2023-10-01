@@ -35,15 +35,16 @@
           "keep_modbus_open": "Pozostaw połączenie Modbus otwarte",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
-          "advanced_power_control": "Zaawansowana kontrola mocy"
+          "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
+          "advanced_power_control": "Zaawansowana kontrola mocy",
+          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
         }
       },
       "adv_pwr_ctl": {
         "title": "Opcje sterowania zasilaniem",
         "data": {
           "adv_storage_control": "Włącz kontrolę pamięci",
-          "adv_site_limit_control": "Włącz kontrolę limitu witryny",
-          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
+          "adv_site_limit_control": "Włącz kontrolę limitu witryny"
         },
         "description": "Ostrzeżenie: opcje te mogą naruszać umowy za media, zmieniać rozliczenia za media, mogą wymagać specjalnego sprzętu i nadpisać udostępnianie przez SolarEdge lub instalatora. Używaj na własne ryzyko!"
       },

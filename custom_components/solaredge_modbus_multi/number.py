@@ -28,6 +28,13 @@ async def async_setup_entry(
 
     entities = []
 
+    for inverter in hub.inverters:
+        if hub.option_detect_extras:
+            entities.append(
+                SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator)
+            )
+            entities.append(SolarEdgeCosPhiSet(inverter, config_entry, coordinator))
+
     """ Power Control Options: Storage Control """
     if hub.option_storage_control is True:
         for inverter in hub.inverters:
@@ -157,7 +164,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57350, payload=builder.to_registers()
@@ -201,7 +208,7 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57352, payload=builder.to_registers()
@@ -252,7 +259,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_uint(int(value))
         await self._platform.write_registers(
             address=57355, payload=builder.to_registers()
@@ -303,7 +310,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57358, payload=builder.to_registers()
@@ -354,7 +361,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57360, payload=builder.to_registers()
@@ -408,7 +415,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57346, payload=builder.to_registers()
@@ -465,9 +472,116 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57362, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
+    """Global Dynamic Power Control: Set Inverter Active Power Limit"""
+
+    native_unit_of_measurement = PERCENTAGE
+    native_min_value = 0
+    native_max_value = 100
+    mode = "slider"
+    icon = "mdi:percent"
+
+    def __init__(self, inverter, config_entry, coordinator):
+        super().__init__(inverter, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_active_power_limit_set"
+
+    @property
+    def name(self) -> str:
+        return "Active Power Limit"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.global_power_control
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
+                or self._platform.decoded_model["I_Power_Limit"] > 100
+                or self._platform.decoded_model["I_Power_Limit"] < 0
+            ):
+                return False
+
+            return super().available
+
+        except KeyError:
+            return False
+
+    @property
+    def native_value(self) -> int:
+        return self._platform.decoded_model["I_Power_Limit"]
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_16bit_uint(int(value))
+        await self._platform.write_registers(
+            address=61441, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
+    """Global Dynamic Power Control: Set Inverter CosPhi"""
+
+    native_min_value = -1.0
+    native_max_value = 1.0
+    native_step = 0.1
+    mode = "slider"
+    icon = "mdi:angle-acute"
+
+    def __init__(self, inverter, config_entry, coordinator):
+        super().__init__(inverter, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_cosphi_set"
+
+    @property
+    def name(self) -> str:
+        return "CosPhi"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                float_to_hex(self._platform.decoded_model["I_CosPhi"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_model["I_CosPhi"] > 1.0
+                or self._platform.decoded_model["I_CosPhi"] < -1.0
+            ):
+                return False
+
+            return super().available
+
+        except KeyError:
+            return False
+
+    @property
+    def native_value(self):
+        return round(self._platform.decoded_model["I_CosPhi"], 1)
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_32bit_float(float(value))
+        await self._platform.write_registers(
+            address=61442, payload=builder.to_registers()
         )
         await self.async_update()
