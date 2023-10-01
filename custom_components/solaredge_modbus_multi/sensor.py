@@ -1757,12 +1757,12 @@ class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
                 return False
 
             if self._platform.decoded_model["B_Status"] in [0]:
-                return None
+                return False
 
-        except TypeError:
+            return super().available
+
+        except (TypeError, KeyError):
             return False
-
-        return super().available
 
     @property
     def native_value(self):
