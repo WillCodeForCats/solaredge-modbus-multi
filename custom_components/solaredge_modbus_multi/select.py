@@ -184,7 +184,7 @@ class StorageDefaultMode(SolarEdgeSelectBase):
     def available(self) -> bool:
         # Available only in remote control mode
         return (
-            self._platform.online
+            super().available
             and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
@@ -230,7 +230,7 @@ class StorageCommandMode(SolarEdgeSelectBase):
     def available(self) -> bool:
         # Available only in remote control mode
         return (
-            self._platform.online
+            super().available
             and self._platform.decoded_storage_control["control_mode"] == 4
         )
 
