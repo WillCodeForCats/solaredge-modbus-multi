@@ -86,10 +86,14 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
-        return (
-            super().available
-            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
-        )
+        try:
+            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
+                return False
+
+            return super().available
+
+        except KeyError:
+            return False
 
     @property
     def unique_id(self) -> str:
@@ -104,15 +108,8 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         return False
 
     @property
-    def is_on(self) -> bool | None:
-        try:
-            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
-                return None
-
-            return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
-
-        except KeyError:
-            return None
+    def is_on(self) -> bool:
+        return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
@@ -142,10 +139,14 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
-        return (
-            super().available
-            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
-        )
+        try:
+            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
+                return False
+
+            return super().available
+
+        except KeyError:
+            return False
 
     @property
     def unique_id(self) -> str:
@@ -156,15 +157,8 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         return "Negative Site Limit"
 
     @property
-    def is_on(self) -> bool | None:
-        try:
-            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
-                return None
-
-            return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 11) & 1
-
-        except KeyError:
-            return None
+    def is_on(self) -> bool:
+        return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 11) & 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
@@ -194,7 +188,11 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
-        return super().available and self._platform.advanced_power_control
+        return (
+            super().available
+            and self._platform.advanced_power_control
+            and "I_AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+        )
 
     @property
     def unique_id(self) -> str:
@@ -205,12 +203,8 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         return "Grid Control"
 
     @property
-    def is_on(self) -> bool | None:
-        try:
-            return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1
-
-        except KeyError:
-            return None
+    def is_on(self) -> bool:
+        return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")
