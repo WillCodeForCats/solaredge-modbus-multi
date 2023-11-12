@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
 from datetime import timedelta
 from typing import Any
 
@@ -35,6 +36,9 @@ PLATFORMS: list[str] = [
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
+
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 11):
+        raise RuntimeError("Python 3.11 is required for this integration.")
 
     entry_updates: dict[str, Any] = {}
     if CONF_SCAN_INTERVAL in entry.data:
