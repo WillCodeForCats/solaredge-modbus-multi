@@ -137,7 +137,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
                 "ac_charge_policy"
             ] in [2, 3]
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -215,7 +215,7 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
             return super().available
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -270,7 +270,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
                 and self._platform.decoded_storage_control["control_mode"] == 4
             )
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -321,7 +321,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
                 and self._platform.decoded_storage_control["control_mode"] == 4
             )
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -378,7 +378,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
                 and self._platform.decoded_storage_control["control_mode"] == 4
             )
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -432,7 +432,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
                 or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2) & 1
             )
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -481,7 +481,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
                 and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
             )
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -538,7 +538,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
             return super().available
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -592,7 +592,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 
             return super().available
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
