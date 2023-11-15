@@ -14,7 +14,10 @@ def scale_factor(value: int, sf: int):
 
 
 def float_to_hex(f):
-    return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+    try:
+        return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+    except struct.error as e:
+        raise TypeError(e)
 
 
 def parse_modbus_string(s: str) -> str:
