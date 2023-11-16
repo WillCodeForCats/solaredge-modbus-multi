@@ -45,7 +45,7 @@ class RetrySettings(IntEnum):
 
     Time = 800  # first attempt in milliseconds
     Ratio = 3  # time multiplier between each attempt
-    Limit = 4  # number of attempts before failing
+    Limit = 5  # number of attempts before failing
 
 
 class ModbusDefaults(IntEnum):
