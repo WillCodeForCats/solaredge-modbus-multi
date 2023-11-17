@@ -448,6 +448,7 @@ class SolarEdgeModbusMultiHub:
                 host=self._host,
                 port=self._port,
                 reconnect_delay=ModbusDefaults.ReconnectDelay,
+                reconnect_delay_max=ModbusDefaults.ReconnectDelayMax,
                 timeout=ModbusDefaults.Timeout,
             )
 
