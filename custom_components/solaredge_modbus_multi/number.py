@@ -419,10 +419,8 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         try:
-            if (
-                float_to_hex(self._platform.decoded_model["E_Site_Limit"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["E_Site_Limit"] < 0
+            if float_to_hex(self._platform.decoded_model["E_Site_Limit"]) == hex(
+                SunSpecNotImpl.FLOAT32
             ):
                 return False
 
@@ -437,6 +435,9 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
+        if self._platform.decoded_model["E_Site_Limit"] < 0:
+            return 0
+
         return int(self._platform.decoded_model["E_Site_Limit"])
 
     async def async_set_native_value(self, value: float) -> None:
