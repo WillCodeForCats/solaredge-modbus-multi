@@ -78,7 +78,7 @@ async def async_setup_entry(
         entities.append(ACVoltAmp(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpReactive(inverter, config_entry, coordinator))
         entities.append(ACPowerFactor(inverter, config_entry, coordinator))
-        entities.append(ACEnergy(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeACEnergy(inverter, config_entry, coordinator))
         entities.append(DCCurrent(inverter, config_entry, coordinator))
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
@@ -127,14 +127,26 @@ async def async_setup_entry(
         entities.append(ACPowerFactor(meter, config_entry, coordinator, "A"))
         entities.append(ACPowerFactor(meter, config_entry, coordinator, "B"))
         entities.append(ACPowerFactor(meter, config_entry, coordinator, "C"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Exported"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Exported_A"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Exported_B"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Exported_C"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Imported"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Imported_A"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Imported_B"))
-        entities.append(ACEnergy(meter, config_entry, coordinator, "Imported_C"))
+        entities.append(SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported"))
+        entities.append(
+            SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported_A")
+        )
+        entities.append(
+            SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported_B")
+        )
+        entities.append(
+            SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported_C")
+        )
+        entities.append(SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported"))
+        entities.append(
+            SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported_A")
+        )
+        entities.append(
+            SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported_B")
+        )
+        entities.append(
+            SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported_C")
+        )
         entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported"))
         entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported_A"))
         entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported_B"))
@@ -918,6 +930,128 @@ class ACEnergy(SolarEdgeSensorBase):
 
         except TypeError:
             return None
+
+
+class SolarEdgeACEnergy(SolarEdgeSensorBase):
+    """SolarEdge sensor for AC Energy watt-hour meters."""
+
+    device_class = SensorDeviceClass.ENERGY
+    state_class = SensorStateClass.TOTAL_INCREASING
+    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    suggested_display_precision = 0
+
+    def __init__(self, platform, config_entry, coordinator, phase: str = None):
+        super().__init__(platform, config_entry, coordinator)
+
+        self._phase = phase
+        self._last = None
+        self._value = None
+
+        if self._phase is None:
+            self._model_key = "AC_Energy_WH"
+        else:
+            self._model_key = f"AC_Energy_WH_{self._phase}"
+
+    @property
+    def icon(self) -> str:
+        if self._phase is None:
+            return None
+
+        elif re.match("import", self._phase.lower()):
+            return "mdi:transmission-tower-export"
+
+        elif re.match("export", self._phase.lower()):
+            return "mdi:transmission-tower-import"
+
+        else:
+            return None
+
+    @property
+    def unique_id(self) -> str:
+        # older versions of the integration converted to kWh internally
+        # before home assistant had UI configurable units and precision
+        # changing the unique_id now would cause new entities to be created
+        if self._phase is None:
+            return f"{self._platform.uid_base}_ac_energy_kwh"
+        else:
+            return f"{self._platform.uid_base}_{self._phase.lower()}_kwh"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._phase is None or self._phase in [
+            "Exported",
+            "Imported",
+            "Exported_A",
+            "Imported_A",
+        ]:
+            return True
+
+        if self._platform.decoded_model["C_SunSpec_DID"] in [
+            203,
+            204,
+        ] and self._phase in [
+            "Exported_B",
+            "Exported_C",
+            "Imported_B",
+            "Imported_C",
+        ]:
+            return True
+
+        return False
+
+    @property
+    def name(self) -> str:
+        if self._phase is None:
+            return "AC Energy"
+        else:
+            return f"{re.sub('_', ' ', self._phase)}"
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                self._platform.decoded_model[self._model_key] == SunSpecAccum.NA32
+                or self._platform.decoded_model[self._model_key] > SunSpecAccum.LIMIT32
+                or self._platform.decoded_model["AC_Energy_WH_SF"]
+                not in SUNSPEC_SF_RANGE
+            ):
+                return False
+
+            if self._last is None:
+                self._last = 0
+
+            self._value = self.scale_factor(
+                self._platform.decoded_model[self._model_key],
+                self._platform.decoded_model["AC_Energy_WH_SF"],
+            )
+
+            if not self._value > 0:
+                _LOGGER.error(
+                    f"TOTAL_INCREASING {self._model_key} error: {self._value} not > 0"
+                )
+                return False
+
+            if self._value < self._last:
+                _LOGGER.error(
+                    f"TOTAL_INCREASING {self._model_key} error: "
+                    f"{self._value} < {self._last}"
+                )
+                return False
+
+        except KeyError:
+            return False
+
+        except (ZeroDivisionError, OverflowError) as e:
+            _LOGGER.error(f"TOTAL_INCREASING {self._model_key} exception: {e}")
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        self._last = self._value
+        return self._value
 
 
 class DCCurrent(SolarEdgeSensorBase):
