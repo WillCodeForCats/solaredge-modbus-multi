@@ -1026,12 +1026,6 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
                 self._platform.decoded_model["AC_Energy_WH_SF"],
             )
 
-            if not self._value > 0:
-                _LOGGER.error(
-                    f"TOTAL_INCREASING {self._model_key} error: {self._value} not > 0"
-                )
-                return False
-
             if self._value < self._last:
                 _LOGGER.error(
                     f"TOTAL_INCREASING {self._model_key} error: "
