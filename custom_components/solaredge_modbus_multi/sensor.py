@@ -939,7 +939,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
     suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    suggested_display_precision = 0
+    suggested_display_precision = 3
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
