@@ -192,11 +192,12 @@ class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
-        """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator)
-        """Initialize the sensor."""
+
         self._platform = platform
         self._config_entry = config_entry
+
+        self.scale_factor = lambda x, y: x * (10**y)
 
     @property
     def device_info(self):
