@@ -1547,7 +1547,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{re.sub('_', ' ', self._phase)} VAh"
+            return f"Apparent Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def native_value(self):
