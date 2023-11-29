@@ -366,9 +366,9 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
             raise HubInitFailed(f"Connection failed: {e}")
 
-        except asyncio.TimeoutError as e:
+        except ModbusIOException as e:
             self.disconnect()
-            raise HubInitFailed(f"Modbus timeout: {e}")
+            raise HubInitFailed(f"Modbus error: {e}")
 
         self.initalized = True
 
@@ -431,9 +431,9 @@ class SolarEdgeModbusMultiHub:
                 self.disconnect()
                 raise DataUpdateFailed(f"Connection failed: {e}")
 
-            except asyncio.TimeoutError as e:
+            except ModbusIOException as e:
                 self.disconnect()
-                raise DataUpdateFailed(f"Modbus timeout: {e}")
+                raise DataUpdateFailed(f"Modbus error: {e}")
 
         if not self._keep_modbus_open:
             self.disconnect()
@@ -448,6 +448,7 @@ class SolarEdgeModbusMultiHub:
                 host=self._host,
                 port=self._port,
                 reconnect_delay=ModbusDefaults.ReconnectDelay,
+                reconnect_delay_max=ModbusDefaults.ReconnectDelayMax,
                 timeout=ModbusDefaults.Timeout,
             )
 
@@ -497,6 +498,19 @@ class SolarEdgeModbusMultiHub:
 
             raise ModbusReadError(result)
 
+        _LOGGER.debug(
+            f"Registers received requested : {len(result.registers)} {self._rr_count}"
+        )
+
+        if len(result.registers) != rcount:
+            _LOGGER.error(
+                "Registers received != requested : "
+                f"{len(result.registers)} != {self._rr_count}"
+            )
+            raise ModbusReadError(
+                f"Registers received != requested on inverter ID {self._rr_count}"
+            )
+
         return result
 
     async def write_registers(self, unit: int, address: int, payload) -> None:
@@ -527,11 +541,11 @@ class SolarEdgeModbusMultiHub:
                 self.has_write = None
                 _LOGGER.debug(f"Finished with write {address}.")
 
-        except asyncio.TimeoutError:
+        except ModbusIOException as e:
             self.disconnect()
 
             raise HomeAssistantError(
-                f"Timeout while sending command to inverter ID {self._wr_unit}."
+                f"Error sending command to inverter ID {self._wr_unit}: {e}."
             )
 
         except ConnectionException as e:
@@ -750,8 +764,9 @@ class SolarEdgeInverter:
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
                     (
-                        f"Inverter {self.inverter_unit_id}: "
+                        f"I{self.inverter_unit_id}: "
                         f"{name} {hex(value) if isinstance(value, int) else value}"
+                        f"{type(value)}"
                     ),
                 )
 
@@ -802,8 +817,9 @@ class SolarEdgeInverter:
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
                     (
-                        f"Inverter {self.inverter_unit_id} MMPPT: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                        f"I{self.inverter_unit_id} MMPPT: "
+                        f"{name} {hex(value) if isinstance(value, int) else value} "
+                        f"{type(value)}"
                     ),
                 )
 
@@ -813,11 +829,11 @@ class SolarEdgeInverter:
                 or self.decoded_mmppt["mmppt_DID"] not in [160]
                 or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
             ):
-                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
+                _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
                 self.decoded_mmppt = None
 
             else:
-                _LOGGER.debug(f"Inverter {self.inverter_unit_id} is Multiple MPPT")
+                _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
 
         except ModbusIOError:
             raise ModbusReadError(
@@ -825,7 +841,7 @@ class SolarEdgeInverter:
             )
 
         except ModbusIllegalAddress:
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id} is NOT Multiple MPPT")
+            _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
             self.decoded_mmppt = None
 
         self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
@@ -1029,10 +1045,7 @@ class SolarEdgeInverter:
             except ModbusIllegalAddress:
                 self.global_power_control = False
                 _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id}: "
-                        "global power control NOT available"
-                    )
+                    (f"I{self.inverter_unit_id}: " "global power control NOT available")
                 )
 
             except ModbusIOError:
@@ -1068,7 +1081,7 @@ class SolarEdgeInverter:
                 self.advanced_power_control = False
                 _LOGGER.debug(
                     (
-                        f"Inverter {self.inverter_unit_id}: "
+                        f"I{self.inverter_unit_id}: "
                         "advanced power control NOT available"
                     )
                 )
@@ -1110,10 +1123,7 @@ class SolarEdgeInverter:
             except ModbusIllegalAddress:
                 self.site_limit_control = False
                 _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id}: "
-                        "site limit control NOT available"
-                    )
+                    (f"I{self.inverter_unit_id}: " "site limit control NOT available")
                 )
 
             except ModbusIOError:
@@ -1147,9 +1157,7 @@ class SolarEdgeInverter:
                 except KeyError:
                     pass
 
-                _LOGGER.debug(
-                    (f"Inverter {self.inverter_unit_id}: Ext_Prod_Max NOT available")
-                )
+                _LOGGER.debug((f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available"))
 
             except ModbusIOError:
                 raise ModbusReadError(
@@ -1161,7 +1169,9 @@ class SolarEdgeInverter:
                 display_value = float_to_hex(value)
             else:
                 display_value = hex(value) if isinstance(value, int) else value
-            _LOGGER.debug(f"Inverter {self.inverter_unit_id}: {name} {display_value}")
+            _LOGGER.debug(
+                f"I{self.inverter_unit_id}: " f"{name} {display_value} {type(value)}"
+            )
 
         """ Power Control Options: Storage Control """
         if (
@@ -1205,16 +1215,14 @@ class SolarEdgeInverter:
                     else:
                         display_value = hex(value) if isinstance(value, int) else value
                     _LOGGER.debug(
-                        f"Inverter {self.inverter_unit_id}: {name} {display_value}"
+                        f"I{self.inverter_unit_id}: "
+                        f"{name} {display_value} {type(value)}"
                     )
 
             except ModbusIllegalAddress:
                 self.decoded_storage_control = False
                 _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id}: "
-                        "storage control NOT available"
-                    )
+                    (f"I{self.inverter_unit_id}: " "storage control NOT available")
                 )
 
             except ModbusIOError:
@@ -1323,8 +1331,9 @@ class SolarEdgeMeter:
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
                     (
-                        f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                        f"I{self.inverter_unit_id}M{self.meter_id}: "
+                        f"{name} {hex(value) if isinstance(value, int) else value} "
+                        f"{type(value)}"
                     ),
                 )
 
@@ -1454,8 +1463,9 @@ class SolarEdgeMeter:
         for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
                 (
-                    f"Inverter {self.inverter_unit_id} meter {self.meter_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value}"
+                    f"I{self.inverter_unit_id}M{self.meter_id}: "
+                    f"{name} {hex(value) if isinstance(value, int) else value} "
+                    f"{type(value)}"
                 ),
             )
 
@@ -1561,8 +1571,8 @@ class SolarEdgeBattery:
                     display_value = hex(value) if isinstance(value, int) else value
                 _LOGGER.debug(
                     (
-                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                        f"{name} {display_value}"
+                        f"I{self.inverter_unit_id}B{self.battery_id}: "
+                        f"{name} {display_value} {type(value)}"
                     ),
                 )
 
@@ -1665,20 +1675,14 @@ class SolarEdgeBattery:
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                        f"{name} {float_to_hex(value)}"
-                    ),
-                )
-
+                display_value = float_to_hex(value)
             else:
-                _LOGGER.debug(
-                    (
-                        f"Inverter {self.inverter_unit_id} batt {self.battery_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                    ),
-                )
+                display_value = hex(value) if isinstance(value, int) else value
+
+            _LOGGER.debug(
+                f"I{self.inverter_unit_id}B{self.battery_id}: "
+                f"{name} {display_value} {type(value)}"
+            )
 
     @property
     def online(self) -> bool:

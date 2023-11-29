@@ -25,11 +25,27 @@ DOMAIN_REGEX = re.compile(
 )
 
 
+class RetrySettings(IntEnum):
+    """Retry settings when opening a connection to the inverter fails."""
+
+    Time = 800  # first attempt in milliseconds
+    Ratio = 3  # time multiplier between each attempt
+    Limit = 5  # number of attempts before failing
+
+
 class ModbusDefaults(IntEnum):
     """Values to pass to pymodbus"""
 
-    Timeout = 3  # Seconds to wait for a modbus response
-    ReconnectDelay = 0  # Don't use pymodbus reconnect
+    """
+        ReconnectDelay doubles automatically with each unsuccessful connect, from
+        ReconnectDelay to ReconnectDelayMax.
+        Set `ReconnectDelay = 0` to avoid automatic reconnection.
+        Disabled because it didn't work properly with HA Async in PR#360.
+    """
+
+    Timeout = 3  # Timeout for a request, in seconds.
+    ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
+    ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
 
 
 class SolarEdgeTimeouts(IntEnum):
@@ -38,14 +54,6 @@ class SolarEdgeTimeouts(IntEnum):
     Inverter = 8400
     Device = 1200
     Init = 1200
-
-
-class RetrySettings(IntEnum):
-    """Retry settings when opening a connection to the inverter fails."""
-
-    Time = 800  # first attempt in milliseconds
-    Ratio = 3  # time multiplier between each attempt
-    Limit = 4  # number of attempts before failing
 
 
 class BatteryLimit(IntEnum):
@@ -57,8 +65,8 @@ class BatteryLimit(IntEnum):
     Amax = 200  # amps
     Tmax = 100  # degrees C
     Tmin = -30  # degrees C
-    ChargeMax = 50000  # watts
-    DischargeMax = 50000  # watts
+    ChargeMax = 1000000  # watts
+    DischargeMax = 1000000  # watts
 
 
 class ConfDefaultInt(IntEnum):
