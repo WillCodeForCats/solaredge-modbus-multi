@@ -920,7 +920,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
             )
 
             if self._value < self._last:
-                _LOGGER.error(
+                _LOGGER.debug(
                     f"TOTAL_INCREASING {self._model_key} error: "
                     f"{self._value} < {self._last}"
                 )
@@ -930,7 +930,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
             return False
 
         except (ZeroDivisionError, OverflowError) as e:
-            _LOGGER.error(f"TOTAL_INCREASING {self._model_key} exception: {e}")
+            _LOGGER.debug(f"TOTAL_INCREASING {self._model_key} exception: {e}")
             return False
 
         return super().available
