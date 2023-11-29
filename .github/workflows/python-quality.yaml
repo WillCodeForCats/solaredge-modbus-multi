@@ -11,8 +11,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: WillCodeForCats/python-lint-action@v1.0.1
+      - uses: actions/checkout@v4
+      - uses: WillCodeForCats/python-lint-action@v1.0.2
         with:
           python-root-list: "custom_components/solaredge_modbus_multi"
           use-flake8: true

@@ -234,11 +234,11 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
                     raise ex
 
-                _LOGGER.debug(f"Failed data refresh attempt #{attempt}")
+                _LOGGER.debug(f"Failed data refresh attempt {attempt}")
 
                 attempt += 1
                 _LOGGER.debug(
-                    f"Waiting {wait_ms} ms before data refresh attempt #{attempt}"
+                    f"Waiting {wait_ms} ms before data refresh attempt {attempt}"
                 )
                 await asyncio.sleep(wait_ms / 1000)
                 wait_ms *= wait_ratio

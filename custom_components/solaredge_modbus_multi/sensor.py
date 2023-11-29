@@ -938,28 +938,32 @@ class DCCurrent(SolarEdgeSensorBase):
         return "DC Current"
 
     @property
+    def available(self) -> bool:
+        if (
+            self._platform.decoded_model["I_DC_Current"] == SunSpecNotImpl.UINT16
+            or self._platform.decoded_model["I_DC_Current_SF"] == SunSpecNotImpl.INT16
+            or self._platform.decoded_model["I_DC_Current_SF"] not in SUNSPEC_SF_RANGE
+        ):
+            return False
+
+        return super().available
+
+    @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["I_DC_Current"] == SunSpecNotImpl.UINT16
-                or self._platform.decoded_model["I_DC_Current_SF"]
-                == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["I_DC_Current_SF"]
-                not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                return scale_factor(
-                    self._platform.decoded_model["I_DC_Current"],
-                    self._platform.decoded_model["I_DC_Current_SF"],
-                )
+            return scale_factor(
+                self._platform.decoded_model["I_DC_Current"],
+                self._platform.decoded_model["I_DC_Current_SF"],
+            )
 
         except TypeError:
             return None
 
     @property
-    def suggested_display_precision(self):
+    def suggested_display_precision(self) -> int:
+        if self._platform.decoded_model["I_DC_Current_SF"] not in SUNSPEC_SF_RANGE:
+            return 1
+
         return abs(self._platform.decoded_model["I_DC_Current_SF"])
 
 
@@ -1192,14 +1196,7 @@ class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.global_power_control is not True
-            or self._platform.online is not True
-        ):
-            return False
-
-        else:
-            return True
+        return super().available and self._platform.global_power_control
 
 
 class StatusVendor(SolarEdgeSensorBase):
@@ -1450,19 +1447,22 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
         return "MMPPT Events"
 
     @property
-    def native_value(self):
+    def available(self) -> bool:
         try:
             if self._platform.decoded_model["mmppt_Events"] == SunSpecNotImpl.UINT32:
-                return None
+                return False
 
-            else:
-                return self._platform.decoded_model["mmppt_Events"]
+            return super().available
 
         except KeyError:
-            return None
+            return False
 
     @property
-    def extra_state_attributes(self):
+    def native_value(self) -> int:
+        return self._platform.decoded_model["mmppt_Events"]
+
+    @property
+    def extra_state_attributes(self) -> str:
         attrs = {}
         mmppt_events_active = []
 
@@ -1726,11 +1726,27 @@ class SolarEdgeBatteryVoltage(DCVoltage):
             return None
 
 
-class SolarEdgeBatteryCurrent(DCCurrent):
+class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.CURRENT
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     suggested_display_precision = 2
+    icon = "mdi:current-dc"
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
 
     @property
-    def native_value(self):
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_dc_current"
+
+    @property
+    def name(self) -> str:
+        return "DC Current"
+
+    @property
+    def available(self) -> bool:
         try:
             if (
                 float_to_hex(self._platform.decoded_model["B_DC_Current"])
@@ -1738,16 +1754,19 @@ class SolarEdgeBatteryCurrent(DCCurrent):
                 or self._platform.decoded_model["B_DC_Current"] < BatteryLimit.Amin
                 or self._platform.decoded_model["B_DC_Current"] > BatteryLimit.Amax
             ):
-                return None
+                return False
 
-            elif self._platform.decoded_model["B_Status"] in [0]:
-                return None
+            if self._platform.decoded_model["B_Status"] in [0]:
+                return False
 
-            else:
-                return self._platform.decoded_model["B_DC_Current"]
+            return super().available
 
-        except TypeError:
-            return None
+        except (TypeError, KeyError):
+            return False
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["B_DC_Current"]
 
 
 class SolarEdgeBatteryPower(DCPower):
