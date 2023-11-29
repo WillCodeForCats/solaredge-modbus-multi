@@ -718,9 +718,9 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC var"
+            return "AC Reactive Power"
         else:
-            return f"AC var {self._phase.upper()}"
+            return f"AC Reactive Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
