@@ -788,9 +788,9 @@ class ACPowerFactor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC PF"
+            return "AC Power Factor"
         else:
-            return f"AC PF {self._phase.upper()}"
+            return f"AC Power Factor {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
