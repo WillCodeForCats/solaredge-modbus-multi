@@ -661,9 +661,9 @@ class ACVoltAmp(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC VA"
+            return "AC Apparent Power"
         else:
-            return f"AC VA {self._phase.upper()}"
+            return f"AC Apparent Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
