@@ -26,7 +26,7 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
-        if inverter.advanced_power_control:
+        if hub.option_detect_extras and inverter.advanced_power_control:
             entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
 
     if entities:
@@ -74,7 +74,11 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 
     @property
     def available(self) -> bool:
-        return super().available and self._platform.advanced_power_control is True
+        return (
+            super().available
+            and self._platform.advanced_power_control is True
+            and "I_AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+        )
 
     @property
     def unique_id(self) -> str:
@@ -85,12 +89,5 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
         return "Advanced Power Control"
 
     @property
-    def is_on(self) -> bool | None:
-        try:
-            if self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1:
-                return True
-
-            return False
-
-        except KeyError:
-            return None
+    def is_on(self) -> bool:
+        return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1

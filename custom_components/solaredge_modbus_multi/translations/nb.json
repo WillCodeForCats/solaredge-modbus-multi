@@ -35,15 +35,16 @@
           "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
-          "advanced_power_control": "Avansert strømkontroll"
+          "detect_extras": "Automatisk oppdage flere enheter",
+          "advanced_power_control": "Avansert strømkontroll",
+          "sleep_after_write": "Inverter Command Delay (sekunder)"
         }
       },
       "adv_pwr_ctl": {
         "title": "Strømkontrollalternativer",
         "data": {
           "adv_storage_control": "Aktiver lagringskontroll",
-          "adv_site_limit_control": "Aktiver Site Limit Control",
-          "sleep_after_write": "Inverter Command Delay (sekunder)"
+          "adv_site_limit_control": "Aktiver Site Limit Control"
         },
         "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
       },

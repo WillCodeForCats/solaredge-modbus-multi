@@ -28,6 +28,13 @@ async def async_setup_entry(
 
     entities = []
 
+    for inverter in hub.inverters:
+        if hub.option_detect_extras:
+            entities.append(
+                SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator)
+            )
+            entities.append(SolarEdgeCosPhiSet(inverter, config_entry, coordinator))
+
     """ Power Control Options: Storage Control """
     if hub.option_storage_control is True:
         for inverter in hub.inverters:
@@ -114,10 +121,24 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
     @property
     def available(self) -> bool:
-        # Available for AC charge policies 2 & 3
-        return self._platform.online and self._platform.decoded_storage_control[
-            "ac_charge_policy"
-        ] in [2, 3]
+        try:
+            if (
+                self._platform.decoded_storage_control is False
+                or float_to_hex(
+                    self._platform.decoded_storage_control["ac_charge_limit"]
+                )
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_storage_control["ac_charge_limit"] < 0
+            ):
+                return False
+
+            # Available for AC charge policies 2 & 3
+            return super().available and self._platform.decoded_storage_control[
+                "ac_charge_policy"
+            ] in [2, 3]
+
+        except (TypeError, KeyError):
+            return False
 
     @property
     def native_unit_of_measurement(self) -> str | None:
@@ -130,11 +151,11 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
             return None
 
     @property
-    def native_min_value(self) -> float:
+    def native_min_value(self) -> int:
         return 0
 
     @property
-    def native_max_value(self) -> float:
+    def native_max_value(self) -> int:
         # 100MWh in AC policy "Fixed Energy Limit"
         if self._platform.decoded_storage_control["ac_charge_policy"] == 2:
             return 100000000
@@ -144,20 +165,12 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
             return 0
 
     @property
-    def native_value(self) -> float | None:
-        if (
-            self._platform.decoded_storage_control is False
-            or float_to_hex(self._platform.decoded_storage_control["ac_charge_limit"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage_control["ac_charge_limit"] < 0
-        ):
-            return None
-
-        return round(self._platform.decoded_storage_control["ac_charge_limit"], 3)
+    def native_value(self) -> int:
+        return int(self._platform.decoded_storage_control["ac_charge_limit"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57350, payload=builder.to_registers()
@@ -187,21 +200,31 @@ class StorageBackupReserve(SolarEdgeNumberBase):
         return self._platform.has_battery is True
 
     @property
-    def native_value(self) -> float | None:
-        if (
-            self._platform.decoded_storage_control is False
-            or float_to_hex(self._platform.decoded_storage_control["backup_reserve"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage_control["backup_reserve"] < 0
-            or self._platform.decoded_storage_control["backup_reserve"] > 100
-        ):
-            return None
+    def available(self) -> bool:
+        try:
+            if (
+                self._platform.decoded_storage_control is False
+                or float_to_hex(
+                    self._platform.decoded_storage_control["backup_reserve"]
+                )
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_storage_control["backup_reserve"] < 0
+                or self._platform.decoded_storage_control["backup_reserve"] > 100
+            ):
+                return False
 
-        return round(self._platform.decoded_storage_control["backup_reserve"], 3)
+            return super().available
+
+        except (TypeError, KeyError):
+            return False
+
+    @property
+    def native_value(self) -> int:
+        return int(self._platform.decoded_storage_control["backup_reserve"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57352, payload=builder.to_registers()
@@ -232,27 +255,31 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def available(self) -> bool:
-        # Available only in remote control mode
-        return (
-            self._platform.online
-            and self._platform.decoded_storage_control["control_mode"] == 4
-        )
+        try:
+            if (
+                self._platform.decoded_storage_control is False
+                or self._platform.decoded_storage_control["command_timeout"]
+                == SunSpecNotImpl.UINT32
+                or self._platform.decoded_storage_control["command_timeout"] > 86400
+            ):
+                return False
+
+            # Available only in remote control mode
+            return (
+                super().available
+                and self._platform.decoded_storage_control["control_mode"] == 4
+            )
+
+        except (TypeError, KeyError):
+            return False
 
     @property
-    def native_value(self) -> int | None:
-        if (
-            self._platform.decoded_storage_control is False
-            or self._platform.decoded_storage_control["command_timeout"]
-            == SunSpecNotImpl.UINT32
-            or self._platform.decoded_storage_control["command_timeout"] > 86400
-        ):
-            return None
-
+    def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["command_timeout"])
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_uint(int(value))
         await self._platform.write_registers(
             address=57355, payload=builder.to_registers()
@@ -279,31 +306,35 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def available(self) -> bool:
-        # Available only in remote control mode
-        return (
-            self._platform.online
-            and self._platform.decoded_storage_control["control_mode"] == 4
-        )
+        try:
+            if (
+                self._platform.decoded_storage_control is False
+                or float_to_hex(self._platform.decoded_storage_control["charge_limit"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_storage_control["charge_limit"] < 0
+            ):
+                return False
+
+            # Available only in remote control mode
+            return (
+                super().available
+                and self._platform.decoded_storage_control["control_mode"] == 4
+            )
+
+        except (TypeError, KeyError):
+            return False
 
     @property
-    def native_max_value(self) -> float:
+    def native_max_value(self) -> int:
         return BatteryLimit.ChargeMax
 
     @property
-    def native_value(self) -> float | None:
-        if (
-            self._platform.decoded_storage_control is False
-            or float_to_hex(self._platform.decoded_storage_control["charge_limit"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage_control["charge_limit"] < 0
-        ):
-            return None
-
+    def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["charge_limit"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57358, payload=builder.to_registers()
@@ -330,31 +361,37 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def available(self) -> bool:
-        # Available only in remote control mode
-        return (
-            self._platform.online
-            and self._platform.decoded_storage_control["control_mode"] == 4
-        )
+        try:
+            if (
+                self._platform.decoded_storage_control is False
+                or float_to_hex(
+                    self._platform.decoded_storage_control["discharge_limit"]
+                )
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_storage_control["discharge_limit"] < 0
+            ):
+                return False
+
+            # Available only in remote control mode
+            return (
+                super().available
+                and self._platform.decoded_storage_control["control_mode"] == 4
+            )
+
+        except (TypeError, KeyError):
+            return False
 
     @property
-    def native_max_value(self) -> float:
+    def native_max_value(self) -> int:
         return BatteryLimit.DischargeMax
 
     @property
-    def native_value(self) -> float | None:
-        if (
-            self._platform.decoded_storage_control is False
-            or float_to_hex(self._platform.decoded_storage_control["discharge_limit"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_storage_control["discharge_limit"] < 0
-        ):
-            return None
-
+    def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["discharge_limit"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57360, payload=builder.to_registers()
@@ -382,33 +419,30 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         try:
-            return self._platform.online and (
+            if float_to_hex(self._platform.decoded_model["E_Site_Limit"]) == hex(
+                SunSpecNotImpl.FLOAT32
+            ):
+                return False
+
+            return super().available and (
                 (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1
                 or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 1) & 1
                 or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2) & 1
             )
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
-    def native_value(self) -> float | None:
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["E_Site_Limit"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["E_Site_Limit"] < 0
-            ):
-                return None
+    def native_value(self) -> int:
+        if self._platform.decoded_model["E_Site_Limit"] < 0:
+            return 0
 
-            return int(self._platform.decoded_model["E_Site_Limit"])
-
-        except KeyError:
-            return None
+        return int(self._platform.decoded_model["E_Site_Limit"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57346, payload=builder.to_registers()
@@ -436,12 +470,19 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         try:
+            if (
+                float_to_hex(self._platform.decoded_model["Ext_Prod_Max"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_model["Ext_Prod_Max"] < 0
+            ):
+                return False
+
             return (
-                self._platform.online
+                super().available
                 and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
             )
 
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     @property
@@ -449,25 +490,121 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
         return False
 
     @property
-    def native_value(self) -> float | None:
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["Ext_Prod_Max"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["Ext_Prod_Max"] < 0
-            ):
-                return None
-
-            return int(self._platform.decoded_model["Ext_Prod_Max"])
-
-        except KeyError:
-            return None
+    def native_value(self) -> int:
+        return int(self._platform.decoded_model["Ext_Prod_Max"])
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=57362, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
+    """Global Dynamic Power Control: Set Inverter Active Power Limit"""
+
+    native_unit_of_measurement = PERCENTAGE
+    native_min_value = 0
+    native_max_value = 100
+    mode = "slider"
+    icon = "mdi:percent"
+
+    def __init__(self, inverter, config_entry, coordinator):
+        super().__init__(inverter, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_active_power_limit_set"
+
+    @property
+    def name(self) -> str:
+        return "Active Power Limit"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.global_power_control
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
+                or self._platform.decoded_model["I_Power_Limit"] > 100
+                or self._platform.decoded_model["I_Power_Limit"] < 0
+            ):
+                return False
+
+            return super().available
+
+        except (TypeError, KeyError):
+            return False
+
+    @property
+    def native_value(self) -> int:
+        return self._platform.decoded_model["I_Power_Limit"]
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_16bit_uint(int(value))
+        await self._platform.write_registers(
+            address=61441, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
+    """Global Dynamic Power Control: Set Inverter CosPhi"""
+
+    native_min_value = -1.0
+    native_max_value = 1.0
+    native_step = 0.1
+    mode = "slider"
+    icon = "mdi:angle-acute"
+
+    def __init__(self, inverter, config_entry, coordinator):
+        super().__init__(inverter, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_cosphi_set"
+
+    @property
+    def name(self) -> str:
+        return "CosPhi"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                float_to_hex(self._platform.decoded_model["I_CosPhi"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_model["I_CosPhi"] > 1.0
+                or self._platform.decoded_model["I_CosPhi"] < -1.0
+            ):
+                return False
+
+            return super().available
+
+        except (TypeError, KeyError):
+            return False
+
+    @property
+    def native_value(self):
+        return round(self._platform.decoded_model["I_CosPhi"], 1)
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_32bit_float(float(value))
+        await self._platform.write_registers(
+            address=61442, payload=builder.to_registers()
         )
         await self.async_update()

@@ -83,9 +83,14 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeActivePowerLimit(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+
+        if hub.option_detect_extras:
+            entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
+            entities.append(
+                SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
+            )
+            entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+
         if inverter.is_mmppt:
             entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
 
@@ -933,28 +938,32 @@ class DCCurrent(SolarEdgeSensorBase):
         return "DC Current"
 
     @property
+    def available(self) -> bool:
+        if (
+            self._platform.decoded_model["I_DC_Current"] == SunSpecNotImpl.UINT16
+            or self._platform.decoded_model["I_DC_Current_SF"] == SunSpecNotImpl.INT16
+            or self._platform.decoded_model["I_DC_Current_SF"] not in SUNSPEC_SF_RANGE
+        ):
+            return False
+
+        return super().available
+
+    @property
     def native_value(self):
         try:
-            if (
-                self._platform.decoded_model["I_DC_Current"] == SunSpecNotImpl.UINT16
-                or self._platform.decoded_model["I_DC_Current_SF"]
-                == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["I_DC_Current_SF"]
-                not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                return scale_factor(
-                    self._platform.decoded_model["I_DC_Current"],
-                    self._platform.decoded_model["I_DC_Current_SF"],
-                )
+            return scale_factor(
+                self._platform.decoded_model["I_DC_Current"],
+                self._platform.decoded_model["I_DC_Current_SF"],
+            )
 
         except TypeError:
             return None
 
     @property
-    def suggested_display_precision(self):
+    def suggested_display_precision(self) -> int:
+        if self._platform.decoded_model["I_DC_Current_SF"] not in SUNSPEC_SF_RANGE:
+            return 1
+
         return abs(self._platform.decoded_model["I_DC_Current_SF"])
 
 
@@ -1187,14 +1196,7 @@ class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.global_power_control is not True
-            or self._platform.online is not True
-        ):
-            return False
-
-        else:
-            return True
+        return super().available and self._platform.global_power_control
 
 
 class StatusVendor(SolarEdgeSensorBase):
@@ -1248,7 +1250,7 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_rrcr"
+        return f"{self._platform.uid_base}_rrcr"
 
     @property
     def name(self) -> str:
@@ -1299,6 +1301,8 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 
 
 class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
+    """Global Dynamic Power Control: Inverter Active Power Limit"""
+
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
     suggested_display_precision = 0
@@ -1310,7 +1314,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_active_power_limit"
+        return f"{self._platform.uid_base}_active_power_limit"
 
     @property
     def name(self) -> str:
@@ -1318,10 +1322,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.global_power_control is True:
-            return True
-        else:
-            return False
+        return self._platform.global_power_control
 
     @property
     def native_value(self):
@@ -1341,6 +1342,8 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
 
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
+    """Global Dynamic Power Control: Inverter CosPhi"""
+
     state_class = SensorStateClass.MEASUREMENT
     suggested_display_precision = 1
     icon = "mdi:angle-acute"
@@ -1351,7 +1354,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.model}_{self._platform.serial}_cosphi"
+        return f"{self._platform.uid_base}_cosphi"
 
     @property
     def name(self) -> str:
@@ -1359,7 +1362,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return False
+        return self._platform.global_power_control
 
     @property
     def native_value(self):
@@ -1444,19 +1447,22 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
         return "MMPPT Events"
 
     @property
-    def native_value(self):
+    def available(self) -> bool:
         try:
             if self._platform.decoded_model["mmppt_Events"] == SunSpecNotImpl.UINT32:
-                return None
+                return False
 
-            else:
-                return self._platform.decoded_model["mmppt_Events"]
+            return super().available
 
         except KeyError:
-            return None
+            return False
 
     @property
-    def extra_state_attributes(self):
+    def native_value(self) -> int:
+        return self._platform.decoded_model["mmppt_Events"]
+
+    @property
+    def extra_state_attributes(self) -> str:
         attrs = {}
         mmppt_events_active = []
 
@@ -1720,11 +1726,27 @@ class SolarEdgeBatteryVoltage(DCVoltage):
             return None
 
 
-class SolarEdgeBatteryCurrent(DCCurrent):
+class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.CURRENT
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     suggested_display_precision = 2
+    icon = "mdi:current-dc"
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        """Initialize the sensor."""
 
     @property
-    def native_value(self):
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_dc_current"
+
+    @property
+    def name(self) -> str:
+        return "DC Current"
+
+    @property
+    def available(self) -> bool:
         try:
             if (
                 float_to_hex(self._platform.decoded_model["B_DC_Current"])
@@ -1732,16 +1754,19 @@ class SolarEdgeBatteryCurrent(DCCurrent):
                 or self._platform.decoded_model["B_DC_Current"] < BatteryLimit.Amin
                 or self._platform.decoded_model["B_DC_Current"] > BatteryLimit.Amax
             ):
-                return None
+                return False
 
-            elif self._platform.decoded_model["B_Status"] in [0]:
-                return None
+            if self._platform.decoded_model["B_Status"] in [0]:
+                return False
 
-            else:
-                return self._platform.decoded_model["B_DC_Current"]
+            return super().available
 
-        except TypeError:
-            return None
+        except (TypeError, KeyError):
+            return False
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["B_DC_Current"]
 
 
 class SolarEdgeBatteryPower(DCPower):
