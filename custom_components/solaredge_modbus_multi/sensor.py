@@ -898,7 +898,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         if self._phase is None:
             return "AC Energy"
         else:
-            return f"{re.sub('_', ' ', self._phase)}"
+            return f"AC Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def available(self) -> bool:
