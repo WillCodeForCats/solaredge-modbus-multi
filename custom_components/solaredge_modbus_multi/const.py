@@ -2,23 +2,8 @@
 from __future__ import annotations
 
 import re
-import sys
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 from typing import Final
-
-if sys.version_info.minor >= 11:
-    # Needs Python 3.11
-    from enum import StrEnum
-else:
-    try:
-        from homeassistant.backports.enum import StrEnum
-
-    except ImportError:
-        from enum import Enum
-
-        class StrEnum(str, Enum):
-            pass
-
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
