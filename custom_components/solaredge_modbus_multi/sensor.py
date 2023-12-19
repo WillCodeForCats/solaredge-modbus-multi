@@ -921,8 +921,8 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
 
             if self._value < self._last:
                 _LOGGER.warning(
-                    f"total_increasing {self._model_key} error: "
-                    f"{self._value} < {self._last}"
+                    "Inverter accumulator went backwards; this is a SolarEdge bug:"
+                    f"total_increasing {self._model_key} {self._value} < {self._last}"
                 )
                 return False
 
