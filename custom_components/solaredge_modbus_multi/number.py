@@ -4,7 +4,7 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, TIME_SECONDS, UnitOfEnergy, UnitOfPower
+from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfPower, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -235,7 +235,7 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 class StorageCommandTimeout(SolarEdgeNumberBase):
     native_min_value = 0
     native_max_value = 86400  # 24h
-    native_unit_of_measurement = TIME_SECONDS
+    native_unit_of_measurement = UnitOfTime.SECONDS
     icon = "mdi:clock-end"
 
     def __init__(self, inverter, config_entry, coordinator):
