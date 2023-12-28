@@ -43,7 +43,7 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, scale_factor, update_accum
+from .helpers import float_to_hex, update_accum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -440,7 +440,7 @@ class ACCurrentSensor(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Current_SF"],
                 )
@@ -527,7 +527,7 @@ class VoltageSensor(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Voltage_SF"],
                 )
@@ -598,7 +598,7 @@ class ACPower(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Power_SF"],
                 )
@@ -641,7 +641,7 @@ class ACFrequency(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model["AC_Frequency"],
                     self._platform.decoded_model["AC_Frequency_SF"],
                 )
@@ -698,7 +698,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_VA_SF"],
                 )
@@ -755,7 +755,7 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_var_SF"],
                 )
@@ -812,7 +812,7 @@ class ACPowerFactor(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_PF_SF"],
                 )
@@ -973,7 +973,7 @@ class DCCurrent(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            return scale_factor(
+            return self.scale_factor(
                 self._platform.decoded_model["I_DC_Current"],
                 self._platform.decoded_model["I_DC_Current_SF"],
             )
@@ -1019,7 +1019,7 @@ class DCVoltage(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model["I_DC_Voltage"],
                     self._platform.decoded_model["I_DC_Voltage_SF"],
                 )
@@ -1061,7 +1061,7 @@ class DCPower(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model["I_DC_Power"],
                     self._platform.decoded_model["I_DC_Power_SF"],
                 )
@@ -1103,7 +1103,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
                 return None
 
             else:
-                return scale_factor(
+                return self.scale_factor(
                     self._platform.decoded_model["I_Temp_Sink"],
                     self._platform.decoded_model["I_Temp_SF"],
                 )
@@ -1566,7 +1566,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                value = self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["M_VAh_SF"],
                 )
@@ -1644,7 +1644,7 @@ class MetervarhIE(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = scale_factor(
+                value = self.scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["M_varh_SF"],
                 )
