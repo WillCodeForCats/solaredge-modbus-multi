@@ -840,7 +840,6 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         self._phase = phase
         self._last = None
         self._value = None
-        self._log_once = False
 
         if self._phase is None:
             self._model_key = "AC_Energy_WH"
@@ -921,13 +920,10 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
             )
 
             if self._value < self._last:
-                if not self._log_once:
-                    _LOGGER.warning(
-                        "Inverter accumulator went backwards; this is a SolarEdge bug: "
-                        f"{self._model_key} {self._value} < {self._last}"
-                    )
-                    self._log_once = True
-
+                _LOGGER.warning(
+                    "Inverter accumulator went backwards; this is a SolarEdge bug:"
+                    f"total_increasing {self._model_key} {self._value} < {self._last}"
+                )
                 return False
 
         except KeyError:
@@ -937,7 +933,6 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
             _LOGGER.debug(f"total_increasing {self._model_key} exception: {e}")
             return False
 
-        self._log_once = False
         return super().available
 
     @property
