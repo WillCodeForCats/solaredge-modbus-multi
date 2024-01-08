@@ -937,9 +937,11 @@ class SolarEdgeInverter:
         if self.decoded_mmppt is not None:
             if self.decoded_mmppt["mmppt_Units"] == 2:
                 mmppt_registers = 48
+                mmppt_unit_ids = [0, 1]
 
             elif self.decoded_mmppt["mmppt_Units"] == 3:
                 mmppt_registers = 68
+                mmppt_unit_ids = [0, 1, 2]
 
             else:
                 self.decoded_mmppt = None
@@ -971,63 +973,27 @@ class SolarEdgeInverter:
                         )
                     )
 
-                    unit_0 = OrderedDict(
-                        [
-                            ("ID", decoder.decode_16bit_uint()),
-                            (
-                                "IDStr",
-                                self.mbstring(decoder.decode_string(16)),
-                            ),
-                            ("DCA", decoder.decode_16bit_uint()),
-                            ("DCV", decoder.decode_16bit_uint()),
-                            ("DCW", decoder.decode_16bit_uint()),
-                            ("DCWH", decoder.decode_32bit_uint()),
-                            ("Tms", decoder.decode_32bit_uint()),
-                            ("Tmp", decoder.decode_16bit_int()),
-                            ("DCSt", decoder.decode_16bit_uint()),
-                            ("DCEvt", decoder.decode_32bit_uint()),
-                        ]
-                    )
-                    self.decoded_model.update(OrderedDict([("mmppt_0", unit_0)]))
-
-                    unit_1 = OrderedDict(
-                        [
-                            ("ID", decoder.decode_16bit_uint()),
-                            (
-                                "IDStr",
-                                self.mbstring(decoder.decode_string(16)),
-                            ),
-                            ("DCA", decoder.decode_16bit_uint()),
-                            ("DCV", decoder.decode_16bit_uint()),
-                            ("DCW", decoder.decode_16bit_uint()),
-                            ("DCWH", decoder.decode_32bit_uint()),
-                            ("Tms", decoder.decode_32bit_uint()),
-                            ("Tmp", decoder.decode_16bit_int()),
-                            ("DCSt", decoder.decode_16bit_uint()),
-                            ("DCEvt", decoder.decode_32bit_uint()),
-                        ]
-                    )
-                    self.decoded_model.update(OrderedDict([("mmppt_1", unit_1)]))
-
-                if self.decoded_mmppt["mmppt_Units"] in [3]:
-                    unit_2 = OrderedDict(
-                        [
-                            ("ID", decoder.decode_16bit_uint()),
-                            (
-                                "IDStr",
-                                self.mbstring(decoder.decode_string(16)),
-                            ),
-                            ("DCA", decoder.decode_16bit_uint()),
-                            ("DCV", decoder.decode_16bit_uint()),
-                            ("DCW", decoder.decode_16bit_uint()),
-                            ("DCWH", decoder.decode_32bit_uint()),
-                            ("Tms", decoder.decode_32bit_uint()),
-                            ("Tmp", decoder.decode_16bit_int()),
-                            ("DCSt", decoder.decode_16bit_uint()),
-                            ("DCEvt", decoder.decode_32bit_uint()),
-                        ]
-                    )
-                    self.decoded_model.update(OrderedDict([("mmppt_2", unit_2)]))
+                    for mmppt_unit_id in mmppt_unit_ids:
+                        mmppt_unit_data = OrderedDict(
+                            [
+                                ("ID", decoder.decode_16bit_uint()),
+                                (
+                                    "IDStr",
+                                    self.mbstring(decoder.decode_string(16)),
+                                ),
+                                ("DCA", decoder.decode_16bit_uint()),
+                                ("DCV", decoder.decode_16bit_uint()),
+                                ("DCW", decoder.decode_16bit_uint()),
+                                ("DCWH", decoder.decode_32bit_uint()),
+                                ("Tms", decoder.decode_32bit_uint()),
+                                ("Tmp", decoder.decode_16bit_int()),
+                                ("DCSt", decoder.decode_16bit_uint()),
+                                ("DCEvt", decoder.decode_32bit_uint()),
+                            ]
+                        )
+                        self.decoded_model.update(
+                            OrderedDict([(f"mmppt_{mmppt_unit_id}", mmppt_unit_data)])
+                        )
 
                 try:
                     del self.decoded_model["ignore"]
@@ -1292,6 +1258,8 @@ class SolarEdgeMMPPTUnit:
         self.hub = hub
         self.unit = unit
 
+        self.mmppt_key = f"mmppt_{self.unit}"
+
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -1301,13 +1269,12 @@ class SolarEdgeMMPPTUnit:
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.inverter.uid_base)},
-            name=self.name,
+            identifiers={(DOMAIN, self.inverter.uid_base, self.mmppt_key)},
+            name=f"{self.inverter.name} MPPT{self.unit}",
             manufacturer=self.inverter.manufacturer,
-            model=self.model,
-            sw_version=self.fw_version,
-            hw_version=self.option,
-            via_device=self.inverter.uid_base,
+            model=self.inverter.model,
+            hw_version=f"Synergy Unit #{self.unit}",
+            via_device=(DOMAIN, self.inverter.uid_base),
         )
 
 
