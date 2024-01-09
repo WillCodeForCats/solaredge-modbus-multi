@@ -104,6 +104,9 @@ async def async_setup_entry(
                 entities.append(
                     SolarEdgeDCPowerMMPPT(mmppt_unit, config_entry, coordinator)
                 )
+                entities.append(
+                    SolarEdgeTemperatureMMPPT(mmppt_unit, config_entry, coordinator)
+                )
 
     for meter in hub.meters:
         entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
@@ -1233,13 +1236,14 @@ class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
 
 
 class HeatSinkTemperature(SolarEdgeSensorBase):
+    """Heat sink temperature for a SolarEdge inverter."""
+
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
 
     @property
     def unique_id(self) -> str:
@@ -1272,6 +1276,40 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
     @property
     def suggested_display_precision(self):
         return abs(self._platform.decoded_model["I_Temp_SF"])
+
+
+class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
+    """Temperature for Synergy MMPPT units."""
+
+    device_class = SensorDeviceClass.TEMPERATURE
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    suggested_display_precision = 0
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.inverter.uid_base}_tmp_mmppt{self._platform.unit}"
+
+    @property
+    def name(self) -> str:
+        return "Temperature"
+
+    @property
+    def available(self) -> bool:
+        if (
+            self._platform.inverter.decoded_model[self._platform.mmppt_key]["Tmp"]
+            == SunSpecNotImpl.INT16
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self._platform.inverter.decoded_model[self._platform.mmppt_key]["Tmp"]
 
 
 class SolarEdgeStatusSensor(SolarEdgeSensorBase):
