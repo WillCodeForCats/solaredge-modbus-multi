@@ -1047,12 +1047,6 @@ class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
 
     @property
     def suggested_display_precision(self) -> int:
-        if (
-            self._platform.inverter.decoded_model["mmppt_DCA_SF"]
-            not in SUNSPEC_SF_RANGE
-        ):
-            return 1
-
         return abs(self._platform.inverter.decoded_model["mmppt_DCA_SF"])
 
 
