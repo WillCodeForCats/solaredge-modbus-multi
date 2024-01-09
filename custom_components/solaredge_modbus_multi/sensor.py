@@ -98,6 +98,9 @@ async def async_setup_entry(
                 entities.append(
                     SolarEdgeDCCurrentMMPPT(mmppt_unit, config_entry, coordinator)
                 )
+                entities.append(
+                    SolarEdgeDCVoltageMMPPT(mmppt_unit, config_entry, coordinator)
+                )
 
     for meter in hub.meters:
         entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
@@ -1054,13 +1057,14 @@ class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
 
 
 class DCVoltage(SolarEdgeSensorBase):
+    """DC Voltage for a SolarEdge inverter."""
+
     device_class = SensorDeviceClass.VOLTAGE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
 
     @property
     def unique_id(self) -> str:
@@ -1094,6 +1098,52 @@ class DCVoltage(SolarEdgeSensorBase):
     @property
     def suggested_display_precision(self):
         return abs(self._platform.decoded_model["I_DC_Voltage_SF"])
+
+
+class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
+    """DC Voltage for Synergy MMPPT units."""
+
+    device_class = SensorDeviceClass.VOLTAGE
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfElectricPotential.VOLT
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self._platform.inverter.uid_base}_dc_voltage_mmppt{self._platform.unit}"
+        )
+
+    @property
+    def name(self) -> str:
+        return "DC Voltage"
+
+    @property
+    def available(self) -> bool:
+        if (
+            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCV"]
+            == SunSpecNotImpl.INT16
+            or self._platform.inverter.decoded_model["mmppt_DCV_SF"]
+            == SunSpecNotImpl.INT16
+            or self._platform.inverter.decoded_model["mmppt_DCV_SF"]
+            not in SUNSPEC_SF_RANGE
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self.scale_factor(
+            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCV"],
+            self._platform.inverter.decoded_model["mmppt_DCV_SF"],
+        )
+
+    @property
+    def suggested_display_precision(self) -> int:
+        return abs(self._platform.inverter.decoded_model["mmppt_DCV_SF"])
 
 
 class DCPower(SolarEdgeSensorBase):
