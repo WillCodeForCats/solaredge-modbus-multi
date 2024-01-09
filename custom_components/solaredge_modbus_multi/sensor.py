@@ -1028,7 +1028,7 @@ class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
     def available(self) -> bool:
         if (
             self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCA"]
-            == SunSpecNotImpl.UINT16
+            == SunSpecNotImpl.INT16
             or self._platform.inverter.decoded_model["mmppt_DCA_SF"]
             == SunSpecNotImpl.INT16
             or self._platform.inverter.decoded_model["mmppt_DCA_SF"]
