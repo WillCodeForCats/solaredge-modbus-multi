@@ -101,6 +101,9 @@ async def async_setup_entry(
                 entities.append(
                     SolarEdgeDCVoltageMMPPT(mmppt_unit, config_entry, coordinator)
                 )
+                entities.append(
+                    SolarEdgeDCPowerMMPPT(mmppt_unit, config_entry, coordinator)
+                )
 
     for meter in hub.meters:
         entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
@@ -1141,6 +1144,8 @@ class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
 
 
 class DCPower(SolarEdgeSensorBase):
+    """DC Power for a SolarEdge inverter."""
+
     device_class = SensorDeviceClass.POWER
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfPower.WATT
@@ -1180,6 +1185,51 @@ class DCPower(SolarEdgeSensorBase):
     @property
     def suggested_display_precision(self):
         return abs(self._platform.decoded_model["I_DC_Power_SF"])
+
+
+class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
+    """DC Power for Synergy MMPPT units."""
+
+    device_class = SensorDeviceClass.POWER
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfPower.WATT
+    icon = "mdi:solar-power"
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.inverter.uid_base}_dc_power_mmppt{self._platform.unit}"
+
+    @property
+    def name(self) -> str:
+        return "DC Power"
+
+    @property
+    def available(self) -> bool:
+        if (
+            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCW"]
+            == SunSpecNotImpl.INT16
+            or self._platform.inverter.decoded_model["mmppt_DCW_SF"]
+            == SunSpecNotImpl.INT16
+            or self._platform.inverter.decoded_model["mmppt_DCW_SF"]
+            not in SUNSPEC_SF_RANGE
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self.scale_factor(
+            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCW"],
+            self._platform.inverter.decoded_model["mmppt_DCW_SF"],
+        )
+
+    @property
+    def suggested_display_precision(self) -> int:
+        return abs(self._platform.inverter.decoded_model["mmppt_DCW_SF"])
 
 
 class HeatSinkTemperature(SolarEdgeSensorBase):
