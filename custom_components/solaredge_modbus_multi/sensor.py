@@ -1982,16 +1982,15 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
             return self._platform.decoded_model["B_Energy_Max"] * 0.001
 
 
-class SolarEdgeBatteryMaxChargePower(SolarEdgeSensorBase):
+class SolarEdgeBatteryPowerBase(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.POWER
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfPower.WATT
     entity_category = EntityCategory.DIAGNOSTIC
     suggested_display_precision = 0
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
 
+class SolarEdgeBatteryMaxChargePower(SolarEdgeBatteryPowerBase):
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_max_charge_power"
@@ -2016,16 +2015,7 @@ class SolarEdgeBatteryMaxChargePower(SolarEdgeSensorBase):
         return self._platform.decoded_model["B_MaxChargePower"]
 
 
-class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    entity_category = EntityCategory.DIAGNOSTIC
-    suggested_display_precision = 0
-
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-
+class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeBatteryPowerBase):
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_max_charge_peak_power"
@@ -2050,16 +2040,7 @@ class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeSensorBase):
         return self._platform.decoded_model["B_MaxChargePeakPower"]
 
 
-class SolarEdgeBatteryMaxDischargePower(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    entity_category = EntityCategory.DIAGNOSTIC
-    suggested_display_precision = 0
-
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-
+class SolarEdgeBatteryMaxDischargePower(SolarEdgeBatteryPowerBase):
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_max_discharge_power"
@@ -2084,16 +2065,7 @@ class SolarEdgeBatteryMaxDischargePower(SolarEdgeSensorBase):
         return self._platform.decoded_model["B_MaxDischargePower"]
 
 
-class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    entity_category = EntityCategory.DIAGNOSTIC
-    suggested_display_precision = 0
-
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-
+class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeBatteryPowerBase):
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_max_discharge_peak_power"
