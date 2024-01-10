@@ -1998,7 +1998,7 @@ class SolarEdgeBatteryMaxChargePower(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return "Charge Power"
+        return "Max Charge Power"
 
     @property
     def available(self):
@@ -2032,7 +2032,7 @@ class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return "Charge Peak Power"
+        return "Peak Charge Power"
 
     @property
     def available(self):
@@ -2066,7 +2066,7 @@ class SolarEdgeBatteryMaxDischargePower(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return "Discharge Power"
+        return "Max Discharge Power"
 
     @property
     def available(self):
@@ -2100,7 +2100,7 @@ class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return "Discharge Peak Power"
+        return "Peak Discharge Power"
 
     @property
     def available(self):
