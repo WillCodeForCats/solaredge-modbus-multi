@@ -1529,7 +1529,7 @@ class SolarEdgeBattery:
     async def init_device(self) -> None:
         try:
             battery_info = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=self.start_address, rcount=76
+                unit=self.inverter_unit_id, address=self.start_address, rcount=68
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1552,10 +1552,6 @@ class SolarEdgeBattery:
                     ("B_Device_Address", decoder.decode_16bit_uint()),
                     ("ignore", decoder.skip_bytes(2)),
                     ("B_RatedEnergy", decoder.decode_32bit_float()),
-                    ("B_MaxChargePower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePower", decoder.decode_32bit_float()),
-                    ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
                 ]
             )
 
@@ -1624,8 +1620,8 @@ class SolarEdgeBattery:
         try:
             battery_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id,
-                address=self.start_address + 108,
-                rcount=46,
+                address=self.start_address + 68,
+                rcount=86,
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1636,6 +1632,11 @@ class SolarEdgeBattery:
 
             self.decoded_model = OrderedDict(
                 [
+                    ("B_MaxChargePower", decoder.decode_32bit_float()),
+                    ("B_MaxDischargePower", decoder.decode_32bit_float()),
+                    ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
+                    ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
+                    ("ignore", decoder.skip_bytes(64)),
                     ("B_Temp_Average", decoder.decode_32bit_float()),
                     ("B_Temp_Max", decoder.decode_32bit_float()),
                     ("B_DC_Voltage", decoder.decode_32bit_float()),
@@ -1667,6 +1668,11 @@ class SolarEdgeBattery:
                     ("B_Event_Log_Vendor8", decoder.decode_16bit_uint()),
                 ]
             )
+
+            try:
+                del self.decoded_model["ignore"]
+            except KeyError:
+                pass
 
         except ModbusIOError:
             raise ModbusReadError(
