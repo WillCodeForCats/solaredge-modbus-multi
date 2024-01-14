@@ -188,6 +188,18 @@ async def async_setup_entry(
         )
         entities.append(SolarEdgeBatteryMaxEnergy(battery, config_entry, coordinator))
         entities.append(
+            SolarEdgeBatteryMaxChargePower(battery, config_entry, coordinator)
+        )
+        entities.append(
+            SolarEdgeBatteryMaxDischargePower(battery, config_entry, coordinator)
+        )
+        entities.append(
+            SolarEdgeBatteryMaxChargePeakPower(battery, config_entry, coordinator)
+        )
+        entities.append(
+            SolarEdgeBatteryMaxDischargePeakPower(battery, config_entry, coordinator)
+        )
+        entities.append(
             SolarEdgeBatteryAvailableEnergy(battery, config_entry, coordinator)
         )
         entities.append(SolarEdgeBatterySOH(battery, config_entry, coordinator))
@@ -256,42 +268,6 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
         attrs = {}
 
         try:
-            if (
-                float_to_hex(self._platform.decoded_common["B_MaxChargePeakPower"])
-                != hex(SunSpecNotImpl.FLOAT32)
-                and self._platform.decoded_common["B_MaxChargePeakPower"] > 0
-            ):
-                attrs["batt_charge_peak"] = self._platform.decoded_common[
-                    "B_MaxChargePeakPower"
-                ]
-
-            if (
-                float_to_hex(self._platform.decoded_common["B_MaxDischargePeakPower"])
-                != hex(SunSpecNotImpl.FLOAT32)
-                and self._platform.decoded_common["B_MaxDischargePeakPower"] > 0
-            ):
-                attrs["batt_discharge_peak"] = self._platform.decoded_common[
-                    "B_MaxDischargePeakPower"
-                ]
-
-            if (
-                float_to_hex(self._platform.decoded_common["B_MaxChargePower"])
-                != hex(SunSpecNotImpl.FLOAT32)
-                and self._platform.decoded_common["B_MaxChargePower"] > 0
-            ):
-                attrs["batt_max_charge"] = self._platform.decoded_common[
-                    "B_MaxChargePower"
-                ]
-
-            if (
-                float_to_hex(self._platform.decoded_common["B_MaxDischargePower"])
-                != hex(SunSpecNotImpl.FLOAT32)
-                and self._platform.decoded_common["B_MaxDischargePower"] > 0
-            ):
-                attrs["batt_max_discharge"] = self._platform.decoded_common[
-                    "B_MaxDischargePower"
-                ]
-
             if (
                 float_to_hex(self._platform.decoded_common["B_RatedEnergy"])
                 != hex(SunSpecNotImpl.FLOAT32)
@@ -840,6 +816,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         self._phase = phase
         self._last = None
         self._value = None
+        self._log_once = False
 
         if self._phase is None:
             self._model_key = "AC_Energy_WH"
@@ -920,10 +897,13 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
             )
 
             if self._value < self._last:
-                _LOGGER.warning(
-                    "Inverter accumulator went backwards; this is a SolarEdge bug:"
-                    f"total_increasing {self._model_key} {self._value} < {self._last}"
-                )
+                if not self._log_once:
+                    _LOGGER.warning(
+                        "Inverter accumulator went backwards; this is a SolarEdge bug: "
+                        f"{self._model_key} {self._value} < {self._last}"
+                    )
+                    self._log_once = True
+
                 return False
 
         except KeyError:
@@ -933,6 +913,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
             _LOGGER.debug(f"total_increasing {self._model_key} exception: {e}")
             return False
 
+        self._log_once = False
         return super().available
 
     @property
@@ -1999,6 +1980,114 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
 
         else:
             return self._platform.decoded_model["B_Energy_Max"] * 0.001
+
+
+class SolarEdgeBatteryPowerBase(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.POWER
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfPower.WATT
+    entity_category = EntityCategory.DIAGNOSTIC
+    suggested_display_precision = 0
+
+
+class SolarEdgeBatteryMaxChargePower(SolarEdgeBatteryPowerBase):
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_max_charge_power"
+
+    @property
+    def name(self) -> str:
+        return "Max Charge Power"
+
+    @property
+    def available(self):
+        if (
+            float_to_hex(self._platform.decoded_model["B_MaxChargePower"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["B_MaxChargePower"] < 0
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["B_MaxChargePower"]
+
+
+class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeBatteryPowerBase):
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_max_charge_peak_power"
+
+    @property
+    def name(self) -> str:
+        return "Peak Charge Power"
+
+    @property
+    def available(self):
+        if (
+            float_to_hex(self._platform.decoded_model["B_MaxChargePeakPower"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["B_MaxChargePeakPower"] < 0
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["B_MaxChargePeakPower"]
+
+
+class SolarEdgeBatteryMaxDischargePower(SolarEdgeBatteryPowerBase):
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_max_discharge_power"
+
+    @property
+    def name(self) -> str:
+        return "Max Discharge Power"
+
+    @property
+    def available(self):
+        if (
+            float_to_hex(self._platform.decoded_model["B_MaxDischargePower"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["B_MaxDischargePower"] < 0
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["B_MaxDischargePower"]
+
+
+class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeBatteryPowerBase):
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_max_discharge_peak_power"
+
+    @property
+    def name(self) -> str:
+        return "Peak Discharge Power"
+
+    @property
+    def available(self):
+        if (
+            float_to_hex(self._platform.decoded_model["B_MaxDischargePeakPower"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["B_MaxDischargePeakPower"] < 0
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["B_MaxDischargePeakPower"]
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
