@@ -6,6 +6,13 @@ import struct
 from .const import DOMAIN_REGEX
 
 
+def scale_factor(value: int, sf: int):
+    try:
+        return value * (10**sf)
+    except ZeroDivisionError:
+        return 0
+
+
 def float_to_hex(f):
     try:
         return hex(struct.unpack("<I", struct.pack("<f", f))[0])
