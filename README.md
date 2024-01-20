@@ -11,7 +11,7 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 ### Features
 * Inverter support for 1 to 32 SolarEdge inverters.
 * Meter support for 1 to 3 meters per inverter.
-* Battery support for 1 or 2 batteries per inverter.
+* Battery support for 1 to 3 batteries per inverter.
 * Supports site limit and storage controls.
 * Automatically detects meters and batteries.
 * Supports Three Phase Inverters with Synergy Technology.

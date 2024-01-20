@@ -288,6 +288,7 @@ class SolarEdgeModbusMultiHub:
                     pass
 
             if self._detect_batteries:
+                """Battery 1"""
                 try:
                     new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
                     await new_battery_1.init_device()
@@ -316,6 +317,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(f"I{inverter_unit_id}B1: {e}")
                     pass
 
+                """ Battery 2 """
                 try:
                     new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
                     await new_battery_2.init_device()
@@ -342,6 +344,35 @@ class SolarEdgeModbusMultiHub:
 
                 except DeviceInvalid as e:
                     _LOGGER.debug(f"I{inverter_unit_id}B2: {e}")
+                    pass
+
+                """ Battery 3 """
+                try:
+                    new_battery_3 = SolarEdgeBattery(inverter_unit_id, 3, self)
+                    await new_battery_3.init_device()
+
+                    for battery in self.batteries:
+                        if new_battery_3.serial == battery.serial:
+                            _LOGGER.warning(
+                                (
+                                    f"Duplicate serial {new_battery_3.serial} "
+                                    f"on battery 3 inverter {inverter_unit_id}"
+                                ),
+                            )
+                            raise DeviceInvalid(
+                                f"Duplicate b3 serial {new_battery_3.serial}"
+                            )
+
+                    new_battery_3.via_device = new_inverter.uid_base
+                    self.batteries.append(new_battery_3)
+                    _LOGGER.debug(f"Found battery 3 inverter {inverter_unit_id}")
+
+                except ModbusReadError as e:
+                    self.disconnect()
+                    raise HubInitFailed(f"{e}")
+
+                except DeviceInvalid as e:
+                    _LOGGER.debug(f"I{inverter_unit_id}B3: {e}")
                     pass
 
         try:
@@ -1523,6 +1554,8 @@ class SolarEdgeBattery:
             self.start_address = 57600
         elif self.battery_id == 2:
             self.start_address = 57856
+        elif self.battery_id == 3:
+            self.start_address = 58368
         else:
             raise ValueError("Invalid battery_id {self.battery_id}")
 
