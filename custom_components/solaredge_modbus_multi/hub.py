@@ -288,7 +288,7 @@ class SolarEdgeModbusMultiHub:
                     pass
 
             if self._detect_batteries:
-                """ Battery 1 """
+                """Battery 1"""
                 try:
                     new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
                     await new_battery_1.init_device()
