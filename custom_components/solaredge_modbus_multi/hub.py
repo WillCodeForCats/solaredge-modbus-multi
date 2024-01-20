@@ -288,6 +288,7 @@ class SolarEdgeModbusMultiHub:
                     pass
 
             if self._detect_batteries:
+                """ Battery 1 """
                 try:
                     new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
                     await new_battery_1.init_device()
@@ -316,6 +317,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(f"I{inverter_unit_id}B1: {e}")
                     pass
 
+                """ Battery 2 """
                 try:
                     new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
                     await new_battery_2.init_device()
@@ -344,6 +346,7 @@ class SolarEdgeModbusMultiHub:
                     _LOGGER.debug(f"I{inverter_unit_id}B2: {e}")
                     pass
 
+                """ Battery 3 """
                 try:
                     new_battery_3 = SolarEdgeBattery(inverter_unit_id, 3, self)
                     await new_battery_3.init_device()
