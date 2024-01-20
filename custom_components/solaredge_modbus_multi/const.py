@@ -341,3 +341,9 @@ LIMIT_CONTROL_MODE = {
 }
 
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
+
+BATTERY_REG_BASE = {
+    1: 57600,
+    2: 57856,
+    3: 58368,
+}
