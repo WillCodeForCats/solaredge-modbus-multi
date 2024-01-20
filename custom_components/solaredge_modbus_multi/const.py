@@ -125,6 +125,13 @@ class SunSpecNotImpl(IntEnum):
     FLOAT32 = 0x7FC00000
 
 
+# Battery ID and modbus starting address
+BATTERY_REG_BASE = {
+    1: 57600,
+    2: 57856,
+    3: 58368,
+}
+
 SUNSPEC_SF_RANGE = [
     -10,
     -9,
@@ -341,9 +348,3 @@ LIMIT_CONTROL_MODE = {
 }
 
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
-
-BATTERY_REG_BASE = {
-    1: 57600,
-    2: 57856,
-    3: 58368,
-}
