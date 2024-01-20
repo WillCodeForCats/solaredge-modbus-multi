@@ -70,7 +70,7 @@
         "step": {
           "confirm": {
             "title": "Check Modbus Configuration",
-            "description": "An error occured while trying to open a Modbus/TCP connection.\n\nPlease confirm your configuration.",
+            "description": "An error occurred while trying to open a Modbus/TCP connection.\n\nPlease confirm your configuration.",
             "data": {
               "host": "Inverter IP Address",
               "port": "Modbus/TCP Port",
