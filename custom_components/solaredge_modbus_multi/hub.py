@@ -1504,7 +1504,7 @@ class SolarEdgeBattery:
         try:
             self.start_address = BATTERY_REG_BASE[self.battery_id]
         except KeyError:
-            raise ValueError("Invalid battery_id {self.battery_id}")
+            raise DeviceInvalid(f"Invalid battery_id {self.battery_id}")
 
     async def init_device(self) -> None:
         try:
