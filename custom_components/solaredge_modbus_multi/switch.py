@@ -78,11 +78,9 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
 
 
 class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
-    entity_category = EntityCategory.CONFIG
+    """External Production switch. Indicates a non-SolarEdge power sorce in system."""
 
-    def __init__(self, platform, config_entry, coordinator) -> None:
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
@@ -131,11 +129,9 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
 
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
-    entity_category = EntityCategory.CONFIG
+    """Negative Site Limit switch. Sets minimum import power when enabled."""
 
-    def __init__(self, platform, config_entry, coordinator) -> None:
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
@@ -180,11 +176,9 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
 
 class SolarEdgeGridControl(SolarEdgeSwitchBase):
-    entity_category = EntityCategory.CONFIG
+    """Grid Control boolean switch. This is "AdvancedPwrControlEn" in specs."""
 
-    def __init__(self, platform, config_entry, coordinator) -> None:
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
