@@ -132,6 +132,13 @@ BATTERY_REG_BASE = {
     3: 58368,
 }
 
+# Meter ID and modbus starting address
+METER_REG_BASE = {
+    1: 40121,
+    2: 40295,
+    3: 40469,
+}
+
 SUNSPEC_SF_RANGE = [
     -10,
     -9,

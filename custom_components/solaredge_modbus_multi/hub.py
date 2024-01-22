@@ -21,6 +21,7 @@ except ImportError:
 from .const import (
     BATTERY_REG_BASE,
     DOMAIN,
+    METER_REG_BASE,
     ModbusDefaults,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -218,80 +219,32 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"{e}")
 
             if self._detect_meters:
-                try:
-                    new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
-                    await new_meter_1.init_device()
+                for meter_id in METER_REG_BASE:
+                    try:
+                        new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
+                        await new_meter.init_device()
 
-                    for meter in self.meters:
-                        if new_meter_1.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_1.serial} "
-                                    f"on meter 1 inverter {inverter_unit_id}"
-                                ),
-                            )
+                        for meter in self.meters:
+                            # Allow duplicate serial number on meters PR#412
+                            if new_meter.serial == meter.serial:
+                                _LOGGER.warning(
+                                    (
+                                        f"Duplicate serial {new_meter.serial} "
+                                        f"on I{inverter_unit_id}M{meter_id}"
+                                    ),
+                                )
 
-                    new_meter_1.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_1)
-                    _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
+                        new_meter.via_device = new_inverter.uid_base
+                        self.meters.append(new_meter)
+                        _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
+                    except ModbusReadError as e:
+                        self.disconnect()
+                        raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M1: {e}")
-                    pass
-
-                try:
-                    new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
-                    await new_meter_2.init_device()
-
-                    for meter in self.meters:
-                        if new_meter_2.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_2.serial} "
-                                    f"on meter 2 inverter {inverter_unit_id}"
-                                ),
-                            )
-
-                    new_meter_2.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_2)
-                    _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M2: {e}")
-                    pass
-
-                try:
-                    new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
-                    await new_meter_3.init_device()
-
-                    for meter in self.meters:
-                        if new_meter_3.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_3.serial} "
-                                    f"on meter 3 inverter {inverter_unit_id}"
-                                ),
-                            )
-
-                    new_meter_3.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_3)
-                    _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M3: {e}")
-                    pass
+                    except DeviceInvalid as e:
+                        _LOGGER.debug(f"I{inverter_unit_id}M{meter_id}: {e}")
+                        pass
 
             if self._detect_batteries:
                 for battery_id in BATTERY_REG_BASE:
@@ -1249,21 +1202,16 @@ class SolarEdgeMeter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self.start_address = 40000
         self.meter_id = meter_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
         self._via_device = None
 
-        if self.meter_id == 1:
-            self.start_address = self.start_address + 121
-        elif self.meter_id == 2:
-            self.start_address = self.start_address + 295
-        elif self.meter_id == 3:
-            self.start_address = self.start_address + 469
-        else:
-            raise ValueError(f"Invalid meter_id {self.meter_id}")
+        try:
+            self.start_address = METER_REG_BASE[self.meter_id]
+        except KeyError:
+            raise DeviceInvalid(f"Invalid meter_id {self.meter_id}")
 
         if self.mmppt_common is not None:
             if self.mmppt_common["mmppt_Units"] == 2:
@@ -1273,7 +1221,7 @@ class SolarEdgeMeter:
                 self.start_address = self.start_address + 70
 
             else:
-                raise ValueError(
+                raise DeviceInvalid(
                     f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
                 )
 
