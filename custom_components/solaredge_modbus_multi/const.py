@@ -2,23 +2,8 @@
 from __future__ import annotations
 
 import re
-import sys
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 from typing import Final
-
-if sys.version_info.minor >= 11:
-    # Needs Python 3.11
-    from enum import StrEnum
-else:
-    try:
-        from homeassistant.backports.enum import StrEnum
-
-    except ImportError:
-        from enum import Enum
-
-        class StrEnum(str, Enum):
-            pass
-
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
@@ -139,6 +124,20 @@ class SunSpecNotImpl(IntEnum):
     UINT32 = 0xFFFFFFFF
     FLOAT32 = 0x7FC00000
 
+
+# Battery ID and modbus starting address
+BATTERY_REG_BASE = {
+    1: 57600,
+    2: 57856,
+    3: 58368,
+}
+
+# Meter ID and modbus starting address
+METER_REG_BASE = {
+    1: 40121,
+    2: 40295,
+    3: 40469,
+}
 
 SUNSPEC_SF_RANGE = [
     -10,

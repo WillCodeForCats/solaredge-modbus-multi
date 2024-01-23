@@ -11,7 +11,7 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 ### Features
 * Inverter support for 1 to 32 SolarEdge inverters.
 * Meter support for 1 to 3 meters per inverter.
-* Battery support for 1 or 2 batteries per inverter.
+* Battery support for 1 to 3 batteries per inverter.
 * Supports site limit and storage controls.
 * Automatically detects meters and batteries.
 * Supports Three Phase Inverters with Synergy Technology.
@@ -42,7 +42,7 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ### Required Versions
-* Home Assistant 2023.9.1 or newer
+* Home Assistant 2023.12.0 or newer
 * Python 3.11 or newer
 * pymodbus 3.5.4 or newer
 

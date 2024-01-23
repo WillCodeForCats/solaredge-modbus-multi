@@ -18,7 +18,14 @@ try:
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
-from .const import DOMAIN, ModbusDefaults, SolarEdgeTimeouts, SunSpecNotImpl
+from .const import (
+    BATTERY_REG_BASE,
+    DOMAIN,
+    METER_REG_BASE,
+    ModbusDefaults,
+    SolarEdgeTimeouts,
+    SunSpecNotImpl,
+)
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -212,137 +219,65 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"{e}")
 
             if self._detect_meters:
-                try:
-                    new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
-                    await new_meter_1.init_device()
+                for meter_id in METER_REG_BASE:
+                    try:
+                        new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
+                        await new_meter.init_device()
 
-                    for meter in self.meters:
-                        if new_meter_1.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_1.serial} "
-                                    f"on meter 1 inverter {inverter_unit_id}"
-                                ),
-                            )
+                        for meter in self.meters:
+                            # Allow duplicate serial number on meters PR#412
+                            if new_meter.serial == meter.serial:
+                                _LOGGER.warning(
+                                    (
+                                        f"Duplicate serial {new_meter.serial} "
+                                        f"on I{inverter_unit_id}M{meter_id}"
+                                    ),
+                                )
 
-                    new_meter_1.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_1)
-                    _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
+                        new_meter.via_device = new_inverter.uid_base
+                        self.meters.append(new_meter)
+                        _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
+                    except ModbusReadError as e:
+                        self.disconnect()
+                        raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M1: {e}")
-                    pass
-
-                try:
-                    new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
-                    await new_meter_2.init_device()
-
-                    for meter in self.meters:
-                        if new_meter_2.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_2.serial} "
-                                    f"on meter 2 inverter {inverter_unit_id}"
-                                ),
-                            )
-
-                    new_meter_2.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_2)
-                    _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M2: {e}")
-                    pass
-
-                try:
-                    new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
-                    await new_meter_3.init_device()
-
-                    for meter in self.meters:
-                        if new_meter_3.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_3.serial} "
-                                    f"on meter 3 inverter {inverter_unit_id}"
-                                ),
-                            )
-
-                    new_meter_3.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_3)
-                    _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M3: {e}")
-                    pass
+                    except DeviceInvalid as e:
+                        _LOGGER.debug(f"I{inverter_unit_id}M{meter_id}: {e}")
+                        pass
 
             if self._detect_batteries:
-                try:
-                    new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
-                    await new_battery_1.init_device()
+                for battery_id in BATTERY_REG_BASE:
+                    try:
+                        new_battery = SolarEdgeBattery(
+                            inverter_unit_id, battery_id, self
+                        )
+                        await new_battery.init_device()
 
-                    for battery in self.batteries:
-                        if new_battery_1.serial == battery.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_battery_1.serial} "
-                                    f"on battery 1 inverter {inverter_unit_id}"
-                                ),
-                            )
-                            raise DeviceInvalid(
-                                f"Duplicate b1 serial {new_battery_1.serial}"
-                            )
+                        for battery in self.batteries:
+                            if new_battery.serial == battery.serial:
+                                _LOGGER.warning(
+                                    (
+                                        f"Duplicate serial {new_battery.serial} "
+                                        f"on I{inverter_unit_id}B{battery_id}"
+                                    ),
+                                )
+                                raise DeviceInvalid(
+                                    f"Duplicate B{battery_id} serial "
+                                    f"{new_battery.serial}"
+                                )
 
-                    new_battery_1.via_device = new_inverter.uid_base
-                    self.batteries.append(new_battery_1)
-                    _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
+                        new_battery.via_device = new_inverter.uid_base
+                        self.batteries.append(new_battery)
+                        _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
+                    except ModbusReadError as e:
+                        self.disconnect()
+                        raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}B1: {e}")
-                    pass
-
-                try:
-                    new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
-                    await new_battery_2.init_device()
-
-                    for battery in self.batteries:
-                        if new_battery_2.serial == battery.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_battery_2.serial} "
-                                    f"on battery 2 inverter {inverter_unit_id}"
-                                ),
-                            )
-                            raise DeviceInvalid(
-                                f"Duplicate b2 serial {new_battery_2.serial}"
-                            )
-
-                    new_battery_2.via_device = new_inverter.uid_base
-                    self.batteries.append(new_battery_2)
-                    _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}B2: {e}")
-                    pass
+                    except DeviceInvalid as e:
+                        _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
+                        pass
 
         try:
             for inverter in self.inverters:
@@ -383,7 +318,7 @@ class SolarEdgeModbusMultiHub:
                 async with self._lock:
                     await self._async_init_solaredge()
 
-            except ConnectionException as e:
+            except (ConnectionException, ModbusIOException) as e:
                 self.disconnect()
                 raise HubInitFailed(f"Setup failed: {e}")
 
@@ -1267,21 +1202,16 @@ class SolarEdgeMeter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self.start_address = 40000
         self.meter_id = meter_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
         self._via_device = None
 
-        if self.meter_id == 1:
-            self.start_address = self.start_address + 121
-        elif self.meter_id == 2:
-            self.start_address = self.start_address + 295
-        elif self.meter_id == 3:
-            self.start_address = self.start_address + 469
-        else:
-            raise ValueError(f"Invalid meter_id {self.meter_id}")
+        try:
+            self.start_address = METER_REG_BASE[self.meter_id]
+        except KeyError:
+            raise DeviceInvalid(f"Invalid meter_id {self.meter_id}")
 
         if self.mmppt_common is not None:
             if self.mmppt_common["mmppt_Units"] == 2:
@@ -1291,7 +1221,7 @@ class SolarEdgeMeter:
                 self.start_address = self.start_address + 70
 
             else:
-                raise ValueError(
+                raise DeviceInvalid(
                     f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
                 )
 
@@ -1519,17 +1449,15 @@ class SolarEdgeBattery:
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self._via_device = None
 
-        if self.battery_id == 1:
-            self.start_address = 57600
-        elif self.battery_id == 2:
-            self.start_address = 57856
-        else:
-            raise ValueError("Invalid battery_id {self.battery_id}")
+        try:
+            self.start_address = BATTERY_REG_BASE[self.battery_id]
+        except KeyError:
+            raise DeviceInvalid(f"Invalid battery_id {self.battery_id}")
 
     async def init_device(self) -> None:
         try:
             battery_info = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=self.start_address, rcount=76
+                unit=self.inverter_unit_id, address=self.start_address, rcount=68
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1552,10 +1480,6 @@ class SolarEdgeBattery:
                     ("B_Device_Address", decoder.decode_16bit_uint()),
                     ("ignore", decoder.skip_bytes(2)),
                     ("B_RatedEnergy", decoder.decode_32bit_float()),
-                    ("B_MaxChargePower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePower", decoder.decode_32bit_float()),
-                    ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
                 ]
             )
 
@@ -1624,8 +1548,8 @@ class SolarEdgeBattery:
         try:
             battery_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id,
-                address=self.start_address + 108,
-                rcount=46,
+                address=self.start_address + 68,
+                rcount=86,
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1636,6 +1560,11 @@ class SolarEdgeBattery:
 
             self.decoded_model = OrderedDict(
                 [
+                    ("B_MaxChargePower", decoder.decode_32bit_float()),
+                    ("B_MaxDischargePower", decoder.decode_32bit_float()),
+                    ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
+                    ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
+                    ("ignore", decoder.skip_bytes(64)),
                     ("B_Temp_Average", decoder.decode_32bit_float()),
                     ("B_Temp_Max", decoder.decode_32bit_float()),
                     ("B_DC_Voltage", decoder.decode_32bit_float()),
@@ -1667,6 +1596,11 @@ class SolarEdgeBattery:
                     ("B_Event_Log_Vendor8", decoder.decode_16bit_uint()),
                 ]
             )
+
+            try:
+                del self.decoded_model["ignore"]
+            except KeyError:
+                pass
 
         except ModbusIOError:
             raise ModbusReadError(

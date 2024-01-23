@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurazione Modbus SolarEdge",
+        "data": {
+          "name": "Prefisso sensore",
+          "host": "Indirizzo IP dell'inverter",
+          "port": "Porta Modbus/TCP",
+          "device_id": "Indirizzo Modbus dell'inverter (ID dispositivo)",
+          "number_of_inverters": "Numero di inverter"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Il dispositivo è già configurato!",
+      "max_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
+      "min_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
+      "max_inverters": "Deve essere compreso tra 1 e 32 inverter.",
+      "min_inverters": "Deve essere compreso tra 1 e 32 inverter.",
+      "too_many_inverters": "Numero di inverter troppo elevato per l'ID dispositivo.",
+      "invalid_host": "Indirizzo IP non valido.",
+      "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535."
+    },
+    "abort": {
+      "already_configured": "Il dispositivo è già configurato!"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni Modbus SolarEdge",
+        "data": {
+          "scan_interval": "Frequenza di polling (secondi)",
+          "keep_modbus_open": "Mantieni aperta la connessione Modbus",
+          "detect_meters": "Misuratori di rilevamento automatico",
+          "detect_batteries": "Rilevamento automatico delle batterie",
+          "detect_extras": "Rileva automaticamente entità aggiuntive",
+          "advanced_power_control": "Opzioni di controllo della potenza",
+          "sleep_after_write": "Ritardo comando inverter (secondi)"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Opzioni di controllo della potenza",
+        "data": {
+          "adv_storage_control": "Abilita il controllo dell'archiviazione",
+          "adv_site_limit_control": "Abilita il controllo dei limiti del sito"
+        },
+        "description": "Avvertenza: queste opzioni possono violare i contratti dei servizi pubblici, alterare la fatturazione dei servizi pubblici, potrebbero richiedere apparecchiature speciali e sovrascrivere la fornitura da parte di SolarEdge o dell'installatore. Utilizzare a proprio rischio!"
+      },
+      "battery_options": {
+        "title": "Opzioni batteria",
+        "data": {
+          "allow_battery_energy_reset": "Consenti il ripristino dell'energia della batteria",
+          "battery_energy_reset_cycles": "Cicli di aggiornamento per ripristinare l'energia della batteria",
+          "battery_rating_adjust": "Regolazione della potenza della batteria (percentuale)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "L'intervallo valido è compreso tra 1 e 86400 secondi.",
+      "invalid_sleep_interval": "L'intervallo valido è compreso tra 0 e 60 secondi.",
+      "invalid_percent": "L'intervallo valido è compreso tra 0 e 100%."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Controllare la configurazione Modbus",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Controllare la configurazione Modbus",
+            "description": "Si è verificato un errore durante il tentativo di aprire una connessione Modbus/TCP.\n\nPer favore conferma la tua configurazione",
+            "data": {
+              "host": "Indirizzo IP dell'inverter",
+              "port": "Porta Modbus/TCP",
+              "device_id": "Indirizzo Modbus dell'inverter (ID dispositivo)",
+              "number_of_inverters": "Numero di inverter"
+            }
+          }
+        },
+        "error": {
+          "max_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
+          "min_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
+          "max_inverters": "Deve essere compreso tra 1 e 32 inverter.",
+          "min_inverters": "Deve essere compreso tra 1 e 32 inverter.",
+          "too_many_inverters": "Numero di inverter troppo elevato per l'ID dispositivo.",
+          "invalid_host": "Indirizzo IP non valido.",
+          "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535."
+        }
+      }
+    }
+  }
+}
