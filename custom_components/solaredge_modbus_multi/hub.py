@@ -318,7 +318,7 @@ class SolarEdgeModbusMultiHub:
                 async with self._lock:
                     await self._async_init_solaredge()
 
-            except ConnectionException as e:
+            except (ConnectionException, ModbusIOException) as e:
                 self.disconnect()
                 raise HubInitFailed(f"Setup failed: {e}")
 
