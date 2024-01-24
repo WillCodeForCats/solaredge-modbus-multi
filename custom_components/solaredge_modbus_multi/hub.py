@@ -989,12 +989,14 @@ class SolarEdgeInverter:
                 )
 
         """ Advanced Power Control """
+        """ Power Control Block """
         if self.hub.option_detect_extras is True and (
             self.advanced_power_control is True or self.advanced_power_control is None
         ):
             try:
+                # Read block 1: F100 - F155  (count 84)
                 inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61762, rcount=2
+                    unit=self.inverter_unit_id, address=61696, rcount=86
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1006,10 +1008,126 @@ class SolarEdgeInverter:
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("I_AdvPwrCtrlEn", decoder.decode_32bit_int()),
+                            ("CommitPwrCtlSettings", decoder.decode_16bit_int()),
+                            ("RestorePwrCtlDefaults", decoder.decode_16bit_int()),
+                            ("PwrFrqDeratingConfig", decoder.decode_32bit_int()),
+                            ("ReactivePwrConfig", decoder.decode_32bit_int()),
+                            ("ReactPwrIterTime", decoder.decode_32bit_uint()),
+                            ("ActivePwrGrad", decoder.decode_32bit_int()),
+                            ("FixedCosPhiPhase", decoder.decode_32bit_float()),
+                            ("FixedReactPwr", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_0", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_1", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_2", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_3", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_4", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_5", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_0", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_1", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_2", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_3", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_4", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_5", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_0", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_1", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_2", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_3", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_4", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_5", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_0", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_1", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_2", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_3", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_4", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_5", decoder.decode_32bit_float()),
+                            ("FRT_KFactor", decoder.decode_32bit_float()),
+                            ("PowerReduce", decoder.decode_32bit_float()),
+                            ("AdvPwrCtrlEn", decoder.decode_32bit_int()),
+                            ("FrtEn", decoder.decode_32bit_int()),
+                            ("MaxWakeupFreq", decoder.decode_32bit_float()),
+                            ("MinWakeupFreq", decoder.decode_32bit_float()),
+                            ("MaxWakeupVg", decoder.decode_32bit_float()),
+                            ("MinWakeupVg", decoder.decode_32bit_float()),
+                            ("Vnom", decoder.decode_32bit_float()),
+                            ("Inom", decoder.decode_32bit_float()),
+                            ("PwrVsFreqX_0", decoder.decode_32bit_float()),
+                            ("PwrVsFreqX_1", decoder.decode_32bit_float()),
                         ]
                     )
                 )
+
+                # Read block 2: F156 - F1A9  (count 83)
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=61782, rcount=84
+                )
+
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("PwrVsFreqY_0", decoder.decode_32bit_float()),
+                            ("PwrVsFreqY_1", decoder.decode_32bit_float()),
+                            ("ResetFreq", decoder.decode_32bit_float()),
+                            ("MaxFreq", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_0", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_1", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_2", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_3", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_4", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_5", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_0", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_1", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_2", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_3", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_4", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_5", decoder.decode_32bit_float()),
+                            ("PwrFrqDeratingResetTime", decoder.decode_32bit_uint()),
+                            ("PwrFrqDeratingGradTime", decoder.decode_32bit_uint()),
+                            (
+                                "ReactCosPhiVsPVgLockInMax",
+                                decoder.decode_32bit_float(),
+                            ),
+                            (
+                                "ReactCosPhiVsPVgLockInMin",
+                                decoder.decode_32bit_float(),
+                            ),
+                            (
+                                "ReactCosPhiVsPVgLockOutMax",
+                                decoder.decode_32bit_float(),
+                            ),
+                            (
+                                "ReactCosPhiVsPVgLockOutMin",
+                                decoder.decode_32bit_float(),
+                            ),
+                            ("ReactQVsVgPLockInMax", decoder.decode_32bit_float()),
+                            ("ReactQVsVgPLockInMin", decoder.decode_32bit_float()),
+                            ("ReactQVsVgPLockOutMax", decoder.decode_32bit_float()),
+                            ("ReactQVsVgPLockOutMin", decoder.decode_32bit_float()),
+                            ("ReactQVsVgType", decoder.decode_32bit_uint()),
+                            ("PwrSoftStartTime", decoder.decode_32bit_uint()),
+                            ("MaxCurrent", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_0", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_1", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_2", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_3", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_4", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_5", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_0", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_1", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_2", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_3", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_4", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_5", decoder.decode_32bit_float()),
+                            ("DisconnectAtZeroPwrLim", decoder.decode_32bit_float()),
+                        ]
+                    )
+                )
+
                 self.advanced_power_control = True
 
             except ModbusIllegalAddress:
