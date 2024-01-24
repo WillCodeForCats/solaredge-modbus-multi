@@ -77,7 +77,7 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
         return (
             super().available
             and self._platform.advanced_power_control is True
-            and "I_AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+            and "AdvPwrCtrlEn" in self._platform.decoded_model.keys()
         )
 
     @property
@@ -90,4 +90,4 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 
     @property
     def is_on(self) -> bool:
-        return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1
+        return self._platform.decoded_model["AdvPwrCtrlEn"] == 0x1

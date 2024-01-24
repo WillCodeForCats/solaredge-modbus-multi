@@ -994,7 +994,6 @@ class SolarEdgeInverter:
             self.advanced_power_control is True or self.advanced_power_control is None
         ):
             try:
-                # Read block 1: F100 - F155  (count 84)
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61696, rcount=86
                 )
@@ -1056,7 +1055,6 @@ class SolarEdgeInverter:
                     )
                 )
 
-                # Read block 2: F156 - F1A9  (count 83)
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=61782, rcount=84
                 )
