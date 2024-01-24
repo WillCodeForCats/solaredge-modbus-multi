@@ -172,15 +172,6 @@ class SolarEdgeModbusMultiHub:
         """Detect devices and load initial modbus data from inverters."""
 
         if not self.is_connected:
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                "check_configuration",
-                is_fixable=True,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="check_configuration",
-                data={"entry_id": self._entry_id},
-            )
             raise HubInitFailed(
                 f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
             )
