@@ -320,6 +320,15 @@ class SolarEdgeModbusMultiHub:
 
             except (ConnectionException, ModbusIOException) as e:
                 self.disconnect()
+                ir.async_create_issue(
+                    self._hass,
+                    DOMAIN,
+                    "check_configuration",
+                    is_fixable=True,
+                    severity=ir.IssueSeverity.ERROR,
+                    translation_key="check_configuration",
+                    data={"entry_id": self._entry_id},
+                )
                 raise HubInitFailed(f"Setup failed: {e}")
 
             return True
