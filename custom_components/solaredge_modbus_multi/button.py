@@ -33,6 +33,8 @@ async def async_setup_entry(
 
 
 class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
+    """Base class for SolarEdge button entities."""
+
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -64,11 +66,9 @@ class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
 
 
 class SolarEdgeRefreshButton(SolarEdgeButtonBase):
-    entity_category = EntityCategory.CONFIG
+    """Button to request an immediate device data update."""
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
 
     @property
     def unique_id(self) -> str:
