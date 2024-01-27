@@ -69,6 +69,7 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
     """Button to request an immediate device data update."""
 
     entity_category = EntityCategory.CONFIG
+    icon = "mdi:refresh"
 
     @property
     def unique_id(self) -> str:
