@@ -185,7 +185,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         return (
             super().available
             and self._platform.advanced_power_control
-            and "I_AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+            and "AdvPwrCtrlEn" in self._platform.decoded_model.keys()
         )
 
     @property
@@ -198,7 +198,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1
+        return self._platform.decoded_model["AdvPwrCtrlEn"] == 0x1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")
