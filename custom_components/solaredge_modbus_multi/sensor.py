@@ -2202,6 +2202,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
     """Entity to show the results of Commit Power Control Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
+    icon = "mdi:content-save-cog-outline"
 
     @property
     def unique_id(self) -> str:
@@ -2240,6 +2241,7 @@ class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
     """Entity to show the results of Restore Power Control Default Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
+    icon = "mdi:restore-alert"
 
     @property
     def unique_id(self) -> str:

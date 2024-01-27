@@ -101,6 +101,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
     """Button to Commit Power Control Settings."""
 
     entity_category = EntityCategory.CONFIG
+    icon = "mdi:content-save-cog-outline"
 
     @property
     def unique_id(self) -> str:
@@ -124,6 +125,7 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
     """Button to Restore Power Control Default Settings."""
 
     entity_category = EntityCategory.CONFIG
+    icon = "mdi:restore-alert"
 
     @property
     def unique_id(self) -> str:
