@@ -190,11 +190,11 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_grid_control"
+        return f"{self._platform.uid_base}_adv_pwr_ctrl"
 
     @property
     def name(self) -> str:
-        return "Grid Control"
+        return "Advanced Power Control"
 
     @property
     def is_on(self) -> bool:
