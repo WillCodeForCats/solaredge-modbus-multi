@@ -18,7 +18,14 @@ try:
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
-from .const import DOMAIN, ModbusDefaults, SolarEdgeTimeouts, SunSpecNotImpl
+from .const import (
+    BATTERY_REG_BASE,
+    DOMAIN,
+    METER_REG_BASE,
+    ModbusDefaults,
+    SolarEdgeTimeouts,
+    SunSpecNotImpl,
+)
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -212,137 +219,65 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"{e}")
 
             if self._detect_meters:
-                try:
-                    new_meter_1 = SolarEdgeMeter(inverter_unit_id, 1, self)
-                    await new_meter_1.init_device()
+                for meter_id in METER_REG_BASE:
+                    try:
+                        new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
+                        await new_meter.init_device()
 
-                    for meter in self.meters:
-                        if new_meter_1.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_1.serial} "
-                                    f"on meter 1 inverter {inverter_unit_id}"
-                                ),
-                            )
+                        for meter in self.meters:
+                            # Allow duplicate serial number on meters PR#412
+                            if new_meter.serial == meter.serial:
+                                _LOGGER.warning(
+                                    (
+                                        f"Duplicate serial {new_meter.serial} "
+                                        f"on I{inverter_unit_id}M{meter_id}"
+                                    ),
+                                )
 
-                    new_meter_1.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_1)
-                    _LOGGER.debug(f"Found meter 1 on inverter ID {inverter_unit_id}")
+                        new_meter.via_device = new_inverter.uid_base
+                        self.meters.append(new_meter)
+                        _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
+                    except ModbusReadError as e:
+                        self.disconnect()
+                        raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M1: {e}")
-                    pass
-
-                try:
-                    new_meter_2 = SolarEdgeMeter(inverter_unit_id, 2, self)
-                    await new_meter_2.init_device()
-
-                    for meter in self.meters:
-                        if new_meter_2.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_2.serial} "
-                                    f"on meter 2 inverter {inverter_unit_id}"
-                                ),
-                            )
-
-                    new_meter_2.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_2)
-                    _LOGGER.debug(f"Found meter 2 on inverter ID {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M2: {e}")
-                    pass
-
-                try:
-                    new_meter_3 = SolarEdgeMeter(inverter_unit_id, 3, self)
-                    await new_meter_3.init_device()
-
-                    for meter in self.meters:
-                        if new_meter_3.serial == meter.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_meter_3.serial} "
-                                    f"on meter 3 inverter {inverter_unit_id}"
-                                ),
-                            )
-
-                    new_meter_3.via_device = new_inverter.uid_base
-                    self.meters.append(new_meter_3)
-                    _LOGGER.debug(f"Found meter 3 on inverter ID {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}M3: {e}")
-                    pass
+                    except DeviceInvalid as e:
+                        _LOGGER.debug(f"I{inverter_unit_id}M{meter_id}: {e}")
+                        pass
 
             if self._detect_batteries:
-                try:
-                    new_battery_1 = SolarEdgeBattery(inverter_unit_id, 1, self)
-                    await new_battery_1.init_device()
+                for battery_id in BATTERY_REG_BASE:
+                    try:
+                        new_battery = SolarEdgeBattery(
+                            inverter_unit_id, battery_id, self
+                        )
+                        await new_battery.init_device()
 
-                    for battery in self.batteries:
-                        if new_battery_1.serial == battery.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_battery_1.serial} "
-                                    f"on battery 1 inverter {inverter_unit_id}"
-                                ),
-                            )
-                            raise DeviceInvalid(
-                                f"Duplicate b1 serial {new_battery_1.serial}"
-                            )
+                        for battery in self.batteries:
+                            if new_battery.serial == battery.serial:
+                                _LOGGER.warning(
+                                    (
+                                        f"Duplicate serial {new_battery.serial} "
+                                        f"on I{inverter_unit_id}B{battery_id}"
+                                    ),
+                                )
+                                raise DeviceInvalid(
+                                    f"Duplicate B{battery_id} serial "
+                                    f"{new_battery.serial}"
+                                )
 
-                    new_battery_1.via_device = new_inverter.uid_base
-                    self.batteries.append(new_battery_1)
-                    _LOGGER.debug(f"Found battery 1 inverter {inverter_unit_id}")
+                        new_battery.via_device = new_inverter.uid_base
+                        self.batteries.append(new_battery)
+                        _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
+                    except ModbusReadError as e:
+                        self.disconnect()
+                        raise HubInitFailed(f"{e}")
 
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}B1: {e}")
-                    pass
-
-                try:
-                    new_battery_2 = SolarEdgeBattery(inverter_unit_id, 2, self)
-                    await new_battery_2.init_device()
-
-                    for battery in self.batteries:
-                        if new_battery_2.serial == battery.serial:
-                            _LOGGER.warning(
-                                (
-                                    f"Duplicate serial {new_battery_2.serial} "
-                                    f"on battery 2 inverter {inverter_unit_id}"
-                                ),
-                            )
-                            raise DeviceInvalid(
-                                f"Duplicate b2 serial {new_battery_2.serial}"
-                            )
-
-                    new_battery_2.via_device = new_inverter.uid_base
-                    self.batteries.append(new_battery_2)
-                    _LOGGER.debug(f"Found battery 2 inverter {inverter_unit_id}")
-
-                except ModbusReadError as e:
-                    self.disconnect()
-                    raise HubInitFailed(f"{e}")
-
-                except DeviceInvalid as e:
-                    _LOGGER.debug(f"I{inverter_unit_id}B2: {e}")
-                    pass
+                    except DeviceInvalid as e:
+                        _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
+                        pass
 
         try:
             for inverter in self.inverters:
@@ -383,8 +318,17 @@ class SolarEdgeModbusMultiHub:
                 async with self._lock:
                     await self._async_init_solaredge()
 
-            except ConnectionException as e:
+            except (ConnectionException, ModbusIOException) as e:
                 self.disconnect()
+                ir.async_create_issue(
+                    self._hass,
+                    DOMAIN,
+                    "check_configuration",
+                    is_fixable=True,
+                    severity=ir.IssueSeverity.ERROR,
+                    translation_key="check_configuration",
+                    data={"entry_id": self._entry_id},
+                )
                 raise HubInitFailed(f"Setup failed: {e}")
 
             return True
@@ -1054,12 +998,13 @@ class SolarEdgeInverter:
                 )
 
         """ Advanced Power Control """
+        """ Power Control Block """
         if self.hub.option_detect_extras is True and (
             self.advanced_power_control is True or self.advanced_power_control is None
         ):
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61762, rcount=2
+                    unit=self.inverter_unit_id, address=61696, rcount=86
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1071,10 +1016,125 @@ class SolarEdgeInverter:
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("I_AdvPwrCtrlEn", decoder.decode_32bit_int()),
+                            ("CommitPwrCtlSettings", decoder.decode_16bit_int()),
+                            ("RestorePwrCtlDefaults", decoder.decode_16bit_int()),
+                            ("PwrFrqDeratingConfig", decoder.decode_32bit_int()),
+                            ("ReactivePwrConfig", decoder.decode_32bit_int()),
+                            ("ReactPwrIterTime", decoder.decode_32bit_uint()),
+                            ("ActivePwrGrad", decoder.decode_32bit_int()),
+                            ("FixedCosPhiPhase", decoder.decode_32bit_float()),
+                            ("FixedReactPwr", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_0", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_1", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_2", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_3", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_4", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPX_5", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_0", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_1", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_2", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_3", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_4", decoder.decode_32bit_float()),
+                            ("ReactCosPhiVsPY_5", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_0", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_1", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_2", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_3", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_4", decoder.decode_32bit_float()),
+                            ("ReactQVsVgX_5", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_0", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_1", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_2", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_3", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_4", decoder.decode_32bit_float()),
+                            ("ReactQVsVgY_5", decoder.decode_32bit_float()),
+                            ("FRT_KFactor", decoder.decode_32bit_float()),
+                            ("PowerReduce", decoder.decode_32bit_float()),
+                            ("AdvPwrCtrlEn", decoder.decode_32bit_int()),
+                            ("FrtEn", decoder.decode_32bit_int()),
+                            ("MaxWakeupFreq", decoder.decode_32bit_float()),
+                            ("MinWakeupFreq", decoder.decode_32bit_float()),
+                            ("MaxWakeupVg", decoder.decode_32bit_float()),
+                            ("MinWakeupVg", decoder.decode_32bit_float()),
+                            ("Vnom", decoder.decode_32bit_float()),
+                            ("Inom", decoder.decode_32bit_float()),
+                            ("PwrVsFreqX_0", decoder.decode_32bit_float()),
+                            ("PwrVsFreqX_1", decoder.decode_32bit_float()),
                         ]
                     )
                 )
+
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=61782, rcount=84
+                )
+
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("PwrVsFreqY_0", decoder.decode_32bit_float()),
+                            ("PwrVsFreqY_1", decoder.decode_32bit_float()),
+                            ("ResetFreq", decoder.decode_32bit_float()),
+                            ("MaxFreq", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_0", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_1", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_2", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_3", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_4", decoder.decode_32bit_float()),
+                            ("ReactQVsPX_5", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_0", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_1", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_2", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_3", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_4", decoder.decode_32bit_float()),
+                            ("ReactQVsPY_5", decoder.decode_32bit_float()),
+                            ("PwrFrqDeratingResetTime", decoder.decode_32bit_uint()),
+                            ("PwrFrqDeratingGradTime", decoder.decode_32bit_uint()),
+                            (
+                                "ReactCosPhiVsPVgLockInMax",
+                                decoder.decode_32bit_float(),
+                            ),
+                            (
+                                "ReactCosPhiVsPVgLockInMin",
+                                decoder.decode_32bit_float(),
+                            ),
+                            (
+                                "ReactCosPhiVsPVgLockOutMax",
+                                decoder.decode_32bit_float(),
+                            ),
+                            (
+                                "ReactCosPhiVsPVgLockOutMin",
+                                decoder.decode_32bit_float(),
+                            ),
+                            ("ReactQVsVgPLockInMax", decoder.decode_32bit_float()),
+                            ("ReactQVsVgPLockInMin", decoder.decode_32bit_float()),
+                            ("ReactQVsVgPLockOutMax", decoder.decode_32bit_float()),
+                            ("ReactQVsVgPLockOutMin", decoder.decode_32bit_float()),
+                            ("ReactQVsVgType", decoder.decode_32bit_uint()),
+                            ("PwrSoftStartTime", decoder.decode_32bit_uint()),
+                            ("MaxCurrent", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_0", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_1", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_2", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_3", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_4", decoder.decode_32bit_float()),
+                            ("PwrVsVgX_5", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_0", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_1", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_2", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_3", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_4", decoder.decode_32bit_float()),
+                            ("PwrVsVgY_5", decoder.decode_32bit_float()),
+                            ("DisconnectAtZeroPwrLim", decoder.decode_32bit_float()),
+                        ]
+                    )
+                )
+
                 self.advanced_power_control = True
 
             except ModbusIllegalAddress:
@@ -1267,21 +1327,16 @@ class SolarEdgeMeter:
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
-        self.start_address = 40000
         self.meter_id = meter_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
         self._via_device = None
 
-        if self.meter_id == 1:
-            self.start_address = self.start_address + 121
-        elif self.meter_id == 2:
-            self.start_address = self.start_address + 295
-        elif self.meter_id == 3:
-            self.start_address = self.start_address + 469
-        else:
-            raise ValueError(f"Invalid meter_id {self.meter_id}")
+        try:
+            self.start_address = METER_REG_BASE[self.meter_id]
+        except KeyError:
+            raise DeviceInvalid(f"Invalid meter_id {self.meter_id}")
 
         if self.mmppt_common is not None:
             if self.mmppt_common["mmppt_Units"] == 2:
@@ -1291,7 +1346,7 @@ class SolarEdgeMeter:
                 self.start_address = self.start_address + 70
 
             else:
-                raise ValueError(
+                raise DeviceInvalid(
                     f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
                 )
 
@@ -1519,12 +1574,10 @@ class SolarEdgeBattery:
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self._via_device = None
 
-        if self.battery_id == 1:
-            self.start_address = 57600
-        elif self.battery_id == 2:
-            self.start_address = 57856
-        else:
-            raise ValueError("Invalid battery_id {self.battery_id}")
+        try:
+            self.start_address = BATTERY_REG_BASE[self.battery_id]
+        except KeyError:
+            raise DeviceInvalid(f"Invalid battery_id {self.battery_id}")
 
     async def init_device(self) -> None:
         try:

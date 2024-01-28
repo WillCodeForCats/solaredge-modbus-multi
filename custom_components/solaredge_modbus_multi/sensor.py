@@ -43,7 +43,7 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, update_accum
+from .helpers import float_to_hex, scale_factor, update_accum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +90,15 @@ async def async_setup_entry(
                 SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
             )
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
+
+        """ Power Control Block """
+        if hub.option_detect_extras and inverter.advanced_power_control:
+            entities.append(
+                SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolarEdgeDefaultControlSettings(inverter, config_entry, coordinator)
+            )
 
         if inverter.is_mmppt:
             entities.append(SolarEdgeMMPPTEvents(inverter, config_entry, coordinator))
@@ -416,7 +425,7 @@ class ACCurrentSensor(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Current_SF"],
                 )
@@ -503,7 +512,7 @@ class VoltageSensor(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Voltage_SF"],
                 )
@@ -574,7 +583,7 @@ class ACPower(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_Power_SF"],
                 )
@@ -617,7 +626,7 @@ class ACFrequency(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["AC_Frequency"],
                     self._platform.decoded_model["AC_Frequency_SF"],
                 )
@@ -674,7 +683,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_VA_SF"],
                 )
@@ -731,7 +740,7 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_var_SF"],
                 )
@@ -788,7 +797,7 @@ class ACPowerFactor(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["AC_PF_SF"],
                 )
@@ -954,7 +963,7 @@ class DCCurrent(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            return self.scale_factor(
+            return scale_factor(
                 self._platform.decoded_model["I_DC_Current"],
                 self._platform.decoded_model["I_DC_Current_SF"],
             )
@@ -1000,7 +1009,7 @@ class DCVoltage(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["I_DC_Voltage"],
                     self._platform.decoded_model["I_DC_Voltage_SF"],
                 )
@@ -1042,7 +1051,7 @@ class DCPower(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["I_DC_Power"],
                     self._platform.decoded_model["I_DC_Power_SF"],
                 )
@@ -1084,7 +1093,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
                 return None
 
             else:
-                return self.scale_factor(
+                return scale_factor(
                     self._platform.decoded_model["I_Temp_Sink"],
                     self._platform.decoded_model["I_Temp_SF"],
                 )
@@ -1547,7 +1556,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = self.scale_factor(
+                value = scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["M_VAh_SF"],
                 )
@@ -1625,7 +1634,7 @@ class MetervarhIE(SolarEdgeSensorBase):
                 return None
 
             else:
-                value = self.scale_factor(
+                value = scale_factor(
                     self._platform.decoded_model[model_key],
                     self._platform.decoded_model["M_varh_SF"],
                 )
@@ -2187,3 +2196,74 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return None
         else:
             return self._platform.decoded_model["B_SOE"]
+
+
+class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
+    """Entity to show the results of Commit Power Control Settings button."""
+
+    entity_category = EntityCategory.DIAGNOSTIC
+    icon = "mdi:content-save-cog-outline"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_commit_pwr_settings"
+
+    @property
+    def name(self) -> str:
+        return "Commit Power Settings"
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["CommitPwrCtlSettings"]
+
+    @property
+    def extra_state_attributes(self):
+        attrs = {}
+
+        attrs["hex_value"] = hex(self._platform.decoded_model["CommitPwrCtlSettings"])
+
+        if self._platform.decoded_model["CommitPwrCtlSettings"] == 0x0:
+            attrs["status"] = "SUCCESS"
+        if self._platform.decoded_model["CommitPwrCtlSettings"] in [0x1, 0x2, 0x3, 0x4]:
+            attrs["status"] = "INTERNAL_ERROR"
+        if self._platform.decoded_model["CommitPwrCtlSettings"] == 0xFFFF:
+            attrs["status"] = "UNKNOWN_ERROR"
+        if (
+            self._platform.decoded_model["CommitPwrCtlSettings"] >= 0xF102
+            and self._platform.decoded_model["CommitPwrCtlSettings"] < 0xFFFF
+        ):
+            attrs["status"] = "VALUE_ERROR"
+
+        return attrs
+
+
+class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
+    """Entity to show the results of Restore Power Control Default Settings button."""
+
+    entity_category = EntityCategory.DIAGNOSTIC
+    icon = "mdi:restore-alert"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_default_pwr_settings"
+
+    @property
+    def name(self) -> str:
+        return "Default Power Settings"
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["RestorePwrCtlDefaults"]
+
+    @property
+    def extra_state_attributes(self):
+        attrs = {}
+
+        attrs["hex_value"] = hex(self._platform.decoded_model["RestorePwrCtlDefaults"])
+
+        if self._platform.decoded_model["RestorePwrCtlDefaults"] == 0x0:
+            attrs["status"] = "SUCCESS"
+        if self._platform.decoded_model["RestorePwrCtlDefaults"] == 0xFFFF:
+            attrs["status"] = "ERROR"
+
+        return attrs
