@@ -13,12 +13,6 @@ def float_to_hex(f):
         raise TypeError(e)
 
 
-def parse_modbus_string(s: str) -> str:
-    s = s.decode(encoding="utf-8", errors="ignore")
-    s = s.replace("\x00", "").rstrip()
-    return str(s)
-
-
 def update_accum(self, accum_value: int) -> None:
     if self.last is None:
         self.last = 0
