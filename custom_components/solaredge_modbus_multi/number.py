@@ -4,7 +4,13 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfPower, UnitOfTime
+from homeassistant.const import (
+    PERCENTAGE,
+    UnitOfElectricCurrent,
+    UnitOfEnergy,
+    UnitOfPower,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -28,8 +34,9 @@ async def async_setup_entry(
 
     entities = []
 
-    for inverter in hub.inverters:
-        if hub.option_detect_extras:
+    """ Dynamic Power Control """
+    if hub.option_detect_extras:
+        for inverter in hub.inverters:
             entities.append(
                 SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator)
             )
@@ -56,6 +63,12 @@ async def async_setup_entry(
             entities.append(
                 SolarEdgeExternalProductionMax(inverter, config_entry, coordinator)
             )
+
+    """ Power Control Block """
+    if hub.option_detect_extras and inverter.advanced_power_control:
+        for inverter in hub.inverters:
+            entities.append(SolarEdgePowerReduce(inverter, config_entry, coordinator))
+            entities.append(SolarEdgeCurrentLimit(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -606,5 +619,106 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
         builder.add_32bit_float(float(value))
         await self._platform.write_registers(
             address=61442, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgePowerReduce(SolarEdgeNumberBase):
+    """Limits the inverter's maximum output power from 0-100%"""
+
+    native_unit_of_measurement = PERCENTAGE
+    native_min_value = 0
+    native_max_value = 100
+    mode = "slider"
+    icon = "mdi:percent"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_power_reduce"
+
+    @property
+    def name(self) -> str:
+        return "Power Reduce"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                float_to_hex(self._platform.decoded_model["PowerReduce"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_model["PowerReduce"] > 100
+                or self._platform.decoded_model["PowerReduce"] < 0
+            ):
+                return False
+
+            return super().available
+
+        except (TypeError, KeyError):
+            return False
+
+    @property
+    def native_value(self) -> int:
+        return round(self._platform.decoded_model["PowerReduce"], 0)
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_32bit_float(float(value))
+        await self._platform.write_registers(
+            address=61760, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
+    """Limits the inverter's maximum output current."""
+
+    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    native_min_value = 0
+    native_max_value = 256
+    icon = "mdi:current-ac"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_max_current"
+
+    @property
+    def name(self) -> str:
+        return "Current Limit"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                float_to_hex(self._platform.decoded_model["MaxCurrent"])
+                == hex(SunSpecNotImpl.FLOAT32)
+                or self._platform.decoded_model["MaxCurrent"] > 256
+                or self._platform.decoded_model["MaxCurrent"] < 0
+            ):
+                return False
+
+            return super().available
+
+        except (TypeError, KeyError):
+            return False
+
+    @property
+    def native_value(self) -> int:
+        return round(self._platform.decoded_model["MaxCurrent"], 0)
+
+    async def async_set_native_value(self, value: float) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_32bit_float(float(value))
+        await self._platform.write_registers(
+            address=61838, payload=builder.to_registers()
         )
         await self.async_update()
