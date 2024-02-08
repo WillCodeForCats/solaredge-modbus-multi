@@ -222,10 +222,10 @@ class StorageBackupReserve(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["backup_reserve"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57352, payload=builder.to_registers()
         )
@@ -332,10 +332,10 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["charge_limit"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57358, payload=builder.to_registers()
         )
@@ -389,10 +389,10 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["discharge_limit"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57360, payload=builder.to_registers()
         )
@@ -440,10 +440,10 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
         return int(self._platform.decoded_model["E_Site_Limit"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57346, payload=builder.to_registers()
         )
@@ -493,10 +493,10 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_model["Ext_Prod_Max"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57362, payload=builder.to_registers()
         )
@@ -546,7 +546,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return self._platform.decoded_model["I_Power_Limit"]
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_16bit_uint(int(value))
@@ -597,7 +597,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
             return False
 
     @property
-    def native_value(self):
+    def native_value(self) -> float:
         return round(self._platform.decoded_model["I_CosPhi"], 1)
 
     async def async_set_native_value(self, value: float) -> None:
