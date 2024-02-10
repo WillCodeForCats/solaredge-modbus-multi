@@ -1338,7 +1338,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
         return self._platform.global_power_control
 
     @property
-    def native_value(self):
+    def native_value(self) -> int:
         try:
             if (
                 self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
@@ -1348,7 +1348,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
                 return None
 
             else:
-                return self._platform.decoded_model["I_Power_Limit"]
+                return int(self._platform.decoded_model["I_Power_Limit"])
 
         except KeyError:
             return None

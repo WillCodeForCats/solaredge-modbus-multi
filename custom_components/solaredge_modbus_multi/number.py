@@ -117,9 +117,6 @@ class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
 class StorageACChargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_storage_ac_charge_limit"
@@ -197,9 +194,6 @@ class StorageBackupReserve(SolarEdgeNumberBase):
     native_max_value = 100
     icon = "mdi:battery-positive"
 
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_storage_backup_reserve"
@@ -235,10 +229,10 @@ class StorageBackupReserve(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["backup_reserve"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57352, payload=builder.to_registers()
         )
@@ -250,9 +244,6 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
     native_max_value = 86400  # 24h
     native_unit_of_measurement = UnitOfTime.SECONDS
     icon = "mdi:clock-end"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -306,9 +297,6 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_storage_charge_limit"
@@ -345,10 +333,10 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["charge_limit"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57358, payload=builder.to_registers()
         )
@@ -360,9 +348,6 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     native_step = 1.0
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -402,10 +387,10 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["discharge_limit"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57360, payload=builder.to_registers()
         )
@@ -417,9 +402,6 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     native_max_value = 1000000
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -453,10 +435,10 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
         return int(self._platform.decoded_model["E_Site_Limit"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57346, payload=builder.to_registers()
         )
@@ -468,9 +450,6 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     native_max_value = 1000000
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -506,10 +485,10 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_model["Ext_Prod_Max"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
+        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
             address=57362, payload=builder.to_registers()
         )
@@ -524,9 +503,6 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     native_max_value = 100
     mode = "slider"
     icon = "mdi:percent"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -557,9 +533,9 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
-        return self._platform.decoded_model["I_Power_Limit"]
+        return int(self._platform.decoded_model["I_Power_Limit"])
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
         builder.add_16bit_uint(int(value))
@@ -577,9 +553,6 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
     native_step = 0.1
     mode = "slider"
     icon = "mdi:angle-acute"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -610,7 +583,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
             return False
 
     @property
-    def native_value(self):
+    def native_value(self) -> float:
         return round(self._platform.decoded_model["I_CosPhi"], 1)
 
     async def async_set_native_value(self, value: float) -> None:
