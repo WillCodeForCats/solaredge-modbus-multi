@@ -1338,7 +1338,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
         return self._platform.global_power_control
 
     @property
-    def native_value(self):
+    def native_value(self) -> int:
         try:
             if (
                 self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
@@ -1361,10 +1361,6 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
     suggested_display_precision = 1
     icon = "mdi:angle-acute"
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_cosphi"
@@ -1378,7 +1374,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
         return self._platform.global_power_control
 
     @property
-    def native_value(self):
+    def native_value(self) -> float:
         try:
             if (
                 float_to_hex(self._platform.decoded_model["I_CosPhi"])
@@ -1389,7 +1385,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
                 return None
 
             else:
-                return self._platform.decoded_model["I_CosPhi"]
+                return round(self._platform.decoded_model["I_CosPhi"], 1)
 
         except KeyError:
             return None
