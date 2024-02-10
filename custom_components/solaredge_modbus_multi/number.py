@@ -117,9 +117,6 @@ class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
 class StorageACChargeLimit(SolarEdgeNumberBase):
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_storage_ac_charge_limit"
@@ -197,9 +194,6 @@ class StorageBackupReserve(SolarEdgeNumberBase):
     native_max_value = 100
     icon = "mdi:battery-positive"
 
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_storage_backup_reserve"
@@ -250,9 +244,6 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
     native_max_value = 86400  # 24h
     native_unit_of_measurement = UnitOfTime.SECONDS
     icon = "mdi:clock-end"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -306,9 +297,6 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_storage_charge_limit"
@@ -360,9 +348,6 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     native_step = 1.0
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -418,9 +403,6 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
 
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_site_limit"
@@ -468,9 +450,6 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     native_max_value = 1000000
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:lightning-bolt"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -525,9 +504,6 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     mode = "slider"
     icon = "mdi:percent"
 
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_active_power_limit_set"
@@ -577,9 +553,6 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
     native_step = 0.1
     mode = "slider"
     icon = "mdi:angle-acute"
-
-    def __init__(self, inverter, config_entry, coordinator):
-        super().__init__(inverter, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
