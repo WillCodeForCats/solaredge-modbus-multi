@@ -331,6 +331,8 @@ class SolarEdgeModbusMultiHub:
                 )
                 raise HubInitFailed(f"Setup failed: {e}")
 
+            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+
             return True
 
         if not self.is_connected:
@@ -348,36 +350,36 @@ class SolarEdgeModbusMultiHub:
                 f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
             )
 
-        else:
-            if not self.online:
-                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-            self.online = True
+        if not self.online:
+            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
-            try:
-                async with self._lock:
-                    for inverter in self.inverters:
-                        await inverter.read_modbus_data()
-                    for meter in self.meters:
-                        await meter.read_modbus_data()
-                    for battery in self.batteries:
-                        await battery.read_modbus_data()
+        self.online = True
 
-            except ModbusReadError as e:
+        try:
+            async with self._lock:
+                for inverter in self.inverters:
+                    await inverter.read_modbus_data()
+                for meter in self.meters:
+                    await meter.read_modbus_data()
+                for battery in self.batteries:
+                    await battery.read_modbus_data()
+
+        except ModbusReadError as e:
+            self.disconnect()
+            raise DataUpdateFailed(f"Update failed: {e}")
+
+        except DeviceInvalid as e:
+            if not self._keep_modbus_open:
                 self.disconnect()
-                raise DataUpdateFailed(f"Update failed: {e}")
+            raise DataUpdateFailed(f"Invalid device: {e}")
 
-            except DeviceInvalid as e:
-                if not self._keep_modbus_open:
-                    self.disconnect()
-                raise DataUpdateFailed(f"Invalid device: {e}")
+        except ConnectionException as e:
+            self.disconnect()
+            raise DataUpdateFailed(f"Connection failed: {e}")
 
-            except ConnectionException as e:
-                self.disconnect()
-                raise DataUpdateFailed(f"Connection failed: {e}")
-
-            except ModbusIOException as e:
-                self.disconnect()
-                raise DataUpdateFailed(f"Modbus error: {e}")
+        except ModbusIOException as e:
+            self.disconnect()
+            raise DataUpdateFailed(f"Modbus error: {e}")
 
         if not self._keep_modbus_open:
             self.disconnect()
