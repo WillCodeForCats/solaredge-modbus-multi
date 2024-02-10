@@ -148,7 +148,6 @@ class SolarEdgeModbusMultiHub:
 
         self._initalized = False
         self._online = True
-        self._repair_raised = False
 
         self._client = None
 
@@ -173,7 +172,6 @@ class SolarEdgeModbusMultiHub:
         """Detect devices and load initial modbus data from inverters."""
 
         if not self.is_connected:
-            self._repair_raised = True
             ir.async_create_issue(
                 self._hass,
                 DOMAIN,
@@ -322,7 +320,6 @@ class SolarEdgeModbusMultiHub:
 
             except (ConnectionException, ModbusIOException) as e:
                 self.disconnect()
-                self._repair_raised = True
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -334,11 +331,12 @@ class SolarEdgeModbusMultiHub:
                 )
                 raise HubInitFailed(f"Setup failed: {e}")
 
+            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+
             return True
 
         if not self.is_connected:
             self.online = False
-            self._repair_raised = True
             ir.async_create_issue(
                 self._hass,
                 DOMAIN,
@@ -352,9 +350,8 @@ class SolarEdgeModbusMultiHub:
                 f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
             )
 
-        if self._repair_raised:
+        if not self.online:
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-            self._repair_raised = False
 
         self.online = True
 
