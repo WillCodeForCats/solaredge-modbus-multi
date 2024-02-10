@@ -1348,7 +1348,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
                 return None
 
             else:
-                return int(self._platform.decoded_model["I_Power_Limit"])
+                return self._platform.decoded_model["I_Power_Limit"]
 
         except KeyError:
             return None

@@ -533,7 +533,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
-        return int(self._platform.decoded_model["I_Power_Limit"])
+        return self._platform.decoded_model["I_Power_Limit"]
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
