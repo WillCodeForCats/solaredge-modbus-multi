@@ -225,8 +225,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         attempt = 1
         while True:
             try:
-                async with asyncio.timeout(self._hub.coordinator_timeout):
-                    return await self._hub.async_refresh_modbus_data()
+                return await self._hub.async_refresh_modbus_data()
             except Exception as ex:
                 if not isinstance(ex, ex_type):
                     raise ex
