@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ipaddress
 import struct
-from typing import List
 
 from homeassistant.exceptions import HomeAssistantError
 
@@ -48,7 +47,7 @@ def host_valid(host):
         return DOMAIN_REGEX.match(host)
 
 
-def deviceIdsFromString(value: str) -> List[int]:
+def deviceIdsFromString(value: str) -> list[int]:
     """The function `deviceIdsFromString` takes a string input and returns a list of
     device IDs, where the input can be a single ID or a range of IDs separated by commas
 
