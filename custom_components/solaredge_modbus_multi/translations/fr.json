@@ -14,11 +14,8 @@
     },
     "error": {
       "already_configured": "L'appareil est déjà configuré!",
-      "max_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-      "min_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-      "max_inverters": "Doit être entre 1 et 32 onduleurs.",
-      "min_inverters": "Doit être entre 1 et 32 onduleurs.",
-      "too_many_inverters": "Nombre d'onduleurs trop important pour l'adresse Modbus.",
+      "invalid_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+      "invalid_inverter_count": "Doit être entre 1 et 32 onduleurs.",
       "invalid_host": "Adresse IP invalide.",
       "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
     },
@@ -80,11 +77,8 @@
           }
         },
         "error": {
-          "max_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-          "min_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-          "max_inverters": "Doit être entre 1 et 32 onduleurs.",
-          "min_inverters": "Doit être entre 1 et 32 onduleurs.",
-          "too_many_inverters": "Nombre d'onduleurs trop important pour l'adresse Modbus.",
+          "invalid_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+          "invalid_inverter_count": "Doit être entre 1 et 32 onduleurs.",    
           "invalid_host": "Adresse IP invalide.",
           "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
         }

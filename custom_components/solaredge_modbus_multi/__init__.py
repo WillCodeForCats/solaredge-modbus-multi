@@ -36,17 +36,6 @@ PLATFORMS: list[str] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
-    entry_updates: dict[str, Any] = {}
-    if CONF_SCAN_INTERVAL in entry.data:
-        data = {**entry.data}
-        entry_updates["data"] = data
-        entry_updates["options"] = {
-            **entry.options,
-            CONF_SCAN_INTERVAL: data.pop(CONF_SCAN_INTERVAL),
-        }
-    if entry_updates:
-        hass.config_entries.async_update_entry(entry, **entry_updates)
-
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass,
         entry.entry_id,
@@ -165,6 +154,50 @@ async def async_remove_config_entry_device(
         if device_id in known_devices:
             _LOGGER.error(f"Unable to remove entry: device {device_id} is in use")
             return False
+
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating from version {config_entry.version}")
+
+    if config_entry.version > 1:
+        return False
+
+    if config_entry.version == 1:
+        data = {**config_entry.data}
+
+        entry_updates: dict[str, Any] = {}
+        if CONF_SCAN_INTERVAL in config_entry.data:
+            entry_updates["data"] = data
+            entry_updates["options"] = {
+                **config_entry.options,
+                CONF_SCAN_INTERVAL: data.pop(CONF_SCAN_INTERVAL),
+            }
+        if entry_updates:
+            hass.config_entries.async_update_entry(config_entry, **entry_updates)
+
+        start_device_id = data.pop(ConfName.DEVICE_ID)
+        number_of_inverters = data.pop(ConfName.NUMBER_INVERTERS)
+
+        inverter_list = []
+        for inverter_index in range(number_of_inverters):
+            inverter_unit_id = inverter_index + start_device_id
+            inverter_list.append(inverter_unit_id)
+
+        data["data"] = {
+            **config_entry.data,
+            ConfName.DEVICE_LIST: inverter_list,
+        }
+
+        hass.config_entries.async_update_entry(
+            config_entry, data=data["data"], version=2, minor_version=0
+        )
+
+    _LOGGER.debug(
+        f"Migrated to version {config_entry.version}.{config_entry.minor_version}"
+    )
 
     return True
 

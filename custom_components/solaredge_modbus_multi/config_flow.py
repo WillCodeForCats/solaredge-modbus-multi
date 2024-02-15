@@ -8,9 +8,17 @@ from homeassistant.config_entries import ConfigEntry, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.exceptions import HomeAssistantError
 
-from .const import DEFAULT_NAME, DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName
-from .helpers import host_valid
+from .const import (
+    DEFAULT_NAME,
+    DOMAIN,
+    ConfDefaultFlag,
+    ConfDefaultInt,
+    ConfDefaultStr,
+    ConfName,
+)
+from .helpers import device_list_from_string, host_valid
 
 
 @callback
@@ -40,40 +48,39 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
 
-            if not host_valid(user_input[CONF_HOST]):
-                errors[CONF_HOST] = "invalid_host"
-            elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
-                errors[CONF_HOST] = "already_configured"
-            elif user_input[CONF_PORT] < 1:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[CONF_PORT] > 65535:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[ConfName.DEVICE_ID] > 247:
-                errors[ConfName.DEVICE_ID] = "max_device_id"
-            elif user_input[ConfName.DEVICE_ID] < 1:
-                errors[ConfName.DEVICE_ID] = "min_device_id"
-            elif user_input[ConfName.NUMBER_INVERTERS] > 32:
-                errors[ConfName.NUMBER_INVERTERS] = "max_inverters"
-            elif user_input[ConfName.NUMBER_INVERTERS] < 1:
-                errors[ConfName.NUMBER_INVERTERS] = "min_inverters"
-            elif (
-                user_input[ConfName.NUMBER_INVERTERS] + user_input[ConfName.DEVICE_ID]
-                > 247
-            ):
-                errors[ConfName.NUMBER_INVERTERS] = "too_many_inverters"
-            else:
-                await self.async_set_unique_id(user_input[CONF_HOST])
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=user_input[CONF_NAME], data=user_input
+            try:
+                inverter_count = len(
+                    device_list_from_string(user_input[ConfName.DEVICE_LIST])
                 )
+
+            except HomeAssistantError as e:
+                errors[ConfName.DEVICE_LIST] = f"{e}"
+
+            else:
+                if not host_valid(user_input[CONF_HOST]):
+                    errors[CONF_HOST] = "invalid_host"
+                elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
+                    errors[CONF_HOST] = "already_configured"
+                elif user_input[CONF_PORT] < 1:
+                    errors[CONF_PORT] = "invalid_tcp_port"
+                elif user_input[CONF_PORT] > 65535:
+                    errors[CONF_PORT] = "invalid_tcp_port"
+                elif inverter_count > 32:
+                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                elif inverter_count < 1:
+                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                else:
+                    await self.async_set_unique_id(user_input[CONF_HOST])
+                    self._abort_if_unique_id_configured()
+                    return self.async_create_entry(
+                        title=user_input[CONF_NAME], data=user_input
+                    )
         else:
             user_input = {
                 CONF_NAME: DEFAULT_NAME,
                 CONF_HOST: "",
                 CONF_PORT: ConfDefaultInt.PORT,
-                ConfName.NUMBER_INVERTERS: ConfDefaultInt.NUMBER_INVERTERS,
-                ConfName.DEVICE_ID: ConfDefaultInt.DEVICE_ID,
+                ConfName.DEVICE_LIST: ConfDefaultStr.DEVICE_LIST,
             }
 
         return self.async_show_form(
@@ -86,12 +93,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         int
                     ),
                     vol.Required(
-                        f"{ConfName.NUMBER_INVERTERS}",
-                        default=user_input[ConfName.NUMBER_INVERTERS],
-                    ): vol.Coerce(int),
-                    vol.Required(
-                        f"{ConfName.DEVICE_ID}", default=user_input[ConfName.DEVICE_ID]
-                    ): vol.Coerce(int),
+                        f"{ConfName.DEVICE_LIST}",
+                        default=user_input[ConfName.DEVICE_LIST],
+                    ): cv.string,
                 },
             ),
             errors=errors,

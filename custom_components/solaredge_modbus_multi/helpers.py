@@ -47,8 +47,8 @@ def host_valid(host):
         return DOMAIN_REGEX.match(host)
 
 
-def deviceIdsFromString(value: str) -> list[int]:
-    """The function `deviceIdsFromString` takes a string input and returns a list of
+def device_list_from_string(value: str) -> list[int]:
+    """The function `device_list_from_string` takes a string input and returns a list of
     device IDs, where the input can be a single ID or a range of IDs separated by commas
 
     Parameters
@@ -60,7 +60,7 @@ def deviceIdsFromString(value: str) -> list[int]:
 
     Returns
     -------
-        The function `checkDeviceIds` returns a list of device IDs.
+        The function `device_list_from_string` returns a list of device IDs.
 
     Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
     """
@@ -70,7 +70,7 @@ def deviceIdsFromString(value: str) -> list[int]:
         r = [i.strip() for i in p.split("-")]
         if len(r) < 2:
             # We have a single id
-            ids.append(checkDeviceId(r[0]))
+            ids.append(check_device_id(r[0]))
 
         elif len(r) > 2:
             # Invalid range, multiple '-'s
@@ -80,8 +80,8 @@ def deviceIdsFromString(value: str) -> list[int]:
 
         else:
             # Looks like a range
-            start = checkDeviceId(r[0])
-            end = checkDeviceId(r[1])
+            start = check_device_id(r[0])
+            end = check_device_id(r[1])
             if end < start:
                 raise HomeAssistantError(
                     f"'{start}' must be less than or equal to {end}."
@@ -92,8 +92,8 @@ def deviceIdsFromString(value: str) -> list[int]:
     return sorted(set(ids))
 
 
-def checkDeviceId(value: (str | int)) -> int:
-    """The `checkDeviceId` function takes a value and checks if it is a valid device
+def check_device_id(value: (str | int)) -> int:
+    """The `check_device_id` function takes a value and checks if it is a valid device
     ID between 1 and 247, raising an error if it is not.
 
     Parameters
@@ -111,6 +111,6 @@ def checkDeviceId(value: (str | int)) -> int:
     id = int(value)
 
     if (id < 1) or id > 247:
-        raise HomeAssistantError(f"'{value}' must be a device ID between 1 and 247")
+        raise HomeAssistantError("invalid_device_id")
 
     return id

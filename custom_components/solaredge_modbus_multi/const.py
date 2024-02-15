@@ -74,8 +74,6 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 300
     PORT = 1502
-    NUMBER_INVERTERS = 1
-    DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
@@ -94,9 +92,14 @@ class ConfDefaultFlag(IntEnum):
     ALLOW_BATTERY_ENERGY_RESET = 0
 
 
+class ConfDefaultStr(StrEnum):
+    """Defaults for options that are strings."""
+
+    DEVICE_LIST = "1"
+
+
 class ConfName(StrEnum):
-    NUMBER_INVERTERS = "number_of_inverters"
-    DEVICE_ID = "device_id"
+    DEVICE_LIST = "device_list"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
     DETECT_EXTRAS = "detect_extras"
@@ -108,6 +111,10 @@ class ConfName(StrEnum):
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
+
+    # Old config entry names for migration
+    NUMBER_INVERTERS = "number_of_inverters"
+    DEVICE_ID = "device_id"
 
 
 class SunSpecAccum(IntEnum):

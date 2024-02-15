@@ -48,7 +48,7 @@ class CheckConfigurationRepairFlow(RepairsFlow):
             elif user_input[CONF_PORT] > 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
             elif user_input[ConfName.DEVICE_ID] > 247:
-                errors[ConfName.DEVICE_ID] = "max_device_id"
+                errors[ConfName.DEVICE_ID] = "invalid_device_id"
             elif user_input[ConfName.DEVICE_ID] < 1:
                 errors[ConfName.DEVICE_ID] = "min_device_id"
             elif user_input[ConfName.NUMBER_INVERTERS] > 32:

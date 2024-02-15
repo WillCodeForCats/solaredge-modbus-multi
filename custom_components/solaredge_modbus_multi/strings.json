@@ -7,18 +7,14 @@
           "name": "Sensor Prefix",
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
-          "device_id": "Inverter Modbus Address (Device ID)",
-          "number_of_inverters": "Number of Inverters"
+          "device_list": "Inverter Device ID List"
         }
       }
     },
     "error": {
       "already_configured": "Device is already configured!",
-      "max_device_id": "Device ID must be between 1 to 247.",
-      "min_device_id": "Device ID must be between 1 to 247.",
-      "max_inverters": "Must be between 1 to 32 inverters.",
-      "min_inverters": "Must be between 1 to 32 inverters.",
-      "too_many_inverters": "Number of inverters too high for Device ID.",
+      "invalid_device_id": "Device ID must be between 1 to 247.",
+      "invalid_inverter_count": "Must be between 1 to 32 inverters.",
       "invalid_host": "Invalid IP address.",
       "invalid_tcp_port": "Valid port range is 1 to 65535."
     },
@@ -74,17 +70,13 @@
             "data": {
               "host": "Inverter IP Address",
               "port": "Modbus/TCP Port",
-              "device_id": "Inverter Modbus Address (Device ID)",
-              "number_of_inverters": "Number of Inverters"
+              "device_list": "Inverter Device ID List"
             }
           }
         },
         "error": {
-          "max_device_id": "Device ID must be between 1 to 247.",
-          "min_device_id": "Device ID must be between 1 to 247.",
-          "max_inverters": "Must be between 1 to 32 inverters.",
-          "min_inverters": "Must be between 1 to 32 inverters.",
-          "too_many_inverters": "Number of inverters too high for Device ID.",
+          "invalid_device_id": "Device ID must be between 1 to 247.",
+          "invalid_inverter_count": "Must be between 1 to 32 inverters.",    
           "invalid_host": "Invalid IP address.",
           "invalid_tcp_port": "Valid port range is 1 to 65535."
         }

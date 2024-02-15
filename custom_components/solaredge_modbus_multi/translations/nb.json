@@ -14,11 +14,8 @@
     },
     "error": {
       "already_configured": "Enheten er allerede konfigurert",
-      "max_device_id": "Enhets-ID må være mellom 1 og 247.",
-      "min_device_id": "Enhets-ID må være mellom 1 og 247.",
-      "max_inverters": "Må være mellom 1 og 32 omformere.",
-      "min_inverters": "Må være mellom 1 og 32 omformere.",
-      "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+      "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
+      "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",
       "invalid_host": "Ugyldig IP-adresse.",
       "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
     },
@@ -80,11 +77,8 @@
           }
         },
         "error": {
-          "max_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "min_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "max_inverters": "Må være mellom 1 og 32 omformere.",
-          "min_inverters": "Må være mellom 1 og 32 omformere.",
-          "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+          "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
+          "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",    
           "invalid_host": "Ugyldig IP-adresse.",
           "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
         }
