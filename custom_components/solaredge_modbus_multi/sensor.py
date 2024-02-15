@@ -2126,6 +2126,12 @@ class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
         return "Commit Power Settings"
 
     @property
+    def available(self) -> bool:
+        return (
+            "CommitPwrCtlSettings" in self._platform.decoded_model and super().available
+        )
+
+    @property
     def native_value(self):
         return self._platform.decoded_model["CommitPwrCtlSettings"]
 
@@ -2163,6 +2169,13 @@ class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return "Default Power Settings"
+
+    @property
+    def available(self) -> bool:
+        return (
+            "RestorePwrCtlDefaults" in self._platform.decoded_model
+            and super().available
+        )
 
     @property
     def native_value(self):

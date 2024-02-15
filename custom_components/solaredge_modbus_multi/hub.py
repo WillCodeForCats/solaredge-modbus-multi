@@ -700,6 +700,8 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
 
+        self.read_once = []
+
     async def init_device(self) -> None:
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
@@ -1029,7 +1031,7 @@ class SolarEdgeInverter:
         ):
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61696, rcount=6
+                    unit=self.inverter_unit_id, address=61700, rcount=2
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1041,9 +1043,6 @@ class SolarEdgeInverter:
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("CommitPwrCtlSettings", decoder.decode_16bit_int()),
-                            ("RestorePwrCtlDefaults", decoder.decode_16bit_int()),
-                            ("PwrFrqDeratingConfig", decoder.decode_32bit_int()),
                             ("ReactivePwrConfig", decoder.decode_32bit_int()),
                         ]
                     )
@@ -1067,6 +1066,46 @@ class SolarEdgeInverter:
                         ]
                     )
                 )
+
+                if "CommitPwrCtlSettings" in self.read_once:
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61696, rcount=1
+                    )
+
+                    decoder = BinaryPayloadDecoder.fromRegisters(
+                        inverter_data.registers,
+                        byteorder=Endian.BIG,
+                        wordorder=Endian.LITTLE,
+                    )
+
+                    self.decoded_model.update(
+                        OrderedDict(
+                            [
+                                ("CommitPwrCtlSettings", decoder.decode_16bit_int()),
+                            ]
+                        )
+                    )
+                    self.read_once.remove("CommitPwrCtlSettings")
+
+                if "RestorePwrCtlDefaults" in self.read_once:
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61697, rcount=1
+                    )
+
+                    decoder = BinaryPayloadDecoder.fromRegisters(
+                        inverter_data.registers,
+                        byteorder=Endian.BIG,
+                        wordorder=Endian.LITTLE,
+                    )
+
+                    self.decoded_model.update(
+                        OrderedDict(
+                            [
+                                ("RestorePwrCtlDefaults", decoder.decode_16bit_int()),
+                            ]
+                        )
+                    )
+                    self.read_once.remove("RestorePwrCtlDefaults")
 
                 self.advanced_power_control = True
 

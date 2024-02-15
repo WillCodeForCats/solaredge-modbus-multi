@@ -1,6 +1,7 @@
 """Component to interface with binary sensors."""
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from homeassistant.components.button import ButtonEntity
@@ -119,6 +120,8 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
         await self._platform.write_registers(
             address=61696, payload=builder.to_registers()
         )
+        await asyncio.sleep(10)  # Command execution time: 5-10 seconds
+        self._platform.read_once.append("CommitPwrCtlSettings")
         await self.async_update()
 
 
@@ -147,4 +150,6 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
         await self._platform.write_registers(
             address=61697, payload=builder.to_registers()
         )
+        await asyncio.sleep(6)  # Command execution time: 3-6 seconds
+        self._platform.read_once.append("RestorePwrCtlDefaults")
         await self.async_update()
