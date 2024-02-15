@@ -1049,7 +1049,7 @@ class SolarEdgeInverter:
                 )
 
                 inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61760, rcount=4
+                    unit=self.inverter_unit_id, address=61762, rcount=2
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -1061,7 +1061,6 @@ class SolarEdgeInverter:
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("PowerReduce", decoder.decode_32bit_float()),
                             ("AdvPwrCtrlEn", decoder.decode_32bit_int()),
                         ]
                     )
