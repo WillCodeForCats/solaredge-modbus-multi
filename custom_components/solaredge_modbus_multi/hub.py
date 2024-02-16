@@ -622,6 +622,8 @@ class SolarEdgeModbusMultiHub:
         else:
             self._keep_modbus_open = False
 
+        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
+
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self._allow_battery_energy_reset
@@ -645,15 +647,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def number_of_inverters(self) -> int:
         return self._number_of_inverters
-
-    @keep_modbus_open.setter
-    def keep_modbus_open(self, value: bool) -> None:
-        if value is True:
-            self._keep_modbus_open = True
-        else:
-            self._keep_modbus_open = False
-
-        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
     @property
     def sleep_after_write(self) -> int:
