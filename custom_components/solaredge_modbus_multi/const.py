@@ -125,6 +125,20 @@ class SunSpecNotImpl(IntEnum):
     FLOAT32 = 0x7FC00000
 
 
+# Battery ID and modbus starting address
+BATTERY_REG_BASE = {
+    1: 57600,
+    2: 57856,
+    3: 58368,
+}
+
+# Meter ID and modbus starting address
+METER_REG_BASE = {
+    1: 40121,
+    2: 40295,
+    3: 40469,
+}
+
 SUNSPEC_SF_RANGE = [
     -10,
     -9,
@@ -306,6 +320,14 @@ MMPPT_EVENTS = {
     20: "TEST_FAILED",
     21: "INPUT_UNDER_VOLTAGE",
     22: "INPUT_OVER_CURRENT",
+}
+
+REACTIVE_POWER_CONFIG = {
+    0: "Fixed CosPhi",
+    1: "Fixed Q",
+    2: "CosPhi(P)",
+    3: "Q(U) + Q(P)",
+    4: "RRCR",
 }
 
 STORAGE_CONTROL_MODE = {
