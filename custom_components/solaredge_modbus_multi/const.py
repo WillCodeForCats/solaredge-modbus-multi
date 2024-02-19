@@ -1,4 +1,5 @@
 """Constants used by SolarEdge Modbus Multi components."""
+
 from __future__ import annotations
 
 import re

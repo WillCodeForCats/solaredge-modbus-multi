@@ -1,4 +1,5 @@
 """Config flow for the SolarEdge Modbus Multi integration."""
+
 from __future__ import annotations
 
 import homeassistant.helpers.config_validation as cv
