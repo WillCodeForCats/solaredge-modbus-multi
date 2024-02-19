@@ -1,4 +1,5 @@
 """Constants used by SolarEdge Modbus Multi components."""
+
 from __future__ import annotations
 
 import re
@@ -46,6 +47,7 @@ class ModbusDefaults(IntEnum):
     Timeout = 3  # Timeout for a request, in seconds.
     ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
     ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
+    RetryOnEmpty = False  # Retry on empty response.
 
 
 class SolarEdgeTimeouts(IntEnum):

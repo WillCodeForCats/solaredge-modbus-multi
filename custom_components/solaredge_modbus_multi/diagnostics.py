@@ -1,4 +1,5 @@
 """Diagnostics support for SolarEdge Modbus Multi Device."""
+
 from __future__ import annotations
 
 from typing import Any

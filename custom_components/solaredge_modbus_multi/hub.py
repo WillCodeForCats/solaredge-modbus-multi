@@ -385,10 +385,10 @@ class SolarEdgeModbusMultiHub:
             raise DataUpdateFailed(f"Modbus error: {e}")
 
         except TimeoutError as e:
-            self.disconnect()
+            self.disconnect(clear_client=True)
             self._timeout_counter += 1
 
-            _LOGGER.warning(
+            _LOGGER.debug(
                 f"Refresh timeout {self._timeout_counter} limit {RetrySettings.Limit}"
             )
 
@@ -402,7 +402,7 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
 
         if self._timeout_counter > 0:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 f"Timeout count {self._timeout_counter} limit {RetrySettings.Limit}"
             )
             self._timeout_counter = 0
@@ -413,28 +413,33 @@ class SolarEdgeModbusMultiHub:
         """Connect to inverter."""
 
         if self._client is None:
+            _LOGGER.debug(f"New client object for {self._host}:{self._port}")
             self._client = AsyncModbusTcpClient(
                 host=self._host,
                 port=self._port,
                 reconnect_delay=ModbusDefaults.ReconnectDelay,
                 reconnect_delay_max=ModbusDefaults.ReconnectDelayMax,
+                retry_on_empty=ModbusDefaults.RetryOnEmpty,
                 timeout=ModbusDefaults.Timeout,
             )
 
         await self._client.connect()
 
-    def disconnect(self) -> None:
+    def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
 
         if self._client is not None:
             self._client.close()
 
+            if clear_client:
+                self._client = None
+
     async def shutdown(self) -> None:
         """Shut down the hub and disconnect."""
+
         async with self._lock:
             self.online = False
-            self.disconnect()
-            self._client = None
+            self.disconnect(clear_client=True)
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         """Read modbus registers from inverter."""
