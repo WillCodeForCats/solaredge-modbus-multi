@@ -1869,7 +1869,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                                     f"< {self._last} cycle {self._count} of "
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
-                            ),
+                            )
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 _LOGGER.debug(
