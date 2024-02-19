@@ -1,4 +1,5 @@
 """The SolarEdge Modbus Multi Integration."""
+
 from __future__ import annotations
 
 import asyncio
