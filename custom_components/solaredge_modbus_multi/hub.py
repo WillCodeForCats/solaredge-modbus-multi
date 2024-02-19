@@ -385,7 +385,9 @@ class SolarEdgeModbusMultiHub:
             raise DataUpdateFailed(f"Modbus error: {e}")
 
         except TimeoutError as e:
-            self.disconnect()
+            async with self._lock:
+                self.disconnect()
+                self._client = None
             self._timeout_counter += 1
 
             _LOGGER.warning(
