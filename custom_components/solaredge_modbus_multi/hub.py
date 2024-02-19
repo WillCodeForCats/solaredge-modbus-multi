@@ -427,18 +427,18 @@ class SolarEdgeModbusMultiHub:
     def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
 
-        async with self._lock:
-            if self._client is not None:
-                self._client.close()
+        if self._client is not None:
+            self._client.close()
 
-                if clear_client:
-                    self._client = None
+            if clear_client:
+                self._client = None
 
     async def shutdown(self) -> None:
         """Shut down the hub and disconnect."""
 
-        self.online = False
-        self.disconnect(clear_client=True)
+        async with self._lock:
+            self.online = False
+            self.disconnect(clear_client=True)
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         """Read modbus registers from inverter."""
