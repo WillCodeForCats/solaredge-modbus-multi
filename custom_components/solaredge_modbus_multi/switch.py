@@ -1,4 +1,5 @@
 """Switch platform for SolarEdge Modbus Multi."""
+
 from __future__ import annotations
 
 import logging
