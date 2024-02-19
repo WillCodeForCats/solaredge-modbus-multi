@@ -388,7 +388,7 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
             self._timeout_counter += 1
 
-            _LOGGER.warning(
+            _LOGGER.debug(
                 f"Refresh timeout {self._timeout_counter} limit {RetrySettings.Limit}"
             )
 
@@ -402,7 +402,7 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
 
         if self._timeout_counter > 0:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 f"Timeout count {self._timeout_counter} limit {RetrySettings.Limit}"
             )
             self._timeout_counter = 0
