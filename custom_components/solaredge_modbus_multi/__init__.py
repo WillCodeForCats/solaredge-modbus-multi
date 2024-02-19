@@ -181,10 +181,6 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         )
         self._hub = hub
 
-        if scan_interval < 10 and not self._hub.keep_modbus_open:
-            _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
-            self._hub.keep_modbus_open = True
-
     async def _async_update_data(self):
         try:
             while self._hub.has_write:
@@ -225,8 +221,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         attempt = 1
         while True:
             try:
-                async with asyncio.timeout(self._hub.coordinator_timeout):
-                    return await self._hub.async_refresh_modbus_data()
+                return await self._hub.async_refresh_modbus_data()
             except Exception as ex:
                 if not isinstance(ex, ex_type):
                     raise ex

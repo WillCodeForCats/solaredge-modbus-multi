@@ -23,6 +23,7 @@ from .const import (
     DOMAIN,
     METER_REG_BASE,
     ModbusDefaults,
+    RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
@@ -148,6 +149,7 @@ class SolarEdgeModbusMultiHub:
 
         self._initalized = False
         self._online = True
+        self._timeout_counter = 0
 
         self._client = None
 
@@ -316,9 +318,10 @@ class SolarEdgeModbusMultiHub:
         if not self.initalized:
             try:
                 async with self._lock:
-                    await self._async_init_solaredge()
+                    async with asyncio.timeout(self.coordinator_timeout):
+                        await self._async_init_solaredge()
 
-            except (ConnectionException, ModbusIOException) as e:
+            except (ConnectionException, ModbusIOException, TimeoutError) as e:
                 self.disconnect()
                 ir.async_create_issue(
                     self._hass,
@@ -357,20 +360,20 @@ class SolarEdgeModbusMultiHub:
 
         try:
             async with self._lock:
-                for inverter in self.inverters:
-                    await inverter.read_modbus_data()
-                for meter in self.meters:
-                    await meter.read_modbus_data()
-                for battery in self.batteries:
-                    await battery.read_modbus_data()
+                async with asyncio.timeout(self.coordinator_timeout):
+                    for inverter in self.inverters:
+                        await inverter.read_modbus_data()
+                    for meter in self.meters:
+                        await meter.read_modbus_data()
+                    for battery in self.batteries:
+                        await battery.read_modbus_data()
 
         except ModbusReadError as e:
             self.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}")
 
         except DeviceInvalid as e:
-            if not self._keep_modbus_open:
-                self.disconnect()
+            self.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}")
 
         except ConnectionException as e:
@@ -381,8 +384,28 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
             raise DataUpdateFailed(f"Modbus error: {e}")
 
+        except TimeoutError as e:
+            self.disconnect()
+            self._timeout_counter += 1
+
+            _LOGGER.debug(
+                f"Refresh timeout {self._timeout_counter} limit {RetrySettings.Limit}"
+            )
+
+            if self._timeout_counter >= RetrySettings.Limit:
+                self._timeout_counter = 0
+                raise TimeoutError
+
+            raise DataUpdateFailed(f"Timeout error: {e}")
+
         if not self._keep_modbus_open:
             self.disconnect()
+
+        if self._timeout_counter > 0:
+            _LOGGER.debug(
+                f"Timeout count {self._timeout_counter} limit {RetrySettings.Limit}"
+            )
+            self._timeout_counter = 0
 
         return True
 
@@ -599,6 +622,8 @@ class SolarEdgeModbusMultiHub:
         else:
             self._keep_modbus_open = False
 
+        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
+
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self._allow_battery_energy_reset
@@ -622,15 +647,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def number_of_inverters(self) -> int:
         return self._number_of_inverters
-
-    @keep_modbus_open.setter
-    def keep_modbus_open(self, value: bool) -> None:
-        if value is True:
-            self._keep_modbus_open = True
-        else:
-            self._keep_modbus_open = False
-
-        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
     @property
     def sleep_after_write(self) -> int:
