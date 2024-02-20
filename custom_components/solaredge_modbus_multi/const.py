@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from enum import IntEnum, StrEnum
+from enum import Flag, IntEnum, StrEnum
 from typing import Final
 
 DOMAIN = "solaredge_modbus_multi"
@@ -82,7 +82,7 @@ class ConfDefaultInt(IntEnum):
     BATTERY_ENERGY_RESET_CYCLES = 0
 
 
-class ConfDefaultFlag(IntEnum):
+class ConfDefaultFlag(Flag):
     """Defaults for options that are booleans."""
 
     DETECT_METERS = True
