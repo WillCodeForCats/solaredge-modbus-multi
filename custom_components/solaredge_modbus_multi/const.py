@@ -85,14 +85,14 @@ class ConfDefaultInt(IntEnum):
 class ConfDefaultFlag(IntEnum):
     """Defaults for options that are booleans."""
 
-    DETECT_METERS = 1
-    DETECT_BATTERIES = 0
-    DETECT_EXTRAS = 1
-    KEEP_MODBUS_OPEN = 0
-    ADV_PWR_CONTROL = 0
-    ADV_STORAGE_CONTROL = 0
-    ADV_SITE_LIMIT_CONTROL = 0
-    ALLOW_BATTERY_ENERGY_RESET = 0
+    DETECT_METERS = True
+    DETECT_BATTERIES = False
+    DETECT_EXTRAS = True
+    KEEP_MODBUS_OPEN = False
+    ADV_PWR_CONTROL = False
+    ADV_STORAGE_CONTROL = False
+    ADV_SITE_LIMIT_CONTROL = False
+    ALLOW_BATTERY_ENERGY_RESET = False
 
 
 class ConfName(StrEnum):
