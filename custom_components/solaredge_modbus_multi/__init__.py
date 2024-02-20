@@ -56,24 +56,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data[CONF_PORT],
         entry.data.get(ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS),
         entry.data.get(ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID),
-        entry.options.get(ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)),
+        entry.options.get(ConfName.DETECT_METERS, ConfDefaultFlag.DETECT_METERS),
+        entry.options.get(ConfName.DETECT_BATTERIES, ConfDefaultFlag.DETECT_BATTERIES),
+        entry.options.get(ConfName.DETECT_EXTRAS, ConfDefaultFlag.DETECT_EXTRAS),
+        entry.options.get(ConfName.KEEP_MODBUS_OPEN, ConfDefaultFlag.KEEP_MODBUS_OPEN),
         entry.options.get(
-            ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
-        ),
-        entry.options.get(ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)),
-        entry.options.get(
-            ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
-        ),
-        entry.options.get(
-            ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
+            ConfName.ADV_STORAGE_CONTROL, ConfDefaultFlag.ADV_STORAGE_CONTROL
         ),
         entry.options.get(
             ConfName.ADV_SITE_LIMIT_CONTROL,
-            bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
+            ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL,
         ),
         entry.options.get(
             ConfName.ALLOW_BATTERY_ENERGY_RESET,
-            bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
+            ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET,
         ),
         entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
         entry.options.get(
