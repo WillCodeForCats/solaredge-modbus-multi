@@ -137,19 +137,19 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
-                    ConfName.KEEP_MODBUS_OPEN, ConfDefaultFlag.KEEP_MODBUS_OPEN
+                    ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
                 ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
-                    ConfName.DETECT_METERS, ConfDefaultFlag.DETECT_METERS
+                    ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
                 ConfName.DETECT_BATTERIES: self.config_entry.options.get(
-                    ConfName.DETECT_BATTERIES, ConfDefaultFlag.DETECT_BATTERIES
+                    ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
                 ),
                 ConfName.DETECT_EXTRAS: self.config_entry.options.get(
-                    ConfName.DETECT_EXTRAS, ConfDefaultFlag.DETECT_EXTRAS
+                    ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
                 ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_PWR_CONTROL, ConfDefaultFlag.ADV_PWR_CONTROL
+                    ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
                 ),
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
@@ -215,7 +215,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             user_input = {
                 ConfName.ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
                     ConfName.ALLOW_BATTERY_ENERGY_RESET,
-                    ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET,
+                    bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
                 ),
                 ConfName.BATTERY_ENERGY_RESET_CYCLES: self.config_entry.options.get(
                     ConfName.BATTERY_ENERGY_RESET_CYCLES,
@@ -261,11 +261,11 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             user_input = {
                 ConfName.ADV_STORAGE_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_STORAGE_CONTROL,
-                    ConfDefaultFlag.ADV_STORAGE_CONTROL,
+                    bool(ConfDefaultFlag.ADV_STORAGE_CONTROL),
                 ),
                 ConfName.ADV_SITE_LIMIT_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_SITE_LIMIT_CONTROL,
-                    ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL,
+                    bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
                 ),
             }
 
