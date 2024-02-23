@@ -700,10 +700,6 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
 
-        self.mbstring = lambda s: str(
-            s.decode(encoding="utf-8", errors="ignore").replace("\x00", "").rstrip()
-        )
-
     async def init_device(self) -> None:
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
@@ -945,7 +941,7 @@ class SolarEdgeInverter:
                                 ("ID", decoder.decode_16bit_uint()),
                                 (
                                     "IDStr",
-                                    self.mbstring(decoder.decode_string(16)),
+                                    parse_modbus_string(decoder.decode_string(16)),
                                 ),
                                 ("DCA", decoder.decode_16bit_uint()),
                                 ("DCV", decoder.decode_16bit_uint()),
