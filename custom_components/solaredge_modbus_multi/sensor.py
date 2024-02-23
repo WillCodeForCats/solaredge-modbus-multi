@@ -988,9 +988,6 @@ class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
     native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     icon = "mdi:current-dc"
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return (
@@ -1074,9 +1071,6 @@ class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.VOLTAGE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfElectricPotential.VOLT
-
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
@@ -1162,9 +1156,6 @@ class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
     native_unit_of_measurement = UnitOfPower.WATT
     icon = "mdi:solar-power"
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-
     @property
     def unique_id(self) -> str:
         return f"{self._platform.inverter.uid_base}_dc_power_mmppt{self._platform.unit}"
@@ -1246,9 +1237,6 @@ class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 0
-
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
 
     @property
     def unique_id(self) -> str:
