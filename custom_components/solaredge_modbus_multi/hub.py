@@ -1335,9 +1335,7 @@ class SolarEdgeMMPPTUnit:
         self.inverter = inverter
         self.hub = hub
         self.unit = unit
-
         self.mmppt_key = f"mmppt_{self.unit}"
-
         self.mmppt_id = self.inverter.decoded_model[self.mmppt_key]["ID"]
         self.mmppt_idstr = self.inverter.decoded_model[self.mmppt_key]["IDStr"]
 
