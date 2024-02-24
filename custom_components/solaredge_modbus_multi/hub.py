@@ -1338,6 +1338,9 @@ class SolarEdgeMMPPTUnit:
 
         self.mmppt_key = f"mmppt_{self.unit}"
 
+        self.mmppt_id = self.inverter.decoded_model[self.mmppt_key]["ID"]
+        self.mmppt_idstr = self.inverter.decoded_model[self.mmppt_key]["IDStr"]
+
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -1351,7 +1354,7 @@ class SolarEdgeMMPPTUnit:
             name=f"{self.inverter.name} MPPT{self.unit}",
             manufacturer=self.inverter.manufacturer,
             model=self.inverter.model,
-            hw_version=f"Synergy Unit #{self.unit}",
+            hw_version=f"ID {self.mmppt_id} {self.mmppt_idstr}",
             via_device=(DOMAIN, self.inverter.uid_base),
         )
 
