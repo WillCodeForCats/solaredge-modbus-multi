@@ -1314,6 +1314,7 @@ class SolarEdgeInverter:
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
+            serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
         )
@@ -1586,6 +1587,7 @@ class SolarEdgeMeter:
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
+            serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
             via_device=self.via_device,
@@ -1798,6 +1800,7 @@ class SolarEdgeBattery:
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
+            serial_number=self.serial,
             sw_version=self.fw_version,
             via_device=self.via_device,
         )
