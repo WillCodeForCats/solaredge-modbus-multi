@@ -162,10 +162,8 @@ class SolarEdgeModbusMultiHub:
         self._mb_reconnect_delay = self._yaml_config.get("modbus", {}).get(
             "reconnect_delay", ModbusDefaults.ReconnectDelay
         )
-        self._mb_reconnect_delay_max = (
-            self._yaml_config.get("modbus", {}).get(
-                "reconnect_delay_max", ModbusDefaults.ReconnectDelayMax
-            ),
+        self._mb_reconnect_delay_max = self._yaml_config.get("modbus", {}).get(
+            "reconnect_delay_max", ModbusDefaults.ReconnectDelayMax
         )
         self._mb_timeout = self._yaml_config.get("modbus", {}).get(
             "timeout", ModbusDefaults.Timeout
