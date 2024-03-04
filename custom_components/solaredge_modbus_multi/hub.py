@@ -451,8 +451,8 @@ class SolarEdgeModbusMultiHub:
             _LOGGER.debug(
                 f"reconnect_delay={self._mb_reconnect_delay} "
                 f"reconnect_delay_max={self._mb_reconnect_delay_max} "
-                f"timeout={self._mb_timeout} "
                 f"retry_on_empty={self._mb_retry_on_empty}"
+                f"timeout={self._mb_timeout} "
             )
             self._client = AsyncModbusTcpClient(
                 host=self._host,
