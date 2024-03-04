@@ -312,17 +312,34 @@ class SolarEdgeModbusMultiHub:
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
 
-        if not self.is_connected:
-            await self.connect()
+        async with self._lock:
+            if not self.is_connected:
+                await self.connect()
 
-        if not self.initalized:
-            try:
-                async with self._lock:
+            if not self.initalized:
+                try:
                     async with asyncio.timeout(self.coordinator_timeout):
                         await self._async_init_solaredge()
 
-            except (ConnectionException, ModbusIOException, TimeoutError) as e:
-                self.disconnect()
+                except (ConnectionException, ModbusIOException, TimeoutError) as e:
+                    self.disconnect()
+                    ir.async_create_issue(
+                        self._hass,
+                        DOMAIN,
+                        "check_configuration",
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.ERROR,
+                        translation_key="check_configuration",
+                        data={"entry_id": self._entry_id},
+                    )
+                    raise HubInitFailed(f"Setup failed: {e}")
+
+                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+
+                return True
+
+            if not self.is_connected:
+                self.online = False
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -332,34 +349,16 @@ class SolarEdgeModbusMultiHub:
                     translation_key="check_configuration",
                     data={"entry_id": self._entry_id},
                 )
-                raise HubInitFailed(f"Setup failed: {e}")
+                raise DataUpdateFailed(
+                    f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
+                )
 
-            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+            if not self.online:
+                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
-            return True
+            self.online = True
 
-        if not self.is_connected:
-            self.online = False
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                "check_configuration",
-                is_fixable=True,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="check_configuration",
-                data={"entry_id": self._entry_id},
-            )
-            raise DataUpdateFailed(
-                f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
-            )
-
-        if not self.online:
-            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-
-        self.online = True
-
-        try:
-            async with self._lock:
+            try:
                 async with asyncio.timeout(self.coordinator_timeout):
                     for inverter in self.inverters:
                         await inverter.read_modbus_data()
@@ -368,51 +367,53 @@ class SolarEdgeModbusMultiHub:
                     for battery in self.batteries:
                         await battery.read_modbus_data()
 
-        except ModbusReadError as e:
-            self.disconnect()
-            raise DataUpdateFailed(f"Update failed: {e}")
+            except ModbusReadError as e:
+                self.disconnect()
+                raise DataUpdateFailed(f"Update failed: {e}")
 
-        except DeviceInvalid as e:
-            self.disconnect()
-            raise DataUpdateFailed(f"Invalid device: {e}")
+            except DeviceInvalid as e:
+                self.disconnect()
+                raise DataUpdateFailed(f"Invalid device: {e}")
 
-        except ConnectionException as e:
-            self.disconnect()
-            raise DataUpdateFailed(f"Connection failed: {e}")
+            except ConnectionException as e:
+                self.disconnect()
+                raise DataUpdateFailed(f"Connection failed: {e}")
 
-        except ModbusIOException as e:
-            self.disconnect()
-            raise DataUpdateFailed(f"Modbus error: {e}")
+            except ModbusIOException as e:
+                self.disconnect()
+                raise DataUpdateFailed(f"Modbus error: {e}")
 
-        except TimeoutError as e:
-            self.disconnect()
-            self._timeout_counter += 1
+            except TimeoutError as e:
+                self.disconnect(clear_client=True)
+                self._timeout_counter += 1
 
-            _LOGGER.warning(
-                f"Refresh timeout {self._timeout_counter} limit {RetrySettings.Limit}"
-            )
+                _LOGGER.debug(
+                    f"Refresh timeout {self._timeout_counter} "
+                    f"limit {RetrySettings.Limit}"
+                )
 
-            if self._timeout_counter >= RetrySettings.Limit:
+                if self._timeout_counter >= RetrySettings.Limit:
+                    self._timeout_counter = 0
+                    raise TimeoutError
+
+                raise DataUpdateFailed(f"Timeout error: {e}")
+
+            if not self._keep_modbus_open:
+                self.disconnect()
+
+            if self._timeout_counter > 0:
+                _LOGGER.debug(
+                    f"Timeout count {self._timeout_counter} limit {RetrySettings.Limit}"
+                )
                 self._timeout_counter = 0
-                raise TimeoutError
 
-            raise DataUpdateFailed(f"Timeout error: {e}")
-
-        if not self._keep_modbus_open:
-            self.disconnect()
-
-        if self._timeout_counter > 0:
-            _LOGGER.warning(
-                f"Timeout count {self._timeout_counter} limit {RetrySettings.Limit}"
-            )
-            self._timeout_counter = 0
-
-        return True
+            return True
 
     async def connect(self) -> None:
         """Connect to inverter."""
 
         if self._client is None:
+            _LOGGER.debug(f"New client object for {self._host}:{self._port}")
             self._client = AsyncModbusTcpClient(
                 host=self._host,
                 port=self._port,
@@ -423,18 +424,21 @@ class SolarEdgeModbusMultiHub:
 
         await self._client.connect()
 
-    def disconnect(self) -> None:
+    def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
 
         if self._client is not None:
             self._client.close()
 
+            if clear_client:
+                self._client = None
+
     async def shutdown(self) -> None:
         """Shut down the hub and disconnect."""
+
         async with self._lock:
             self.online = False
-            self.disconnect()
-            self._client = None
+            self.disconnect(clear_client=True)
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         """Read modbus registers from inverter."""
@@ -485,12 +489,12 @@ class SolarEdgeModbusMultiHub:
     async def write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
 
-        self._wr_unit = unit
-        self._wr_address = address
-        self._wr_payload = payload
+        async with self._lock:
+            self._wr_unit = unit
+            self._wr_address = address
+            self._wr_payload = payload
 
-        try:
-            async with self._lock:
+            try:
                 if not self.is_connected:
                     await self.connect()
 
@@ -510,52 +514,52 @@ class SolarEdgeModbusMultiHub:
                 self.has_write = None
                 _LOGGER.debug(f"Finished with write {address}.")
 
-        except ModbusIOException as e:
-            self.disconnect()
-
-            raise HomeAssistantError(
-                f"Error sending command to inverter ID {self._wr_unit}: {e}."
-            )
-
-        except ConnectionException as e:
-            self.disconnect()
-
-            _LOGGER.error(f"Connection failed: {e}")
-            raise HomeAssistantError(
-                f"Connection to inverter ID {self._wr_unit} failed."
-            )
-
-        if result.isError():
-            if type(result) is ModbusIOException:
+            except ModbusIOException as e:
                 self.disconnect()
-                _LOGGER.error(
-                    f"Write failed: No response from inverter ID {self._wr_unit}."
-                )
+
                 raise HomeAssistantError(
-                    "No response from inverter ID {self._wr_unit}."
+                    f"Error sending command to inverter ID {self._wr_unit}: {e}."
                 )
 
-            if type(result) is ExceptionResponse:
-                if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(f"Write IllegalAddress: {result}")
+            except ConnectionException as e:
+                self.disconnect()
+
+                _LOGGER.error(f"Connection failed: {e}")
+                raise HomeAssistantError(
+                    f"Connection to inverter ID {self._wr_unit} failed."
+                )
+
+            if result.isError():
+                if type(result) is ModbusIOException:
+                    self.disconnect()
+                    _LOGGER.error(
+                        f"Write failed: No response from inverter ID {self._wr_unit}."
+                    )
                     raise HomeAssistantError(
-                        "Address not supported at device at ID {self._wr_unit}."
+                        "No response from inverter ID {self._wr_unit}."
                     )
 
-                if result.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(f"Write IllegalFunction: {result}")
-                    raise HomeAssistantError(
-                        "Function not supported by device at ID {self._wr_unit}."
-                    )
+                if type(result) is ExceptionResponse:
+                    if result.exception_code == ModbusExceptions.IllegalAddress:
+                        _LOGGER.debug(f"Write IllegalAddress: {result}")
+                        raise HomeAssistantError(
+                            "Address not supported at device at ID {self._wr_unit}."
+                        )
 
-                if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"Write IllegalValue: {result}")
-                    raise HomeAssistantError(
-                        "Value invalid for device at ID {self._wr_unit}."
-                    )
+                    if result.exception_code == ModbusExceptions.IllegalFunction:
+                        _LOGGER.debug(f"Write IllegalFunction: {result}")
+                        raise HomeAssistantError(
+                            "Function not supported by device at ID {self._wr_unit}."
+                        )
 
-            self.disconnect()
-            raise ModbusWriteError(result)
+                    if result.exception_code == ModbusExceptions.IllegalValue:
+                        _LOGGER.debug(f"Write IllegalValue: {result}")
+                        raise HomeAssistantError(
+                            "Value invalid for device at ID {self._wr_unit}."
+                        )
+
+                self.disconnect()
+                raise ModbusWriteError(result)
 
     @property
     def online(self):
@@ -622,6 +626,8 @@ class SolarEdgeModbusMultiHub:
         else:
             self._keep_modbus_open = False
 
+        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
+
     @property
     def allow_battery_energy_reset(self) -> bool:
         return self._allow_battery_energy_reset
@@ -645,15 +651,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def number_of_inverters(self) -> int:
         return self._number_of_inverters
-
-    @keep_modbus_open.setter
-    def keep_modbus_open(self, value: bool) -> None:
-        if value is True:
-            self._keep_modbus_open = True
-        else:
-            self._keep_modbus_open = False
-
-        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
     @property
     def sleep_after_write(self) -> int:
@@ -1332,6 +1329,7 @@ class SolarEdgeInverter:
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
+            serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
         )
@@ -1571,6 +1569,7 @@ class SolarEdgeMeter:
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
+            serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
             via_device=self.via_device,
@@ -1781,6 +1780,7 @@ class SolarEdgeBattery:
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
+            serial_number=self.serial,
             sw_version=self.fw_version,
             via_device=self.via_device,
         )

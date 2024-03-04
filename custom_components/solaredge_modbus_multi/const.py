@@ -1,4 +1,5 @@
 """Constants used by SolarEdge Modbus Multi components."""
+
 from __future__ import annotations
 
 import re
@@ -19,6 +20,8 @@ DOMAIN_REGEX = re.compile(
     # domain
     r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
     r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # host name only
+    r"|(?:^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)"
     # end anchor, because fullmatch is not available in python 2.7
     r")\Z",
     re.IGNORECASE,
