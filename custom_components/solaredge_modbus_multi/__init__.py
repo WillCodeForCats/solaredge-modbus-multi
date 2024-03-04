@@ -7,6 +7,7 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, Platform
@@ -47,6 +48,7 @@ CONFIG_SCHEMA = vol.Schema(
                         vol.Optional("timeout"): vol.Coerce(int),
                         vol.Optional("reconnect_delay"): vol.Coerce(float),
                         vol.Optional("reconnect_delay_max"): vol.Coerce(float),
+                        vol.Optional("retry_on_empty"): cv.boolean,
                     }
                 ),
             }
