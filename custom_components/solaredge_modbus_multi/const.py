@@ -1,8 +1,9 @@
 """Constants used by SolarEdge Modbus Multi components."""
+
 from __future__ import annotations
 
 import re
-from enum import IntEnum, StrEnum
+from enum import Flag, IntEnum, StrEnum
 from typing import Final
 
 DOMAIN = "solaredge_modbus_multi"
@@ -19,6 +20,8 @@ DOMAIN_REGEX = re.compile(
     # domain
     r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
     r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # host name only
+    r"|(?:^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)"
     # end anchor, because fullmatch is not available in python 2.7
     r")\Z",
     re.IGNORECASE,
@@ -46,6 +49,12 @@ class ModbusDefaults(IntEnum):
     Timeout = 3  # Timeout for a request, in seconds.
     ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
     ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
+
+
+class ModbusFlags(Flag):
+    """Values to pass to pymodbus"""
+
+    RetryOnEmpty = False  # Retry on empty response.
 
 
 class SolarEdgeTimeouts(IntEnum):
