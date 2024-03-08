@@ -22,4 +22,4 @@ Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://git
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
 
-Requires Home Assistant 2024.3.0 and newer with pymodbus 3.6.6 and newer.
+Requires Home Assistant 2024.3.0 and newer with pymodbus 3.6.4 and newer.
