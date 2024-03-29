@@ -36,7 +36,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
-    async def async_step_user(self, user_input=None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the initial config flow step."""
         errors = {}
 
@@ -177,7 +179,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
         """Initialize options flow."""
         self.config_entry = config_entry
 
-    async def async_step_init(self, user_input=None) -> FlowResult:
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the initial options flow step."""
         errors = {}
 
@@ -264,7 +268,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_battery_options(self, user_input=None) -> FlowResult:
+    async def async_step_battery_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Battery Options"""
         errors = {}
 
@@ -319,7 +325,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_adv_pwr_ctl(self, user_input=None) -> FlowResult:
+    async def async_step_adv_pwr_ctl(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Power Control Options"""
         errors = {}
 
