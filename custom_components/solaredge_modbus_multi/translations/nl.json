@@ -32,8 +32,8 @@
       "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
-      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      "already_configured": "Apparaat is al geconfigureerd",
+      "reconfigure_successful": "De herconfiguratie was succesvol"
     }
   },
   "options": {

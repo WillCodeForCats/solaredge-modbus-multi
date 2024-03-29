@@ -32,8 +32,8 @@
       "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535."
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
-      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      "already_configured": "Il dispositivo è già configurato",
+      "reconfigure_successful": "La riconfigurazione ha avuto successo"
     }
   },
   "options": {

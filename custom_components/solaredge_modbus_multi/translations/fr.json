@@ -32,8 +32,8 @@
       "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
-      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      "already_configured": "L'appareil est déjà configuré",
+      "reconfigure_successful": "La reconfiguration a réussi"
     }
   },
   "options": {
