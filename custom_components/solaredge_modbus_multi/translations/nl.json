@@ -10,6 +10,15 @@
           "device_id": "Omvormer Modbus-adres (apparaat-ID)",
           "number_of_inverters": "Aantal aangesloten omvormers"
         }
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-configuratie",
+        "data": {
+          "host": "omvormer IP-adres",
+          "port": "Modbus/TCP Port",
+          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
+          "number_of_inverters": "Aantal aangesloten omvormers"
+        }
       }
     },
     "error": {
@@ -23,7 +32,8 @@
       "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
     },
     "abort": {
-      "already_configured": "Apparaat is al geconfigureerd"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
     }
   },
   "options": {

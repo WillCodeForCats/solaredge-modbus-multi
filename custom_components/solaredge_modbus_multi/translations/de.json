@@ -10,6 +10,15 @@
           "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
           "number_of_inverters": "Anzahl Wechselrichter"
         }
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-Konfiguration",
+        "data": {
+          "host": "Wechselrichter-IP-Adresse",
+          "port": "Modbus/TCP-Port",
+          "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
+          "number_of_inverters": "Anzahl Wechselrichter"
+        }
       }
     },
     "error": {
@@ -23,7 +32,8 @@
       "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535."
     },
     "abort": {
-      "already_configured": "Der Wechselrichter ist bereits konfiguriert."
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
     }
   },
   "options": {

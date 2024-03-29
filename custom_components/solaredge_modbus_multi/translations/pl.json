@@ -10,6 +10,15 @@
           "device_id": "Adres Modbus Inwertera (Device ID)",
           "number_of_inverters": "Ilość inwerterów"
         }
+      },
+      "reconfigure": {
+        "title": "Konfiguracja SolarEdge Modbus",
+        "data": {
+          "host": "Adres IP inwertera",
+          "port": "Modbus/TCP Port",
+          "device_id": "Adres Modbus Inwertera (Device ID)",
+          "number_of_inverters": "Ilość inwerterów"
+        }
       }
     },
     "error": {
@@ -23,7 +32,8 @@
       "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535."
     },
     "abort": {
-      "already_configured": "Urządzenie jest już skonfigurowane!"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
     }
   },
   "options": {
