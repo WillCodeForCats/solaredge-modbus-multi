@@ -107,8 +107,11 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle the reconfigure flow step."""
         errors = {}
-        unique_id = self.config_entry.get("unique_id")
-        assert self.config_entry
+        config_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+        assert config_entry
+        unique_id = config_entry.unique_id
 
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
@@ -134,19 +137,19 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[ConfName.NUMBER_INVERTERS] = "too_many_inverters"
             else:
                 return self.async_update_reload_and_abort(
-                    self.config_entry,
+                    config_entry,
                     unique_id=unique_id,
-                    data={**self.config_entry.data, **user_input},
+                    data={**config_entry.data, **user_input},
                     reason="reconfigure_successful",
                 )
         else:
             user_input = {
-                CONF_HOST: self.config_entry.data.get(CONF_HOST),
-                CONF_PORT: self.config_entry.data.get(CONF_PORT, ConfDefaultInt.PORT),
-                ConfName.NUMBER_INVERTERS: self.config_entry.data.get(
+                CONF_HOST: config_entry.data.get(CONF_HOST),
+                CONF_PORT: config_entry.data.get(CONF_PORT, ConfDefaultInt.PORT),
+                ConfName.NUMBER_INVERTERS: config_entry.data.get(
                     ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS
                 ),
-                ConfName.DEVICE_ID: self.config_entry.data.get(
+                ConfName.DEVICE_ID: config_entry.data.get(
                     ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID
                 ),
             }
