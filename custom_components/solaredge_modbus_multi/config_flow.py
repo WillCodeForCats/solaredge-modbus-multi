@@ -1,4 +1,5 @@
 """Config flow for the SolarEdge Modbus Multi integration."""
+
 from __future__ import annotations
 
 import homeassistant.helpers.config_validation as cv
@@ -26,6 +27,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 1
+    MINOR_VERSION = 1
 
     @staticmethod
     @callback
