@@ -739,6 +739,8 @@ class SolarEdgeInverter:
         self.site_limit_control = None
 
     async def init_device(self) -> None:
+        """Set up data about the device from modbus."""
+
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40000, rcount=69
@@ -856,14 +858,27 @@ class SolarEdgeInverter:
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
-        self.fw_version = self.decoded_common["C_Version"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
     async def read_modbus_data(self) -> None:
+        """Read and update dynamic modbus registers."""
+
         try:
+            inverter_data = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=40044, rcount=16
+            )
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                inverter_data.registers, byteorder=Endian.BIG
+            )
+
+            self.decoded_common["C_Version"] = parse_modbus_string(
+                decoder.decode_string(16)
+            )
+
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
             )
@@ -1361,6 +1376,13 @@ class SolarEdgeInverter:
     def online(self) -> bool:
         """Device is online."""
         return self.hub.online
+
+    @property
+    def fw_version(self) -> str | None:
+        if "C_Version" in self.decoded_common:
+            return self.decoded_common["C_Version"]
+
+        return None
 
     @property
     def device_info(self) -> DeviceInfo:
