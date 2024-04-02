@@ -55,6 +55,12 @@ class DeviceInitFailed(SolarEdgeException):
     pass
 
 
+class DeviceIsCharger(SolarEdgeException):
+    """Raised when an inverter device matches a charger model"""
+
+    pass
+
+
 class ModbusReadError(SolarEdgeException):
     """Raised when a modbus read fails (generic)"""
 
@@ -1867,3 +1873,183 @@ class SolarEdgeBattery:
     @property
     def battery_energy_reset_cycles(self) -> int:
         return self.hub.battery_energy_reset_cycles
+
+
+class SolarEdgeCharger:
+    """Class that defines a SolarEdge EV Charger."""
+
+    def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
+        self.charger_unit_id = device_id
+        self.hub = hub
+        self.decoded_common = []
+        self.decoded_model = []
+        self.has_parent = False
+
+    async def init_device(self) -> None:
+        """Set up data about the device from modbus."""
+
+        try:
+            charger_data = await self.hub.modbus_read_holding_registers(
+                unit=self.charger_unit_id, address=40000, rcount=69
+            )
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                charger_data.registers, byteorder=Endian.BIG
+            )
+
+            self.decoded_common = OrderedDict(
+                [
+                    ("C_SunSpec_ID", decoder.decode_32bit_uint()),
+                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
+                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
+                    (
+                        "C_Manufacturer",
+                        parse_modbus_string(decoder.decode_string(32)),
+                    ),
+                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
+                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
+                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
+                    (
+                        "C_SerialNumber",
+                        parse_modbus_string(decoder.decode_string(32)),
+                    ),
+                    ("C_Device_address", decoder.decode_16bit_uint()),
+                ]
+            )
+
+            for name, value in iter(self.decoded_common.items()):
+                _LOGGER.debug(
+                    (
+                        f"C{self.charger_unit_id}: "
+                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                        f"{type(value)}"
+                    ),
+                )
+
+            self.hub.inverter_common[self.charger_unit_id] = self.decoded_common
+
+        except ModbusIOError:
+            raise DeviceInvalid(f"No response from charger ID {self.charger_unit_id}")
+
+        except ModbusIllegalAddress:
+            raise DeviceInvalid(f"ID {self.charger_unit_id} is not SunSpec.")
+
+        if (
+            self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
+            or self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+            or self.decoded_common["C_SunSpec_ID"] != 0x53756E53
+            or self.decoded_common["C_SunSpec_DID"] != 0x0001
+            or self.decoded_common["C_SunSpec_Length"] != 65
+        ):
+            raise DeviceInvalid(f"ID {self.charger_unit_id} is not SunSpec.")
+
+        self.manufacturer = self.decoded_common["C_Manufacturer"]
+        self.model = self.decoded_common["C_Model"]
+        self.option = self.decoded_common["C_Option"]
+        self.serial = self.decoded_common["C_SerialNumber"]
+        self.device_address = self.decoded_common["C_Device_address"]
+        self.name = f"{self.hub.hub_id.capitalize()} C{self.charger_unit_id}"
+        self.uid_base = f"{self.model}_{self.serial}"
+
+    async def read_modbus_data(self) -> None:
+        """Read and update dynamic modbus registers."""
+
+        try:
+            charger_data = await self.hub.modbus_read_holding_registers(
+                unit=self.charger_unit_id, address=40044, rcount=16
+            )
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                charger_data.registers, byteorder=Endian.BIG
+            )
+
+            self.decoded_common["C_Version"] = parse_modbus_string(
+                decoder.decode_string(16)
+            )
+
+            charger_data = await self.hub.modbus_read_holding_registers(
+                unit=self.charger_unit_id, address=40069, rcount=40
+            )
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                charger_data.registers, byteorder=Endian.BIG
+            )
+
+            self.decoded_model = OrderedDict(
+                [
+                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
+                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
+                    ("AC_Current", decoder.decode_16bit_uint()),
+                    ("AC_Current_A", decoder.decode_16bit_uint()),
+                    ("AC_Current_B", decoder.decode_16bit_uint()),
+                    ("AC_Current_C", decoder.decode_16bit_uint()),
+                    ("AC_Current_SF", decoder.decode_16bit_int()),
+                    ("AC_Voltage_AB", decoder.decode_16bit_uint()),
+                    ("AC_Voltage_BC", decoder.decode_16bit_uint()),
+                    ("AC_Voltage_CA", decoder.decode_16bit_uint()),
+                    ("AC_Voltage_AN", decoder.decode_16bit_uint()),
+                    ("AC_Voltage_BN", decoder.decode_16bit_uint()),
+                    ("AC_Voltage_CN", decoder.decode_16bit_uint()),
+                    ("AC_Voltage_SF", decoder.decode_16bit_int()),
+                    ("AC_Power", decoder.decode_16bit_int()),
+                    ("AC_Power_SF", decoder.decode_16bit_int()),
+                    ("AC_Frequency", decoder.decode_16bit_uint()),
+                    ("AC_Frequency_SF", decoder.decode_16bit_int()),
+                    ("AC_VA", decoder.decode_16bit_int()),
+                    ("AC_VA_SF", decoder.decode_16bit_int()),
+                    ("AC_var", decoder.decode_16bit_int()),
+                    ("AC_var_SF", decoder.decode_16bit_int()),
+                    ("AC_PF", decoder.decode_16bit_int()),
+                    ("AC_PF_SF", decoder.decode_16bit_int()),
+                    ("AC_Energy_WH", decoder.decode_32bit_uint()),
+                    ("AC_Energy_WH_SF", decoder.decode_16bit_uint()),
+                    ("I_DC_Current", decoder.decode_16bit_uint()),
+                    ("I_DC_Current_SF", decoder.decode_16bit_int()),
+                    ("I_DC_Voltage", decoder.decode_16bit_uint()),
+                    ("I_DC_Voltage_SF", decoder.decode_16bit_int()),
+                    ("I_DC_Power", decoder.decode_16bit_int()),
+                    ("I_DC_Power_SF", decoder.decode_16bit_int()),
+                    ("I_Temp_Cab", decoder.decode_16bit_int()),
+                    ("I_Temp_Sink", decoder.decode_16bit_int()),
+                    ("I_Temp_Trns", decoder.decode_16bit_int()),
+                    ("I_Temp_Other", decoder.decode_16bit_int()),
+                    ("I_Temp_SF", decoder.decode_16bit_int()),
+                    ("I_Status", decoder.decode_16bit_int()),
+                    ("I_Status_Vendor", decoder.decode_16bit_int()),
+                ]
+            )
+
+            if (
+                self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
+                or self.decoded_model["C_SunSpec_DID"] not in [101, 102, 103]
+                or self.decoded_model["C_SunSpec_Length"] != 50
+            ):
+                raise DeviceInvalid(f"Charger {self.charger_unit_id} not usable.")
+
+        except ModbusIOError:
+            raise ModbusReadError(f"No response from charger ID {self.charger_unit_id}")
+
+    @property
+    def online(self) -> bool:
+        """Device is online."""
+        return self.hub.online
+
+    @property
+    def fw_version(self) -> str | None:
+        if "C_Version" in self.decoded_common:
+            return self.decoded_common["C_Version"]
+
+        return None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.uid_base)},
+            name=self.name,
+            manufacturer=self.manufacturer,
+            model=self.model,
+            serial_number=self.serial,
+            sw_version=self.fw_version,
+            hw_version=self.option,
+        )
