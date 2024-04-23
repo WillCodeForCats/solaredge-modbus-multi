@@ -241,6 +241,9 @@ class SolarEdgeModbusMultiHub:
             inverter_unit_id = inverter_index + self._start_device_id
 
             try:
+                _LOGGER.debug(
+                    f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
+                )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
@@ -257,6 +260,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for meter I{inverter_unit_id}M{meter_id}"
+                        )
                         new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
                         await new_meter.init_device()
 
@@ -285,6 +291,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_batteries:
                 for battery_id in BATTERY_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for battery I{inverter_unit_id}B{battery_id}"
+                        )
                         new_battery = SolarEdgeBattery(
                             inverter_unit_id, battery_id, self
                         )
