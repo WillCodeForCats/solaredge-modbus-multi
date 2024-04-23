@@ -248,7 +248,7 @@ class SolarEdgeModbusMultiHub:
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
-            except ModbusReadError as e:
+            except (ModbusReadError, TimeoutError) as e:
                 self.disconnect()
                 raise HubInitFailed(f"{e}")
 
@@ -280,7 +280,7 @@ class SolarEdgeModbusMultiHub:
                         self.meters.append(new_meter)
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -316,7 +316,7 @@ class SolarEdgeModbusMultiHub:
                         self.batteries.append(new_battery)
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -349,6 +349,10 @@ class SolarEdgeModbusMultiHub:
         except ModbusIOException as e:
             self.disconnect()
             raise HubInitFailed(f"Modbus error: {e}")
+
+        except TimeoutError as e:
+            self.disconnect()
+            raise HubInitFailed(f"Timeout error: {e}")
 
         self.initalized = True
 
