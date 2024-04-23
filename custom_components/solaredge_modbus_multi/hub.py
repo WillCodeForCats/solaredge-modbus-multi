@@ -4,6 +4,7 @@ import asyncio
 import logging
 from collections import OrderedDict
 
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
@@ -22,7 +23,11 @@ from .const import (
     BATTERY_REG_BASE,
     DOMAIN,
     METER_REG_BASE,
+    ConfDefaultFlag,
+    ConfDefaultInt,
+    ConfName,
     ModbusDefaults,
+    ModbusFlags,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -103,42 +108,71 @@ class SolarEdgeModbusMultiHub:
         self,
         hass: HomeAssistant,
         entry_id: str,
-        name: str,
-        host: str,
-        port: int,
-        number_of_inverters: int = 1,
-        start_device_id: int = 1,
-        detect_meters: bool = True,
-        detect_batteries: bool = False,
-        detect_extras: bool = True,
-        keep_modbus_open: bool = False,
-        adv_storage_control: bool = False,
-        adv_site_limit_control: bool = False,
-        allow_battery_energy_reset: bool = False,
-        sleep_after_write: int = 3,
-        battery_rating_adjust: int = 0,
-        battery_energy_reset_cycles: int = 0,
+        entry_data,
+        entry_options,
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._name = name
-        self._host = host
-        self._port = port
+        self._yaml_config = hass.data[DOMAIN]["yaml"]
+        self._name = entry_data[CONF_NAME]
+        self._host = entry_data[CONF_HOST]
+        self._port = entry_data[CONF_PORT]
         self._entry_id = entry_id
-        self._number_of_inverters = number_of_inverters
-        self._start_device_id = start_device_id
-        self._detect_meters = detect_meters
-        self._detect_batteries = detect_batteries
-        self._detect_extras = detect_extras
-        self._keep_modbus_open = keep_modbus_open
-        self._adv_storage_control = adv_storage_control
-        self._adv_site_limit_control = adv_site_limit_control
-        self._allow_battery_energy_reset = allow_battery_energy_reset
-        self._sleep_after_write = sleep_after_write
-        self._battery_rating_adjust = battery_rating_adjust
-        self._battery_energy_reset_cycles = battery_energy_reset_cycles
-
-        self._id = name.lower()
+        self._number_of_inverters = entry_data.get(
+            ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS
+        )
+        self._start_device_id = entry_data.get(
+            ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID
+        )
+        self._detect_meters = entry_options.get(
+            ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
+        )
+        self._detect_batteries = entry_options.get(
+            ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
+        )
+        self._detect_extras = entry_options.get(
+            ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
+        )
+        self._keep_modbus_open = entry_options.get(
+            ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
+        )
+        self._adv_storage_control = entry_options.get(
+            ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
+        )
+        self._adv_site_limit_control = entry_options.get(
+            ConfName.ADV_SITE_LIMIT_CONTROL,
+            bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
+        )
+        self._allow_battery_energy_reset = entry_options.get(
+            ConfName.ALLOW_BATTERY_ENERGY_RESET,
+            bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
+        )
+        self._sleep_after_write = entry_options.get(
+            ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
+        )
+        self._battery_rating_adjust = entry_options.get(
+            ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
+        )
+        self._battery_energy_reset_cycles = entry_options.get(
+            ConfName.BATTERY_ENERGY_RESET_CYCLES,
+            ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
+        )
+        self._retry_limit = self._yaml_config.get("retry", {}).get(
+            "limit", RetrySettings.Limit
+        )
+        self._mb_reconnect_delay = self._yaml_config.get("modbus", {}).get(
+            "reconnect_delay", ModbusDefaults.ReconnectDelay
+        )
+        self._mb_reconnect_delay_max = self._yaml_config.get("modbus", {}).get(
+            "reconnect_delay_max", ModbusDefaults.ReconnectDelayMax
+        )
+        self._mb_retry_on_empty = self._yaml_config.get("modbus", {}).get(
+            "retry_on_empty", bool(ModbusFlags.RetryOnEmpty)
+        )
+        self._mb_timeout = self._yaml_config.get("modbus", {}).get(
+            "timeout", ModbusDefaults.Timeout
+        )
+        self._id = entry_data[CONF_NAME].lower()
         self._lock = asyncio.Lock()
         self.inverters = []
         self.meters = []
@@ -207,11 +241,14 @@ class SolarEdgeModbusMultiHub:
             inverter_unit_id = inverter_index + self._start_device_id
 
             try:
+                _LOGGER.debug(
+                    f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
+                )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
-            except ModbusReadError as e:
+            except (ModbusReadError, TimeoutError) as e:
                 self.disconnect()
                 raise HubInitFailed(f"{e}")
 
@@ -223,6 +260,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for meter I{inverter_unit_id}M{meter_id}"
+                        )
                         new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
                         await new_meter.init_device()
 
@@ -240,7 +280,7 @@ class SolarEdgeModbusMultiHub:
                         self.meters.append(new_meter)
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -251,6 +291,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_batteries:
                 for battery_id in BATTERY_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for battery I{inverter_unit_id}B{battery_id}"
+                        )
                         new_battery = SolarEdgeBattery(
                             inverter_unit_id, battery_id, self
                         )
@@ -273,7 +316,7 @@ class SolarEdgeModbusMultiHub:
                         self.batteries.append(new_battery)
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -306,6 +349,10 @@ class SolarEdgeModbusMultiHub:
         except ModbusIOException as e:
             self.disconnect()
             raise HubInitFailed(f"Modbus error: {e}")
+
+        except TimeoutError as e:
+            self.disconnect()
+            raise HubInitFailed(f"Timeout error: {e}")
 
         self.initalized = True
 
@@ -389,10 +436,10 @@ class SolarEdgeModbusMultiHub:
 
                 _LOGGER.debug(
                     f"Refresh timeout {self._timeout_counter} "
-                    f"limit {RetrySettings.Limit}"
+                    f"limit {self._retry_limit}"
                 )
 
-                if self._timeout_counter >= RetrySettings.Limit:
+                if self._timeout_counter >= self._retry_limit:
                     self._timeout_counter = 0
                     raise TimeoutError
 
@@ -403,7 +450,7 @@ class SolarEdgeModbusMultiHub:
 
             if self._timeout_counter > 0:
                 _LOGGER.debug(
-                    f"Timeout count {self._timeout_counter} limit {RetrySettings.Limit}"
+                    f"Timeout count {self._timeout_counter} limit {self._retry_limit}"
                 )
                 self._timeout_counter = 0
 
@@ -414,12 +461,19 @@ class SolarEdgeModbusMultiHub:
 
         if self._client is None:
             _LOGGER.debug(f"New client object for {self._host}:{self._port}")
+            _LOGGER.debug(
+                f"reconnect_delay={self._mb_reconnect_delay} "
+                f"reconnect_delay_max={self._mb_reconnect_delay_max} "
+                f"retry_on_empty={self._mb_retry_on_empty} "
+                f"timeout={self._mb_timeout}"
+            )
             self._client = AsyncModbusTcpClient(
                 host=self._host,
                 port=self._port,
-                reconnect_delay=ModbusDefaults.ReconnectDelay,
-                reconnect_delay_max=ModbusDefaults.ReconnectDelayMax,
-                timeout=ModbusDefaults.Timeout,
+                reconnect_delay=self._mb_reconnect_delay,
+                reconnect_delay_max=self._mb_reconnect_delay_max,
+                retry_on_empty=self._mb_retry_on_empty,
+                timeout=self._mb_timeout,
             )
 
         await self._client.connect()
@@ -698,6 +752,8 @@ class SolarEdgeInverter:
         self.site_limit_control = None
 
     async def init_device(self) -> None:
+        """Set up data about the device from modbus."""
+
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40000, rcount=69
@@ -815,14 +871,27 @@ class SolarEdgeInverter:
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
-        self.fw_version = self.decoded_common["C_Version"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
     async def read_modbus_data(self) -> None:
+        """Read and update dynamic modbus registers."""
+
         try:
+            inverter_data = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=40044, rcount=16
+            )
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                inverter_data.registers, byteorder=Endian.BIG
+            )
+
+            self.decoded_common["C_Version"] = parse_modbus_string(
+                decoder.decode_string(16)
+            )
+
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
             )
@@ -1320,6 +1389,13 @@ class SolarEdgeInverter:
     def online(self) -> bool:
         """Device is online."""
         return self.hub.online
+
+    @property
+    def fw_version(self) -> str | None:
+        if "C_Version" in self.decoded_common:
+            return self.decoded_common["C_Version"]
+
+        return None
 
     @property
     def device_info(self) -> DeviceInfo:
