@@ -1740,7 +1740,8 @@ class SolarEdgeBatteryPower(DCPower):
 class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
     icon = "mdi:battery-charging-20"
 
@@ -1780,9 +1781,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         if self._platform.allow_battery_energy_reset:
                             self._count = 0
 
-                        return (
-                            self._platform.decoded_model["B_Export_Energy_WH"] * 0.001
-                        )
+                        return self._platform.decoded_model["B_Export_Energy_WH"]
 
                     else:
                         if self._platform.allow_battery_energy_reset:
@@ -1790,7 +1789,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                             _LOGGER.debug(
                                 (
                                     "B_Export_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: E501
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: B950
                                     f"< {self._last} cycle {self._count} of "
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
@@ -1815,7 +1814,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
 class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
     icon = "mdi:battery-charging-100"
 
@@ -1855,9 +1855,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         if self._platform.allow_battery_energy_reset:
                             self._count = 0
 
-                        return (
-                            self._platform.decoded_model["B_Import_Energy_WH"] * 0.001
-                        )
+                        return self._platform.decoded_model["B_Import_Energy_WH"]
 
                     else:
                         if self._platform.allow_battery_energy_reset:
@@ -1865,11 +1863,11 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                             _LOGGER.debug(
                                 (
                                     "B_Import_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: E501
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: B950
                                     f"< {self._last} cycle {self._count} of "
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
-                            ),
+                            )
 
                             if self._count > self._platform.battery_energy_reset_cycles:
                                 _LOGGER.debug(
@@ -1890,7 +1888,8 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY_STORAGE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
 
     @property
@@ -1913,7 +1912,7 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
             return None
 
         else:
-            return self._platform.decoded_model["B_Energy_Max"] * 0.001
+            return self._platform.decoded_model["B_Energy_Max"]
 
 
 class SolarEdgeBatteryPowerBase(SolarEdgeSensorBase):
@@ -2027,7 +2026,8 @@ class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeBatteryPowerBase):
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENERGY_STORAGE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
 
     @property
@@ -2053,7 +2053,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             return None
 
         else:
-            return self._platform.decoded_model["B_Energy_Available"] * 0.001
+            return self._platform.decoded_model["B_Energy_Available"]
 
 
 class SolarEdgeBatterySOH(SolarEdgeSensorBase):
