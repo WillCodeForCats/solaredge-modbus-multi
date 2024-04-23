@@ -29,6 +29,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 1
+    MINOR_VERSION = 1
 
     @staticmethod
     @callback

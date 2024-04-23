@@ -241,11 +241,14 @@ class SolarEdgeModbusMultiHub:
             inverter_unit_id = inverter_index + self._start_device_id
 
             try:
+                _LOGGER.debug(
+                    f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
+                )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
-            except ModbusReadError as e:
+            except (ModbusReadError, TimeoutError) as e:
                 self.disconnect()
                 raise HubInitFailed(f"{e}")
 
@@ -257,6 +260,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for meter I{inverter_unit_id}M{meter_id}"
+                        )
                         new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
                         await new_meter.init_device()
 
@@ -274,7 +280,7 @@ class SolarEdgeModbusMultiHub:
                         self.meters.append(new_meter)
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -285,6 +291,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_batteries:
                 for battery_id in BATTERY_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for battery I{inverter_unit_id}B{battery_id}"
+                        )
                         new_battery = SolarEdgeBattery(
                             inverter_unit_id, battery_id, self
                         )
@@ -307,7 +316,7 @@ class SolarEdgeModbusMultiHub:
                         self.batteries.append(new_battery)
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -340,6 +349,10 @@ class SolarEdgeModbusMultiHub:
         except ModbusIOException as e:
             self.disconnect()
             raise HubInitFailed(f"Modbus error: {e}")
+
+        except TimeoutError as e:
+            self.disconnect()
+            raise HubInitFailed(f"Timeout error: {e}")
 
         self.initalized = True
 
@@ -739,6 +752,8 @@ class SolarEdgeInverter:
         self.site_limit_control = None
 
     async def init_device(self) -> None:
+        """Set up data about the device from modbus."""
+
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40000, rcount=69
@@ -856,14 +871,27 @@ class SolarEdgeInverter:
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
-        self.fw_version = self.decoded_common["C_Version"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
     async def read_modbus_data(self) -> None:
+        """Read and update dynamic modbus registers."""
+
         try:
+            inverter_data = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=40044, rcount=16
+            )
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                inverter_data.registers, byteorder=Endian.BIG
+            )
+
+            self.decoded_common["C_Version"] = parse_modbus_string(
+                decoder.decode_string(16)
+            )
+
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
             )
@@ -1361,6 +1389,13 @@ class SolarEdgeInverter:
     def online(self) -> bool:
         """Device is online."""
         return self.hub.online
+
+    @property
+    def fw_version(self) -> str | None:
+        if "C_Version" in self.decoded_common:
+            return self.decoded_common["C_Version"]
+
+        return None
 
     @property
     def device_info(self) -> DeviceInfo:
