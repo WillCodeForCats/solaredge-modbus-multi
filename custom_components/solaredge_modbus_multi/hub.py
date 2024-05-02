@@ -1427,7 +1427,8 @@ class SolarEdgeMMPPTUnit:
             name=f"{self.inverter.name} MPPT{self.unit}",
             manufacturer=self.inverter.manufacturer,
             model=self.inverter.model,
-            hw_version=f"ID {self.mmppt_id} {self.mmppt_idstr}",
+            hw_version=f"ID {self.mmppt_id}",
+            serial_number=f"{self.mmppt_idstr}",
             via_device=(DOMAIN, self.inverter.uid_base),
         )
 
