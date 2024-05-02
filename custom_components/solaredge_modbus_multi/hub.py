@@ -1413,8 +1413,6 @@ class SolarEdgeMMPPTUnit:
         self.hub = hub
         self.unit = unit
         self.mmppt_key = f"mmppt_{self.unit}"
-        self.mmppt_id = self.inverter.decoded_model[self.mmppt_key]["ID"]
-        self.mmppt_idstr = self.inverter.decoded_model[self.mmppt_key]["IDStr"]
 
     @property
     def online(self) -> bool:
@@ -1432,6 +1430,14 @@ class SolarEdgeMMPPTUnit:
             hw_version=f"ID {self.mmppt_id} {self.mmppt_idstr}",
             via_device=(DOMAIN, self.inverter.uid_base),
         )
+
+    @property
+    def mmppt_id(self) -> str:
+        return self.inverter.decoded_model[self.mmppt_key]["ID"]
+
+    @property
+    def mmppt_idstr(self) -> str:
+        return self.inverter.decoded_model[self.mmppt_key]["IDStr"]
 
 
 class SolarEdgeMeter:
