@@ -73,11 +73,11 @@ body:
       label: Read the Instructions
       description: Make sure your configuration is correct, your LAN is working, and you have read about "Known Issues" in the wiki. Do not open an issue to ask how to set up or configure the integration.
       options:
-        - label: I have read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki
-          required: true
         - label: My configuration follows https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
           required: true
-        - label: This issue is not about a template error (template errors should not be reported as an issue, read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Design-Notes)
+        - label: I have read the Known Issues https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Known-Issues
+          required: true
+        - label: This issue is not about a template error (do not report template errors, read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Design-Notes)
           required: true
   - type: textarea
     id: additional-context
