@@ -10,6 +10,15 @@
           "device_id": "Inverter Modbus-adresse (enhets-ID)",
           "number_of_inverters": "Antall omformere koblet sammen"
         }
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-konfigurasjon",
+        "data": {
+          "host": "IP-adres van omvormer",
+          "port": "Modbus/TCP-poort",
+          "device_id": "Inverter Modbus-adresse (enhets-ID)",
+          "number_of_inverters": "Antall omformere koblet sammen"
+        }
       }
     },
     "error": {
@@ -23,7 +32,8 @@
       "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
     },
     "abort": {
-      "already_configured": "Enheten er allerede konfigurert"
+      "already_configured": "Enheten er allerede konfigurert",
+      "reconfigure_successful": "Omkonfigureringen var vellykket"
     }
   },
   "options": {
