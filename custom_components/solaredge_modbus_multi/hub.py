@@ -494,7 +494,7 @@ class SolarEdgeModbusMultiHub:
             self.online = False
             self.disconnect(clear_client=True)
             
-        await await asyncio.sleep(2)
+        await asyncio.sleep(2)
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         """Read modbus registers from inverter."""
