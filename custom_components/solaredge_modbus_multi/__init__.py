@@ -58,6 +58,16 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
+type SolarEdgeConfigEntry = ConfigEntry[SolarEdgeData]
+
+@dataclass
+class SolarEdgeData:
+    hub: SolarEdgeModbusMultiHub
+    coordinator: SolarEdgeCoordinator
+    yaml_config: dict[str, Any]
+    other_data: dict[str, Any]
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up SolarEdge Modbus Muti advanced YAML config."""
     hass.data.setdefault(DOMAIN, {})
