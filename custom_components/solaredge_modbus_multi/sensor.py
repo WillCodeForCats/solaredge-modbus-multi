@@ -1966,6 +1966,15 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         return self._platform.decoded_model["B_Export_Energy_WH"]
 
                     else:
+                        if not self._platform.allow_battery_energy_reset:
+                            _LOGGER.warning(
+                                (
+                                    "Battery Export Energy went backwards: Current value "  # noqa: B950
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: B950
+                                    f"is less than last value of {self._last}"
+                                )
+                            )
+
                         if self._platform.allow_battery_energy_reset:
                             self._count += 1
                             _LOGGER.debug(
@@ -2040,6 +2049,15 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         return self._platform.decoded_model["B_Import_Energy_WH"]
 
                     else:
+                        if not self._platform.allow_battery_energy_reset:
+                            _LOGGER.warning(
+                                (
+                                    "Battery Import Energy went backwards: Current value "  # noqa: B950
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: B950
+                                    f"is less than last value of {self._last}"
+                                )
+                            )
+
                         if self._platform.allow_battery_energy_reset:
                             self._count += 1
                             _LOGGER.debug(
