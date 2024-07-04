@@ -3,6 +3,8 @@ from __future__ import annotations
 import ipaddress
 import struct
 
+from homeassistant.exceptions import HomeAssistantError
+
 from .const import DOMAIN_REGEX
 
 
@@ -43,3 +45,72 @@ def host_valid(host):
 
     except ValueError:
         return DOMAIN_REGEX.match(host)
+
+
+def deviceIdsFromString(value: str) -> list[int]:
+    """The function `deviceIdsFromString` takes a string input and returns a list of
+    device IDs, where the input can be a single ID or a range of IDs separated by commas
+
+    Parameters
+    ----------
+    value
+        The `value` parameter is a string that represents a list of device IDs. The
+        device IDs can be specified as individual IDs or as ranges separated by a hyphen
+        For example, the string "1,3-5,7" represents the device IDs 1, 3, 4, 5 and 7
+
+    Returns
+    -------
+        The function `checkDeviceIds` returns a list of device IDs.
+
+    Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
+    """
+    parts = [p.strip() for p in value.split(",")]
+    ids = []
+    for p in parts:
+        r = [i.strip() for i in p.split("-")]
+        if len(r) < 2:
+            # We have a single id
+            ids.append(checkDeviceId(r[0]))
+
+        elif len(r) > 2:
+            # Invalid range, multiple '-'s
+            raise HomeAssistantError(
+                f"'{p}' in '{value}' looks like a range but has multiple '-'s."
+            )
+
+        else:
+            # Looks like a range
+            start = checkDeviceId(r[0])
+            end = checkDeviceId(r[1])
+            if end < start:
+                raise HomeAssistantError(
+                    f"'{start}' must be less than or equal to {end}."
+                )
+
+            ids.extend(range(start, end + 1))
+
+    return sorted(set(ids))
+
+
+def checkDeviceId(value: str | int) -> int:
+    """The `checkDeviceId` function takes a value and checks if it is a valid device
+    ID between 1 and 247, raising an error if it is not.
+
+    Parameters
+    ----------
+    value
+        The value parameter is the input value that is
+        being checked for validity as a device ID.
+
+    Returns
+    -------
+        the device ID as an integer.
+
+    Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
+    """
+    id = int(value)
+
+    if (id < 1) or id > 247:
+        raise HomeAssistantError(f"'{value}' must be a device ID between 1 and 247")
+
+    return id
