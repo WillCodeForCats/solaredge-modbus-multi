@@ -92,7 +92,7 @@ def deviceIdsFromString(value: str) -> list[int]:
     return sorted(set(ids))
 
 
-def checkDeviceId(value: (str | int)) -> int:
+def checkDeviceId(value: str | int) -> int:
     """The `checkDeviceId` function takes a value and checks if it is a valid device
     ID between 1 and 247, raising an error if it is not.
 
