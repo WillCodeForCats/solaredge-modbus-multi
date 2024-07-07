@@ -1303,10 +1303,9 @@ class SolarEdgeInverter:
 
         """ Grid On/Off Status """
         if self.hub.option_detect_extras is True and self._grid_on_off is not False:
-            # 42162 as a Uint32 is the correct register to indicate ON/OFF grid.
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=42162, rcount=2
+                    unit=self.inverter_unit_id, address=40113, rcount=2
                 )
 
                 decoder = BinaryPayloadDecoder.fromRegisters(
