@@ -114,7 +114,7 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
     @property
     def name(self) -> str:
-        return "Grid Power Available"
+        return "Grid Power"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
