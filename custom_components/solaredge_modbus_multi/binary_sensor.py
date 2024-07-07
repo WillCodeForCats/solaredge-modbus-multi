@@ -122,4 +122,4 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
     @property
     def is_on(self) -> bool:
-        return self._platform.decoded_model["grid_on_off"]
+        return not self._platform.decoded_model["grid_on_off"]
