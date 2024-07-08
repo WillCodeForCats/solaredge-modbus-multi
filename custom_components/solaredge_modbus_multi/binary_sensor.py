@@ -105,7 +105,7 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
     @property
     def available(self) -> bool:
         return (
-            super().available and "grid_on_off" in self._platform.decoded_model.keys()
+            super().available and "I_Grid_Status" in self._platform.decoded_model.keys()
         )
 
     @property
@@ -118,8 +118,8 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return "grid_on_off" in self._platform.decoded_model.keys()
+        return "I_Grid_Status" in self._platform.decoded_model.keys()
 
     @property
     def is_on(self) -> bool:
-        return not self._platform.decoded_model["grid_on_off"]
+        return not self._platform.decoded_model["I_Grid_Status"]

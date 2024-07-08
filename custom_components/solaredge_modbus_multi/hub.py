@@ -1317,7 +1317,7 @@ class SolarEdgeInverter:
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("grid_on_off", decoder.decode_32bit_uint()),
+                            ("I_Grid_Status", decoder.decode_32bit_uint()),
                         ]
                     )
                 )
@@ -1325,7 +1325,7 @@ class SolarEdgeInverter:
 
             except ModbusIllegalAddress:
                 try:
-                    del self.decoded_model["grid_on_off"]
+                    del self.decoded_model["I_Grid_Status"]
                 except KeyError:
                     pass
 
