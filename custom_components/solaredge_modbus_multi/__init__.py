@@ -1,4 +1,5 @@
 """The SolarEdge Modbus Multi Integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -6,19 +7,16 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_NAME,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-    Platform,
-)
+from homeassistant.const import CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName, RetrySettings
+from .const import DOMAIN, ConfDefaultInt, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,6 +29,41 @@ PLATFORMS: list[str] = [
     Platform.SENSOR,
     Platform.SWITCH,
 ]
+
+# This is probably not allowed per ADR-0010, but I need a way to
+# set advanced config that shouldn't appear in any UI dialogs.
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                "retry": vol.Schema(
+                    {
+                        vol.Optional("time"): vol.Coerce(int),
+                        vol.Optional("ratio"): vol.Coerce(int),
+                        vol.Optional("limit"): vol.Coerce(int),
+                    }
+                ),
+                "modbus": vol.Schema(
+                    {
+                        vol.Optional("timeout"): vol.Coerce(int),
+                        vol.Optional("reconnect_delay"): vol.Coerce(float),
+                        vol.Optional("reconnect_delay_max"): vol.Coerce(float),
+                        vol.Optional("retry_on_empty"): cv.boolean,
+                    }
+                ),
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up SolarEdge Modbus Muti advanced YAML config."""
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
+
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -48,40 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.config_entries.async_update_entry(entry, **entry_updates)
 
     solaredge_hub = SolarEdgeModbusMultiHub(
-        hass,
-        entry.entry_id,
-        entry.data[CONF_NAME],
-        entry.data[CONF_HOST],
-        entry.data[CONF_PORT],
-        entry.data.get(ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS),
-        entry.data.get(ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID),
-        entry.options.get(ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)),
-        entry.options.get(
-            ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
-        ),
-        entry.options.get(ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)),
-        entry.options.get(
-            ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
-        ),
-        entry.options.get(
-            ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
-        ),
-        entry.options.get(
-            ConfName.ADV_SITE_LIMIT_CONTROL,
-            bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
-        ),
-        entry.options.get(
-            ConfName.ALLOW_BATTERY_ENERGY_RESET,
-            bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
-        ),
-        entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
-        entry.options.get(
-            ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
-        ),
-        entry.options.get(
-            ConfName.BATTERY_ENERGY_RESET_CYCLES,
-            ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
-        ),
+        hass, entry.entry_id, entry.data, entry.options
     )
 
     coordinator = SolarEdgeCoordinator(
@@ -90,7 +90,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL),
     )
 
-    hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
         "coordinator": coordinator,
@@ -180,12 +179,9 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
         self._hub = hub
+        self._yaml_config = hass.data[DOMAIN]["yaml"]
 
-        if scan_interval < 10 and not self._hub.keep_modbus_open:
-            _LOGGER.warning("Polling frequency < 10, requiring keep modbus open.")
-            self._hub.keep_modbus_open = True
-
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> bool:
         try:
             while self._hub.has_write:
                 _LOGGER.debug(f"Waiting for write {self._hub.has_write}")
@@ -193,9 +189,15 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
-                limit=RetrySettings.Limit,
-                wait_ms=RetrySettings.Time,
-                wait_ratio=RetrySettings.Ratio,
+                limit=self._yaml_config.get("retry", {}).get(
+                    "limit", RetrySettings.Limit
+                ),
+                wait_ms=self._yaml_config.get("retry", {}).get(
+                    "time", RetrySettings.Time
+                ),
+                wait_ratio=self._yaml_config.get("retry", {}).get(
+                    "ratio", RetrySettings.Ratio
+                ),
             )
 
         except HubInitFailed as e:
@@ -207,10 +209,10 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
     async def _refresh_modbus_data_with_retry(
         self,
         ex_type=Exception,
-        limit=0,
-        wait_ms=100,
-        wait_ratio=2,
-    ):
+        limit: int = 0,
+        wait_ms: int = 100,
+        wait_ratio: int = 2,
+    ) -> bool:
         """
         Retry refresh until no exception occurs or retries exhaust
         :param ex_type: retry only if exception is subclass of this type
@@ -222,11 +224,11 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                  or exception is not an instance of ex_type
         Credit: https://gist.github.com/davidohana/c0518ff6a6b95139e905c8a8caef9995
         """
+        _LOGGER.debug(f"Retry limit={limit} time={wait_ms} ratio={wait_ratio}")
         attempt = 1
         while True:
             try:
-                async with asyncio.timeout(self._hub.coordinator_timeout):
-                    return await self._hub.async_refresh_modbus_data()
+                return await self._hub.async_refresh_modbus_data()
             except Exception as ex:
                 if not isinstance(ex, ex_type):
                     raise ex

@@ -1,24 +1,10 @@
 """Constants used by SolarEdge Modbus Multi components."""
+
 from __future__ import annotations
 
 import re
-import sys
-from enum import IntEnum
+from enum import Flag, IntEnum, StrEnum
 from typing import Final
-
-if sys.version_info.minor >= 11:
-    # Needs Python 3.11
-    from enum import StrEnum
-else:
-    try:
-        from homeassistant.backports.enum import StrEnum
-
-    except ImportError:
-        from enum import Enum
-
-        class StrEnum(str, Enum):
-            pass
-
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
@@ -34,6 +20,8 @@ DOMAIN_REGEX = re.compile(
     # domain
     r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
     r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # host name only
+    r"|(?:^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)"
     # end anchor, because fullmatch is not available in python 2.7
     r")\Z",
     re.IGNORECASE,
@@ -61,6 +49,12 @@ class ModbusDefaults(IntEnum):
     Timeout = 3  # Timeout for a request, in seconds.
     ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
     ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
+
+
+class ModbusFlags(Flag):
+    """Values to pass to pymodbus"""
+
+    RetryOnEmpty = False  # Retry on empty response.
 
 
 class SolarEdgeTimeouts(IntEnum):
@@ -139,6 +133,20 @@ class SunSpecNotImpl(IntEnum):
     UINT32 = 0xFFFFFFFF
     FLOAT32 = 0x7FC00000
 
+
+# Battery ID and modbus starting address
+BATTERY_REG_BASE = {
+    1: 57600,
+    2: 57856,
+    3: 58368,
+}
+
+# Meter ID and modbus starting address
+METER_REG_BASE = {
+    1: 40121,
+    2: 40295,
+    3: 40469,
+}
 
 SUNSPEC_SF_RANGE = [
     -10,
@@ -244,35 +252,35 @@ SUNSPEC_DID = {
 }
 
 METER_EVENTS = {
-    2: "M_EVENT_Power_Failure",
-    3: "M_EVENT_Under_Voltage",
-    4: "M_EVENT_Low_PF",
-    5: "M_EVENT_Over_Current",
-    6: "M_EVENT_Over_Voltage",
-    7: "M_EVENT_Missing_Sensor",
-    8: "M_EVENT_Reserved1",
-    9: "M_EVENT_Reserved2",
-    10: "M_EVENT_Reserved3",
-    11: "M_EVENT_Reserved4",
-    12: "M_EVENT_Reserved5",
-    13: "M_EVENT_Reserved6",
-    14: "M_EVENT_Reserved7",
-    15: "M_EVENT_Reserved8",
-    16: "M_EVENT_OEM1",
-    17: "M_EVENT_OEM2",
-    18: "M_EVENT_OEM3",
-    19: "M_EVENT_OEM4",
-    20: "M_EVENT_OEM5",
-    21: "M_EVENT_OEM6",
-    22: "M_EVENT_OEM7",
-    23: "M_EVENT_OEM8",
-    24: "M_EVENT_OEM9",
-    25: "M_EVENT_OEM10",
-    26: "M_EVENT_OEM11",
-    27: "M_EVENT_OEM12",
-    28: "M_EVENT_OEM13",
-    29: "M_EVENT_OEM14",
-    30: "M_EVENT_OEM15",
+    2: "POWER_FAILURE",
+    3: "UNDER_VOLTAGE",
+    4: "LOW_PF",
+    5: "OVER_CURRENT",
+    6: "OVER_VOLTAGE",
+    7: "MISSING_SENSOR",
+    8: "RESERVED1",
+    9: "RESERVED2",
+    10: "RESERVED3",
+    11: "RESERVED4",
+    12: "RESERVED5",
+    13: "RESERVED6",
+    14: "RESERVED7",
+    15: "RESERVED8",
+    16: "OEM1",
+    17: "OEM2",
+    18: "OEM3",
+    19: "OEM4",
+    20: "OEM5",
+    21: "OEM6",
+    22: "OEM7",
+    23: "OEM8",
+    24: "OEM9",
+    25: "OEM10",
+    26: "OEM11",
+    27: "OEM12",
+    28: "OEM13",
+    29: "OEM14",
+    30: "OEM15",
 }
 
 BATTERY_STATUS = {
@@ -321,6 +329,14 @@ MMPPT_EVENTS = {
     20: "TEST_FAILED",
     21: "INPUT_UNDER_VOLTAGE",
     22: "INPUT_OVER_CURRENT",
+}
+
+REACTIVE_POWER_CONFIG = {
+    0: "Fixed CosPhi",
+    1: "Fixed Q",
+    2: "CosPhi(P)",
+    3: "Q(U) + Q(P)",
+    4: "RRCR",
 }
 
 STORAGE_CONTROL_MODE = {

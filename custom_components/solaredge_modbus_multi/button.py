@@ -1,4 +1,5 @@
 """Component to interface with binary sensors."""
+
 from __future__ import annotations
 
 import logging
@@ -9,6 +10,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from pymodbus.constants import Endian
+from pymodbus.payload import BinaryPayloadBuilder
 
 from .const import DOMAIN
 
@@ -28,11 +31,22 @@ async def async_setup_entry(
     for inverter in hub.inverters:
         entities.append(SolarEdgeRefreshButton(inverter, config_entry, coordinator))
 
+        """ Power Control Block """
+        if hub.option_detect_extras and inverter.advanced_power_control:
+            entities.append(
+                SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolarEdgeDefaultControlSettings(inverter, config_entry, coordinator)
+            )
+
     if entities:
         async_add_entities(entities)
 
 
 class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
+    """Base class for SolarEdge button entities."""
+
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -64,11 +78,10 @@ class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
 
 
 class SolarEdgeRefreshButton(SolarEdgeButtonBase):
-    entity_category = EntityCategory.CONFIG
+    """Button to request an immediate device data update."""
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
+    icon = "mdi:refresh"
 
     @property
     def unique_id(self) -> str:
@@ -83,4 +96,56 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
         return True
 
     async def async_press(self) -> None:
+        await self.async_update()
+
+
+class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
+    """Button to Commit Power Control Settings."""
+
+    entity_category = EntityCategory.CONFIG
+    icon = "mdi:content-save-cog-outline"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}bt_commit_pwr_settings"
+
+    @property
+    def name(self) -> str:
+        return "Commit Power Settings"
+
+    async def async_press(self) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to 1")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_16bit_uint(1)
+        await self._platform.write_registers(
+            address=61696, payload=builder.to_registers()
+        )
+        await self.async_update()
+
+
+class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
+    """Button to Restore Power Control Default Settings."""
+
+    entity_category = EntityCategory.CONFIG
+    icon = "mdi:restore-alert"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}bt_default_pwr_settings"
+
+    @property
+    def name(self) -> str:
+        return "Default Power Settings"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    async def async_press(self) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to 1")
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_16bit_uint(1)
+        await self._platform.write_registers(
+            address=61697, payload=builder.to_registers()
+        )
         await self.async_update()

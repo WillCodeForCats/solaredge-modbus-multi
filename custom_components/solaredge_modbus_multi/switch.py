@@ -1,4 +1,5 @@
 """Switch platform for SolarEdge Modbus Multi."""
+
 from __future__ import annotations
 
 import logging
@@ -78,11 +79,9 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
 
 
 class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
-    entity_category = EntityCategory.CONFIG
+    """External Production switch. Indicates a non-SolarEdge power sorce in system."""
 
-    def __init__(self, platform, config_entry, coordinator) -> None:
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
@@ -131,11 +130,9 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
 
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
-    entity_category = EntityCategory.CONFIG
+    """Negative Site Limit switch. Sets minimum import power when enabled."""
 
-    def __init__(self, platform, config_entry, coordinator) -> None:
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
@@ -180,31 +177,29 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
 
 class SolarEdgeGridControl(SolarEdgeSwitchBase):
-    entity_category = EntityCategory.CONFIG
+    """Grid Control boolean switch. This is "AdvancedPwrControlEn" in specs."""
 
-    def __init__(self, platform, config_entry, coordinator) -> None:
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
         return (
             super().available
             and self._platform.advanced_power_control
-            and "I_AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+            and "AdvPwrCtrlEn" in self._platform.decoded_model.keys()
         )
 
     @property
     def unique_id(self) -> str:
-        return f"{self._platform.uid_base}_grid_control"
+        return f"{self._platform.uid_base}_adv_pwr_ctrl"
 
     @property
     def name(self) -> str:
-        return "Grid Control"
+        return "Advanced Power Control"
 
     @property
     def is_on(self) -> bool:
-        return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1
+        return self._platform.decoded_model["AdvPwrCtrlEn"] == 0x1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")

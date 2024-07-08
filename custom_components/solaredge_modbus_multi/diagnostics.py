@@ -1,4 +1,5 @@
 """Diagnostics support for SolarEdge Modbus Multi Device."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -36,7 +37,8 @@ async def async_get_config_entry_diagnostics(
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
 
     data: dict[str, Any] = {
-        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG)
+        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
+        "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
 
     for inverter in hub.inverters:

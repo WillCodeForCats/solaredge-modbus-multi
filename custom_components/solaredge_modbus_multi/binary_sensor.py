@@ -1,4 +1,5 @@
 """Component to interface with binary sensors."""
+
 from __future__ import annotations
 
 import logging
@@ -34,6 +35,8 @@ async def async_setup_entry(
 
 
 class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
+    """Base class for SolarEdge binary sensor entities."""
+
     should_poll = False
     _attr_has_entity_name = True
 
@@ -66,18 +69,16 @@ class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
 
 
 class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
-    entity_category = EntityCategory.DIAGNOSTIC
+    """Grid Control boolean status. This is "AdvancedPwrControlEn" in specs."""
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def available(self) -> bool:
         return (
             super().available
             and self._platform.advanced_power_control is True
-            and "I_AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+            and "AdvPwrCtrlEn" in self._platform.decoded_model.keys()
         )
 
     @property
@@ -90,4 +91,4 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 
     @property
     def is_on(self) -> bool:
-        return self._platform.decoded_model["I_AdvPwrCtrlEn"] == 0x1
+        return self._platform.decoded_model["AdvPwrCtrlEn"] == 0x1

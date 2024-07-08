@@ -11,7 +11,7 @@ Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://git
 ## Features
 * Inverter support for 1 to 32 SolarEdge inverters.
 * Meter support for 1 to 3 meters per inverter.
-* Battery support for 1 or 2 batteries per inverter.
+* Battery support for 1 to 3 batteries per inverter.
 * Supports site limit and storage controls.
 * Automatically detects meters and batteries.
 * Supports Three Phase Inverters with Synergy Technology.
@@ -22,4 +22,4 @@ Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://git
 * Supports status and error reporting sensors.
 * User friendly configuration through Config Flow.
 
-Requires Home Assistant 2023.9.1 and newer with pymodbus 3.5.4 and newer.
+Requires Home Assistant 2024.4.0 and newer with pymodbus 3.6.6 and newer.

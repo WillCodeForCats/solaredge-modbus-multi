@@ -8,11 +8,14 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from pymodbus.constants import Endian
+from pymodbus.payload import BinaryPayloadBuilder
 
 from .const import (
     DOMAIN,
     LIMIT_CONTROL,
     LIMIT_CONTROL_MODE,
+    REACTIVE_POWER_CONFIG,
     STORAGE_AC_CHARGE_POLICY,
     STORAGE_CONTROL_MODE,
     STORAGE_MODE,
@@ -32,23 +35,26 @@ async def async_setup_entry(
 
     entities = []
 
-    """ Power Control Options: Storage Control """
-    if hub.option_storage_control is True:
-        for inverter in hub.inverters:
-            if inverter.decoded_storage_control is False:
-                continue
+    for inverter in hub.inverters:
+        """Power Control Options: Storage Control"""
+        if hub.option_storage_control and inverter.decoded_storage_control:
             entities.append(StorageControlMode(inverter, config_entry, coordinator))
             entities.append(StorageACChargePolicy(inverter, config_entry, coordinator))
             entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
             entities.append(StorageCommandMode(inverter, config_entry, coordinator))
 
-    """ Power Control Options: Site Limit Control """
-    if hub.option_site_limit_control is True:
-        for inverter in hub.inverters:
+        """ Power Control Options: Site Limit Control """
+        if hub.option_site_limit_control:
             entities.append(
                 SolaredgeLimitControlMode(inverter, config_entry, coordinator)
             )
             entities.append(SolaredgeLimitControl(inverter, config_entry, coordinator))
+
+        """ Power Control Block """
+        if hub.option_detect_extras and inverter.advanced_power_control:
+            entities.append(
+                SolarEdgeReactivePowerMode(inverter, config_entry, coordinator)
+            )
 
     if entities:
         async_add_entities(entities)
@@ -374,4 +380,49 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
         await self._platform.write_registers(address=57345, payload=new_mode)
+        await self.async_update()
+
+
+class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        self._options = REACTIVE_POWER_CONFIG
+        self._attr_options = list(self._options.values())
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                self._platform.decoded_model["ReactivePwrConfig"]
+                == SunSpecNotImpl.INT32
+                or self._platform.decoded_model["ReactivePwrConfig"]
+                not in self._options
+            ):
+                return False
+
+            return super().available
+
+        except KeyError:
+            return False
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_reactive_power_mode"
+
+    @property
+    def name(self) -> str:
+        return "Reactive Power Mode"
+
+    @property
+    def current_option(self) -> str:
+        return self._options[self._platform.decoded_model["ReactivePwrConfig"]]
+
+    async def async_select_option(self, option: str) -> None:
+        _LOGGER.debug(f"set {self.unique_id} to {option}")
+        new_mode = get_key(self._options, option)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder.add_32bit_int(int(new_mode))
+        await self._platform.write_registers(
+            address=61700, payload=builder.to_registers()
+        )
         await self.async_update()
