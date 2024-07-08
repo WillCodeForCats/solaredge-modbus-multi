@@ -753,7 +753,7 @@ class SolarEdgeInverter:
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
-        self._grid_on_off = None
+        self._grid_status = None
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1302,7 +1302,7 @@ class SolarEdgeInverter:
                 )
 
         """ Grid On/Off Status """
-        if self.hub.option_detect_extras is True and self._grid_on_off is not False:
+        if self.hub.option_detect_extras is True and self._grid_status is not False:
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=40113, rcount=2
