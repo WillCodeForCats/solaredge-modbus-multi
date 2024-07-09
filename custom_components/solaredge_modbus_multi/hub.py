@@ -753,6 +753,7 @@ class SolarEdgeInverter:
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
+        self._grid_status = None
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1294,6 +1295,45 @@ class SolarEdgeInverter:
                     pass
 
                 _LOGGER.debug((f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available"))
+
+            except ModbusIOError:
+                raise ModbusReadError(
+                    f"No response from inverter ID {self.inverter_unit_id}"
+                )
+
+        """ Grid On/Off Status """
+        if self.hub.option_detect_extras is True and self._grid_status is not False:
+            try:
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=40113, rcount=2
+                )
+
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("I_Grid_Status", decoder.decode_32bit_uint()),
+                        ]
+                    )
+                )
+                self._grid_status = True
+
+            except ModbusIllegalAddress:
+                try:
+                    del self.decoded_model["I_Grid_Status"]
+                except KeyError:
+                    pass
+
+                self._grid_status = False
+
+                _LOGGER.debug(
+                    (f"I{self.inverter_unit_id}: " "Grid On/Off NOT available")
+                )
 
             except ModbusIOError:
                 raise ModbusReadError(

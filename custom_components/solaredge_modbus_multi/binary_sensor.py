@@ -30,6 +30,9 @@ async def async_setup_entry(
         if hub.option_detect_extras and inverter.advanced_power_control:
             entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
 
+        if hub.option_detect_extras:
+            entities.append(GridStatusOnOff(inverter, config_entry, coordinator))
+
     if entities:
         async_add_entities(entities)
 
@@ -92,3 +95,31 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
     @property
     def is_on(self) -> bool:
         return self._platform.decoded_model["AdvPwrCtrlEn"] == 0x1
+
+
+class GridStatusOnOff(SolarEdgeBinarySensorBase):
+    """Grid Status On Off. This is undocumented from discussions."""
+
+    icon = "mdi:transmission-tower"
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available and "I_Grid_Status" in self._platform.decoded_model.keys()
+        )
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_grid_status_on_off"
+
+    @property
+    def name(self) -> str:
+        return "Grid Status"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return "I_Grid_Status" in self._platform.decoded_model.keys()
+
+    @property
+    def is_on(self) -> bool:
+        return not self._platform.decoded_model["I_Grid_Status"]
