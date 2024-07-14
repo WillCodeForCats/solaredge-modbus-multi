@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -100,6 +103,7 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 class GridStatusOnOff(SolarEdgeBinarySensorBase):
     """Grid Status On Off. This is undocumented from discussions."""
 
+    device_class = BinarySensorDeviceClass.POWER
     icon = "mdi:transmission-tower"
 
     @property
