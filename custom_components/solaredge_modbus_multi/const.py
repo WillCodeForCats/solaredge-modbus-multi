@@ -60,18 +60,10 @@ class ModbusFlags(Flag):
 class SolarEdgeTimeouts(IntEnum):
     """Timeouts in milliseconds."""
 
-    """
-        ReadDetect is used for register locations that are optional or not supported
-                   by all inverters. Some firmware versions respond with an exception
-                   but others have been reported to never respond which causes a
-                   modbus timeout. This value is used for registers which are optional
-                   where we should continue if the inverter doesn't respond.
-    """
-
     Inverter = 8400
     Device = 1200
     Init = 1200
-    ReadDetect = 6000  # Timeout for reading optional locations.
+    Read = 6000
 
 
 class BatteryLimit(IntEnum):
