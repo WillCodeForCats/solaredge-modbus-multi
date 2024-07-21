@@ -1323,7 +1323,14 @@ class SolarEdgeInverter:
                 )
                 self._grid_status = True
 
-            except (ModbusIllegalAddress, ModbusIOError, ModbusIOException) as e:
+            except (ModbusIllegalAddress, ModbusIOException) as e:
+
+                if (
+                    type(e) is ModbusIOException
+                    and "No response recieved after" not in e
+                ):
+                    raise
+
                 try:
                     del self.decoded_model["I_Grid_Status"]
                 except KeyError:
@@ -1336,10 +1343,12 @@ class SolarEdgeInverter:
                 )
 
                 if not self.hub.is_connected:
-                    _LOGGER.debug(
-                        f"I{self.inverter_unit_id}: Reconnecting after modbus error"
-                    )
                     await self.hub.connect()
+
+            except ModbusIOError:
+                raise ModbusReadError(
+                    f"No response from inverter ID {self.inverter_unit_id}"
+                )
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
