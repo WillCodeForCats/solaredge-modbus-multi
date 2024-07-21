@@ -1302,7 +1302,7 @@ class SolarEdgeInverter:
                 )
 
         """ Grid On/Off Status """
-        if self.hub.option_detect_extras is True and self._grid_status is not False:
+        if self._grid_status is not False:
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=40113, rcount=2
