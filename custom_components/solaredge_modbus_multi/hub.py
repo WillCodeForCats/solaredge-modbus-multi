@@ -1302,7 +1302,7 @@ class SolarEdgeInverter:
                 )
 
         """ Grid On/Off Status """
-        if self.hub.option_detect_extras is True and self._grid_status is not False:
+        if self._grid_status is not False:
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
                     unit=self.inverter_unit_id, address=40113, rcount=2
@@ -1323,7 +1323,7 @@ class SolarEdgeInverter:
                 )
                 self._grid_status = True
 
-            except ModbusIllegalAddress:
+            except (ModbusIllegalAddress, ModbusIOError, ModbusIOException) as e:
                 try:
                     del self.decoded_model["I_Grid_Status"]
                 except KeyError:
@@ -1332,13 +1332,14 @@ class SolarEdgeInverter:
                 self._grid_status = False
 
                 _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: " "Grid On/Off NOT available")
+                    (f"I{self.inverter_unit_id}: Grid On/Off NOT available: {e}")
                 )
 
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
+                if not self.hub.is_connected:
+                    _LOGGER.debug(
+                        f"I{self.inverter_unit_id}: Reconnecting after modbus error"
+                    )
+                    await self.hub.connect()
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
