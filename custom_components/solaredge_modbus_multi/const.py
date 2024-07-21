@@ -63,7 +63,6 @@ class SolarEdgeTimeouts(IntEnum):
     Inverter = 8400
     Device = 1200
     Init = 1200
-    Read = 6000
 
 
 class BatteryLimit(IntEnum):

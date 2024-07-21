@@ -1302,29 +1302,28 @@ class SolarEdgeInverter:
                 )
 
         """ Grid On/Off Status """
-        if self._grid_status is not False:
+        if self.hub.option_detect_extras is True and self._grid_status is not False:
             try:
-                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = await self.hub.modbus_read_holding_registers(
-                        unit=self.inverter_unit_id, address=40113, rcount=2
-                    )
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=40113, rcount=2
+                )
 
-                    decoder = BinaryPayloadDecoder.fromRegisters(
-                        inverter_data.registers,
-                        byteorder=Endian.BIG,
-                        wordorder=Endian.LITTLE,
-                    )
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
+                )
 
-                    self.decoded_model.update(
-                        OrderedDict(
-                            [
-                                ("I_Grid_Status", decoder.decode_32bit_uint()),
-                            ]
-                        )
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("I_Grid_Status", decoder.decode_32bit_uint()),
+                        ]
                     )
-                    self._grid_status = True
+                )
+                self._grid_status = True
 
-            except (ModbusIllegalAddress, TimeoutError) as e:
+            except ModbusIllegalAddress:
                 try:
                     del self.decoded_model["I_Grid_Status"]
                 except KeyError:
@@ -1333,7 +1332,7 @@ class SolarEdgeInverter:
                 self._grid_status = False
 
                 _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: Grid On/Off NOT available: {e}")
+                    (f"I{self.inverter_unit_id}: " "Grid On/Off NOT available")
                 )
 
             except ModbusIOError:
