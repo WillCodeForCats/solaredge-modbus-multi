@@ -3,6 +3,8 @@ from __future__ import annotations
 import ipaddress
 import struct
 
+from homeassistant.exceptions import HomeAssistantError
+
 from .const import DOMAIN_REGEX
 
 
@@ -90,7 +92,7 @@ def device_list_from_string(value: str) -> list[int]:
     return sorted(set(ids))
 
 
-def check_device_id(value: (str | int)) -> int:
+def check_device_id(value: str | int) -> int:
     """The `check_device_id` function takes a value and checks if it is a valid device
     ID between 1 and 247, raising an error if it is not.
 
