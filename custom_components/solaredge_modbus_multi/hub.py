@@ -906,7 +906,7 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                 inverter_data.registers, byteorder=Endian.BIG
             )
 
-            self.decoded_common["C_Version"] = parse_modbus_string(
+            self.decoded_common["C_Version"] = self.mbstr(
                 decoder.decode_string(16)
             )
 
