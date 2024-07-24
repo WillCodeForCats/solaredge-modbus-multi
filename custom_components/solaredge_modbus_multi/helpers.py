@@ -73,7 +73,7 @@ def device_list_from_string(value: str) -> list[int]:
         elif len(r) > 2:
             # Invalid range, multiple '-'s
             raise HomeAssistantError(
-                f"'{p}' in '{value}' looks like a range but has multiple '-'s."
+                f"Entry '{p}' in '{value}' looks like a range but has multiple '-'s."
             )
 
         else:
@@ -82,7 +82,7 @@ def device_list_from_string(value: str) -> list[int]:
             end = check_device_id(r[1])
             if end < start:
                 raise HomeAssistantError(
-                    f"'{start}' must be less than or equal to {end}."
+                    f"ID '{start}' must be less than or equal to {end}."
                 )
 
             ids.extend(range(start, end + 1))
@@ -109,6 +109,6 @@ def check_device_id(value: (str | int)) -> int:
     id = int(value)
 
     if (id < 1) or id > 247:
-        raise HomeAssistantError("invalid_device_id")
+        raise HomeAssistantError("Value outside range 1-247.")
 
     return id
