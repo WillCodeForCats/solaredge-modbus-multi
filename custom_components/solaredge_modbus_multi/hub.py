@@ -250,11 +250,14 @@ class SolarEdgeModbusMultiHub:
             inverter_unit_id = inverter_index + self._start_device_id
 
             try:
+                _LOGGER.debug(
+                    f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
+                )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
-            except ModbusReadError as e:
+            except (ModbusReadError, TimeoutError) as e:
                 self.disconnect()
                 raise HubInitFailed(f"{e}")
 
@@ -266,6 +269,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for meter I{inverter_unit_id}M{meter_id}"
+                        )
                         new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
                         await new_meter.init_device()
 
@@ -283,7 +289,7 @@ class SolarEdgeModbusMultiHub:
                         self.meters.append(new_meter)
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -294,6 +300,9 @@ class SolarEdgeModbusMultiHub:
             if self._detect_batteries:
                 for battery_id in BATTERY_REG_BASE:
                     try:
+                        _LOGGER.debug(
+                            f"Looking for battery I{inverter_unit_id}B{battery_id}"
+                        )
                         new_battery = SolarEdgeBattery(
                             inverter_unit_id, battery_id, self
                         )
@@ -316,7 +325,7 @@ class SolarEdgeModbusMultiHub:
                         self.batteries.append(new_battery)
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
-                    except ModbusReadError as e:
+                    except (ModbusReadError, TimeoutError) as e:
                         self.disconnect()
                         raise HubInitFailed(f"{e}")
 
@@ -349,6 +358,10 @@ class SolarEdgeModbusMultiHub:
         except ModbusIOException as e:
             self.disconnect()
             raise HubInitFailed(f"Modbus error: {e}")
+
+        except TimeoutError as e:
+            self.disconnect()
+            raise HubInitFailed(f"Timeout error: {e}")
 
         self.initalized = True
 
@@ -734,9 +747,12 @@ class SolarEdgeModbusMultiHub:
 
 
 class SolarEdgeInverter(SolarEdgeModbusDevice):
+    """Defines a SolarEdge inverter."""
+
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
+        self.mmppt_units = []
         self.decoded_common = []
         self.decoded_model = []
         self.decoded_mmppt = []
@@ -746,8 +762,11 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
+        self._grid_status = None
 
     async def init_device(self) -> None:
+        """Set up data about the device from modbus."""
+
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40000, rcount=69
@@ -865,14 +884,32 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
-        self.fw_version = self.decoded_common["C_Version"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
+        if self.decoded_mmppt is not None:
+            for unit_index in range(self.decoded_mmppt["mmppt_Units"]):
+                self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
+                _LOGGER.debug(f"I{self.inverter_unit_id} MMPPT Unit {unit_index}")
+
     async def read_modbus_data(self) -> None:
+        """Read and update dynamic modbus registers."""
+
         try:
+            inverter_data = await self.hub.modbus_read_holding_registers(
+                unit=self.inverter_unit_id, address=40044, rcount=16
+            )
+
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                inverter_data.registers, byteorder=Endian.BIG
+            )
+
+            self.decoded_common["C_Version"] = parse_modbus_string(
+                decoder.decode_string(16)
+            )
+
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
             )
@@ -941,9 +978,11 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
         if self.decoded_mmppt is not None:
             if self.decoded_mmppt["mmppt_Units"] == 2:
                 mmppt_registers = 48
+                mmppt_unit_ids = [0, 1]
 
             elif self.decoded_mmppt["mmppt_Units"] == 3:
                 mmppt_registers = 68
+                mmppt_unit_ids = [0, 1, 2]
 
             else:
                 self.decoded_mmppt = None
@@ -960,6 +999,7 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                     inverter_data.registers, byteorder=Endian.BIG
                 )
 
+
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
                     self.decoded_model.update(
                         OrderedDict(
@@ -971,56 +1011,31 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                                 ("mmppt_Events", decoder.decode_32bit_uint()),
                                 ("ignore", decoder.skip_bytes(2)),
                                 ("mmppt_TmsPer", decoder.decode_16bit_uint()),
-                                ("mmppt_0_ID", decoder.decode_16bit_uint()),
-                                (
-                                    "mmppt_0_IDStr",
-                                    self.mbstr(self, decoder.decode_string(16)),
-                                ),
-                                ("mmppt_0_DCA", decoder.decode_16bit_uint()),
-                                ("mmppt_0_DCV", decoder.decode_16bit_uint()),
-                                ("mmppt_0_DCW", decoder.decode_16bit_uint()),
-                                ("mmppt_0_DCWH", decoder.decode_32bit_uint()),
-                                ("mmppt_0_Tms", decoder.decode_32bit_uint()),
-                                ("mmppt_0_Tmp", decoder.decode_16bit_int()),
-                                ("mmppt_0_DCSt", decoder.decode_16bit_uint()),
-                                ("mmppt_0_DCEvt", decoder.decode_32bit_uint()),
-                                ("mmppt_1_ID", decoder.decode_16bit_uint()),
-                                (
-                                    "mmppt_1_IDStr",
-                                    self.mbstr(self, decoder.decode_string(16)),
-                                ),
-                                ("mmppt_1_DCA", decoder.decode_16bit_uint()),
-                                ("mmppt_1_DCV", decoder.decode_16bit_uint()),
-                                ("mmppt_1_DCW", decoder.decode_16bit_uint()),
-                                ("mmppt_1_DCWH", decoder.decode_32bit_uint()),
-                                ("mmppt_1_Tms", decoder.decode_32bit_uint()),
-                                ("mmppt_1_Tmp", decoder.decode_16bit_int()),
-                                ("mmppt_1_DCSt", decoder.decode_16bit_uint()),
-                                ("mmppt_1_DCEvt", decoder.decode_32bit_uint()),
                             ]
                         )
                     )
 
-                if self.decoded_mmppt["mmppt_Units"] in [3]:
-                    self.decoded_model.update(
-                        OrderedDict(
+                    for mmppt_unit_id in mmppt_unit_ids:
+                        mmppt_unit_data = OrderedDict(
                             [
-                                ("mmppt_2_ID", decoder.decode_16bit_uint()),
+                                ("ID", decoder.decode_16bit_uint()),
                                 (
-                                    "mmppt_2_IDStr",
-                                    self.mbstr(self, decoder.decode_string(16)),
+                                    "IDStr",
+                                    self.mbstr(decoder.decode_string(16)),
                                 ),
-                                ("mmppt_2_DCA", decoder.decode_16bit_uint()),
-                                ("mmppt_2_DCV", decoder.decode_16bit_uint()),
-                                ("mmppt_2_DCW", decoder.decode_16bit_uint()),
-                                ("mmppt_2_DCWH", decoder.decode_32bit_uint()),
-                                ("mmppt_2_Tms", decoder.decode_32bit_uint()),
-                                ("mmppt_2_Tmp", decoder.decode_16bit_int()),
-                                ("mmppt_2_DCSt", decoder.decode_16bit_uint()),
-                                ("mmppt_2_DCEvt", decoder.decode_32bit_uint()),
+                                ("DCA", decoder.decode_16bit_uint()),
+                                ("DCV", decoder.decode_16bit_uint()),
+                                ("DCW", decoder.decode_16bit_uint()),
+                                ("DCWH", decoder.decode_32bit_uint()),
+                                ("Tms", decoder.decode_32bit_uint()),
+                                ("Tmp", decoder.decode_16bit_int()),
+                                ("DCSt", decoder.decode_16bit_uint()),
+                                ("DCEvt", decoder.decode_32bit_uint()),
                             ]
                         )
-                    )
+                        self.decoded_model.update(
+                            OrderedDict([(f"mmppt_{mmppt_unit_id}", mmppt_unit_data)])
+                        )
 
                 try:
                     del self.decoded_model["ignore"]
@@ -1296,6 +1311,45 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
+        """ Grid On/Off Status """
+        if self._grid_status is not False:
+            try:
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=40113, rcount=2
+                )
+
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    inverter_data.registers,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            ("I_Grid_Status", decoder.decode_32bit_uint()),
+                        ]
+                    )
+                )
+                self._grid_status = True
+
+            except ModbusIllegalAddress:
+                try:
+                    del self.decoded_model["I_Grid_Status"]
+                except KeyError:
+                    pass
+
+                self._grid_status = False
+
+                _LOGGER.debug(
+                    (f"I{self.inverter_unit_id}: " "Grid On/Off NOT available")
+                )
+
+            except ModbusIOError:
+                raise ModbusReadError(
+                    f"No response from inverter ID {self.inverter_unit_id}"
+                )
+
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
                 display_value = float_to_hex(value)
@@ -1372,6 +1426,13 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
         return self.hub.online
 
     @property
+    def fw_version(self) -> str | None:
+        if "C_Version" in self.decoded_common:
+            return self.decoded_common["C_Version"]
+
+        return None
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
@@ -1392,7 +1453,47 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
         return True
 
 
+class SolarEdgeMMPPTUnit:
+    """Defines a SolarEdge inverter MMPPT unit."""
+
+    def __init__(
+        self, inverter: SolarEdgeInverter, hub: SolarEdgeModbusMultiHub, unit: int
+    ) -> None:
+        self.inverter = inverter
+        self.hub = hub
+        self.unit = unit
+        self.mmppt_key = f"mmppt_{self.unit}"
+
+    @property
+    def online(self) -> bool:
+        """Device is online."""
+        return self.hub.online and self.inverter.is_mmppt and self.inverter.online
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.inverter.uid_base, self.mmppt_key)},
+            name=f"{self.inverter.name} MPPT{self.unit}",
+            manufacturer=self.inverter.manufacturer,
+            model=self.inverter.model,
+            hw_version=f"ID {self.mmppt_id}",
+            serial_number=f"{self.mmppt_idstr}",
+            via_device=(DOMAIN, self.inverter.uid_base),
+        )
+
+    @property
+    def mmppt_id(self) -> str:
+        return self.inverter.decoded_model[self.mmppt_key]["ID"]
+
+    @property
+    def mmppt_idstr(self) -> str:
+        return self.inverter.decoded_model[self.mmppt_key]["IDStr"]
+
+
 class SolarEdgeMeter(SolarEdgeModbusDevice):
+    """Defines a SolarEdge meter."""
+
     def __init__(
         self, device_id: int, meter_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
@@ -1635,6 +1736,8 @@ class SolarEdgeMeter(SolarEdgeModbusDevice):
 
 
 class SolarEdgeBattery(SolarEdgeModbusDevice):
+    """Defines a SolarEdge battery."""
+
     def __init__(
         self, device_id: int, battery_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
