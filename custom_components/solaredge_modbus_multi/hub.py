@@ -906,9 +906,7 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                 inverter_data.registers, byteorder=Endian.BIG
             )
 
-            self.decoded_common["C_Version"] = self.mbstr(
-                decoder.decode_string(16)
-            )
+            self.decoded_common["C_Version"] = self.mbstr(decoder.decode_string(16))
 
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
@@ -998,7 +996,6 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     inverter_data.registers, byteorder=Endian.BIG
                 )
-
 
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
                     self.decoded_model.update(
