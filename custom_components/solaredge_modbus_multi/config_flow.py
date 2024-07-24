@@ -62,7 +62,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 inverter_count = len(
                     device_list_from_string(user_input[ConfName.DEVICE_LIST])
                 )
-
             except HomeAssistantError as e:
                 errors[ConfName.DEVICE_LIST] = f"{e}"
 
@@ -124,48 +123,53 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
         )
-        assert config_entry
-        unique_id = config_entry.unique_id
 
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+            user_input[ConfName.DEVICE_LIST] = re.sub(
+                r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE
+            )
 
-            if not host_valid(user_input[CONF_HOST]):
-                errors[CONF_HOST] = "invalid_host"
-            elif user_input[CONF_PORT] < 1:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[CONF_PORT] > 65535:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[ConfName.DEVICE_ID] > 247:
-                errors[ConfName.DEVICE_ID] = "max_device_id"
-            elif user_input[ConfName.DEVICE_ID] < 1:
-                errors[ConfName.DEVICE_ID] = "min_device_id"
-            elif user_input[ConfName.NUMBER_INVERTERS] > 32:
-                errors[ConfName.NUMBER_INVERTERS] = "max_inverters"
-            elif user_input[ConfName.NUMBER_INVERTERS] < 1:
-                errors[ConfName.NUMBER_INVERTERS] = "min_inverters"
-            elif (
-                user_input[ConfName.NUMBER_INVERTERS] + user_input[ConfName.DEVICE_ID]
-                > 247
-            ):
-                errors[ConfName.NUMBER_INVERTERS] = "too_many_inverters"
-            else:
-                return self.async_update_reload_and_abort(
-                    config_entry,
-                    unique_id=unique_id,
-                    data={**config_entry.data, **user_input},
-                    reason="reconfigure_successful",
+            try:
+                inverter_count = len(
+                    device_list_from_string(user_input[ConfName.DEVICE_LIST])
                 )
+            except HomeAssistantError as e:
+                errors[ConfName.DEVICE_LIST] = f"{e}"
+
+            else:
+                if not host_valid(user_input[CONF_HOST]):
+                    errors[CONF_HOST] = "invalid_host"
+                elif 1 < user_input[CONF_PORT] > 65535:
+                    errors[CONF_PORT] = "invalid_tcp_port"
+                elif inverter_count > 32:
+                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                elif inverter_count < 1:
+                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                else:
+
+                    user_input[ConfName.DEVICE_LIST] = device_list_from_string(
+                        user_input[ConfName.DEVICE_LIST]
+                    )
+
+                    return self.async_update_reload_and_abort(
+                        config_entry,
+                        unique_id=config_entry.unique_id,
+                        data={**config_entry.data, **user_input},
+                        reason="reconfigure_successful",
+                    )
         else:
+            reconfig_device_list = ",".join(
+                str(device)
+                for device in config_entry.data.get(
+                    ConfName.DEVICE_LIST, ConfDefaultStr.DEVICE_LIST
+                )
+            )
+
             user_input = {
                 CONF_HOST: config_entry.data.get(CONF_HOST),
                 CONF_PORT: config_entry.data.get(CONF_PORT, ConfDefaultInt.PORT),
-                ConfName.NUMBER_INVERTERS: config_entry.data.get(
-                    ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS
-                ),
-                ConfName.DEVICE_ID: config_entry.data.get(
-                    ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID
-                ),
+                ConfName.DEVICE_LIST: reconfig_device_list,
             }
 
         return self.async_show_form(
@@ -177,12 +181,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         int
                     ),
                     vol.Required(
-                        f"{ConfName.NUMBER_INVERTERS}",
-                        default=user_input[ConfName.NUMBER_INVERTERS],
-                    ): vol.Coerce(int),
-                    vol.Required(
-                        f"{ConfName.DEVICE_ID}", default=user_input[ConfName.DEVICE_ID]
-                    ): vol.Coerce(int),
+                        f"{ConfName.DEVICE_LIST}",
+                        default=user_input[ConfName.DEVICE_LIST],
+                    ): cv.string,
                 },
             ),
             errors=errors,
