@@ -194,8 +194,8 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             config_entry, data=data["data"], version=2, minor_version=0
         )
 
-    _LOGGER.debug(
-        f"Migrated to version {config_entry.version}.{config_entry.minor_version}"
+    _LOGGER.warning(
+        f"Migrated config to version {config_entry.version}.{config_entry.minor_version}"
     )
 
     return True
