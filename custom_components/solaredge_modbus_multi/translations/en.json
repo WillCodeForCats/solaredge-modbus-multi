@@ -9,6 +9,15 @@
           "port": "Modbus/TCP Port",
           "device_list": "Inverter Device ID List"
         }
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus Configuration",
+        "data": {
+          "host": "Inverter IP Address",
+          "port": "Modbus/TCP Port",
+          "device_id": "Inverter Modbus Address (Device ID)",
+          "number_of_inverters": "Number of Inverters"
+        }
       }
     },
     "error": {
@@ -19,7 +28,8 @@
       "invalid_tcp_port": "Valid port range is 1 to 65535."
     },
     "abort": {
-      "already_configured": "Device is already configured!"
+      "already_configured": "Device is already configured",
+      "reconfigure_successful": "Re-configuration was successful"
     }
   },
   "options": {

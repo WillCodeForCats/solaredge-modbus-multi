@@ -3,8 +3,6 @@ from __future__ import annotations
 import ipaddress
 import struct
 
-from homeassistant.exceptions import HomeAssistantError
-
 from .const import DOMAIN_REGEX
 
 

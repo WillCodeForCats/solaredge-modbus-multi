@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
@@ -43,7 +45,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
 
-    async def async_step_user(self, user_input=None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the initial config flow step."""
         errors = {}
 
@@ -103,6 +107,78 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the reconfigure flow step."""
+        errors = {}
+        config_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+        assert config_entry
+        unique_id = config_entry.unique_id
+
+        if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+
+            if not host_valid(user_input[CONF_HOST]):
+                errors[CONF_HOST] = "invalid_host"
+            elif user_input[CONF_PORT] < 1:
+                errors[CONF_PORT] = "invalid_tcp_port"
+            elif user_input[CONF_PORT] > 65535:
+                errors[CONF_PORT] = "invalid_tcp_port"
+            elif user_input[ConfName.DEVICE_ID] > 247:
+                errors[ConfName.DEVICE_ID] = "max_device_id"
+            elif user_input[ConfName.DEVICE_ID] < 1:
+                errors[ConfName.DEVICE_ID] = "min_device_id"
+            elif user_input[ConfName.NUMBER_INVERTERS] > 32:
+                errors[ConfName.NUMBER_INVERTERS] = "max_inverters"
+            elif user_input[ConfName.NUMBER_INVERTERS] < 1:
+                errors[ConfName.NUMBER_INVERTERS] = "min_inverters"
+            elif (
+                user_input[ConfName.NUMBER_INVERTERS] + user_input[ConfName.DEVICE_ID]
+                > 247
+            ):
+                errors[ConfName.NUMBER_INVERTERS] = "too_many_inverters"
+            else:
+                return self.async_update_reload_and_abort(
+                    config_entry,
+                    unique_id=unique_id,
+                    data={**config_entry.data, **user_input},
+                    reason="reconfigure_successful",
+                )
+        else:
+            user_input = {
+                CONF_HOST: config_entry.data.get(CONF_HOST),
+                CONF_PORT: config_entry.data.get(CONF_PORT, ConfDefaultInt.PORT),
+                ConfName.NUMBER_INVERTERS: config_entry.data.get(
+                    ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS
+                ),
+                ConfName.DEVICE_ID: config_entry.data.get(
+                    ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID
+                ),
+            }
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
+                        int
+                    ),
+                    vol.Required(
+                        f"{ConfName.NUMBER_INVERTERS}",
+                        default=user_input[ConfName.NUMBER_INVERTERS],
+                    ): vol.Coerce(int),
+                    vol.Required(
+                        f"{ConfName.DEVICE_ID}", default=user_input[ConfName.DEVICE_ID]
+                    ): vol.Coerce(int),
+                },
+            ),
+            errors=errors,
+        )
+
 
 class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
     """Handle an options flow for SolarEdge Modbus Multi."""
@@ -111,7 +187,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
         """Initialize options flow."""
         self.config_entry = config_entry
 
-    async def async_step_init(self, user_input=None) -> FlowResult:
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the initial options flow step."""
         errors = {}
 
@@ -198,7 +276,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_battery_options(self, user_input=None) -> FlowResult:
+    async def async_step_battery_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Battery Options"""
         errors = {}
 
@@ -253,7 +333,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_adv_pwr_ctl(self, user_input=None) -> FlowResult:
+    async def async_step_adv_pwr_ctl(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Power Control Options"""
         errors = {}
 

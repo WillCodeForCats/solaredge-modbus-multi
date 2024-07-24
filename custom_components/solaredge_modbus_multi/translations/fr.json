@@ -10,6 +10,15 @@
           "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
           "number_of_inverters": "Nombre d'onduleurs"
         }
+      },
+      "reconfigure": {
+        "title": "Configuration SolarEdge Modbus",
+        "data": {
+          "host": "Adresse IP de l'onduleur",
+          "port": "Port Modbus/TCP",
+          "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
+          "number_of_inverters": "Nombre d'onduleurs"
+        }
       }
     },
     "error": {
@@ -20,7 +29,8 @@
       "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
     },
     "abort": {
-      "already_configured": "L'appareil est déjà configuré!"
+      "already_configured": "L'appareil est déjà configuré",
+      "reconfigure_successful": "La reconfiguration a réussi"
     }
   },
   "options": {
