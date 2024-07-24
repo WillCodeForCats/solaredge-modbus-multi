@@ -7,7 +7,7 @@
           "name": "Prefix du capteur",
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
-          "device_id": "L'adresse Modbus de l'onduleur (Device ID)"
+          "device_list": "Liste des ID des appareils de l'onduleur"
         }
       },
       "reconfigure": {
@@ -15,8 +15,7 @@
         "data": {
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
-          "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
-          "number_of_inverters": "Nombre d'onduleurs"
+          "device_list": "Liste des ID des appareils de l'onduleur"
         }
       }
     },
@@ -27,7 +26,8 @@
       "invalid_host": "Adresse IP invalide.",
       "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535.",
       "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
-      "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin."
+      "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
+      "empty_device_id": "La liste d'ID contient une valeur vide ou non définie."
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré",

@@ -15,8 +15,7 @@
         "data": {
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
-          "device_id": "Inverter Modbus Address (Device ID)",
-          "number_of_inverters": "Number of Inverters"
+          "device_list": "Inverter Device ID List"
         }
       }
     },
@@ -27,7 +26,8 @@
       "invalid_host": "Invalid IP address.",
       "invalid_tcp_port": "Valid port range is 1 to 65535.",
       "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
-      "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID."
+      "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
+      "empty_device_id": "The ID list contains an empty or undefined value."
     },
     "abort": {
       "already_configured": "Device is already configured",

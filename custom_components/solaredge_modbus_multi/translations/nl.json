@@ -7,7 +7,7 @@
           "name": "Sensor prefix",
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
-          "device_id": "Omvormer Modbus-adres (apparaat-ID)"
+          "device_list": "Omvormerapparaat-ID-lijst"
         }
       },
       "reconfigure": {
@@ -15,8 +15,7 @@
         "data": {
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
-          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
-          "number_of_inverters": "Aantal aangesloten omvormers"
+          "device_list": "Omvormerapparaat-ID-lijst"
         }
       }
     },
@@ -27,7 +26,8 @@
       "invalid_host": "Ongeldig IP-adres.",
       "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
       "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
-      "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID."
+      "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
+      "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
     },
     "abort": {
       "already_configured": "Apparaat is al geconfigureerd",

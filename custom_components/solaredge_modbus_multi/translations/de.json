@@ -7,7 +7,7 @@
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
-          "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)"
+          "device_list": "Liste der Wechselrichter-Geräte-IDs"
         }
       },
       "reconfigure": {
@@ -15,8 +15,7 @@
         "data": {
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
-          "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
-          "number_of_inverters": "Anzahl Wechselrichter"
+          "device_list": "Liste der Wechselrichter-Geräte-IDs"
         }
       }
     },
@@ -27,7 +26,8 @@
       "invalid_host": "Ungültige IP-Adresse.",
       "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
       "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
-      "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein."
+      "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
+      "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert."
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert",

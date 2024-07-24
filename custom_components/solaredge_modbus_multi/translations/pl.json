@@ -7,7 +7,7 @@
           "name": "Prefix sensora",
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
-          "device_id": "Adres Modbus Inwertera (Device ID)"
+          "device_list": "Lista identyfikatorów urządzeń falownika"
         }
       },
       "reconfigure": {
@@ -15,8 +15,7 @@
         "data": {
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
-          "device_id": "Adres Modbus Inwertera (Device ID)",
-          "number_of_inverters": "Ilość inwerterów"
+          "device_list": "Lista identyfikatorów urządzeń falownika"
         }
       }
     },
@@ -27,7 +26,8 @@
       "invalid_host": "Błędny adres IP.",
       "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535.",
       "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
-      "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu."
+      "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
+      "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość."
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane",
