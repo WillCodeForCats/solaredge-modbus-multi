@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -165,37 +164,39 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         return False
 
     if config_entry.version == 1:
-        data = {**config_entry.data}
 
-        entry_updates: dict[str, Any] = {}
-        if CONF_SCAN_INTERVAL in config_entry.data:
-            entry_updates["data"] = data
-            entry_updates["options"] = {
-                **config_entry.options,
-                CONF_SCAN_INTERVAL: data.pop(CONF_SCAN_INTERVAL),
+        update_data = {**config_entry.data}
+        update_options = {**config_entry.options}
+
+        if CONF_SCAN_INTERVAL in update_data:
+            update_options = {
+                **update_options,
+                CONF_SCAN_INTERVAL: update_data.pop(CONF_SCAN_INTERVAL),
             }
-        if entry_updates:
-            hass.config_entries.async_update_entry(config_entry, **entry_updates)
 
-        start_device_id = data.pop(ConfName.DEVICE_ID)
-        number_of_inverters = data.pop(ConfName.NUMBER_INVERTERS)
+        start_device_id = update_data.pop(ConfName.DEVICE_ID)
+        number_of_inverters = update_data.pop(ConfName.NUMBER_INVERTERS)
 
         inverter_list = []
         for inverter_index in range(number_of_inverters):
             inverter_unit_id = inverter_index + start_device_id
             inverter_list.append(inverter_unit_id)
 
-        data["data"] = {
-            **config_entry.data,
+        update_data = {
+            **update_data,
             ConfName.DEVICE_LIST: inverter_list,
         }
 
         hass.config_entries.async_update_entry(
-            config_entry, data=data["data"], version=2, minor_version=0
+            config_entry,
+            data=update_data,
+            options=update_options,
+            version=2,
+            minor_version=0,
         )
 
     _LOGGER.warning(
-        f"Migrated config to version {config_entry.version}.{config_entry.minor_version}"
+        f"Migrated to version {config_entry.version}.{config_entry.minor_version}"
     )
 
     return True
