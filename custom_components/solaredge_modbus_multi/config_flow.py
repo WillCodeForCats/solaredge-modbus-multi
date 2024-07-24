@@ -36,8 +36,8 @@ def solaredge_modbus_multi_entries(hass: HomeAssistant):
 class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
-    VERSION = 1
-    MINOR_VERSION = 1
+    VERSION = 2
+    MINOR_VERSION = 0
 
     @staticmethod
     @callback
