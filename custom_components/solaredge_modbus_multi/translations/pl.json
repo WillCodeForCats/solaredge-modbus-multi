@@ -7,8 +7,7 @@
           "name": "Prefix sensora",
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
-          "device_id": "Adres Modbus Inwertera (Device ID)",
-          "number_of_inverters": "Ilość inwerterów"
+          "device_id": "Adres Modbus Inwertera (Device ID)"
         }
       },
       "reconfigure": {

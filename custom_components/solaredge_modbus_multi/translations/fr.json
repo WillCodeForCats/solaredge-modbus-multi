@@ -7,8 +7,7 @@
           "name": "Prefix du capteur",
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
-          "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
-          "number_of_inverters": "Nombre d'onduleurs"
+          "device_id": "L'adresse Modbus de l'onduleur (Device ID)"
         }
       },
       "reconfigure": {

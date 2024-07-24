@@ -7,8 +7,7 @@
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
-          "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
-          "number_of_inverters": "Anzahl Wechselrichter"
+          "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)"
         }
       },
       "reconfigure": {
