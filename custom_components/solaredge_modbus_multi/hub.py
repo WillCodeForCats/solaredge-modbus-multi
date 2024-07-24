@@ -25,6 +25,7 @@ from .const import (
     METER_REG_BASE,
     ConfDefaultFlag,
     ConfDefaultInt,
+    ConfDefaultStr,
     ConfName,
     ModbusDefaults,
     ModbusFlags,
@@ -119,7 +120,7 @@ class SolarEdgeModbusMultiHub:
         self._port = entry_data[CONF_PORT]
         self._entry_id = entry_id
         self._inverter_list = entry_data.get(
-            ConfName.DEVICE_LIST, ConfDefaultInt.DEVICE_ID
+            ConfName.DEVICE_LIST, [ConfDefaultStr.DEVICE_LIST]
         )
         self._detect_meters = entry_options.get(
             ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
