@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -53,6 +54,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+            user_input[ConfName.DEVICE_LIST] = re.sub(
+                r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE
+            )
 
             try:
                 inverter_count = len(
