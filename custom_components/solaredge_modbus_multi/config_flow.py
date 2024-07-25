@@ -70,13 +70,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors[CONF_HOST] = "invalid_host"
                 elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
                     errors[CONF_HOST] = "already_configured"
-                elif user_input[CONF_PORT] < 1:
+                elif not 1 <= user_input[CONF_PORT] <= 65535:
                     errors[CONF_PORT] = "invalid_tcp_port"
-                elif user_input[CONF_PORT] > 65535:
-                    errors[CONF_PORT] = "invalid_tcp_port"
-                elif inverter_count > 32:
-                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
-                elif inverter_count < 1:
+                elif not 1 <= inverter_count <= 32:
                     errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                 else:
                     await self.async_set_unique_id(user_input[CONF_HOST])
@@ -140,11 +136,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 if not host_valid(user_input[CONF_HOST]):
                     errors[CONF_HOST] = "invalid_host"
-                elif 1 < user_input[CONF_PORT] > 65535:
+                elif not 1 <= user_input[CONF_PORT] <= 65535:
                     errors[CONF_PORT] = "invalid_tcp_port"
-                elif inverter_count > 32:
-                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
-                elif inverter_count < 1:
+                elif not 1 <= inverter_count <= 32:
                     errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                 else:
 
