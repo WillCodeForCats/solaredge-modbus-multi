@@ -64,6 +64,7 @@ def device_list_from_string(value: str) -> list[int]:
 
     Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
     """
+
     parts = [p.strip() for p in value.split(",")]
     ids = []
     for p in parts:
