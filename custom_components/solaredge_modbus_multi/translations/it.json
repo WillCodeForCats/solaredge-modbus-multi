@@ -91,7 +91,10 @@
           "invalid_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
           "invalid_inverter_count": "Deve essere compreso tra 1 e 32 inverter.",    
           "invalid_host": "Indirizzo IP non valido.",
-          "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535."
+          "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535.",
+          "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
+          "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
+          "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito."
         }
       }
     }

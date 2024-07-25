@@ -90,7 +90,10 @@
           "invalid_device_id": "Device ID must be between 1 to 247.",
           "invalid_inverter_count": "Must be between 1 to 32 inverters.",    
           "invalid_host": "Invalid IP address.",
-          "invalid_tcp_port": "Valid port range is 1 to 65535."
+          "invalid_tcp_port": "Valid port range is 1 to 65535.",
+          "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
+          "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
+          "empty_device_id": "The ID list contains an empty or undefined value."
         }
       }
     }
