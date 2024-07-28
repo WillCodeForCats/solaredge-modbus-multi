@@ -62,6 +62,10 @@ class CheckConfigurationRepairFlow(RepairsFlow):
                 elif not 1 <= inverter_count <= 32:
                     errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                 else:
+                    user_input[ConfName.DEVICE_LIST] = device_list_from_string(
+                        user_input[ConfName.DEVICE_LIST]
+                    )
+
                     self.hass.config_entries.async_update_entry(
                         self._entry, data={**self._entry.data, **user_input}
                     )
