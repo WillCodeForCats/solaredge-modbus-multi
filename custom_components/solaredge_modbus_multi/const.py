@@ -9,11 +9,6 @@ from typing import Final
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 
-SETUP_TYPE = "setup_type"
-SETUP_SCAN = "Scanning Setup"  # Scan IDs 1-32
-SETUP_SCAN_FULL = "Scanning Setup (Full)"  # Scan IDs 1-247
-SETUP_MANUAL = "Manual Setup"
-
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
