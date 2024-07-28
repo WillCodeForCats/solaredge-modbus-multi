@@ -8,15 +8,18 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry, OptionsFlow
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DEFAULT_NAME,
     DOMAIN,
+    SETUP_MANUAL,
+    SETUP_SCAN,
+    SETUP_SCAN_FULL,
+    SETUP_TYPE,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -48,8 +51,52 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle the initial config flow step."""
+    ) -> ConfigFlowResult:
+        """Handle the initial step."""
+        data_schema = vol.Schema(
+            {
+                vol.Required(SETUP_TYPE, default=SETUP_SCAN): vol.In(
+                    (
+                        SETUP_SCAN,
+                        SETUP_SCAN_FULL,
+                        SETUP_MANUAL,
+                    )
+                )
+            }
+        )
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="user",
+                data_schema=data_schema,
+            )
+
+        if user_input[SETUP_TYPE] == SETUP_MANUAL:
+            return await self.async_step_manual()
+        if user_input[SETUP_TYPE] == SETUP_SCAN_FULL:
+            return await self.async_step_scan_full()
+        return await self.async_step_scan()
+
+    async def async_step_scan(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the scan config flow step."""
+        errors = {}
+
+        raise HomeAssistantError("async_step_scan")
+
+    async def async_step_scan_full(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the full scan config flow step."""
+        errors = {}
+
+        raise HomeAssistantError("async_step_scan_full")
+
+    async def async_step_manual(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the manual config flow step."""
         errors = {}
 
         if user_input is not None:
@@ -95,7 +142,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
 
         return self.async_show_form(
-            step_id="user",
+            step_id="manual",
             data_schema=vol.Schema(
                 {
                     vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
@@ -114,7 +161,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the reconfigure flow step."""
         errors = {}
         config_entry = self.hass.config_entries.async_get_entry(
@@ -194,7 +241,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial options flow step."""
         errors = {}
 
@@ -283,7 +330,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
 
     async def async_step_battery_options(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Battery Options"""
         errors = {}
 
@@ -340,7 +387,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
 
     async def async_step_adv_pwr_ctl(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Power Control Options"""
         errors = {}
 
