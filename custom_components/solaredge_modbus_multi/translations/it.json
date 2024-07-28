@@ -4,6 +4,12 @@
       "user": {
         "title": "Configurazione Modbus SolarEdge",
         "data": {
+          "setup_type": "Scegli un metodo di configurazione"
+        }
+      },
+      "manual": {
+        "title": "Configurazione Modbus manuale",
+        "data": {
           "name": "Prefisso sensore",
           "host": "Indirizzo IP dell'inverter",
           "port": "Porta Modbus/TCP",
