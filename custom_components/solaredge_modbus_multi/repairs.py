@@ -69,6 +69,7 @@ class CheckConfigurationRepairFlow(RepairsFlow):
                     self.hass.config_entries.async_update_entry(
                         self._entry, data={**self._entry.data, **user_input}
                     )
+
                     return self.async_create_entry(title="", data={})
 
         else:
