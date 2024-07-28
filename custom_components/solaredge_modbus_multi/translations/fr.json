@@ -4,6 +4,12 @@
       "user": {
         "title": "Configuration SolarEdge Modbus",
         "data": {
+          "setup_type": "Choisissez une méthode de configuration"
+        }
+      },
+      "manual": {
+        "title": "Configuration Modbus manuelle",
+        "data": {
           "name": "Prefix du capteur",
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
