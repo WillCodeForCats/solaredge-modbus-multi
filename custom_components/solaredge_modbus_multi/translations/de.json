@@ -4,12 +4,6 @@
       "user": {
         "title": "SolarEdge Modbus-Konfiguration",
         "data": {
-          "setup_type": "Wählen Sie eine Einrichtungsmethode"
-        }
-      },
-      "manual": {
-        "title": "Manuelle Modbus-Konfiguration",
-        "data": {
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",

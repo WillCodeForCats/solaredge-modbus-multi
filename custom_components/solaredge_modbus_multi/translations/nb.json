@@ -4,12 +4,6 @@
       "user": {
         "title": "SolarEdge Modbus-konfigurasjon",
         "data": {
-          "setup_type": "Velg en oppsettmetode"
-        }
-      },
-      "manual": {
-        "title": "Manuell Modbus-konfigurasjon",
-        "data": {
           "name": "Sensorvoorvoegsel",
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",

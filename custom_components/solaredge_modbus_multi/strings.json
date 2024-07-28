@@ -4,12 +4,6 @@
       "user": {
         "title": "SolarEdge Modbus Configuration",
         "data": {
-          "setup_type": "Choose a Setup Method"
-        }
-      },
-      "manual": {
-        "title": "Manual Modbus Configuration",
-        "data": {
           "name": "Sensor Prefix",
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
