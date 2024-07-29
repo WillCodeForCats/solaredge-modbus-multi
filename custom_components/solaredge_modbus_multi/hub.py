@@ -456,8 +456,8 @@ class SolarEdgeModbusMultiHub:
         """Connect to inverter."""
 
         if self._client is None:
-            _LOGGER.debug(f"New client object for {self._host}:{self._port}")
             _LOGGER.debug(
+                "New AsyncModbusTcpClient: "
                 f"reconnect_delay={self._mb_reconnect_delay} "
                 f"reconnect_delay_max={self._mb_reconnect_delay_max} "
                 f"retry_on_empty={self._mb_retry_on_empty} "
@@ -472,6 +472,7 @@ class SolarEdgeModbusMultiHub:
                 timeout=self._mb_timeout,
             )
 
+        _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
         await self._client.connect()
 
     def disconnect(self, clear_client: bool = False) -> None:
@@ -1319,7 +1320,14 @@ class SolarEdgeInverter:
                 )
                 self._grid_status = True
 
-            except ModbusIllegalAddress:
+            except (ModbusIllegalAddress, ModbusIOException) as e:
+
+                if (
+                    type(e) is ModbusIOException
+                    and "No response recieved after" not in e
+                ):
+                    raise
+
                 try:
                     del self.decoded_model["I_Grid_Status"]
                 except KeyError:
@@ -1328,8 +1336,11 @@ class SolarEdgeInverter:
                 self._grid_status = False
 
                 _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: " "Grid On/Off NOT available")
+                    (f"I{self.inverter_unit_id}: Grid On/Off NOT available: {e}")
                 )
+
+                if not self.hub.is_connected:
+                    await self.hub.connect()
 
             except ModbusIOError:
                 raise ModbusReadError(
