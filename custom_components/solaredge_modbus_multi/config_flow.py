@@ -80,7 +80,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_scan(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the scan config flow step."""
+        """
+        Handle the scan config flow step.
+        Quick scan only scans the first 32 IDs (Scan IDs 1-32)
+        """
         errors = {}
 
         raise HomeAssistantError("async_step_scan")
@@ -88,7 +91,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_scan_full(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the full scan config flow step."""
+        """
+        Handle the full scan config flow step.
+        Full scan will scan all possible IDs (Scan IDs 1-247)
+        """
         errors = {}
 
         raise HomeAssistantError("async_step_scan_full")
