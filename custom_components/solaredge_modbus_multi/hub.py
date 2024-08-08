@@ -350,9 +350,6 @@ class SolarEdgeModbusMultiHub:
             self.disconnect()
             raise HubInitFailed(f"Timeout error: {e}")
 
-        if not self.keep_modbus_open:
-            self.disconnect()
-
         self.initalized = True
 
     async def async_refresh_modbus_data(self) -> bool:
@@ -381,6 +378,9 @@ class SolarEdgeModbusMultiHub:
                     raise HubInitFailed(f"Setup failed: {e}")
 
                 ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+
+                if not self.keep_modbus_open:
+                    self.disconnect()
 
                 return True
 
