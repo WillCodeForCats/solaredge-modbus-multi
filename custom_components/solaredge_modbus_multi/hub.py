@@ -375,6 +375,9 @@ class SolarEdgeModbusMultiHub:
 
                 ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
+                if not self.keep_modbus_open:
+                    self.disconnect()
+
                 return True
 
             if not self.is_connected:
@@ -437,14 +440,14 @@ class SolarEdgeModbusMultiHub:
 
                 raise DataUpdateFailed(f"Timeout error: {e}")
 
-            if not self._keep_modbus_open:
-                self.disconnect()
-
             if self._timeout_counter > 0:
                 _LOGGER.debug(
                     f"Timeout count {self._timeout_counter} limit {self._retry_limit}"
                 )
                 self._timeout_counter = 0
+
+            if not self.keep_modbus_open:
+                self.disconnect()
 
             return True
 
@@ -473,6 +476,12 @@ class SolarEdgeModbusMultiHub:
         """Disconnect from inverter."""
 
         if self._client is not None:
+            _LOGGER.debug(
+                (
+                    f"Disconnectng from {self._host}:{self._port} "
+                    f"(clear_client={clear_client})."
+                )
+            )
             self._client.close()
 
             if clear_client:
