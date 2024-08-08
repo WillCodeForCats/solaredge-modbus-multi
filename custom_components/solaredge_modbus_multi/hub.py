@@ -477,6 +477,12 @@ class SolarEdgeModbusMultiHub:
         """Disconnect from inverter."""
 
         if self._client is not None:
+            _LOGGER.debug(
+                (
+                    f"Disconnectng from {self._host}:{self._port} "
+                    f"(clear_client={clear_client})."
+                )
+            )
             self._client.close()
 
             if clear_client:
