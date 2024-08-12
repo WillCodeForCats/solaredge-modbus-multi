@@ -28,7 +28,6 @@ from .const import (
     ConfDefaultStr,
     ConfName,
     ModbusDefaults,
-    ModbusFlags,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -163,9 +162,6 @@ class SolarEdgeModbusMultiHub:
         )
         self._mb_reconnect_delay_max = self._yaml_config.get("modbus", {}).get(
             "reconnect_delay_max", ModbusDefaults.ReconnectDelayMax
-        )
-        self._mb_retry_on_empty = self._yaml_config.get("modbus", {}).get(
-            "retry_on_empty", bool(ModbusFlags.RetryOnEmpty)
         )
         self._mb_timeout = self._yaml_config.get("modbus", {}).get(
             "timeout", ModbusDefaults.Timeout
@@ -379,6 +375,9 @@ class SolarEdgeModbusMultiHub:
 
                 ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
+                if not self.keep_modbus_open:
+                    self.disconnect()
+
                 return True
 
             if not self.is_connected:
@@ -441,14 +440,14 @@ class SolarEdgeModbusMultiHub:
 
                 raise DataUpdateFailed(f"Timeout error: {e}")
 
-            if not self._keep_modbus_open:
-                self.disconnect()
-
             if self._timeout_counter > 0:
                 _LOGGER.debug(
                     f"Timeout count {self._timeout_counter} limit {self._retry_limit}"
                 )
                 self._timeout_counter = 0
+
+            if not self.keep_modbus_open:
+                self.disconnect()
 
             return True
 
@@ -460,7 +459,6 @@ class SolarEdgeModbusMultiHub:
                 "New AsyncModbusTcpClient: "
                 f"reconnect_delay={self._mb_reconnect_delay} "
                 f"reconnect_delay_max={self._mb_reconnect_delay_max} "
-                f"retry_on_empty={self._mb_retry_on_empty} "
                 f"timeout={self._mb_timeout}"
             )
             self._client = AsyncModbusTcpClient(
@@ -468,7 +466,6 @@ class SolarEdgeModbusMultiHub:
                 port=self._port,
                 reconnect_delay=self._mb_reconnect_delay,
                 reconnect_delay_max=self._mb_reconnect_delay_max,
-                retry_on_empty=self._mb_retry_on_empty,
                 timeout=self._mb_timeout,
             )
 
@@ -479,6 +476,12 @@ class SolarEdgeModbusMultiHub:
         """Disconnect from inverter."""
 
         if self._client is not None:
+            _LOGGER.debug(
+                (
+                    f"Disconnectng from {self._host}:{self._port} "
+                    f"(clear_client={clear_client})."
+                )
+            )
             self._client.close()
 
             if clear_client:
