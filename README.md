@@ -16,7 +16,7 @@ This integration provides Modbus/TCP local polling to one or more SolarEdge inve
 * Connects locally using Modbus/TCP - no cloud dependencies.
 * Informational sensor for device and its attributes
 * Supports status and error reporting sensors.
-* User friendly configuration through Config Flow.
+* User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
 
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
@@ -25,7 +25,7 @@ Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in th
 
 OR
 
-Copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
+Download the [latest release](https://github.com/WillCodeForCats/solaredge-modbus-multi/releases) and copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
 
 After rebooting Home Assistant, this integration can be configured through the integration setup UI. It also supports options, repair issues, and reconfiguration through the user interface.
 
