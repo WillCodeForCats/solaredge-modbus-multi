@@ -2,11 +2,7 @@
 
 # SolarEdge Modbus Multi
 
-Home Assistant integration `solaredge-modbus-multi` supports SolarEdge inverters with Modbus/TCP local polling. It works with single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
-
-It is designed to communicate locally using Modbus/TCP where you have a single Leader inverter connected with one or more Follower inverters chained using the RS485 bus. Each inverter can connect to three meters and two batteries.
-
-Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
+This integration provides Modbus/TCP local polling to one or more SolarEdge inverters. Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters, multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and `solaredge-modbus-multi` is actively maintained.
 
 ### Features
 * Inverter support for 1 to 32 SolarEdge inverters.
@@ -24,8 +20,6 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
-Note: The modbus interface currently only defines up to 2 batteries per inverter (even if the SolarEdge cloud monitoring platform shows more).
-
 ## Installation
 Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
 
@@ -33,7 +27,7 @@ OR
 
 Copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
 
-After rebooting Home Assistant, this integration can be configured through the integration setup UI.
+After rebooting Home Assistant, this integration can be configured through the integration setup UI. It also supports options, repair issues, and reconfiguration through the user interface.
 
 ### Configuration
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
