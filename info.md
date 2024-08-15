@@ -1,6 +1,6 @@
 ## SolarEdge Modbus Multi
 
-This integration provides Modbus/TCP local polling to one or more SolarEdge inverters. Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters, multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and solaredge-modbus-multi is actively maintained.
+This integration provides Modbus/TCP local polling to one or more SolarEdge inverters. Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters, multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and `solaredge_modbus_multi` is actively maintained.
 
 Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
