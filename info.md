@@ -1,10 +1,6 @@
 ## SolarEdge Modbus Multi
 
-Integrates SolarEdge inverters with Modbus/TCP local polling. Single inverters, multiple inverters, meters, and batteries are supported.
-
-Many improvements over other integrations that didn't work well with a multi-device setup.
-
-Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
+This integration provides Modbus/TCP local polling to one or more SolarEdge inverters. Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters, multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and solaredge-modbus-multi is actively maintained.
 
 Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
@@ -20,6 +16,6 @@ Read more on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://git
 * Connects locally using Modbus/TCP - no cloud dependencies.
 * Informational sensor for device and its attributes
 * Supports status and error reporting sensors.
-* User friendly configuration through Config Flow.
+* User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
 
 Requires Home Assistant 2024.4.0 and newer with pymodbus 3.6.6 and newer.
