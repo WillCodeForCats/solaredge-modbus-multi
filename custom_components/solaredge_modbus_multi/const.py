@@ -89,7 +89,7 @@ class ConfDefaultFlag(IntEnum):
 
     DETECT_METERS = 1
     DETECT_BATTERIES = 0
-    DETECT_EXTRAS = 1
+    DETECT_EXTRAS = 0
     KEEP_MODBUS_OPEN = 0
     ADV_PWR_CONTROL = 0
     ADV_STORAGE_CONTROL = 0
