@@ -1591,7 +1591,10 @@ class SolarEdgeMeter:
         self.fw_version = self.decoded_common["C_Version"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
-        self.name = f"{self.hub.hub_id.capitalize()} M{self.meter_id}"
+        self.name = (
+            f"{self.hub.hub_id.capitalize()} "
+            f"I{self.inverter_unit_id} M{self.meter_id}"
+        )
 
         inverter_model = self.inverter_common["C_Model"]
         inerter_serial = self.inverter_common["C_SerialNumber"]
@@ -1844,7 +1847,10 @@ class SolarEdgeBattery:
         self.fw_version = self.decoded_common["B_Version"]
         self.serial = self.decoded_common["B_SerialNumber"]
         self.device_address = self.decoded_common["B_Device_Address"]
-        self.name = f"{self.hub.hub_id.capitalize()} B{self.battery_id}"
+        self.name = (
+            f"{self.hub.hub_id.capitalize()} "
+            f"I{self.inverter_unit_id} B{self.battery_id}"
+        )
 
         inverter_model = self.inverter_common["C_Model"]
         inerter_serial = self.inverter_common["C_SerialNumber"]
