@@ -662,9 +662,9 @@ class ACVoltAmp(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC VA"
+            return "AC Apparent Power"
         else:
-            return f"AC VA {self._phase.upper()}"
+            return f"AC Apparent Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -719,9 +719,9 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC var"
+            return "AC Reactive Power"
         else:
-            return f"AC var {self._phase.upper()}"
+            return f"AC Reactive Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -776,9 +776,9 @@ class ACPowerFactor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC PF"
+            return "AC Power Factor"
         else:
-            return f"AC PF {self._phase.upper()}"
+            return f"AC Power Factor {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -887,7 +887,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         if self._phase is None:
             return "AC Energy"
         else:
-            return f"{re.sub('_', ' ', self._phase)}"
+            return f"AC Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def available(self) -> bool:
@@ -1652,7 +1652,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{re.sub('_', ' ', self._phase)} VAh"
+            return f"Apparent Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def native_value(self):
@@ -1730,7 +1730,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{re.sub('_', ' ', self._phase)} varh"
+            return f"Reactive Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def native_value(self):
