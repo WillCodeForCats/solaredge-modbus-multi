@@ -156,7 +156,10 @@ async def async_remove_config_entry_device(
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
-    _LOGGER.debug("Migrating from config version {config_entry.version}")
+    _LOGGER.debug(
+        "Migrating from config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
+    )
 
     if config_entry.version > 1:
         return False
@@ -194,7 +197,8 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         )
 
     _LOGGER.warning(
-        f"Migrated to config version {config_entry.version}.{config_entry.minor_version}"
+        "Migrated to config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
     )
 
     return True
