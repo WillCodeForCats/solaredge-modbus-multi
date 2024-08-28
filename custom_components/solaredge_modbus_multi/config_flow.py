@@ -25,6 +25,26 @@ from .const import (
 from .helpers import device_list_from_string, host_valid
 
 
+def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
+    """Generate config flow or repair schema."""
+    schema: dict[vol.Marker, Any] = {}
+
+    if step_id == "user":
+        schema |= {vol.Required(CONF_NAME, default=user_input[CONF_NAME]): cv.string}
+
+    if step_id in ["reconfigure", "confirm", "user"]:
+        schema |= {
+            vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+            vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
+            vol.Required(
+                f"{ConfName.DEVICE_LIST}",
+                default=user_input[ConfName.DEVICE_LIST],
+            ): cv.string,
+        }
+
+    return vol.Schema(schema)
+
+
 @callback
 def solaredge_modbus_multi_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
@@ -96,19 +116,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
-                    vol.Required(
-                        f"{ConfName.DEVICE_LIST}",
-                        default=user_input[ConfName.DEVICE_LIST],
-                    ): cv.string,
-                },
-            ),
+            data_schema=generate_config_schema("user", user_input),
             errors=errors,
         )
 
@@ -169,18 +177,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
-                    vol.Required(
-                        f"{ConfName.DEVICE_LIST}",
-                        default=user_input[ConfName.DEVICE_LIST],
-                    ): cv.string,
-                },
-            ),
+            data_schema=generate_config_schema("reconfigure", user_input),
             errors=errors,
         )
 
