@@ -25,6 +25,7 @@ from .const import (
     METER_REG_BASE,
     ConfDefaultFlag,
     ConfDefaultInt,
+    ConfDefaultStr,
     ConfName,
     ModbusDefaults,
     RetrySettings,
@@ -117,11 +118,8 @@ class SolarEdgeModbusMultiHub:
         self._host = entry_data[CONF_HOST]
         self._port = entry_data[CONF_PORT]
         self._entry_id = entry_id
-        self._number_of_inverters = entry_data.get(
-            ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS
-        )
-        self._start_device_id = entry_data.get(
-            ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID
+        self._inverter_list = entry_data.get(
+            ConfName.DEVICE_LIST, [ConfDefaultStr.DEVICE_LIST]
         )
         self._detect_meters = entry_options.get(
             ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
@@ -186,8 +184,7 @@ class SolarEdgeModbusMultiHub:
         _LOGGER.debug(
             (
                 f"{DOMAIN} configuration: "
-                f"number_of_inverters={self._number_of_inverters}, "
-                f"start_device_id={self._start_device_id}, "
+                f"inverter_list={self._inverter_list}, "
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
                 f"detect_extras={self._detect_extras}, "
@@ -233,8 +230,7 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        for inverter_index in range(self._number_of_inverters):
-            inverter_unit_id = inverter_index + self._start_device_id
+        for inverter_unit_id in self._inverter_list:
 
             try:
                 _LOGGER.debug(
@@ -708,7 +704,7 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def number_of_inverters(self) -> int:
-        return self._number_of_inverters
+        return len(self._inverter_list)
 
     @property
     def sleep_after_write(self) -> int:
