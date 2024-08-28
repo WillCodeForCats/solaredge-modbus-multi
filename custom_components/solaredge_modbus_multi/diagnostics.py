@@ -12,9 +12,9 @@ from .const import DOMAIN
 from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
-REDACT_INVERTER = {"identifiers", "C_SerialNumber"}
-REDACT_METER = {"identifiers", "C_SerialNumber"}
-REDACT_BATTERY = {"identifiers", "B_SerialNumber"}
+REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
+REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number"}
+REDACT_BATTERY = {"identifiers", "B_SerialNumber", "serial_number"}
 
 
 def format_values(format_input) -> Any:
