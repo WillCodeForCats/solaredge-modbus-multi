@@ -10,7 +10,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
@@ -43,15 +43,6 @@ def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Sche
         }
 
     return vol.Schema(schema)
-
-
-@callback
-def solaredge_modbus_multi_entries(hass: HomeAssistant):
-    """Return the hosts already configured."""
-    return set(
-        entry.data[CONF_HOST].lower()
-        for entry in hass.config_entries.async_entries(DOMAIN)
-    )
 
 
 class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -88,8 +79,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 if not host_valid(user_input[CONF_HOST]):
                     errors[CONF_HOST] = "invalid_host"
-                elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
-                    errors[CONF_HOST] = "already_configured"
                 elif not 1 <= user_input[CONF_PORT] <= 65535:
                     errors[CONF_PORT] = "invalid_tcp_port"
                 elif not 1 <= inverter_count <= 32:
