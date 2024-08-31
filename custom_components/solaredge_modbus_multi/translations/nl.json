@@ -7,23 +7,31 @@
           "name": "Sensor prefix",
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
-          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
-          "number_of_inverters": "Aantal aangesloten omvormers"
+          "device_list": "Omvormerapparaat-ID-lijst"
+        }
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-configuratie",
+        "data": {
+          "host": "omvormer IP-adres",
+          "port": "Modbus/TCP Port",
+          "device_list": "Omvormerapparaat-ID-lijst"
         }
       }
     },
     "error": {
       "already_configured": "Apparaat is al geconfigureerd",
-      "max_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-      "min_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-      "max_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-      "min_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-      "too_many_inverters": "Aantal omvormers te hoog voor Device ID.",
+      "invalid_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+      "invalid_inverter_count": "Moet tussen 1 en 32 omvormers zijn.",
       "invalid_host": "Ongeldig IP-adres.",
-      "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
+      "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
+      "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
+      "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
+      "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
     },
     "abort": {
-      "already_configured": "Apparaat is al geconfigureerd"
+      "already_configured": "Apparaat is al geconfigureerd",
+      "reconfigure_successful": "De herconfiguratie was succesvol"
     }
   },
   "options": {
@@ -80,13 +88,13 @@
           }
         },
         "error": {
-          "max_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-          "min_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-          "max_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-          "min_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-          "too_many_inverters": "Aantal omvormers te hoog voor Device ID.",
+          "invalid_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+          "invalid_inverter_count": "Moet tussen 1 en 32 omvormers zijn.",    
           "invalid_host": "Ongeldig IP-adres.",
-          "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
+          "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
+          "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
+          "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
+          "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
         }
       }
     }

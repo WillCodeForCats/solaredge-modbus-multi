@@ -5,9 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Any
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, Platform
@@ -16,7 +14,7 @@ from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, ConfDefaultInt, RetrySettings
+from .const import DOMAIN, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,7 +46,6 @@ CONFIG_SCHEMA = vol.Schema(
                         vol.Optional("timeout"): vol.Coerce(int),
                         vol.Optional("reconnect_delay"): vol.Coerce(float),
                         vol.Optional("reconnect_delay_max"): vol.Coerce(float),
-                        vol.Optional("retry_on_empty"): cv.boolean,
                     }
                 ),
             }
@@ -68,17 +65,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
-
-    entry_updates: dict[str, Any] = {}
-    if CONF_SCAN_INTERVAL in entry.data:
-        data = {**entry.data}
-        entry_updates["data"] = data
-        entry_updates["options"] = {
-            **entry.options,
-            CONF_SCAN_INTERVAL: data.pop(CONF_SCAN_INTERVAL),
-        }
-    if entry_updates:
-        hass.config_entries.async_update_entry(entry, **entry_updates)
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options
@@ -164,6 +150,56 @@ async def async_remove_config_entry_device(
         if device_id in known_devices:
             _LOGGER.error(f"Unable to remove entry: device {device_id} is in use")
             return False
+
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    _LOGGER.debug(
+        "Migrating from config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
+    )
+
+    if config_entry.version > 1:
+        return False
+
+    if config_entry.version == 1:
+
+        update_data = {**config_entry.data}
+        update_options = {**config_entry.options}
+
+        if CONF_SCAN_INTERVAL in update_data:
+            update_options = {
+                **update_options,
+                CONF_SCAN_INTERVAL: update_data.pop(CONF_SCAN_INTERVAL),
+            }
+
+        start_device_id = update_data.pop(ConfName.DEVICE_ID)
+        number_of_inverters = update_data.pop(ConfName.NUMBER_INVERTERS)
+
+        inverter_list = []
+        for inverter_index in range(number_of_inverters):
+            inverter_unit_id = inverter_index + start_device_id
+            inverter_list.append(inverter_unit_id)
+
+        update_data = {
+            **update_data,
+            ConfName.DEVICE_LIST: inverter_list,
+        }
+
+        hass.config_entries.async_update_entry(
+            config_entry,
+            data=update_data,
+            options=update_options,
+            version=2,
+            minor_version=0,
+        )
+
+    _LOGGER.warning(
+        "Migrated to config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
+    )
 
     return True
 

@@ -2,11 +2,7 @@
 
 # SolarEdge Modbus Multi
 
-Home Assistant integration `solaredge-modbus-multi` supports SolarEdge inverters with Modbus/TCP local polling. It works with single inverters, multiple inverters, meters, batteries, and many other improvements over other integrations that didn't work well with a multi-device setup.
-
-It is designed to communicate locally using Modbus/TCP where you have a single Leader inverter connected with one or more Follower inverters chained using the RS485 bus. Each inverter can connect to three meters and two batteries.
-
-Simple single inverter setups are fully supported - multiple devices is a feature, not a requirement.
+This integration provides Modbus/TCP local polling to one or more SolarEdge inverters for Home Assistant. Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters, multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and `solaredge_modbus_multi` is actively maintained.
 
 ### Features
 * Inverter support for 1 to 32 SolarEdge inverters.
@@ -20,20 +16,20 @@ Simple single inverter setups are fully supported - multiple devices is a featur
 * Connects locally using Modbus/TCP - no cloud dependencies.
 * Informational sensor for device and its attributes
 * Supports status and error reporting sensors.
-* User friendly configuration through Config Flow.
+* User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
 
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
-
-Note: The modbus interface currently only defines up to 2 batteries per inverter (even if the SolarEdge cloud monitoring platform shows more).
 
 ## Installation
 Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=WillCodeForCats&repository=solaredge-modbus-multi&category=integration)
+
 OR
 
-Copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
+Download the [latest release](https://github.com/WillCodeForCats/solaredge-modbus-multi/releases) and copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
 
-After rebooting Home Assistant, this integration can be configured through the integration setup UI.
+After rebooting Home Assistant, this integration can be configured through the integration setup UI. It also supports options, repair issues, and reconfiguration through the user interface.
 
 ### Configuration
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
@@ -42,7 +38,7 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ### Required Versions
-* Home Assistant 2024.3.2 or newer
+* Home Assistant 2024.4.0 or newer
 * Python 3.11 or newer
 * pymodbus 3.6.6 or newer
 

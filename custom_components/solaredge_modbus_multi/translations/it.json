@@ -7,23 +7,31 @@
           "name": "Prefisso sensore",
           "host": "Indirizzo IP dell'inverter",
           "port": "Porta Modbus/TCP",
-          "device_id": "Indirizzo Modbus dell'inverter (ID dispositivo)",
-          "number_of_inverters": "Numero di inverter"
+          "device_list": "Elenco ID dispositivi inverter"
+        }
+      },
+      "reconfigure": {
+        "title": "Configurazione Modbus SolarEdge",
+        "data": {
+          "host": "Indirizzo IP dell'inverter",
+          "port": "Porta Modbus/TCP",
+          "device_list": "Elenco ID dispositivi inverter"
         }
       }
     },
     "error": {
       "already_configured": "Il dispositivo è già configurato!",
-      "max_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
-      "min_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
-      "max_inverters": "Deve essere compreso tra 1 e 32 inverter.",
-      "min_inverters": "Deve essere compreso tra 1 e 32 inverter.",
-      "too_many_inverters": "Numero di inverter troppo elevato per l'ID dispositivo.",
+      "invalid_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
+      "invalid_inverter_count": "Deve essere compreso tra 1 e 32 inverter.",
       "invalid_host": "Indirizzo IP non valido.",
-      "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535."
+      "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535.",
+      "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
+      "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
+      "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito."
     },
     "abort": {
-      "already_configured": "Il dispositivo è già configurato!"
+      "already_configured": "Il dispositivo è già configurato",
+      "reconfigure_successful": "La riconfigurazione ha avuto successo"
     }
   },
   "options": {
@@ -80,13 +88,13 @@
           }
         },
         "error": {
-          "max_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
-          "min_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
-          "max_inverters": "Deve essere compreso tra 1 e 32 inverter.",
-          "min_inverters": "Deve essere compreso tra 1 e 32 inverter.",
-          "too_many_inverters": "Numero di inverter troppo elevato per l'ID dispositivo.",
+          "invalid_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
+          "invalid_inverter_count": "Deve essere compreso tra 1 e 32 inverter.",    
           "invalid_host": "Indirizzo IP non valido.",
-          "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535."
+          "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535.",
+          "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
+          "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
+          "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito."
         }
       }
     }

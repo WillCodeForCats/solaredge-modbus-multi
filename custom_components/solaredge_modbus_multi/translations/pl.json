@@ -7,23 +7,31 @@
           "name": "Prefix sensora",
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
-          "device_id": "Adres Modbus Inwertera (Device ID)",
-          "number_of_inverters": "Ilość inwerterów"
+          "device_list": "Lista identyfikatorów urządzeń falownika"
+        }
+      },
+      "reconfigure": {
+        "title": "Konfiguracja SolarEdge Modbus",
+        "data": {
+          "host": "Adres IP inwertera",
+          "port": "Modbus/TCP Port",
+          "device_list": "Lista identyfikatorów urządzeń falownika"
         }
       }
     },
     "error": {
       "already_configured": "Urządzenie jest już skonfigurowane!",
-      "max_device_id": "Device ID musi być pomiędzy  1 i 247.",
-      "min_device_id": "Device ID musi być pomiędzy  1 i 247.",
-      "max_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-      "min_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-      "too_many_inverters": "Liczba inwerterów za duża dla Device ID.",
+      "invalid_device_id": "Device ID musi być pomiędzy  1 i 247.",
+      "invalid_inverter_count": "Dopuszczalna liczba inwerterów to od  1 do 32.",
       "invalid_host": "Błędny adres IP.",
-      "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535."
+      "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535.",
+      "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
+      "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
+      "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość."
     },
     "abort": {
-      "already_configured": "Urządzenie jest już skonfigurowane!"
+      "already_configured": "Urządzenie jest już skonfigurowane",
+      "reconfigure_successful": "Ponowna konfiguracja przebiegła pomyślnie"
     }
   },
   "options": {
@@ -80,13 +88,13 @@
           }
         },
         "error": {
-          "max_device_id": "Device ID musi być pomiędzy  1 i 247.",
-          "min_device_id": "Device ID musi być pomiędzy  1 i 247.",
-          "max_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-          "min_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-          "too_many_inverters": "Liczba inwerterów za duża dla Device ID.",
+          "invalid_device_id": "Device ID musi być pomiędzy  1 i 247.",
+          "invalid_inverter_count": "Dopuszczalna liczba inwerterów to od  1 do 32.",    
           "invalid_host": "Błędny adres IP.",
-          "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535."
+          "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535.",
+          "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
+          "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
+          "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość."
         }
       }
     }

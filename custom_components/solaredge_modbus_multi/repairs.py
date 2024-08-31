@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
+import re
 from typing import cast
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 
-from .const import ConfName
-from .helpers import host_valid
+from .config_flow import generate_config_schema
+from .const import ConfDefaultStr, ConfName
+from .helpers import device_list_from_string, host_valid
 
 
 class CheckConfigurationRepairFlow(RepairsFlow):
@@ -41,56 +42,52 @@ class CheckConfigurationRepairFlow(RepairsFlow):
 
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+            user_input[ConfName.DEVICE_LIST] = re.sub(
+                r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE
+            )
 
-            if not host_valid(user_input[CONF_HOST]):
-                errors[CONF_HOST] = "invalid_host"
-            elif user_input[CONF_PORT] < 1:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[CONF_PORT] > 65535:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[ConfName.DEVICE_ID] > 247:
-                errors[ConfName.DEVICE_ID] = "max_device_id"
-            elif user_input[ConfName.DEVICE_ID] < 1:
-                errors[ConfName.DEVICE_ID] = "min_device_id"
-            elif user_input[ConfName.NUMBER_INVERTERS] > 32:
-                errors[ConfName.NUMBER_INVERTERS] = "max_inverters"
-            elif user_input[ConfName.NUMBER_INVERTERS] < 1:
-                errors[ConfName.NUMBER_INVERTERS] = "min_inverters"
-            elif (
-                user_input[ConfName.NUMBER_INVERTERS] + user_input[ConfName.DEVICE_ID]
-                > 247
-            ):
-                errors[ConfName.NUMBER_INVERTERS] = "too_many_inverters"
-            else:
-                self.hass.config_entries.async_update_entry(
-                    self._entry, data={**self._entry.data, **user_input}
+            try:
+                inverter_count = len(
+                    device_list_from_string(user_input[ConfName.DEVICE_LIST])
                 )
-                return self.async_create_entry(title="", data={})
+            except HomeAssistantError as e:
+                errors[ConfName.DEVICE_LIST] = f"{e}"
+
+            else:
+                if not host_valid(user_input[CONF_HOST]):
+                    errors[CONF_HOST] = "invalid_host"
+                elif not 1 <= user_input[CONF_PORT] <= 65535:
+                    errors[CONF_PORT] = "invalid_tcp_port"
+                elif not 1 <= inverter_count <= 32:
+                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                else:
+                    user_input[ConfName.DEVICE_LIST] = device_list_from_string(
+                        user_input[ConfName.DEVICE_LIST]
+                    )
+
+                    self.hass.config_entries.async_update_entry(
+                        self._entry, data={**self._entry.data, **user_input}
+                    )
+
+                    return self.async_create_entry(title="", data={})
+
         else:
+            reconfig_device_list = ",".join(
+                str(device)
+                for device in self._entry.data.get(
+                    ConfName.DEVICE_LIST, ConfDefaultStr.DEVICE_LIST
+                )
+            )
+
             user_input = {
                 CONF_HOST: self._entry.data[CONF_HOST],
                 CONF_PORT: self._entry.data[CONF_PORT],
-                ConfName.NUMBER_INVERTERS: self._entry.data[ConfName.NUMBER_INVERTERS],
-                ConfName.DEVICE_ID: self._entry.data[ConfName.DEVICE_ID],
+                ConfName.DEVICE_LIST: reconfig_device_list,
             }
 
         return self.async_show_form(
             step_id="confirm",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
-                    vol.Required(
-                        f"{ConfName.NUMBER_INVERTERS}",
-                        default=user_input[ConfName.NUMBER_INVERTERS],
-                    ): vol.Coerce(int),
-                    vol.Required(
-                        f"{ConfName.DEVICE_ID}", default=user_input[ConfName.DEVICE_ID]
-                    ): vol.Coerce(int),
-                }
-            ),
+            data_schema=generate_config_schema("confirm", user_input),
             errors=errors,
         )
 
