@@ -10,7 +10,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
@@ -25,13 +25,24 @@ from .const import (
 from .helpers import device_list_from_string, host_valid
 
 
-@callback
-def solaredge_modbus_multi_entries(hass: HomeAssistant):
-    """Return the hosts already configured."""
-    return set(
-        entry.data[CONF_HOST].lower()
-        for entry in hass.config_entries.async_entries(DOMAIN)
-    )
+def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
+    """Generate config flow or repair schema."""
+    schema: dict[vol.Marker, Any] = {}
+
+    if step_id == "user":
+        schema |= {vol.Required(CONF_NAME, default=user_input[CONF_NAME]): cv.string}
+
+    if step_id in ["reconfigure", "confirm", "user"]:
+        schema |= {
+            vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+            vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
+            vol.Required(
+                f"{ConfName.DEVICE_LIST}",
+                default=user_input[ConfName.DEVICE_LIST],
+            ): cv.string,
+        }
+
+    return vol.Schema(schema)
 
 
 class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -68,8 +79,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 if not host_valid(user_input[CONF_HOST]):
                     errors[CONF_HOST] = "invalid_host"
-                elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
-                    errors[CONF_HOST] = "already_configured"
                 elif not 1 <= user_input[CONF_PORT] <= 65535:
                     errors[CONF_PORT] = "invalid_tcp_port"
                 elif not 1 <= inverter_count <= 32:
@@ -96,19 +105,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
-                    vol.Required(
-                        f"{ConfName.DEVICE_LIST}",
-                        default=user_input[ConfName.DEVICE_LIST],
-                    ): cv.string,
-                },
-            ),
+            data_schema=generate_config_schema("user", user_input),
             errors=errors,
         )
 
@@ -169,18 +166,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
-                    vol.Required(
-                        f"{ConfName.DEVICE_LIST}",
-                        default=user_input[ConfName.DEVICE_LIST],
-                    ): cv.string,
-                },
-            ),
+            data_schema=generate_config_schema("reconfigure", user_input),
             errors=errors,
         )
 
