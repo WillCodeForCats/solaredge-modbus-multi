@@ -2256,12 +2256,18 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
-            or self._platform.decoded_model["B_Energy_Available"]
-            > (
-                self._platform.decoded_common["B_RatedEnergy"]
-                * self._platform.battery_rating_adjust
-            )
         ):
+            return None
+
+        if self._platform.decoded_model["B_Energy_Available"] > (
+            self._platform.decoded_common["B_RatedEnergy"]
+            * self._platform.battery_rating_adjust
+        ):
+            _LOGGER.warning(
+                f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
+                "Battery available energy exceeds rated energy. "
+                "Set configuration for Battery Rating Adjustment when necessary."
+            )
             return None
 
         else:
