@@ -501,10 +501,8 @@ class SolarEdgeModbusMultiHub:
         self._rr_address = address
         self._rr_count = rcount
 
-        kwargs = {"slave": self._rr_unit} if self._rr_unit else {}
-
         result = await self._client.read_holding_registers(
-            self._rr_address, self._rr_count, **kwargs
+            self._rr_address, count=self._rr_count, slave=self._rr_unit
         )
 
         if result.isError():
@@ -552,9 +550,8 @@ class SolarEdgeModbusMultiHub:
                 if not self.is_connected:
                     await self.connect()
 
-                kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
                 result = await self._client.write_registers(
-                    self._wr_address, self._wr_payload, **kwargs
+                    self._wr_address, slave=self._wr_unit, values=self._wr_payload
                 )
 
                 self.has_write = address
