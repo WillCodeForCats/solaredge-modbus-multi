@@ -28,6 +28,21 @@ DOMAIN_REGEX = re.compile(
 )
 
 
+class ModbusExceptions:
+    """An enumeration of the valid modbus exceptions."""
+
+    IllegalFunction = 0x01
+    IllegalAddress = 0x02
+    IllegalValue = 0x03
+    SlaveFailure = 0x04
+    Acknowledge = 0x05
+    SlaveBusy = 0x06
+    NegativeAcknowledge = 0x07
+    MemoryParityError = 0x08
+    GatewayPathUnavailable = 0x0A
+    GatewayNoResponse = 0x0B
+
+
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
 
