@@ -15,7 +15,7 @@ try:
     from pymodbus.constants import Endian
     from pymodbus.exceptions import ConnectionException, ModbusIOException
     from pymodbus.payload import BinaryPayloadDecoder
-    from pymodbus.pdu import ExceptionResponse, ModbusExceptions
+    from pymodbus.pdu import ExceptionResponse
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
@@ -514,13 +514,13 @@ class SolarEdgeModbusMultiHub:
                 raise ModbusIOError(result)
 
             if type(result) is ExceptionResponse:
-                if result.exception_code == ModbusExceptions.IllegalAddress:
+                if result.exception_code == ExceptionResponse.ILLEGAL_ADDRESS:
                     raise ModbusIllegalAddress(result)
 
-                if result.exception_code == ModbusExceptions.IllegalFunction:
+                if result.exception_code == ExceptionResponse.ILLEGAL_FUNCTION:
                     raise ModbusIllegalFunction(result)
 
-                if result.exception_code == ModbusExceptions.IllegalValue:
+                if result.exception_code == ExceptionResponse.ILLEGAL_VALUE:
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
@@ -594,19 +594,19 @@ class SolarEdgeModbusMultiHub:
                     )
 
                 if type(result) is ExceptionResponse:
-                    if result.exception_code == ModbusExceptions.IllegalAddress:
+                    if result.exception_code == ExceptionResponse.ILLEGAL_ADDRESS:
                         _LOGGER.debug(f"Write IllegalAddress: {result}")
                         raise HomeAssistantError(
                             "Address not supported at device at ID {self._wr_unit}."
                         )
 
-                    if result.exception_code == ModbusExceptions.IllegalFunction:
+                    if result.exception_code == ExceptionResponse.ILLEGAL_FUNCTION:
                         _LOGGER.debug(f"Write IllegalFunction: {result}")
                         raise HomeAssistantError(
                             "Function not supported by device at ID {self._wr_unit}."
                         )
 
-                    if result.exception_code == ModbusExceptions.IllegalValue:
+                    if result.exception_code == ExceptionResponse.ILLEGAL_VALUE:
                         _LOGGER.debug(f"Write IllegalValue: {result}")
                         raise HomeAssistantError(
                             "Value invalid for device at ID {self._wr_unit}."
