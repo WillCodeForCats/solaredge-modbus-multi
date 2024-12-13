@@ -15,7 +15,7 @@ try:
     from pymodbus.constants import Endian
     from pymodbus.exceptions import ConnectionException, ModbusIOException
     from pymodbus.payload import BinaryPayloadDecoder
-    from pymodbus.pdu import ExceptionResponse, ModbusExceptions
+    from pymodbus.pdu import ExceptionResponse
 except ImportError:
     raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
 
@@ -28,6 +28,7 @@ from .const import (
     ConfDefaultStr,
     ConfName,
     ModbusDefaults,
+    ModbusExceptions,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -515,12 +516,15 @@ class SolarEdgeModbusMultiHub:
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(f"Read IllegalAddress: {result}")
                     raise ModbusIllegalAddress(result)
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"Read IllegalFunction: {result}")
                     raise ModbusIllegalFunction(result)
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"Read IllegalValue: {result}")
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
