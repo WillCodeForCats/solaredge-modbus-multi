@@ -47,16 +47,6 @@ class ModbusExceptions:
     GatewayPathUnavailable = 0x0A
     GatewayNoResponse = 0x0B
 
-    @classmethod
-    def decode(cls, code: int) -> str | None:
-        """Give an error code, translate it to a string error name."""
-        values = {
-            v: k
-            for k, v in iter(cls.__dict__.items())
-            if not k.startswith("__") and not callable(v)
-        }
-        return values.get(code, None)
-
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
