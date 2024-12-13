@@ -31,6 +31,11 @@ DOMAIN_REGEX = re.compile(
 class ModbusExceptions:
     """An enumeration of the valid modbus exceptions."""
 
+    """
+        Copied from pymodbus source:
+        https://github.com/pymodbus-dev/pymodbus/blob/a1c14c7a8fbea52618ba1cbc9933c1dd24c3339d/pymodbus/pdu/pdu.py#L72
+    """
+
     IllegalFunction = 0x01
     IllegalAddress = 0x02
     IllegalValue = 0x03
