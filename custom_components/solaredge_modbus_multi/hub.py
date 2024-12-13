@@ -516,12 +516,15 @@ class SolarEdgeModbusMultiHub:
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(f"Read IllegalAddress: {result}")
                     raise ModbusIllegalAddress(result)
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"Read IllegalFunction: {result}")
                     raise ModbusIllegalFunction(result)
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"Read IllegalValue: {result}")
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
