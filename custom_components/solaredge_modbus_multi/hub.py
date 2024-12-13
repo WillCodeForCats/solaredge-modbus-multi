@@ -9,15 +9,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
-
-try:
-    from pymodbus.client import AsyncModbusTcpClient
-    from pymodbus.constants import Endian
-    from pymodbus.exceptions import ConnectionException, ModbusIOException
-    from pymodbus.payload import BinaryPayloadDecoder
-    from pymodbus.pdu import ExceptionResponse, ModbusExceptions
-except ImportError:
-    raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
+from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.constants import Endian
+from pymodbus.exceptions import ConnectionException, ModbusIOException
+from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ExceptionResponse, ModbusExceptions
 
 from .const import (
     BATTERY_REG_BASE,
