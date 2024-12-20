@@ -30,7 +30,7 @@ from .const import (
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, parse_modbus_string
+from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 pymodbus_version = importlib.metadata.version("pymodbus")
@@ -100,6 +100,16 @@ class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid"""
 
     pass
+
+
+class SolarEdgeModbusDevice:
+    """Base class for SolarEdge modbus devices."""
+
+    @staticmethod
+    def mbstr(s: str) -> str:
+        s = s.decode(encoding="utf-8", errors="ignore")
+        s = s.replace("\x00", "").rstrip()
+        return str(s)
 
 
 class SolarEdgeModbusMultiHub:
@@ -743,7 +753,7 @@ class SolarEdgeModbusMultiHub:
         return self._client.connected
 
 
-class SolarEdgeInverter:
+class SolarEdgeInverter(SolarEdgeModbusDevice):
     """Defines a SolarEdge inverter."""
 
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
@@ -780,14 +790,14 @@ class SolarEdgeInverter:
                     ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
                         "C_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
-                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
-                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
+                    ("C_Model", self.mbstr(decoder.decode_string(32))),
+                    ("C_Option", self.mbstr(decoder.decode_string(16))),
+                    ("C_Version", self.mbstr(decoder.decode_string(16))),
                     (
                         "C_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
                     ("C_Device_address", decoder.decode_16bit_uint()),
                 ]
@@ -903,9 +913,7 @@ class SolarEdgeInverter:
                 inverter_data.registers, byteorder=Endian.BIG
             )
 
-            self.decoded_common["C_Version"] = parse_modbus_string(
-                decoder.decode_string(16)
-            )
+            self.decoded_common["C_Version"] = self.mbstr(decoder.decode_string(16))
 
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
@@ -1017,7 +1025,7 @@ class SolarEdgeInverter:
                                 ("ID", decoder.decode_16bit_uint()),
                                 (
                                     "IDStr",
-                                    parse_modbus_string(decoder.decode_string(16)),
+                                    self.mbstr(decoder.decode_string(16)),
                                 ),
                                 ("DCA", decoder.decode_16bit_uint()),
                                 ("DCV", decoder.decode_16bit_uint()),
@@ -1497,7 +1505,7 @@ class SolarEdgeMMPPTUnit:
         return self.inverter.decoded_model[self.mmppt_key]["IDStr"]
 
 
-class SolarEdgeMeter:
+class SolarEdgeMeter(SolarEdgeModbusDevice):
     """Defines a SolarEdge meter."""
 
     def __init__(
@@ -1550,14 +1558,14 @@ class SolarEdgeMeter:
                     ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
                         "C_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
-                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
-                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
+                    ("C_Model", self.mbstr(decoder.decode_string(32))),
+                    ("C_Option", self.mbstr(decoder.decode_string(16))),
+                    ("C_Version", self.mbstr(decoder.decode_string(16))),
                     (
                         "C_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
                     ("C_Device_address", decoder.decode_16bit_uint()),
                 ]
@@ -1744,7 +1752,7 @@ class SolarEdgeMeter:
         self._via_device = (DOMAIN, device)
 
 
-class SolarEdgeBattery:
+class SolarEdgeBattery(SolarEdgeModbusDevice):
     """Defines a SolarEdge battery."""
 
     def __init__(
@@ -1780,13 +1788,13 @@ class SolarEdgeBattery:
                 [
                     (
                         "B_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
-                    ("B_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("B_Version", parse_modbus_string(decoder.decode_string(32))),
+                    ("B_Model", self.mbstr(decoder.decode_string(32))),
+                    ("B_Version", self.mbstr(decoder.decode_string(32))),
                     (
                         "B_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
                     ("B_Device_Address", decoder.decode_16bit_uint()),
                     ("ignore", decoder.skip_bytes(2)),
