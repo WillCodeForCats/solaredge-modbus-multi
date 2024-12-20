@@ -14,7 +14,7 @@ from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ConnectionException, ModbusIOException
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.pdu import ExceptionResponse, ModbusExceptions
+from pymodbus.pdu import ExceptionResponse
 
 from .const import (
     BATTERY_REG_BASE,
@@ -25,6 +25,7 @@ from .const import (
     ConfDefaultStr,
     ConfName,
     ModbusDefaults,
+    ModbusExceptions,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -506,19 +507,21 @@ class SolarEdgeModbusMultiHub:
         )
 
         if result.isError():
-            _LOGGER.debug(f"Unit {unit}: {result}")
 
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(f"Unit {unit} Read IllegalAddress: {result}")
                     raise ModbusIllegalAddress(result)
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"Unit {unit} Read IllegalFunction: {result}")
                     raise ModbusIllegalFunction(result)
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"Unit {unit} Read IllegalValue: {result}")
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
@@ -592,19 +595,25 @@ class SolarEdgeModbusMultiHub:
 
                 if type(result) is ExceptionResponse:
                     if result.exception_code == ModbusExceptions.IllegalAddress:
-                        _LOGGER.debug(f"Write IllegalAddress: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalAddress: {result}"
+                        )
                         raise HomeAssistantError(
                             "Address not supported at device at ID {self._wr_unit}."
                         )
 
                     if result.exception_code == ModbusExceptions.IllegalFunction:
-                        _LOGGER.debug(f"Write IllegalFunction: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalFunction: {result}"
+                        )
                         raise HomeAssistantError(
                             "Function not supported by device at ID {self._wr_unit}."
                         )
 
                     if result.exception_code == ModbusExceptions.IllegalValue:
-                        _LOGGER.debug(f"Write IllegalValue: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalValue: {result}"
+                        )
                         raise HomeAssistantError(
                             "Value invalid for device at ID {self._wr_unit}."
                         )
