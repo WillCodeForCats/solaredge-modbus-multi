@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.metadata
 import logging
 from collections import OrderedDict
 
@@ -10,14 +11,11 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 
-try:
-    from pymodbus.client import AsyncModbusTcpClient
-    from pymodbus.constants import Endian
-    from pymodbus.exceptions import ConnectionException, ModbusIOException
-    from pymodbus.payload import BinaryPayloadDecoder
-    from pymodbus.pdu import ExceptionResponse
-except ImportError:
-    raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
+from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.constants import Endian
+from pymodbus.exceptions import ConnectionException, ModbusIOException
+from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ExceptionResponse
 
 from .const import (
     BATTERY_REG_BASE,
@@ -36,6 +34,7 @@ from .const import (
 from .helpers import float_to_hex, parse_modbus_string
 
 _LOGGER = logging.getLogger(__name__)
+pymodbus_version = importlib.metadata.version("pymodbus")
 
 
 class SolarEdgeException(Exception):
@@ -197,6 +196,8 @@ class SolarEdgeModbusMultiHub:
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
             ),
         )
+
+        _LOGGER.debug(f"pymodbus version {pymodbus_version}")
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
@@ -502,10 +503,8 @@ class SolarEdgeModbusMultiHub:
         self._rr_address = address
         self._rr_count = rcount
 
-        kwargs = {"slave": self._rr_unit} if self._rr_unit else {}
-
         result = await self._client.read_holding_registers(
-            self._rr_address, self._rr_count, **kwargs
+            self._rr_address, count=self._rr_count, slave=self._rr_unit
         )
 
         if result.isError():
@@ -556,9 +555,8 @@ class SolarEdgeModbusMultiHub:
                 if not self.is_connected:
                     await self.connect()
 
-                kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
                 result = await self._client.write_registers(
-                    self._wr_address, self._wr_payload, **kwargs
+                    self._wr_address, slave=self._wr_unit, values=self._wr_payload
                 )
 
                 self.has_write = address
