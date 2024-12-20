@@ -595,19 +595,25 @@ class SolarEdgeModbusMultiHub:
 
                 if type(result) is ExceptionResponse:
                     if result.exception_code == ModbusExceptions.IllegalAddress:
-                        _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalAddress: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalAddress: {result}"
+                        )
                         raise HomeAssistantError(
                             "Address not supported at device at ID {self._wr_unit}."
                         )
 
                     if result.exception_code == ModbusExceptions.IllegalFunction:
-                        _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalFunction: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalFunction: {result}"
+                        )
                         raise HomeAssistantError(
                             "Function not supported by device at ID {self._wr_unit}."
                         )
 
                     if result.exception_code == ModbusExceptions.IllegalValue:
-                        _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalValue: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalValue: {result}"
+                        )
                         raise HomeAssistantError(
                             "Value invalid for device at ID {self._wr_unit}."
                         )
