@@ -105,7 +105,8 @@ class DeviceInvalid(SolarEdgeException):
 class SolarEdgeModbusDevice:
     """Base class for SolarEdge modbus devices."""
 
-    def mbstr(self, s: str) -> str:
+    @staticmethod
+    def mbstr(s: str) -> str:
         s = s.decode(encoding="utf-8", errors="ignore")
         s = s.replace("\x00", "").rstrip()
         return str(s)
@@ -789,14 +790,14 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                     ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
                         "C_Manufacturer",
-                        self.mbstr(self, decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
-                    ("C_Model", self.mbstr(self, decoder.decode_string(32))),
-                    ("C_Option", self.mbstr(self, decoder.decode_string(16))),
-                    ("C_Version", self.mbstr(self, decoder.decode_string(16))),
+                    ("C_Model", self.mbstr(decoder.decode_string(32))),
+                    ("C_Option", self.mbstr(decoder.decode_string(16))),
+                    ("C_Version", self.mbstr(decoder.decode_string(16))),
                     (
                         "C_SerialNumber",
-                        self.mbstr(self, decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
                     ("C_Device_address", decoder.decode_16bit_uint()),
                 ]
@@ -1557,14 +1558,14 @@ class SolarEdgeMeter(SolarEdgeModbusDevice):
                     ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
                         "C_Manufacturer",
-                        self.mbstr(self, decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
-                    ("C_Model", self.mbstr(self, decoder.decode_string(32))),
-                    ("C_Option", self.mbstr(self, decoder.decode_string(16))),
-                    ("C_Version", self.mbstr(self, decoder.decode_string(16))),
+                    ("C_Model", self.mbstr(decoder.decode_string(32))),
+                    ("C_Option", self.mbstr(decoder.decode_string(16))),
+                    ("C_Version", self.mbstr(decoder.decode_string(16))),
                     (
                         "C_SerialNumber",
-                        self.mbstr(self, decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
                     ("C_Device_address", decoder.decode_16bit_uint()),
                 ]
@@ -1787,13 +1788,13 @@ class SolarEdgeBattery(SolarEdgeModbusDevice):
                 [
                     (
                         "B_Manufacturer",
-                        self.mbstr(self, decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
-                    ("B_Model", self.mbstr(self, decoder.decode_string(32))),
-                    ("B_Version", self.mbstr(self, decoder.decode_string(32))),
+                    ("B_Model", self.mbstr(decoder.decode_string(32))),
+                    ("B_Version", self.mbstr(decoder.decode_string(32))),
                     (
                         "B_SerialNumber",
-                        self.mbstr(self, decoder.decode_string(32)),
+                        self.mbstr(decoder.decode_string(32)),
                     ),
                     ("B_Device_Address", decoder.decode_16bit_uint()),
                     ("ignore", decoder.skip_bytes(2)),
