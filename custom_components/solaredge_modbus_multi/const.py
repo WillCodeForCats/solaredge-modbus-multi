@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from enum import Flag, IntEnum, StrEnum
+from enum import IntEnum, StrEnum
 from typing import Final
 
 DOMAIN = "solaredge_modbus_multi"
@@ -28,6 +28,26 @@ DOMAIN_REGEX = re.compile(
 )
 
 
+class ModbusExceptions:
+    """An enumeration of the valid modbus exceptions."""
+
+    """
+        Copied from pymodbus source:
+        https://github.com/pymodbus-dev/pymodbus/blob/a1c14c7a8fbea52618ba1cbc9933c1dd24c3339d/pymodbus/pdu/pdu.py#L72
+    """
+
+    IllegalFunction = 0x01
+    IllegalAddress = 0x02
+    IllegalValue = 0x03
+    SlaveFailure = 0x04
+    Acknowledge = 0x05
+    SlaveBusy = 0x06
+    NegativeAcknowledge = 0x07
+    MemoryParityError = 0x08
+    GatewayPathUnavailable = 0x0A
+    GatewayNoResponse = 0x0B
+
+
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
 
@@ -49,12 +69,6 @@ class ModbusDefaults(IntEnum):
     Timeout = 3  # Timeout for a request, in seconds.
     ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
     ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
-
-
-class ModbusFlags(Flag):
-    """Values to pass to pymodbus"""
-
-    RetryOnEmpty = False  # Retry on empty response.
 
 
 class SolarEdgeTimeouts(IntEnum):
@@ -83,8 +97,6 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 300
     PORT = 1502
-    NUMBER_INVERTERS = 1
-    DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
@@ -95,7 +107,7 @@ class ConfDefaultFlag(IntEnum):
 
     DETECT_METERS = 1
     DETECT_BATTERIES = 0
-    DETECT_EXTRAS = 1
+    DETECT_EXTRAS = 0
     KEEP_MODBUS_OPEN = 0
     ADV_PWR_CONTROL = 0
     ADV_STORAGE_CONTROL = 0
@@ -103,9 +115,14 @@ class ConfDefaultFlag(IntEnum):
     ALLOW_BATTERY_ENERGY_RESET = 0
 
 
+class ConfDefaultStr(StrEnum):
+    """Defaults for options that are strings."""
+
+    DEVICE_LIST = "1"
+
+
 class ConfName(StrEnum):
-    NUMBER_INVERTERS = "number_of_inverters"
-    DEVICE_ID = "device_id"
+    DEVICE_LIST = "device_list"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
     DETECT_EXTRAS = "detect_extras"
@@ -117,6 +134,10 @@ class ConfName(StrEnum):
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
+
+    # Old config entry names for migration
+    NUMBER_INVERTERS = "number_of_inverters"
+    DEVICE_ID = "device_id"
 
 
 class SunSpecAccum(IntEnum):

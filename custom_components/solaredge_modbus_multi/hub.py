@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.metadata
 import logging
 from collections import OrderedDict
 
@@ -9,15 +10,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
-
-try:
-    from pymodbus.client import AsyncModbusTcpClient
-    from pymodbus.constants import Endian
-    from pymodbus.exceptions import ConnectionException, ModbusIOException
-    from pymodbus.payload import BinaryPayloadDecoder
-    from pymodbus.pdu import ExceptionResponse, ModbusExceptions
-except ImportError:
-    raise ImportError("pymodbus is not installed, or pymodbus version is not supported")
+from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.constants import Endian
+from pymodbus.exceptions import ConnectionException, ModbusIOException
+from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ExceptionResponse
 
 from .const import (
     BATTERY_REG_BASE,
@@ -25,9 +22,10 @@ from .const import (
     METER_REG_BASE,
     ConfDefaultFlag,
     ConfDefaultInt,
+    ConfDefaultStr,
     ConfName,
     ModbusDefaults,
-    ModbusFlags,
+    ModbusExceptions,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -35,6 +33,7 @@ from .const import (
 from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
+pymodbus_version = importlib.metadata.version("pymodbus")
 
 
 class SolarEdgeException(Exception):
@@ -127,11 +126,8 @@ class SolarEdgeModbusMultiHub:
         self._host = entry_data[CONF_HOST]
         self._port = entry_data[CONF_PORT]
         self._entry_id = entry_id
-        self._number_of_inverters = entry_data.get(
-            ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS
-        )
-        self._start_device_id = entry_data.get(
-            ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID
+        self._inverter_list = entry_data.get(
+            ConfName.DEVICE_LIST, [ConfDefaultStr.DEVICE_LIST]
         )
         self._detect_meters = entry_options.get(
             ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
@@ -175,9 +171,6 @@ class SolarEdgeModbusMultiHub:
         self._mb_reconnect_delay_max = self._yaml_config.get("modbus", {}).get(
             "reconnect_delay_max", ModbusDefaults.ReconnectDelayMax
         )
-        self._mb_retry_on_empty = self._yaml_config.get("modbus", {}).get(
-            "retry_on_empty", bool(ModbusFlags.RetryOnEmpty)
-        )
         self._mb_timeout = self._yaml_config.get("modbus", {}).get(
             "timeout", ModbusDefaults.Timeout
         )
@@ -199,8 +192,7 @@ class SolarEdgeModbusMultiHub:
         _LOGGER.debug(
             (
                 f"{DOMAIN} configuration: "
-                f"number_of_inverters={self._number_of_inverters}, "
-                f"start_device_id={self._start_device_id}, "
+                f"inverter_list={self._inverter_list}, "
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
                 f"detect_extras={self._detect_extras}, "
@@ -212,6 +204,8 @@ class SolarEdgeModbusMultiHub:
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
             ),
         )
+
+        _LOGGER.debug(f"pymodbus version {pymodbus_version}")
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
@@ -246,8 +240,7 @@ class SolarEdgeModbusMultiHub:
                 ),
             )
 
-        for inverter_index in range(self._number_of_inverters):
-            inverter_unit_id = inverter_index + self._start_device_id
+        for inverter_unit_id in self._inverter_list:
 
             try:
                 _LOGGER.debug(
@@ -392,6 +385,9 @@ class SolarEdgeModbusMultiHub:
 
                 ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
+                if not self.keep_modbus_open:
+                    self.disconnect()
+
                 return True
 
             if not self.is_connected:
@@ -454,14 +450,14 @@ class SolarEdgeModbusMultiHub:
 
                 raise DataUpdateFailed(f"Timeout error: {e}")
 
-            if not self._keep_modbus_open:
-                self.disconnect()
-
             if self._timeout_counter > 0:
                 _LOGGER.debug(
                     f"Timeout count {self._timeout_counter} limit {self._retry_limit}"
                 )
                 self._timeout_counter = 0
+
+            if not self.keep_modbus_open:
+                self.disconnect()
 
             return True
 
@@ -469,11 +465,10 @@ class SolarEdgeModbusMultiHub:
         """Connect to inverter."""
 
         if self._client is None:
-            _LOGGER.debug(f"New client object for {self._host}:{self._port}")
             _LOGGER.debug(
+                "New AsyncModbusTcpClient: "
                 f"reconnect_delay={self._mb_reconnect_delay} "
                 f"reconnect_delay_max={self._mb_reconnect_delay_max} "
-                f"retry_on_empty={self._mb_retry_on_empty} "
                 f"timeout={self._mb_timeout}"
             )
             self._client = AsyncModbusTcpClient(
@@ -481,16 +476,22 @@ class SolarEdgeModbusMultiHub:
                 port=self._port,
                 reconnect_delay=self._mb_reconnect_delay,
                 reconnect_delay_max=self._mb_reconnect_delay_max,
-                retry_on_empty=self._mb_retry_on_empty,
                 timeout=self._mb_timeout,
             )
 
+        _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
         await self._client.connect()
 
     def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
 
         if self._client is not None:
+            _LOGGER.debug(
+                (
+                    f"Disconnectng from {self._host}:{self._port} "
+                    f"(clear_client={clear_client})."
+                )
+            )
             self._client.close()
 
             if clear_client:
@@ -510,26 +511,26 @@ class SolarEdgeModbusMultiHub:
         self._rr_address = address
         self._rr_count = rcount
 
-        kwargs = {"slave": self._rr_unit} if self._rr_unit else {}
-
         result = await self._client.read_holding_registers(
-            self._rr_address, self._rr_count, **kwargs
+            self._rr_address, count=self._rr_count, slave=self._rr_unit
         )
 
         if result.isError():
-            _LOGGER.debug(f"Unit {unit}: {result}")
 
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(f"Unit {unit} Read IllegalAddress: {result}")
                     raise ModbusIllegalAddress(result)
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"Unit {unit} Read IllegalFunction: {result}")
                     raise ModbusIllegalFunction(result)
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"Unit {unit} Read IllegalValue: {result}")
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
@@ -561,9 +562,8 @@ class SolarEdgeModbusMultiHub:
                 if not self.is_connected:
                     await self.connect()
 
-                kwargs = {"slave": self._wr_unit} if self._wr_unit else {}
                 result = await self._client.write_registers(
-                    self._wr_address, self._wr_payload, **kwargs
+                    self._wr_address, slave=self._wr_unit, values=self._wr_payload
                 )
 
                 self.has_write = address
@@ -604,19 +604,25 @@ class SolarEdgeModbusMultiHub:
 
                 if type(result) is ExceptionResponse:
                     if result.exception_code == ModbusExceptions.IllegalAddress:
-                        _LOGGER.debug(f"Write IllegalAddress: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalAddress: {result}"
+                        )
                         raise HomeAssistantError(
                             "Address not supported at device at ID {self._wr_unit}."
                         )
 
                     if result.exception_code == ModbusExceptions.IllegalFunction:
-                        _LOGGER.debug(f"Write IllegalFunction: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalFunction: {result}"
+                        )
                         raise HomeAssistantError(
                             "Function not supported by device at ID {self._wr_unit}."
                         )
 
                     if result.exception_code == ModbusExceptions.IllegalValue:
-                        _LOGGER.debug(f"Write IllegalValue: {result}")
+                        _LOGGER.debug(
+                            f"Unit {self._wr_unit} Write IllegalValue: {result}"
+                        )
                         raise HomeAssistantError(
                             "Value invalid for device at ID {self._wr_unit}."
                         )
@@ -713,7 +719,7 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def number_of_inverters(self) -> int:
-        return self._number_of_inverters
+        return len(self._inverter_list)
 
     @property
     def sleep_after_write(self) -> int:
@@ -1330,7 +1336,14 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                 )
                 self._grid_status = True
 
-            except ModbusIllegalAddress:
+            except (ModbusIllegalAddress, ModbusIOException) as e:
+
+                if (
+                    type(e) is ModbusIOException
+                    and "No response recieved after" not in e
+                ):
+                    raise
+
                 try:
                     del self.decoded_model["I_Grid_Status"]
                 except KeyError:
@@ -1339,8 +1352,11 @@ class SolarEdgeInverter(SolarEdgeModbusDevice):
                 self._grid_status = False
 
                 _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: " "Grid On/Off NOT available")
+                    (f"I{self.inverter_unit_id}: Grid On/Off NOT available: {e}")
                 )
+
+                if not self.hub.is_connected:
+                    await self.hub.connect()
 
             except ModbusIOError:
                 raise ModbusReadError(
@@ -1584,7 +1600,10 @@ class SolarEdgeMeter(SolarEdgeModbusDevice):
         self.fw_version = self.decoded_common["C_Version"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
-        self.name = f"{self.hub.hub_id.capitalize()} M{self.meter_id}"
+        self.name = (
+            f"{self.hub.hub_id.capitalize()} "
+            f"I{self.inverter_unit_id} M{self.meter_id}"
+        )
 
         inverter_model = self.inverter_common["C_Model"]
         inerter_serial = self.inverter_common["C_SerialNumber"]
@@ -1837,7 +1856,10 @@ class SolarEdgeBattery(SolarEdgeModbusDevice):
         self.fw_version = self.decoded_common["B_Version"]
         self.serial = self.decoded_common["B_SerialNumber"]
         self.device_address = self.decoded_common["B_Device_Address"]
-        self.name = f"{self.hub.hub_id.capitalize()} B{self.battery_id}"
+        self.name = (
+            f"{self.hub.hub_id.capitalize()} "
+            f"I{self.inverter_unit_id} B{self.battery_id}"
+        )
 
         inverter_model = self.inverter_common["C_Model"]
         inerter_serial = self.inverter_common["C_SerialNumber"]

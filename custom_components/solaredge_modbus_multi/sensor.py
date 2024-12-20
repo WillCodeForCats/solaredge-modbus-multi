@@ -11,13 +11,13 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
-    POWER_VOLT_AMPERE_REACTIVE,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfReactivePower,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -662,9 +662,9 @@ class ACVoltAmp(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC VA"
+            return "AC Apparent Power"
         else:
-            return f"AC VA {self._phase.upper()}"
+            return f"AC Apparent Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -702,7 +702,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
 class ACVoltAmpReactive(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.REACTIVE_POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_VOLT_AMPERE_REACTIVE
+    native_unit_of_measurement = UnitOfReactivePower.VOLT_AMPERE_REACTIVE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -719,9 +719,9 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC var"
+            return "AC Reactive Power"
         else:
-            return f"AC var {self._phase.upper()}"
+            return f"AC Reactive Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -776,9 +776,9 @@ class ACPowerFactor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC PF"
+            return "AC Power Factor"
         else:
-            return f"AC PF {self._phase.upper()}"
+            return f"AC Power Factor {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -887,7 +887,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         if self._phase is None:
             return "AC Energy"
         else:
-            return f"{re.sub('_', ' ', self._phase)}"
+            return f"AC Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def available(self) -> bool:
@@ -1652,7 +1652,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{re.sub('_', ' ', self._phase)} VAh"
+            return f"Apparent Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def native_value(self):
@@ -1730,7 +1730,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{re.sub('_', ' ', self._phase)} varh"
+            return f"Reactive Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def native_value(self):
@@ -2256,12 +2256,18 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
-            or self._platform.decoded_model["B_Energy_Available"]
-            > (
-                self._platform.decoded_common["B_RatedEnergy"]
-                * self._platform.battery_rating_adjust
-            )
         ):
+            return None
+
+        if self._platform.decoded_model["B_Energy_Available"] > (
+            self._platform.decoded_common["B_RatedEnergy"]
+            * self._platform.battery_rating_adjust
+        ):
+            _LOGGER.warning(
+                f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
+                "Battery available energy exceeds rated energy. "
+                "Set configuration for Battery Rating Adjustment when necessary."
+            )
             return None
 
         else:
