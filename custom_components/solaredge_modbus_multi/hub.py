@@ -488,6 +488,8 @@ class SolarEdgeModbusMultiHub:
             if clear_client:
                 self._client = None
 
+            await asyncio.sleep(1)
+
     async def shutdown(self) -> None:
         """Shut down the hub and disconnect."""
 
