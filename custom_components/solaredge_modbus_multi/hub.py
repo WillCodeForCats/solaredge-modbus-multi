@@ -486,8 +486,8 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 self._client.close()
-            except ModbusException as exception_error:
-                _LOGGER.error(str(exception_error))
+            except ModbusException as e:
+                _LOGGER.error(f"Modbus error: {e}")
 
             if clear_client:
                 del self._client
