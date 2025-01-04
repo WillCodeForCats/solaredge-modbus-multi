@@ -12,7 +12,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.constants import Endian
-from pymodbus.exceptions import ConnectionException, ModbusIOException
+from pymodbus.exceptions import ConnectionException, ModbusException, ModbusIOException
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ExceptionResponse
 
@@ -483,7 +483,11 @@ class SolarEdgeModbusMultiHub:
                     f"(clear_client={clear_client})."
                 )
             )
-            self._client.close()
+
+            try:
+                self._client.close()
+            except ModbusException as exception_error:
+                _LOGGER.error(str(exception_error))
 
             if clear_client:
                 self._client = None
