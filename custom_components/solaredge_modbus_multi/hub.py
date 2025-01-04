@@ -490,6 +490,7 @@ class SolarEdgeModbusMultiHub:
                 _LOGGER.error(str(exception_error))
 
             if clear_client:
+                del self._client
                 self._client = None
 
             await asyncio.sleep(1)
