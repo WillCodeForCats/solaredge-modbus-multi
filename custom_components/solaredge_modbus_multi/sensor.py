@@ -11,13 +11,13 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
-    POWER_VOLT_AMPERE_REACTIVE,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfReactivePower,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -702,7 +702,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
 class ACVoltAmpReactive(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.REACTIVE_POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_VOLT_AMPERE_REACTIVE
+    native_unit_of_measurement = UnitOfReactivePower.VOLT_AMPERE_REACTIVE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -2256,12 +2256,18 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
-            or self._platform.decoded_model["B_Energy_Available"]
-            > (
-                self._platform.decoded_common["B_RatedEnergy"]
-                * self._platform.battery_rating_adjust
-            )
         ):
+            return None
+
+        if self._platform.decoded_model["B_Energy_Available"] > (
+            self._platform.decoded_common["B_RatedEnergy"]
+            * self._platform.battery_rating_adjust
+        ):
+            _LOGGER.warning(
+                f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
+                "Battery available energy exceeds rated energy. "
+                "Set configuration for Battery Rating Adjustment when necessary."
+            )
             return None
 
         else:

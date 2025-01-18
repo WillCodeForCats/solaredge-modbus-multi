@@ -38,9 +38,9 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ### Required Versions
-* Home Assistant 2024.4.0 or newer
+* Home Assistant 2024.12.0 or newer
 * Python 3.11 or newer
-* pymodbus 3.6.6 or newer
+* pymodbus 3.6.6 through 3.7.4
 
 ## Specifications
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
