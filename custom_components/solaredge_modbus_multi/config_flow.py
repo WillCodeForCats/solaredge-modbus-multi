@@ -84,7 +84,8 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 elif not 1 <= inverter_count <= 32:
                     errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                 else:
-                    await self.async_set_unique_id(user_input[CONF_HOST])
+                    new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    await self.async_set_unique_id(new_unique_id)
 
                     self._abort_if_unique_id_configured()
 
