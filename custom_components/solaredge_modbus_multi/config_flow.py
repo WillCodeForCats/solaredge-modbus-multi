@@ -55,7 +55,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Create the options flow for SolarEdge Modbus Multi."""
-        return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
+        return SolaredgeModbusMultiOptionsFlowHandler()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
