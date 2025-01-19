@@ -54,7 +54,7 @@
           "adv_storage_control": "Speichersteuerung aktivieren",
           "adv_site_limit_control": "Site-Limit-Kontrolle aktivieren"
         },
-        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr!"
+        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr! Einstellbare Parameter in Modbus-Registern sind für die Langzeitspeicherung vorgesehen. Regelmäßige Änderungen können den Flash-Speicher beschädigen."
       },
       "battery_options": {
         "title": "Batterieoptionen",

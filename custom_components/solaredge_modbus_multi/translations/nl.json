@@ -54,7 +54,7 @@
           "adv_storage_control": "Opslagbeheer inschakelen",
           "adv_site_limit_control": "Beheer van sitelimiet inschakelen"
         },
-        "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico!"
+        "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico! Instelbare parameters in Modbus-registers zijn bedoeld voor langdurige opslag. Periodieke wijzigingen kunnen het flashgeheugen beschadigen."
       },
       "battery_options": {
         "title": "Batterij opties",

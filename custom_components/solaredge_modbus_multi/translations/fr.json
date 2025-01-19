@@ -54,7 +54,7 @@
           "adv_storage_control": "Activer le contrôle du stockage",
           "adv_site_limit_control": "Activer le contrôle des limites du site"
         },
-        "description": "Avertissement : Ces options peuvent enfreindre l'accord d'utilisation, modifier la facturation de vos services, nécessiter un équipement spécial et écraser le provisionnement par SolarEdge ou votre installateur. À utiliser à vos risques et périls!"
+        "description": "Avertissement : Ces options peuvent enfreindre l'accord d'utilisation, modifier la facturation de vos services, nécessiter un équipement spécial et écraser le provisionnement par SolarEdge ou votre installateur. À utiliser à vos risques et périls! Les paramètres réglables dans les registres Modbus sont destinés au stockage à long terme. Des modifications périodiques peuvent endommager la mémoire flash."
       },
       "battery_options": {
         "title": "Options de batterie",

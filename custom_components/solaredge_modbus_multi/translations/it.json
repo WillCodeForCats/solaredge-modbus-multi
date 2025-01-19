@@ -54,7 +54,7 @@
           "adv_storage_control": "Abilita il controllo dell'archiviazione",
           "adv_site_limit_control": "Abilita il controllo dei limiti del sito"
         },
-        "description": "Avvertenza: queste opzioni possono violare i contratti dei servizi pubblici, alterare la fatturazione dei servizi pubblici, potrebbero richiedere apparecchiature speciali e sovrascrivere la fornitura da parte di SolarEdge o dell'installatore. Utilizzare a proprio rischio!"
+        "description": "Avvertenza: queste opzioni possono violare i contratti dei servizi pubblici, alterare la fatturazione dei servizi pubblici, potrebbero richiedere apparecchiature speciali e sovrascrivere la fornitura da parte di SolarEdge o dell'installatore. Utilizzare a proprio rischio! I parametri regolabili nei registri Modbus sono destinati alla memorizzazione a lungo termine. Modifiche periodiche potrebbero danneggiare la memoria flash."
       },
       "battery_options": {
         "title": "Opzioni batteria",
