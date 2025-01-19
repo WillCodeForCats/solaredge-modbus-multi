@@ -64,9 +64,12 @@ class CheckConfigurationRepairFlow(RepairsFlow):
                     user_input[ConfName.DEVICE_LIST] = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
+                    this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
 
                     self.hass.config_entries.async_update_entry(
-                        self._entry, data={**self._entry.data, **user_input}
+                        self._entry,
+                        unique_id=this_unique_id,
+                        data={**self._entry.data, **user_input},
                     )
 
                     return self.async_create_entry(title="", data={})
