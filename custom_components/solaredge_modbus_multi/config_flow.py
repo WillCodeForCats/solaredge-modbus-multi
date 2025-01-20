@@ -146,9 +146,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     )
                     this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
 
-                    self._async_abort_entries_match(
-                        {"host": user_input[CONF_HOST], "port": user_input[CONF_PORT]}
-                    )
+                    if this_unique_id != config_entry.unique_id:
+                        self._async_abort_entries_match(
+                            {
+                                "host": user_input[CONF_HOST],
+                                "port": user_input[CONF_PORT],
+                            }
+                        )
 
                     return self.async_update_reload_and_abort(
                         config_entry,
