@@ -30,7 +30,7 @@
       "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość."
     },
     "abort": {
-      "already_configured": "Urządzenie jest już skonfigurowane",
+      "already_configured": "Host i port są już skonfigurowane w innym koncentratorze.",
       "reconfigure_successful": "Ponowna konfiguracja przebiegła pomyślnie"
     }
   },
@@ -94,7 +94,8 @@
           "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535.",
           "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
           "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
-          "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość."
+          "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość.",
+          "already_configured": "Host i port są już skonfigurowane w innym koncentratorze."
         }
       }
     }

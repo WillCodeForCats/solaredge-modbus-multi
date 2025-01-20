@@ -30,7 +30,7 @@
       "empty_device_id": "La liste d'ID contient une valeur vide ou non définie."
     },
     "abort": {
-      "already_configured": "L'appareil est déjà configuré",
+      "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub.",
       "reconfigure_successful": "La reconfiguration a réussi"
     }
   },
@@ -94,7 +94,8 @@
           "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535.",
           "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
           "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
-          "empty_device_id": "La liste d'ID contient une valeur vide ou non définie."
+          "empty_device_id": "La liste d'ID contient une valeur vide ou non définie.",
+          "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub."
         }
       }
     }
