@@ -54,7 +54,7 @@
           "adv_storage_control": "Aktiver lagringskontroll",
           "adv_site_limit_control": "Aktiver Site Limit Control"
         },
-        "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
+        "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar! Justerbare parametere i Modbus-registre er beregnet for langtidslagring. Periodiske endringer kan skade flashminnet."
       },
       "battery_options": {
         "title": "Batterialternativer",
