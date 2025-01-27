@@ -30,7 +30,7 @@
       "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi."
     },
     "abort": {
-      "already_configured": "Enheten er allerede konfigurert",
+      "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
       "reconfigure_successful": "Omkonfigureringen var vellykket"
     }
   },
@@ -94,7 +94,8 @@
           "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
           "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
           "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
-          "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi."
+          "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
+          "already_configured": "Vert og port er allerede konfigurert i en annen hub."
         }
       }
     }

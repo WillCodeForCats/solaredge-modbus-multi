@@ -30,7 +30,7 @@
       "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert."
     },
     "abort": {
-      "already_configured": "Gerät ist bereits konfiguriert",
+      "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert.",
       "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
     }
   },
@@ -94,7 +94,8 @@
           "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
           "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
           "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
-          "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert."
+          "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
+          "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert."
         }
       }
     }

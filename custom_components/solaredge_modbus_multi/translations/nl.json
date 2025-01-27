@@ -30,7 +30,7 @@
       "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
     },
     "abort": {
-      "already_configured": "Apparaat is al geconfigureerd",
+      "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
       "reconfigure_successful": "De herconfiguratie was succesvol"
     }
   },
@@ -94,7 +94,8 @@
           "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
           "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
           "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
-          "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
+          "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde.",
+          "already_configured": "Host en poort zijn al geconfigureerd in een andere hub."
         }
       }
     }

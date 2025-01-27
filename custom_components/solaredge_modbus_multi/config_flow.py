@@ -49,7 +49,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 2
-    MINOR_VERSION = 0
+    MINOR_VERSION = 1
 
     @staticmethod
     @callback
@@ -84,7 +84,8 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 elif not 1 <= inverter_count <= 32:
                     errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                 else:
-                    await self.async_set_unique_id(user_input[CONF_HOST])
+                    new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    await self.async_set_unique_id(new_unique_id)
 
                     self._abort_if_unique_id_configured()
 
@@ -143,10 +144,19 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[ConfName.DEVICE_LIST] = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
+                    this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+
+                    if this_unique_id != config_entry.unique_id:
+                        self._async_abort_entries_match(
+                            {
+                                "host": user_input[CONF_HOST],
+                                "port": user_input[CONF_PORT],
+                            }
+                        )
 
                     return self.async_update_reload_and_abort(
                         config_entry,
-                        unique_id=config_entry.unique_id,
+                        unique_id=this_unique_id,
                         data={**config_entry.data, **user_input},
                         reason="reconfigure_successful",
                     )
