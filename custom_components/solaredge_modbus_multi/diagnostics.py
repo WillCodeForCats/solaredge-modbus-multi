@@ -13,8 +13,8 @@ from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
 REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
-REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number"}
-REDACT_BATTERY = {"identifiers", "B_SerialNumber", "serial_number"}
+REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
+REDACT_BATTERY = {"identifiers", "B_SerialNumber", "serial_number", "via_device"}
 
 
 def format_values(format_input) -> Any:
