@@ -19,13 +19,18 @@ REDACT_BATTERY = {"identifiers", "B_SerialNumber", "serial_number", "via_device"
 
 def format_values(format_input) -> Any:
     if isinstance(format_input, dict):
-        for name, value in iter(format_input.items()):
-            if isinstance(value, float):
+        formatted_dict = {}
+        for name, value in format_input.items():
+            if isinstance(value, dict):
+                display_value = format_values(value)
+            elif isinstance(value, float):
                 display_value = float_to_hex(value)
             else:
                 display_value = hex(value) if isinstance(value, int) else value
 
-            format_input[name] = display_value
+            formatted_dict[name] = display_value
+
+        return formatted_dict
 
     return format_input
 
