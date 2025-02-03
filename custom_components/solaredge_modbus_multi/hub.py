@@ -106,10 +106,10 @@ class SolarEdgeModbusDevice:
     """Base class for SolarEdge modbus devices."""
 
     @staticmethod
-    def mbstr(s: str) -> str:
-        s = s.decode(encoding="utf-8", errors="ignore")
-        s = s.replace("\x00", "").rstrip()
-        return str(s)
+    def mbstr(s: bytes | str) -> str:
+        if isinstance(s, bytes):
+            s = s.decode(encoding="utf-8", errors="ignore")
+        return s.replace("\x00", "").rstrip()
 
 
 class SolarEdgeModbusMultiHub:
