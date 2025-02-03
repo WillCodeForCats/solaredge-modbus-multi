@@ -220,7 +220,9 @@ class SolarEdgeModbusMultiHub:
             _LOGGER.warning(
                 (
                     "Power Control Options: Storage Control is enabled. "
-                    "Use at your own risk!"
+                    "Use at your own risk! "
+                    "Adjustable parameters in Modbus registers are intended for "
+                    "long-term storage. Periodic changes may damage the flash memory."
                 ),
             )
 
@@ -228,7 +230,9 @@ class SolarEdgeModbusMultiHub:
             _LOGGER.warning(
                 (
                     "Power Control Options: Site Limit Control is enabled. "
-                    "Use at your own risk!"
+                    "Use at your own risk! "
+                    "Adjustable parameters in Modbus registers are intended for "
+                    "long-term storage. Periodic changes may damage the flash memory."
                 ),
             )
 

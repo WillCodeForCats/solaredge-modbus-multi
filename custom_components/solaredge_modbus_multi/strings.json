@@ -30,7 +30,7 @@
       "empty_device_id": "The ID list contains an empty or undefined value."
     },
     "abort": {
-      "already_configured": "Device is already configured",
+      "already_configured": "Host and port is already configured in another hub.",
       "reconfigure_successful": "Re-configuration was successful"
     }
   },
@@ -54,7 +54,7 @@
           "adv_storage_control": "Enable Storage Control",
           "adv_site_limit_control": "Enable Site Limit Control"
         },
-        "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"
+        "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk! Adjustable parameters in Modbus registers are intended for long-term storage. Periodic changes may damage the flash memory."
       },
       "battery_options": {
         "title": "Battery Options",
@@ -93,7 +93,8 @@
           "invalid_tcp_port": "Valid port range is 1 to 65535.",
           "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
           "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
-          "empty_device_id": "The ID list contains an empty or undefined value."
+          "empty_device_id": "The ID list contains an empty or undefined value.",
+          "already_configured": "Host and port is already configured in another hub."
         }
       }
     }
