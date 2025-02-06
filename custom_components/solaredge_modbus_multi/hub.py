@@ -955,11 +955,11 @@ class SolarEdgeInverter:
 
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40044, rcount=16
+                unit=self.inverter_unit_id, address=40044, rcount=8
             )
 
             self.decoded_common["C_Version"] = ModbusClientMixin.convert_from_registers(
-                inverter_data.registers[0:16],
+                inverter_data.registers[0:8],
                 data_type=ModbusClientMixin.DATATYPE.STRING,
             )
 
