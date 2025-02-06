@@ -559,7 +559,7 @@ class SolarEdgeModbusMultiHub:
 
                 result = await self._client.write_registers(
                     address=self._wr_address,
-                    values=[self._wr_payload],
+                    values=self._wr_payload,
                     slave=self._wr_unit,
                 )
 
