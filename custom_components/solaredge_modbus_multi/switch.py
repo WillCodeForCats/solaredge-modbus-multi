@@ -173,10 +173,15 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         set_bits = set_bits | (1 << 11)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
-        payload = ModbusClientMixin.convert_to_registers(
-            set_bits, data_type=ModbusClientMixin.DATATYPE.UINT16, word_order="little"
+
+        await self._platform.write_registers(
+            address=57344,
+            payload=ModbusClientMixin.convert_to_registers(
+                set_bits,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
         )
-        await self._platform.write_registers(address=57344, payload=payload)
         await self.async_update()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
