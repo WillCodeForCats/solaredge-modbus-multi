@@ -10,8 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadBuilder
+from pymodbus.client.mixin import ModbusClientMixin
 
 from .const import DOMAIN
 
@@ -115,11 +114,10 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
 
     async def async_press(self) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 1")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_16bit_uint(1)
-        await self._platform.write_registers(
-            address=61696, payload=builder.to_registers()
+        payload = ModbusClientMixin.convert_to_registers(
+            1, data_type=ModbusClientMixin.DATATYPE.UINT16, word_order="little"
         )
+        await self._platform.write_registers(address=61696, payload=payload)
         await self.async_update()
 
 
@@ -143,9 +141,9 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
 
     async def async_press(self) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 1")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_16bit_uint(1)
-        await self._platform.write_registers(
-            address=61697, payload=builder.to_registers()
+
+        payload = ModbusClientMixin.convert_to_registers(
+            1, data_type=ModbusClientMixin.DATATYPE.UINT16, word_order="little"
         )
+        await self._platform.write_registers(address=61697, payload=payload)
         await self.async_update()
