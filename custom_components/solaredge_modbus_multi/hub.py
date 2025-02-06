@@ -879,23 +879,31 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40121, rcount=9
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                mmppt_common.registers, byteorder=Endian.BIG
-            )
-
             self.decoded_mmppt = OrderedDict(
                 [
-                    ("mmppt_DID", decoder.decode_16bit_uint()),
-                    ("mmppt_Length", decoder.decode_16bit_uint()),
-                    ("ignore", decoder.skip_bytes(12)),
-                    ("mmppt_Units", decoder.decode_16bit_uint()),
+                    (
+                        "mmppt_DID",
+                        ModbusClientMixin.convert_from_registers(
+                            [mmppt_common.registers[0]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
+                    (
+                        "mmppt_Length",
+                        ModbusClientMixin.convert_from_registers(
+                            [mmppt_common.registers[1]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
+                    (
+                        "mmppt_Units",
+                        ModbusClientMixin.convert_from_registers(
+                            [mmppt_common.registers[8]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
                 ]
             )
-
-            try:
-                del self.decoded_mmppt["ignore"]
-            except KeyError:
-                pass
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
