@@ -8,8 +8,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadBuilder
+from pymodbus.client.mixin import ModbusClientMixin
 
 from .const import (
     DOMAIN,
@@ -142,7 +141,14 @@ class StorageControlMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(address=57348, payload=new_mode)
+        await self._platform.write_registers(
+            address=57348,
+            payload=ModbusClientMixin.convert_to_registers(
+                new_mode,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
+        )
         await self.async_update()
 
 
@@ -188,7 +194,14 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(address=57349, payload=new_mode)
+        await self._platform.write_registers(
+            address=57349,
+            payload=ModbusClientMixin.convert_to_registers(
+                new_mode,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
+        )
         await self.async_update()
 
 
@@ -238,7 +251,14 @@ class StorageDefaultMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(address=57354, payload=new_mode)
+        await self._platform.write_registers(
+            address=57354,
+            payload=ModbusClientMixin.convert_to_registers(
+                new_mode,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
+        )
         await self.async_update()
 
 
@@ -288,7 +308,14 @@ class StorageCommandMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(address=57357, payload=new_mode)
+        await self._platform.write_registers(
+            address=57357,
+            payload=ModbusClientMixin.convert_to_registers(
+                new_mode,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
+        )
         await self.async_update()
 
 
@@ -343,7 +370,14 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
             set_bits = set_bits | (1 << int(new_mode))
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
-        await self._platform.write_registers(address=57344, payload=set_bits)
+        await self._platform.write_registers(
+            address=57344,
+            payload=ModbusClientMixin.convert_to_registers(
+                new_mode,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
+        )
         await self.async_update()
 
 
@@ -379,7 +413,14 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(address=57345, payload=new_mode)
+        await self._platform.write_registers(
+            address=57345,
+            payload=ModbusClientMixin.convert_to_registers(
+                new_mode,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
+        )
         await self.async_update()
 
 
@@ -420,9 +461,12 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_int(int(new_mode))
         await self._platform.write_registers(
-            address=61700, payload=builder.to_registers()
+            address=61700,
+            payload=ModbusClientMixin.convert_to_registers(
+                new_mode,
+                data_type=ModbusClientMixin.DATATYPE.INT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
