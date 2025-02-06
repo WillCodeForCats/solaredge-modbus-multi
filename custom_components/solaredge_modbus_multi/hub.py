@@ -11,6 +11,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ConnectionException, ModbusIOException
 from pymodbus.payload import BinaryPayloadDecoder
@@ -775,27 +776,71 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40000, rcount=69
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.BIG
-            )
-
             self.decoded_common = OrderedDict(
                 [
-                    ("C_SunSpec_ID", decoder.decode_32bit_uint()),
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
-                        "C_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        "C_SunSpec_ID",
+                        ModbusClientMixin.convert_from_registers(
+                            inverter_data.registers[0:2],
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
+                        ),
                     ),
-                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
-                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
                     (
-                        "C_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        "C_SunSpec_DID",
+                        ModbusClientMixin.convert_from_registers(
+                            [inverter_data.registers[2]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
                     ),
-                    ("C_Device_address", decoder.decode_16bit_uint()),
+                    (
+                        "C_SunSpec_Length",
+                        ModbusClientMixin.convert_from_registers(
+                            [inverter_data.registers[3]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
+                    (
+                        "C_Manufacturer",  # string(32)
+                        ModbusClientMixin.convert_from_registers(
+                            inverter_data.registers[4:20],
+                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        ),
+                    ),
+                    (
+                        "C_Model",  # string(32)
+                        ModbusClientMixin.convert_from_registers(
+                            inverter_data.registers[20:36],
+                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        ),
+                    ),
+                    (
+                        "C_Option",  # string(16)
+                        ModbusClientMixin.convert_from_registers(
+                            inverter_data.registers[36:44],
+                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        ),
+                    ),
+                    (
+                        "C_Version",  # string(16)
+                        ModbusClientMixin.convert_from_registers(
+                            inverter_data.registers[44:52],
+                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        ),
+                    ),
+                    (
+                        "C_SerialNumber",  # string(32)
+                        ModbusClientMixin.convert_from_registers(
+                            inverter_data.registers[52:68],
+                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        ),
+                    ),
+                    (
+                        "C_Device_address",
+                        ModbusClientMixin.convert_from_registers(
+                            [inverter_data.registers[68]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
                 ]
             )
 
