@@ -225,7 +225,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")
         payload = ModbusClientMixin.convert_to_registers(
-            0x1, data_type=ModbusClientMixin.DATATYPE.UINT32, word_order="little"
+            0x1, data_type=ModbusClientMixin.DATATYPE.INT32, word_order="little"
         )
         await self._platform.write_registers(address=61762, payload=payload)
         await self.async_update()
@@ -236,7 +236,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write_registers(
             address=61762,
             payload=ModbusClientMixin.convert_to_registers(
-                0x0, data_type=ModbusClientMixin.DATATYPE.UINT32, word_order="little"
+                0x0, data_type=ModbusClientMixin.DATATYPE.INT32, word_order="little"
             ),
         )
         await self.async_update()
