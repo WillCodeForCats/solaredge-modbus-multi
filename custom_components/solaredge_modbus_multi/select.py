@@ -373,7 +373,7 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
         await self._platform.write_registers(
             address=57344,
             payload=ModbusClientMixin.convert_to_registers(
-                new_mode,
+                set_bits,
                 data_type=ModbusClientMixin.DATATYPE.UINT16,
                 word_order="little",
             ),
