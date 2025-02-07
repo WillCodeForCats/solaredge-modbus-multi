@@ -507,7 +507,7 @@ class SolarEdgeModbusMultiHub:
         self._rr_count = rcount
 
         result = await self._client.read_holding_registers(
-            self._rr_address, count=self._rr_count, slave=self._rr_unit
+            address=self._rr_address, count=self._rr_count, slave=self._rr_unit
         )
 
         if result.isError():
@@ -558,7 +558,9 @@ class SolarEdgeModbusMultiHub:
                     await self.connect()
 
                 result = await self._client.write_registers(
-                    self._wr_address, slave=self._wr_unit, values=self._wr_payload
+                    address=self._wr_address,
+                    values=self._wr_payload,
+                    slave=self._wr_unit,
                 )
 
                 self.has_write = address
