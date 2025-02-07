@@ -1135,6 +1135,7 @@ class SolarEdgeInverter:
                         OrderedDict(
                             [
                                 (
+                                    "mmppt_Events",
                                     ModbusClientMixin.convert_from_registers(
                                         inverter_data.registers[4:6],
                                         data_type=ModbusClientMixin.DATATYPE.UINT32,
