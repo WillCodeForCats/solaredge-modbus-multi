@@ -776,6 +776,14 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40000, rcount=69
             )
 
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "C_Device_address",
+            ]
+
+            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
+
             self.decoded_common = OrderedDict(
                 [
                     (
@@ -784,17 +792,9 @@ class SolarEdgeInverter:
                             inverter_data.registers[0:2],
                             data_type=ModbusClientMixin.DATATYPE.UINT32,
                         ),
-                    ),
+                    )
                 ]
             )
-
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "C_Device_address",
-            ]
-
-            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
 
             self.decoded_common.update(
                 OrderedDict(
@@ -804,50 +804,56 @@ class SolarEdgeInverter:
                             uint16_data,
                             data_type=ModbusClientMixin.DATATYPE.UINT16,
                         ),
-                    ),
-                    (
-                        "C_Manufacturer",  # string(32)
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[4:20],
-                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                    )
+                )
+            )
+            self.decoded_common.update(
+                OrderedDict(
+                    [
+                        (
+                            "C_Manufacturer",  # string(32)
+                            ModbusClientMixin.convert_from_registers(
+                                inverter_data.registers[4:20],
+                                data_type=ModbusClientMixin.DATATYPE.STRING,
+                            ),
                         ),
-                    ),
-                    (
-                        "C_Model",  # string(32)
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[20:36],
-                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        (
+                            "C_Model",  # string(32)
+                            ModbusClientMixin.convert_from_registers(
+                                inverter_data.registers[20:36],
+                                data_type=ModbusClientMixin.DATATYPE.STRING,
+                            ),
                         ),
-                    ),
-                    (
-                        "C_Option",  # string(16)
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[36:44],
-                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        (
+                            "C_Option",  # string(16)
+                            ModbusClientMixin.convert_from_registers(
+                                inverter_data.registers[36:44],
+                                data_type=ModbusClientMixin.DATATYPE.STRING,
+                            ),
                         ),
-                    ),
-                    (
-                        "C_Version",  # string(16)
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[44:52],
-                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        (
+                            "C_Version",  # string(16)
+                            ModbusClientMixin.convert_from_registers(
+                                inverter_data.registers[44:52],
+                                data_type=ModbusClientMixin.DATATYPE.STRING,
+                            ),
                         ),
-                    ),
-                    (
-                        "C_SerialNumber",  # string(32)
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[52:68],
-                            data_type=ModbusClientMixin.DATATYPE.STRING,
+                        (
+                            "C_SerialNumber",  # string(32)
+                            ModbusClientMixin.convert_from_registers(
+                                inverter_data.registers[52:68],
+                                data_type=ModbusClientMixin.DATATYPE.STRING,
+                            ),
                         ),
-                    ),
-                    (
-                        "C_Device_address",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[68]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        (
+                            "C_Device_address",
+                            ModbusClientMixin.convert_from_registers(
+                                [inverter_data.registers[68]],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                            ),
                         ),
-                    ),
-                ]
+                    ]
+                )
             )
 
             for name, value in iter(self.decoded_common.items()):
