@@ -816,35 +816,45 @@ class SolarEdgeInverter:
                             ModbusClientMixin.convert_from_registers(
                                 inverter_data.registers[4:20],
                                 data_type=ModbusClientMixin.DATATYPE.STRING,
-                            ),
+                            )
+                            .replace("\x00", "")
+                            .rstrip(),
                         ),
                         (
                             "C_Model",  # string(32)
                             ModbusClientMixin.convert_from_registers(
                                 inverter_data.registers[20:36],
                                 data_type=ModbusClientMixin.DATATYPE.STRING,
-                            ),
+                            )
+                            .replace("\x00", "")
+                            .rstrip(),
                         ),
                         (
                             "C_Option",  # string(16)
                             ModbusClientMixin.convert_from_registers(
                                 inverter_data.registers[36:44],
                                 data_type=ModbusClientMixin.DATATYPE.STRING,
-                            ),
+                            )
+                            .replace("\x00", "")
+                            .rstrip(),
                         ),
                         (
                             "C_Version",  # string(16)
                             ModbusClientMixin.convert_from_registers(
                                 inverter_data.registers[44:52],
                                 data_type=ModbusClientMixin.DATATYPE.STRING,
-                            ),
+                            )
+                            .replace("\x00", "")
+                            .rstrip(),
                         ),
                         (
                             "C_SerialNumber",  # string(32)
                             ModbusClientMixin.convert_from_registers(
                                 inverter_data.registers[52:68],
                                 data_type=ModbusClientMixin.DATATYPE.STRING,
-                            ),
+                            )
+                            .replace("\x00", "")
+                            .rstrip(),
                         ),
                     ]
                 )
@@ -964,9 +974,13 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40044, rcount=8
             )
 
-            self.decoded_common["C_Version"] = ModbusClientMixin.convert_from_registers(
-                inverter_data.registers[0:8],
-                data_type=ModbusClientMixin.DATATYPE.STRING,
+            self.decoded_common["C_Version"] = (
+                ModbusClientMixin.convert_from_registers(
+                    inverter_data.registers[0:8],
+                    data_type=ModbusClientMixin.DATATYPE.STRING,
+                )
+                .replace("\x00", "")
+                .rstrip()
             )
 
             inverter_data = await self.hub.modbus_read_holding_registers(
@@ -1157,7 +1171,9 @@ class SolarEdgeInverter:
                                             9 + unit_offset : 17 + unit_offset
                                         ],
                                         data_type=ModbusClientMixin.DATATYPE.STRING,
-                                    ),
+                                    )
+                                    .replace("\x00", "")
+                                    .rstrip(),
                                 ),
                                 (
                                     "Tmp",
