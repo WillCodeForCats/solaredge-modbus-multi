@@ -845,13 +845,6 @@ class SolarEdgeInverter:
                                 data_type=ModbusClientMixin.DATATYPE.STRING,
                             ),
                         ),
-                        (
-                            "C_Device_address",
-                            ModbusClientMixin.convert_from_registers(
-                                [inverter_data.registers[68]],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                            ),
-                        ),
                     ]
                 )
             )
