@@ -1183,7 +1183,7 @@ class SolarEdgeInverter:
                             + [inverter_data.registers[19 + unit_offset]]
                             + [inverter_data.registers[25 + unit_offset]]
                         )
-                        self.mmppt_unit_data.update(
+                        mmppt_unit_data.update(
                             OrderedDict(
                                 zip(
                                     uint16_fields,
@@ -1210,7 +1210,7 @@ class SolarEdgeInverter:
                                 26 + unit_offset : 28 + unit_offset
                             ]
                         )
-                        self.mmppt_unit_data.update(
+                        mmppt_unit_data.update(
                             OrderedDict(
                                 zip(
                                     uint32_fields,
@@ -1247,7 +1247,7 @@ class SolarEdgeInverter:
                             (
                                 "I_RRCR",
                                 ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0],
+                                    [inverter_data.registers[0]],
                                     data_type=ModbusClientMixin.DATATYPE.UINT16,
                                     word_order="little",
                                 ),
@@ -1255,7 +1255,7 @@ class SolarEdgeInverter:
                             (
                                 "I_Power_Limit",
                                 ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[1],
+                                    [inverter_data.registers[1]],
                                     data_type=ModbusClientMixin.DATATYPE.UINT16,
                                     word_order="little",
                                 ),
