@@ -1241,21 +1241,37 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=61440, rcount=4
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("I_RRCR", decoder.decode_16bit_uint()),
-                            ("I_Power_Limit", decoder.decode_16bit_uint()),
-                            ("I_CosPhi", decoder.decode_32bit_float()),
+                            (
+                                "I_RRCR",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[0],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "I_Power_Limit",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[1],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "I_CosPhi",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[2:4],
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
+
                 self.global_power_control = True
 
             except ModbusIllegalAddress:
