@@ -807,6 +807,7 @@ class SolarEdgeInverter:
                     )
                 )
             )
+
             self.decoded_common.update(
                 OrderedDict(
                     [
@@ -1104,49 +1105,39 @@ class SolarEdgeInverter:
                 )
 
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
+
+                    int16_fields = [
+                        "mmppt_DCA_SF",
+                        "mmppt_DCV_SF",
+                        "mmppt_DCW_SF",
+                        "mmppt_DCWH_SF",
+                        "mmppt_TmsPer",
+                    ]
+
+                    int16_data = inverter_data.registers[0:4] + [
+                        inverter_data.registers[7]
+                    ]
+
+                    self.decoded_model.update(
+                        OrderedDict(
+                            zip(
+                                int16_fields,
+                                ModbusClientMixin.convert_from_registers(
+                                    int16_data,
+                                    data_type=ModbusClientMixin.DATATYPE.INT16,
+                                ),
+                                strict=True,
+                            )
+                        )
+                    )
+
                     self.decoded_model.update(
                         OrderedDict(
                             [
                                 (
-                                    "mmppt_DCA_SF",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[0]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                    ),
-                                ),
-                                (
-                                    "mmppt_DCV_SF",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[1]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                    ),
-                                ),
-                                (
-                                    "mmppt_DCW_SF",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[2]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                    ),
-                                ),
-                                (
-                                    "mmppt_DCWH_SF",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[3]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                    ),
-                                ),
-                                (
-                                    "mmppt_Events",
                                     ModbusClientMixin.convert_from_registers(
                                         inverter_data.registers[4:6],
                                         data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
-                                ),
-                                (
-                                    "mmppt_TmsPer",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[7]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
                                     ),
                                 ),
                             ]
@@ -1159,13 +1150,6 @@ class SolarEdgeInverter:
                         mmppt_unit_data = OrderedDict(
                             [
                                 (
-                                    "ID",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[8 + unit_offset]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    ),
-                                ),
-                                (
                                     "IDStr",  # string(16)
                                     ModbusClientMixin.convert_from_registers(
                                         inverter_data.registers[
@@ -1175,69 +1159,69 @@ class SolarEdgeInverter:
                                     ),
                                 ),
                                 (
-                                    "DCA",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[17 + unit_offset]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    ),
-                                ),
-                                (
-                                    "DCV",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[18 + unit_offset]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    ),
-                                ),
-                                (
-                                    "DCW",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[19 + unit_offset]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    ),
-                                ),
-                                (
-                                    "DCWH",
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[
-                                            20 + unit_offset : 22 + unit_offset
-                                        ],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
-                                ),
-                                (
-                                    "Tms",
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[
-                                            22 + unit_offset : 24 + unit_offset
-                                        ],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
-                                ),
-                                (
                                     "Tmp",
                                     ModbusClientMixin.convert_from_registers(
                                         [inverter_data.registers[24 + unit_offset]],
                                         data_type=ModbusClientMixin.DATATYPE.INT16,
                                     ),
                                 ),
-                                (
-                                    "DCSt",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[25 + unit_offset]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    ),
-                                ),
-                                (
-                                    "DCEvt",
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[
-                                            26 + unit_offset : 28 + unit_offset
-                                        ],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
-                                ),
                             ]
                         )
+
+                        uint16_fields = [
+                            "ID",
+                            "DCA",
+                            "DCV",
+                            "DCW",
+                            "DCSt",
+                        ]
+                        uint16_data = (
+                            [inverter_data.registers[8 + unit_offset]]
+                            + [inverter_data.registers[17 + unit_offset]]
+                            + [inverter_data.registers[18 + unit_offset]]
+                            + [inverter_data.registers[19 + unit_offset]]
+                            + [inverter_data.registers[25 + unit_offset]]
+                        )
+                        self.mmppt_unit_data.update(
+                            OrderedDict(
+                                zip(
+                                    uint16_fields,
+                                    ModbusClientMixin.convert_from_registers(
+                                        uint16_data,
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
+                                    strict=True,
+                                )
+                            )
+                        )
+
+                        uint32_fields = [
+                            "DCWH",
+                            "Tms",
+                            "DCEvt",
+                        ]
+                        uint32_data = (
+                            inverter_data.registers[20 + unit_offset : 22 + unit_offset]
+                            + inverter_data.registers[
+                                22 + unit_offset : 24 + unit_offset
+                            ]
+                            + inverter_data.registers[
+                                26 + unit_offset : 28 + unit_offset
+                            ]
+                        )
+                        self.mmppt_unit_data.update(
+                            OrderedDict(
+                                zip(
+                                    uint32_fields,
+                                    ModbusClientMixin.convert_from_registers(
+                                        uint32_data,
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    ),
+                                    strict=True,
+                                )
+                            )
+                        )
+
                         self.decoded_model.update(
                             OrderedDict([(f"mmppt_{mmppt_unit_id}", mmppt_unit_data)])
                         )
