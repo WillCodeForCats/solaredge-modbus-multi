@@ -785,17 +785,23 @@ class SolarEdgeInverter:
                             data_type=ModbusClientMixin.DATATYPE.UINT32,
                         ),
                     ),
-                    (
-                        "C_SunSpec_DID",
+                ]
+            )
+
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "C_Device_address",
+            ]
+
+            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
+
+            self.decoded_common.update(
+                OrderedDict(
+                    zip(
+                        uint16_fields,
                         ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[2]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "C_SunSpec_Length",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[3]],
+                            uint16_data,
                             data_type=ModbusClientMixin.DATATYPE.UINT16,
                         ),
                     ),
@@ -967,286 +973,102 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40069, rcount=40
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.BIG
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "AC_Current",
+                "AC_Current_A",
+                "AC_Current_B",
+                "AC_Current_C",
+                "AC_Voltage_AB",
+                "AC_Voltage_BC",
+                "AC_Voltage_CA",
+                "AC_Voltage_AN",
+                "AC_Voltage_BN",
+                "AC_Voltage_CN",
+                "AC_Frequency",
+                "AC_Energy_WH_SF",
+                "I_DC_Current",
+                "I_DC_Voltage",
+            ]
+
+            uint16_data = (
+                inverter_data.registers[0:6]
+                + inverter_data.registers[7:13]
+                + [inverter_data.registers[16]]
+                + inverter_data.registers[26:28]
+                + [inverter_data.registers[29]]
             )
 
             self.decoded_model = OrderedDict(
-                [
-                    (
-                        "C_SunSpec_DID",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[0]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                zip(
+                    uint16_fields,
+                    ModbusClientMixin.convert_from_registers(
+                        uint16_data,
+                        data_type=ModbusClientMixin.DATATYPE.UINT16,
                     ),
-                    (
-                        "C_SunSpec_Length",
+                    strict=True,
+                )
+            )
+
+            int16_fields = [
+                "AC_Current_SF",
+                "AC_Voltage_SF",
+                "AC_Power",
+                "AC_Power_SF",
+                "AC_Frequency_SF",
+                "AC_VA",
+                "AC_VA_SF",
+                "AC_var",
+                "AC_var_SF",
+                "AC_PF",
+                "AC_PF_SF",
+                "I_DC_Current_SF",
+                "I_DC_Voltage_SF",
+                "I_DC_Power",
+                "I_DC_Power_SF",
+                "I_Temp_Cab",
+                "I_Temp_Sink",
+                "I_Temp_Trns",
+                "I_Temp_Other",
+                "I_Temp_SF",
+                "I_Status",
+                "I_Status_Vendor",
+            ]
+
+            int16_data = (
+                [inverter_data.registers[6]]
+                + inverter_data.registers[13:16]
+                + inverter_data.registers[17:24]
+                + [inverter_data.registers[28]]
+                + inverter_data.registers[30:40]
+            )
+
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        int16_fields,
                         ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[1]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Current",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[2]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Current_A",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[3]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Current_B",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[4]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Current_C",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[5]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Current_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[6]],
+                            int16_data,
                             data_type=ModbusClientMixin.DATATYPE.INT16,
                         ),
-                    ),
-                    (
-                        "AC_Voltage_AB",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[7]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        strict=True,
+                    )
+                )
+            )
+
+            self.decoded_model.update(
+                OrderedDict(
+                    [
+                        (
+                            "AC_Energy_WH",
+                            ModbusClientMixin.convert_from_registers(
+                                inverter_data.registers[24:26],
+                                data_type=ModbusClientMixin.DATATYPE.UINT32,
+                            ),
                         ),
-                    ),
-                    (
-                        "AC_Voltage_BC",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[8]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Voltage_CA",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[9]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Voltage_AN",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[10]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Voltage_BN",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[11]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Voltage_CN",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[12]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Voltage_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[13]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_Power",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[14]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_Power_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[15]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_Frequency",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[16]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "AC_Frequency_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[17]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_VA",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[18]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_VA_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[19]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_var",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[20]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_var_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[21]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_PF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[22]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_PF_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[23]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "AC_Energy_WH",
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[24:26],
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
-                    ),
-                    (
-                        "AC_Energy_WH_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[26]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "I_DC_Current",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[27]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "I_DC_Current_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[28]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_DC_Voltage",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[29]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "I_DC_Voltage_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[30]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_DC_Power",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[31]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_DC_Power_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[32]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_Temp_Cab",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[33]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_Temp_Sink",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[34]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_Temp_Trns",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[35]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_Temp_Other",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[36]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_Temp_SF",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[37]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_Status",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[38]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                    (
-                        "I_Status_Vendor",
-                        ModbusClientMixin.convert_from_registers(
-                            [inverter_data.registers[39]],
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    ),
-                ]
+                    ]
+                )
             )
 
             if (
@@ -1282,51 +1104,144 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=40123, rcount=mmppt_registers
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers, byteorder=Endian.BIG
-                )
-
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
                     self.decoded_model.update(
                         OrderedDict(
                             [
-                                ("mmppt_DCA_SF", decoder.decode_16bit_int()),
-                                ("mmppt_DCV_SF", decoder.decode_16bit_int()),
-                                ("mmppt_DCW_SF", decoder.decode_16bit_int()),
-                                ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
-                                ("mmppt_Events", decoder.decode_32bit_uint()),
-                                ("ignore", decoder.skip_bytes(2)),
-                                ("mmppt_TmsPer", decoder.decode_16bit_uint()),
+                                (
+                                    "mmppt_DCA_SF",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[0]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    ),
+                                ),
+                                (
+                                    "mmppt_DCV_SF",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[1]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    ),
+                                ),
+                                (
+                                    "mmppt_DCW_SF",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[2]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    ),
+                                ),
+                                (
+                                    "mmppt_DCWH_SF",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[3]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    ),
+                                ),
+                                (
+                                    "mmppt_Events",
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[4:6],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    ),
+                                ),
+                                (
+                                    "mmppt_TmsPer",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[7]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
+                                ),
                             ]
                         )
                     )
 
                     for mmppt_unit_id in mmppt_unit_ids:
+                        unit_offset = mmppt_unit_id * 20
+
                         mmppt_unit_data = OrderedDict(
                             [
-                                ("ID", decoder.decode_16bit_uint()),
                                 (
-                                    "IDStr",
-                                    parse_modbus_string(decoder.decode_string(16)),
+                                    "ID",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[8 + unit_offset]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
                                 ),
-                                ("DCA", decoder.decode_16bit_uint()),
-                                ("DCV", decoder.decode_16bit_uint()),
-                                ("DCW", decoder.decode_16bit_uint()),
-                                ("DCWH", decoder.decode_32bit_uint()),
-                                ("Tms", decoder.decode_32bit_uint()),
-                                ("Tmp", decoder.decode_16bit_int()),
-                                ("DCSt", decoder.decode_16bit_uint()),
-                                ("DCEvt", decoder.decode_32bit_uint()),
+                                (
+                                    "IDStr",  # string(16)
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[
+                                            9 + unit_offset : 17 + unit_offset
+                                        ],
+                                        data_type=ModbusClientMixin.DATATYPE.STRING,
+                                    ),
+                                ),
+                                (
+                                    "DCA",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[17 + unit_offset]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
+                                ),
+                                (
+                                    "DCV",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[18 + unit_offset]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
+                                ),
+                                (
+                                    "DCW",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[19 + unit_offset]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
+                                ),
+                                (
+                                    "DCWH",
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[
+                                            20 + unit_offset : 22 + unit_offset
+                                        ],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    ),
+                                ),
+                                (
+                                    "Tms",
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[
+                                            22 + unit_offset : 24 + unit_offset
+                                        ],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    ),
+                                ),
+                                (
+                                    "Tmp",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[24 + unit_offset]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    ),
+                                ),
+                                (
+                                    "DCSt",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[25 + unit_offset]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
+                                ),
+                                (
+                                    "DCEvt",
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[
+                                            26 + unit_offset : 28 + unit_offset
+                                        ],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    ),
+                                ),
                             ]
                         )
                         self.decoded_model.update(
                             OrderedDict([(f"mmppt_{mmppt_unit_id}", mmppt_unit_data)])
                         )
-
-                try:
-                    del self.decoded_model["ignore"]
-                except KeyError:
-                    pass
 
             except ModbusIOError:
                 raise ModbusReadError(
