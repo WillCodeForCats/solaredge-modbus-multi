@@ -1311,59 +1311,114 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=61696, rcount=86
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
+                int32_fields = [
+                    "PwrFrqDeratingConfig",
+                    "ReactivePwrConfig",
+                    "ActivePwrGrad",
+                    "AdvPwrCtrlEn",
+                    "FrtEn",
+                ]
+                int32_data = (
+                    inverter_data.registers[2:6]
+                    + inverter_data.registers[8:10]
+                    + inverter_data.registers[66:70]
+                )
+                self.decoded_model.update(
+                    OrderedDict(
+                        zip(
+                            int32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                int32_data,
+                                data_type=ModbusClientMixin.DATATYPE.INT32,
+                                word_order="little",
+                            ),
+                            strict=True,
+                        )
+                    )
+                )
+
+                float32_fields = [
+                    "FixedCosPhiPhase",
+                    "FixedReactPwr",
+                    "ReactCosPhiVsPX_0",
+                    "ReactCosPhiVsPX_1",
+                    "ReactCosPhiVsPX_2",
+                    "ReactCosPhiVsPX_3",
+                    "ReactCosPhiVsPX_4",
+                    "ReactCosPhiVsPX_5",
+                    "ReactCosPhiVsPY_0",
+                    "ReactCosPhiVsPY_1",
+                    "ReactCosPhiVsPY_2",
+                    "ReactCosPhiVsPY_3",
+                    "ReactCosPhiVsPY_4",
+                    "ReactCosPhiVsPY_5",
+                    "ReactQVsVgX_0",
+                    "ReactQVsVgX_1",
+                    "ReactQVsVgX_2",
+                    "ReactQVsVgX_3",
+                    "ReactQVsVgX_4",
+                    "ReactQVsVgX_5",
+                    "ReactQVsVgY_0",
+                    "ReactQVsVgY_1",
+                    "ReactQVsVgY_2",
+                    "ReactQVsVgY_3",
+                    "ReactQVsVgY_4",
+                    "ReactQVsVgY_5",
+                    "FRT_KFactor",
+                    "PowerReduce",
+                    "MaxWakeupFreq",
+                    "MinWakeupFreq",
+                    "MaxWakeupVg",
+                    "MinWakeupVg",
+                    "Vnom",
+                    "Inom",
+                    "PwrVsFreqX_0",
+                    "PwrVsFreqX_1",
+                ]
+                float32_data = (
+                    inverter_data.registers[10:66] + inverter_data.registers[70:86]
+                )
+                self.decoded_model.update(
+                    OrderedDict(
+                        zip(
+                            float32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                float32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
+                            ),
+                            strict=True,
+                        )
+                    )
                 )
 
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("CommitPwrCtlSettings", decoder.decode_16bit_int()),
-                            ("RestorePwrCtlDefaults", decoder.decode_16bit_int()),
-                            ("PwrFrqDeratingConfig", decoder.decode_32bit_int()),
-                            ("ReactivePwrConfig", decoder.decode_32bit_int()),
-                            ("ReactPwrIterTime", decoder.decode_32bit_uint()),
-                            ("ActivePwrGrad", decoder.decode_32bit_int()),
-                            ("FixedCosPhiPhase", decoder.decode_32bit_float()),
-                            ("FixedReactPwr", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_0", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_1", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_2", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_3", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_4", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_5", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_0", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_1", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_2", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_3", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_4", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_5", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_0", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_1", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_2", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_3", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_4", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_5", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_0", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_1", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_2", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_3", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_4", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_5", decoder.decode_32bit_float()),
-                            ("FRT_KFactor", decoder.decode_32bit_float()),
-                            ("PowerReduce", decoder.decode_32bit_float()),
-                            ("AdvPwrCtrlEn", decoder.decode_32bit_int()),
-                            ("FrtEn", decoder.decode_32bit_int()),
-                            ("MaxWakeupFreq", decoder.decode_32bit_float()),
-                            ("MinWakeupFreq", decoder.decode_32bit_float()),
-                            ("MaxWakeupVg", decoder.decode_32bit_float()),
-                            ("MinWakeupVg", decoder.decode_32bit_float()),
-                            ("Vnom", decoder.decode_32bit_float()),
-                            ("Inom", decoder.decode_32bit_float()),
-                            ("PwrVsFreqX_0", decoder.decode_32bit_float()),
-                            ("PwrVsFreqX_1", decoder.decode_32bit_float()),
+                            (
+                                "CommitPwrCtlSettings",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[0]],
+                                    data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "RestorePwrCtlDefaults",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[1]],
+                                    data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "ReactPwrIterTime",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[6:8],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
@@ -1372,70 +1427,85 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=61782, rcount=84
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
+                float32_fields = [
+                    "PwrVsFreqY_0",
+                    "PwrVsFreqY_1",
+                    "ResetFreq",
+                    "MaxFreq",
+                    "ReactQVsPX_0",
+                    "ReactQVsPX_1",
+                    "ReactQVsPX_2",
+                    "ReactQVsPX_3",
+                    "ReactQVsPX_4",
+                    "ReactQVsPX_5",
+                    "ReactQVsPY_0",
+                    "ReactQVsPY_1",
+                    "ReactQVsPY_2",
+                    "ReactQVsPY_3",
+                    "ReactQVsPY_4",
+                    "ReactQVsPY_5",
+                    "ReactCosPhiVsPVgLockInMax",
+                    "ReactCosPhiVsPVgLockInMin",
+                    "ReactCosPhiVsPVgLockOutMax",
+                    "ReactCosPhiVsPVgLockOutMin",
+                    "ReactQVsVgPLockInMax",
+                    "ReactQVsVgPLockInMin",
+                    "ReactQVsVgPLockOutMax",
+                    "ReactQVsVgPLockOutMin",
+                    "MaxCurrent",
+                    "PwrVsVgX_0",
+                    "PwrVsVgX_1",
+                    "PwrVsVgX_2",
+                    "PwrVsVgX_3",
+                    "PwrVsVgX_4",
+                    "PwrVsVgX_5",
+                    "PwrVsVgY_0",
+                    "PwrVsVgY_1",
+                    "PwrVsVgY_2",
+                    "PwrVsVgY_3",
+                    "PwrVsVgY_4",
+                    "PwrVsVgY_5",
+                    "DisconnectAtZeroPwrLim",
+                ]
+                float32_data = (
+                    inverter_data.registers[0:32]
+                    + inverter_data.registers[36:52]
+                    + inverter_data.registers[56:84]
                 )
-
                 self.decoded_model.update(
                     OrderedDict(
-                        [
-                            ("PwrVsFreqY_0", decoder.decode_32bit_float()),
-                            ("PwrVsFreqY_1", decoder.decode_32bit_float()),
-                            ("ResetFreq", decoder.decode_32bit_float()),
-                            ("MaxFreq", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_0", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_1", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_2", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_3", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_4", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_5", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_0", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_1", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_2", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_3", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_4", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_5", decoder.decode_32bit_float()),
-                            ("PwrFrqDeratingResetTime", decoder.decode_32bit_uint()),
-                            ("PwrFrqDeratingGradTime", decoder.decode_32bit_uint()),
-                            (
-                                "ReactCosPhiVsPVgLockInMax",
-                                decoder.decode_32bit_float(),
+                        zip(
+                            float32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                float32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
                             ),
-                            (
-                                "ReactCosPhiVsPVgLockInMin",
-                                decoder.decode_32bit_float(),
+                            strict=True,
+                        )
+                    )
+                )
+
+                uint32_fields = [
+                    "PwrFrqDeratingResetTime",
+                    "PwrFrqDeratingGradTime",
+                    "ReactQVsVgType",
+                    "PwrSoftStartTime",
+                ]
+                uint32_data = (
+                    inverter_data.registers[32:36] + inverter_data.registers[52:56]
+                )
+                self.decoded_model.update(
+                    OrderedDict(
+                        zip(
+                            uint32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                uint32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
                             ),
-                            (
-                                "ReactCosPhiVsPVgLockOutMax",
-                                decoder.decode_32bit_float(),
-                            ),
-                            (
-                                "ReactCosPhiVsPVgLockOutMin",
-                                decoder.decode_32bit_float(),
-                            ),
-                            ("ReactQVsVgPLockInMax", decoder.decode_32bit_float()),
-                            ("ReactQVsVgPLockInMin", decoder.decode_32bit_float()),
-                            ("ReactQVsVgPLockOutMax", decoder.decode_32bit_float()),
-                            ("ReactQVsVgPLockOutMin", decoder.decode_32bit_float()),
-                            ("ReactQVsVgType", decoder.decode_32bit_uint()),
-                            ("PwrSoftStartTime", decoder.decode_32bit_uint()),
-                            ("MaxCurrent", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_0", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_1", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_2", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_3", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_4", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_5", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_0", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_1", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_2", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_3", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_4", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_5", decoder.decode_32bit_float()),
-                            ("DisconnectAtZeroPwrLim", decoder.decode_32bit_float()),
-                        ]
+                            strict=True,
+                        )
                     )
                 )
 
