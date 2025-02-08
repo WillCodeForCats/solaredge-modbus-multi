@@ -1535,16 +1535,17 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=40113, rcount=2
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("I_Grid_Status", decoder.decode_32bit_uint()),
+                            (
+                                "I_Grid_Status",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[0:2],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
