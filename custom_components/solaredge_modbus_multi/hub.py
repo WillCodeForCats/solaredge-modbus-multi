@@ -1466,18 +1466,33 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=57344, rcount=4
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("E_Lim_Ctl_Mode", decoder.decode_16bit_uint()),
-                            ("E_Lim_Ctl", decoder.decode_16bit_uint()),
-                            ("E_Site_Limit", decoder.decode_32bit_float()),
+                            (
+                                "E_Lim_Ctl_Mode",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[0]],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "E_Lim_Ctl",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[1]],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "E_Site_Limit",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[2:4],
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
