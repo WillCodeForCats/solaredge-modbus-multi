@@ -1501,16 +1501,17 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=57362, rcount=2
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("Ext_Prod_Max", decoder.decode_32bit_float()),
+                            (
+                                "Ext_Prod_Max",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[0:2],
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
