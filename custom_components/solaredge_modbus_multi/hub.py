@@ -2165,33 +2165,66 @@ class SolarEdgeBattery:
                 unit=self.inverter_unit_id, address=self.start_address, rcount=68
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                battery_info.registers,
-                byteorder=Endian.BIG,
-                wordorder=Endian.LITTLE,
-            )
             self.decoded_common = OrderedDict(
                 [
                     (
-                        "B_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        "B_Manufacturer",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[0:16],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
                     ),
-                    ("B_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("B_Version", parse_modbus_string(decoder.decode_string(32))),
                     (
-                        "B_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        "B_Model",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[16:32],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
                     ),
-                    ("B_Device_Address", decoder.decode_16bit_uint()),
-                    ("ignore", decoder.skip_bytes(2)),
-                    ("B_RatedEnergy", decoder.decode_32bit_float()),
+                    (
+                        "B_Version",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[32:48],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
+                    ),
+                    (
+                        "B_SerialNumber",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[48:64],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
+                    ),
+                    (
+                        "B_Device_Address",
+                        ModbusClientMixin.convert_from_registers(
+                            [battery_info.registers[64]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                            word_order="little",
+                        ),
+                    ),
+                    (
+                        "B_RatedEnergy",
+                        ModbusClientMixin.convert_from_registers(
+                            battery_info.registers[66:68],
+                            data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                            word_order="little",
+                        ),
+                    ),
                 ]
             )
-
-            try:
-                del self.decoded_common["ignore"]
-            except KeyError:
-                pass
 
             for name, value in iter(self.decoded_common.items()):
                 if isinstance(value, float):
