@@ -31,7 +31,7 @@ from .const import (
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, parse_modbus_string
+from .helpers import float_to_hex, int_list_to_string
 
 _LOGGER = logging.getLogger(__name__)
 pymodbus_version = importlib.metadata.version("pymodbus")
@@ -813,48 +813,48 @@ class SolarEdgeInverter:
                     [
                         (
                             "C_Manufacturer",  # string(32)
-                            ModbusClientMixin.convert_from_registers(
-                                inverter_data.registers[4:20],
-                                data_type=ModbusClientMixin.DATATYPE.STRING,
-                            )
-                            .replace("\x00", "")
-                            .rstrip(),
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[4:20],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
                         ),
                         (
                             "C_Model",  # string(32)
-                            ModbusClientMixin.convert_from_registers(
-                                inverter_data.registers[20:36],
-                                data_type=ModbusClientMixin.DATATYPE.STRING,
-                            )
-                            .replace("\x00", "")
-                            .rstrip(),
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[20:36],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
                         ),
                         (
                             "C_Option",  # string(16)
-                            ModbusClientMixin.convert_from_registers(
-                                inverter_data.registers[36:44],
-                                data_type=ModbusClientMixin.DATATYPE.STRING,
-                            )
-                            .replace("\x00", "")
-                            .rstrip(),
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[36:44],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
                         ),
                         (
                             "C_Version",  # string(16)
-                            ModbusClientMixin.convert_from_registers(
-                                inverter_data.registers[44:52],
-                                data_type=ModbusClientMixin.DATATYPE.STRING,
-                            )
-                            .replace("\x00", "")
-                            .rstrip(),
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[44:52],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
                         ),
                         (
                             "C_SerialNumber",  # string(32)
-                            ModbusClientMixin.convert_from_registers(
-                                inverter_data.registers[52:68],
-                                data_type=ModbusClientMixin.DATATYPE.STRING,
-                            )
-                            .replace("\x00", "")
-                            .rstrip(),
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[52:68],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
                         ),
                     ]
                 )
@@ -974,13 +974,11 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40044, rcount=8
             )
 
-            self.decoded_common["C_Version"] = (
+            self.decoded_common["C_Version"] = int_list_to_string(
                 ModbusClientMixin.convert_from_registers(
                     inverter_data.registers[0:8],
-                    data_type=ModbusClientMixin.DATATYPE.STRING,
+                    data_type=ModbusClientMixin.DATATYPE.UINT16,
                 )
-                .replace("\x00", "")
-                .rstrip()
             )
 
             inverter_data = await self.hub.modbus_read_holding_registers(
@@ -1166,14 +1164,14 @@ class SolarEdgeInverter:
                             [
                                 (
                                     "IDStr",  # string(16)
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[
-                                            9 + unit_offset : 17 + unit_offset
-                                        ],
-                                        data_type=ModbusClientMixin.DATATYPE.STRING,
-                                    )
-                                    .replace("\x00", "")
-                                    .rstrip(),
+                                    int_list_to_string(
+                                        ModbusClientMixin.convert_from_registers(
+                                            inverter_data.registers[
+                                                9 + unit_offset : 17 + unit_offset
+                                            ],
+                                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                        )
+                                    ),
                                 ),
                                 (
                                     "Tmp",
