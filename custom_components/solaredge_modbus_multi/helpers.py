@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ipaddress
 import struct
-from typing import List
 
 from homeassistant.exceptions import HomeAssistantError
 
@@ -16,7 +15,7 @@ def float_to_hex(f):
         raise TypeError(e)
 
 
-def int_list_to_string(int_list: List[int]) -> str:
+def int_list_to_string(int_list: list[int]) -> str:
     """Convert a list of 16-bit unsigned integers into a string. Each int is 2 bytes.
 
     This method exists because pymodbus ModbusClientMixin.convert_from_registers with
