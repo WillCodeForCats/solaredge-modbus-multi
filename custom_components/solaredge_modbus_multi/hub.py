@@ -1689,24 +1689,65 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=57348, rcount=14
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
+                uint16_fields = [
+                    "control_mode",
+                    "ac_charge_policy",
+                    "default_mode",
+                    "command_mode",
+                ]
+                uint16_data = (
+                    inverter_data.registers[0:2]
+                    + [inverter_data.registers[6]]
+                    + [inverter_data.registers[9]]
+                )
+                self.decoded_storage_control = OrderedDict(
+                    zip(
+                        uint16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint16_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                            word_order="little",
+                        ),
+                        strict=True,
+                    )
                 )
 
-                self.decoded_storage_control = OrderedDict(
-                    [
-                        ("control_mode", decoder.decode_16bit_uint()),
-                        ("ac_charge_policy", decoder.decode_16bit_uint()),
-                        ("ac_charge_limit", decoder.decode_32bit_float()),
-                        ("backup_reserve", decoder.decode_32bit_float()),
-                        ("default_mode", decoder.decode_16bit_uint()),
-                        ("command_timeout", decoder.decode_32bit_uint()),
-                        ("command_mode", decoder.decode_16bit_uint()),
-                        ("charge_limit", decoder.decode_32bit_float()),
-                        ("discharge_limit", decoder.decode_32bit_float()),
-                    ]
+                float32_fields = [
+                    "ac_charge_limit",
+                    "backup_reserve",
+                    "charge_limit",
+                    "discharge_limit",
+                ]
+                float32_data = (
+                    inverter_data.registers[2:6] + inverter_data.registers[10:14]
+                )
+                self.decoded_storage_control.update(
+                    OrderedDict(
+                        zip(
+                            float32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                float32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
+                            ),
+                            strict=True,
+                        )
+                    )
+                )
+
+                self.decoded_storage_control.update(
+                    OrderedDict(
+                        [
+                            (
+                                "command_timeout",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[7:9],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    word_order="little",
+                                ),
+                            ),
+                        ]
+                    )
                 )
 
                 for name, value in iter(self.decoded_storage_control.items()):
