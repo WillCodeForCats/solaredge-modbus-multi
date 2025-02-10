@@ -2341,55 +2341,101 @@ class SolarEdgeBattery:
                 rcount=86,
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                battery_data.registers,
-                byteorder=Endian.BIG,
-                wordorder=Endian.LITTLE,
+            float32_fields = [
+                "B_MaxChargePower",
+                "B_MaxDischargePower",
+                "B_MaxChargePeakPower",
+                "B_MaxDischargePeakPower",
+                "B_Temp_Average",
+                "B_Temp_Max",
+                "B_DC_Voltage",
+                "B_DC_Current",
+                "B_DC_Power",
+                "B_Energy_Max",
+                "B_Energy_Available",
+                "B_SOH",
+                "B_SOE",
+            ]
+            float32_data = (
+                battery_data.registers[0:8]
+                + battery_data.registers[40:50]
+                + battery_data.registers[58:66]
             )
-
             self.decoded_model = OrderedDict(
-                [
-                    ("B_MaxChargePower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePower", decoder.decode_32bit_float()),
-                    ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
-                    ("ignore", decoder.skip_bytes(64)),
-                    ("B_Temp_Average", decoder.decode_32bit_float()),
-                    ("B_Temp_Max", decoder.decode_32bit_float()),
-                    ("B_DC_Voltage", decoder.decode_32bit_float()),
-                    ("B_DC_Current", decoder.decode_32bit_float()),
-                    ("B_DC_Power", decoder.decode_32bit_float()),
-                    ("B_Export_Energy_WH", decoder.decode_64bit_uint()),
-                    ("B_Import_Energy_WH", decoder.decode_64bit_uint()),
-                    ("B_Energy_Max", decoder.decode_32bit_float()),
-                    ("B_Energy_Available", decoder.decode_32bit_float()),
-                    ("B_SOH", decoder.decode_32bit_float()),
-                    ("B_SOE", decoder.decode_32bit_float()),
-                    ("B_Status", decoder.decode_32bit_uint()),
-                    ("B_Status_Vendor", decoder.decode_32bit_uint()),
-                    ("B_Event_Log1", decoder.decode_16bit_uint()),
-                    ("B_Event_Log2", decoder.decode_16bit_uint()),
-                    ("B_Event_Log3", decoder.decode_16bit_uint()),
-                    ("B_Event_Log4", decoder.decode_16bit_uint()),
-                    ("B_Event_Log5", decoder.decode_16bit_uint()),
-                    ("B_Event_Log6", decoder.decode_16bit_uint()),
-                    ("B_Event_Log7", decoder.decode_16bit_uint()),
-                    ("B_Event_Log8", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor1", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor2", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor3", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor4", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor5", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor6", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor7", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor8", decoder.decode_16bit_uint()),
-                ]
+                zip(
+                    float32_fields,
+                    ModbusClientMixin.convert_from_registers(
+                        float32_data,
+                        data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                        word_order="little",
+                    ),
+                )
             )
 
-            try:
-                del self.decoded_model["ignore"]
-            except KeyError:
-                pass
+            uint64_fields = [
+                "B_Export_Energy_WH",
+                "B_Import_Energy_WH",
+            ]
+            uint64_data = battery_data.registers[50:58]
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint64_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint64_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT64,
+                            word_order="little",
+                        ),
+                    )
+                )
+            )
+
+            uint32_fields = ["B_Status", "B_Status_Vendor"]
+            uint32_data = battery_data.registers[66:70]
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint32_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint32_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
+                            word_order="little",
+                        ),
+                    )
+                )
+            )
+
+            uint16_fields = [
+                "B_Event_Log1",
+                "B_Event_Log2",
+                "B_Event_Log3",
+                "B_Event_Log4",
+                "B_Event_Log5",
+                "B_Event_Log6",
+                "B_Event_Log7",
+                "B_Event_Log8",
+                "B_Event_Log_Vendor1",
+                "B_Event_Log_Vendor2",
+                "B_Event_Log_Vendor3",
+                "B_Event_Log_Vendor4",
+                "B_Event_Log_Vendor5",
+                "B_Event_Log_Vendor6",
+                "B_Event_Log_Vendor7",
+                "B_Event_Log_Vendor8",
+            ]
+            uint16_data = battery_data.registers[70:86]
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint16_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                            word_order="little",
+                        ),
+                    )
+                )
+            )
 
         except ModbusIOError:
             raise ModbusReadError(
