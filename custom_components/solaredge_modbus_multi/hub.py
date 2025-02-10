@@ -2004,87 +2004,135 @@ class SolarEdgeMeter:
                 rcount=107,
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                meter_data.registers, byteorder=Endian.BIG
-            )
-
             self.decoded_model = OrderedDict(
                 [
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-                    ("AC_Current", decoder.decode_16bit_int()),
-                    ("AC_Current_A", decoder.decode_16bit_int()),
-                    ("AC_Current_B", decoder.decode_16bit_int()),
-                    ("AC_Current_C", decoder.decode_16bit_int()),
-                    ("AC_Current_SF", decoder.decode_16bit_int()),
-                    ("AC_Voltage_LN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_AN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_BN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_CN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_LL", decoder.decode_16bit_int()),
-                    ("AC_Voltage_AB", decoder.decode_16bit_int()),
-                    ("AC_Voltage_BC", decoder.decode_16bit_int()),
-                    ("AC_Voltage_CA", decoder.decode_16bit_int()),
-                    ("AC_Voltage_SF", decoder.decode_16bit_int()),
-                    ("AC_Frequency", decoder.decode_16bit_int()),
-                    ("AC_Frequency_SF", decoder.decode_16bit_int()),
-                    ("AC_Power", decoder.decode_16bit_int()),
-                    ("AC_Power_A", decoder.decode_16bit_int()),
-                    ("AC_Power_B", decoder.decode_16bit_int()),
-                    ("AC_Power_C", decoder.decode_16bit_int()),
-                    ("AC_Power_SF", decoder.decode_16bit_int()),
-                    ("AC_VA", decoder.decode_16bit_int()),
-                    ("AC_VA_A", decoder.decode_16bit_int()),
-                    ("AC_VA_B", decoder.decode_16bit_int()),
-                    ("AC_VA_C", decoder.decode_16bit_int()),
-                    ("AC_VA_SF", decoder.decode_16bit_int()),
-                    ("AC_var", decoder.decode_16bit_int()),
-                    ("AC_var_A", decoder.decode_16bit_int()),
-                    ("AC_var_B", decoder.decode_16bit_int()),
-                    ("AC_var_C", decoder.decode_16bit_int()),
-                    ("AC_var_SF", decoder.decode_16bit_int()),
-                    ("AC_PF", decoder.decode_16bit_int()),
-                    ("AC_PF_A", decoder.decode_16bit_int()),
-                    ("AC_PF_B", decoder.decode_16bit_int()),
-                    ("AC_PF_C", decoder.decode_16bit_int()),
-                    ("AC_PF_SF", decoder.decode_16bit_int()),
-                    ("AC_Energy_WH_Exported", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Exported_A", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Exported_B", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Exported_C", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported_A", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported_B", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported_C", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_SF", decoder.decode_16bit_int()),
-                    ("M_VAh_Exported", decoder.decode_32bit_uint()),
-                    ("M_VAh_Exported_A", decoder.decode_32bit_uint()),
-                    ("M_VAh_Exported_B", decoder.decode_32bit_uint()),
-                    ("M_VAh_Exported_C", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported_A", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported_B", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported_C", decoder.decode_32bit_uint()),
-                    ("M_VAh_SF", decoder.decode_16bit_int()),
-                    ("M_varh_Import_Q1", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q1_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q1_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q1_C", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2_C", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3_C", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4_C", decoder.decode_32bit_uint()),
-                    ("M_varh_SF", decoder.decode_16bit_int()),
-                    ("M_Events", decoder.decode_32bit_uint()),
+                    (
+                        "C_SunSpec_DID",
+                        ModbusClientMixin.convert_from_registers(
+                            [meter_data.registers[0]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
+                    (
+                        "C_SunSpec_Length",
+                        ModbusClientMixin.convert_from_registers(
+                            [meter_data.registers[1]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
                 ]
+            )
+
+            int16_fields = [
+                "AC_Current",
+                "AC_Current_A",
+                "AC_Current_B",
+                "AC_Current_C",
+                "AC_Current_SF",
+                "AC_Voltage_LN",
+                "AC_Voltage_AN",
+                "AC_Voltage_BN",
+                "AC_Voltage_CN",
+                "AC_Voltage_LL",
+                "AC_Voltage_AB",
+                "AC_Voltage_BC",
+                "AC_Voltage_CA",
+                "AC_Voltage_SF",
+                "AC_Frequency",
+                "AC_Frequency_SF",
+                "AC_Power",
+                "AC_Power_A",
+                "AC_Power_B",
+                "AC_Power_C",
+                "AC_Power_SF",
+                "AC_VA",
+                "AC_VA_A",
+                "AC_VA_B",
+                "AC_VA_C",
+                "AC_VA_SF",
+                "AC_var",
+                "AC_var_A",
+                "AC_var_B",
+                "AC_var_C",
+                "AC_var_SF",
+                "AC_PF",
+                "AC_PF_A",
+                "AC_PF_B",
+                "AC_PF_C",
+                "AC_PF_SF",
+                "AC_Energy_WH_SF",
+                "M_VAh_SF",
+                "M_varh_SF",
+            ]
+            int16_data = (
+                meter_data.registers[2:38]
+                + [meter_data.registers[54]]
+                + [meter_data.registers[71]]
+                + [meter_data.registers[104]]
+            )
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        int16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            int16_data,
+                            data_type=ModbusClientMixin.DATATYPE.INT16,
+                        ),
+                    )
+                )
+            )
+
+            uint32_fields = [
+                "AC_Energy_WH_Exported",
+                "AC_Energy_WH_Exported_A",
+                "AC_Energy_WH_Exported_B",
+                "AC_Energy_WH_Exported_C",
+                "AC_Energy_WH_Imported",
+                "AC_Energy_WH_Imported_A",
+                "AC_Energy_WH_Imported_B",
+                "AC_Energy_WH_Imported_C",
+                "M_VAh_Exported",
+                "M_VAh_Exported_A",
+                "M_VAh_Exported_B",
+                "M_VAh_Exported_C",
+                "M_VAh_Imported",
+                "M_VAh_Imported_A",
+                "M_VAh_Imported_B",
+                "M_VAh_Imported_C",
+                "M_varh_Import_Q1",
+                "M_varh_Import_Q1_A",
+                "M_varh_Import_Q1_B",
+                "M_varh_Import_Q1_C",
+                "M_varh_Import_Q2",
+                "M_varh_Import_Q2_A",
+                "M_varh_Import_Q2_B",
+                "M_varh_Import_Q2_C",
+                "M_varh_Export_Q3",
+                "M_varh_Export_Q3_A",
+                "M_varh_Export_Q3_B",
+                "M_varh_Export_Q3_C",
+                "M_varh_Export_Q4",
+                "M_varh_Export_Q4_A",
+                "M_varh_Export_Q4_B",
+                "M_varh_Export_Q4_C",
+                "M_Events",
+            ]
+            uint32_data = (
+                meter_data.registers[38:54]
+                + meter_data.registers[55:70]
+                + meter_data.registers[71:104]
+                + meter_data.registers[105:107]
+            )
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint32_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint32_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
+                        ),
+                    )
+                )
             )
 
         except ModbusIOError:
