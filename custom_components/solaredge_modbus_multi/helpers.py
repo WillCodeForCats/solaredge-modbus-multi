@@ -8,11 +8,15 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import DOMAIN_REGEX
 
 
-def float_to_hex(f):
+def float_to_hex(f: float) -> str:
+    """Convert a float number to a hex string for display."""
+    if not isinstance(f, (float, int)):
+        raise TypeError(f"Expected float or int, got {type(f).__name__}")
+
     try:
-        return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+        return hex(struct.unpack("<I", struct.pack("<f", float(f)))[0])
     except struct.error as e:
-        raise TypeError(e)
+        raise ValueError(f"Error converting {f} to hex: {e}")
 
 
 def int_list_to_string(int_list: list[int]) -> str:
