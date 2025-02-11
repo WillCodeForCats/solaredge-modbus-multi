@@ -179,6 +179,8 @@ class SolarEdgeModbusMultiHub:
 
         self._client = None
 
+        self._pymodbus_version = pymodbus_version
+
         _LOGGER.debug(
             (
                 f"{DOMAIN} configuration: "
@@ -195,7 +197,7 @@ class SolarEdgeModbusMultiHub:
             ),
         )
 
-        _LOGGER.debug(f"pymodbus version {pymodbus_version}")
+        _LOGGER.debug(f"pymodbus version {self.pymodbus_version}")
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
@@ -720,6 +722,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def sleep_after_write(self) -> int:
         return self._sleep_after_write
+
+    @property
+    def pymodbus_version(self) -> str:
+        return self._pymodbus_version
 
     @property
     def coordinator_timeout(self) -> int:
