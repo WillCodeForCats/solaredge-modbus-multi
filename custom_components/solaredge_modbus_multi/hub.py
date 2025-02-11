@@ -11,9 +11,8 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from pymodbus.client import AsyncModbusTcpClient
-from pymodbus.constants import Endian
+from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
-from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ExceptionResponse
 
 from .const import (
@@ -30,7 +29,7 @@ from .const import (
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, parse_modbus_string
+from .helpers import float_to_hex, int_list_to_string
 
 _LOGGER = logging.getLogger(__name__)
 pymodbus_version = importlib.metadata.version("pymodbus")
@@ -507,7 +506,7 @@ class SolarEdgeModbusMultiHub:
         self._rr_count = rcount
 
         result = await self._client.read_holding_registers(
-            self._rr_address, count=self._rr_count, slave=self._rr_unit
+            address=self._rr_address, count=self._rr_count, slave=self._rr_unit
         )
 
         if result.isError():
@@ -558,7 +557,9 @@ class SolarEdgeModbusMultiHub:
                     await self.connect()
 
                 result = await self._client.write_registers(
-                    self._wr_address, slave=self._wr_unit, values=self._wr_payload
+                    address=self._wr_address,
+                    values=self._wr_payload,
+                    slave=self._wr_unit,
                 )
 
                 self.has_write = address
@@ -773,28 +774,88 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40000, rcount=69
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.BIG
-            )
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "C_Device_address",
+            ]
+
+            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
 
             self.decoded_common = OrderedDict(
                 [
-                    ("C_SunSpec_ID", decoder.decode_32bit_uint()),
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
-                        "C_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
-                    ),
-                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
-                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
-                    (
-                        "C_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
-                    ),
-                    ("C_Device_address", decoder.decode_16bit_uint()),
+                        "C_SunSpec_ID",
+                        ModbusClientMixin.convert_from_registers(
+                            inverter_data.registers[0:2],
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
+                        ),
+                    )
                 ]
+            )
+
+            self.decoded_common.update(
+                OrderedDict(
+                    zip(
+                        uint16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint16_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    )
+                )
+            )
+
+            self.decoded_common.update(
+                OrderedDict(
+                    [
+                        (
+                            "C_Manufacturer",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[4:20],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Model",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[20:36],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Option",  # string(16)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[36:44],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Version",  # string(16)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[44:52],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_SerialNumber",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[52:68],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                    ]
+                )
             )
 
             for name, value in iter(self.decoded_common.items()):
@@ -832,23 +893,31 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40121, rcount=9
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                mmppt_common.registers, byteorder=Endian.BIG
-            )
-
             self.decoded_mmppt = OrderedDict(
                 [
-                    ("mmppt_DID", decoder.decode_16bit_uint()),
-                    ("mmppt_Length", decoder.decode_16bit_uint()),
-                    ("ignore", decoder.skip_bytes(12)),
-                    ("mmppt_Units", decoder.decode_16bit_uint()),
+                    (
+                        "mmppt_DID",
+                        ModbusClientMixin.convert_from_registers(
+                            [mmppt_common.registers[0]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
+                    (
+                        "mmppt_Length",
+                        ModbusClientMixin.convert_from_registers(
+                            [mmppt_common.registers[1]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
+                    (
+                        "mmppt_Units",
+                        ModbusClientMixin.convert_from_registers(
+                            [mmppt_common.registers[8]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
                 ]
             )
-
-            try:
-                del self.decoded_mmppt["ignore"]
-            except KeyError:
-                pass
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
@@ -900,67 +969,116 @@ class SolarEdgeInverter:
 
         try:
             inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40044, rcount=16
+                unit=self.inverter_unit_id, address=40044, rcount=8
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.BIG
-            )
-
-            self.decoded_common["C_Version"] = parse_modbus_string(
-                decoder.decode_string(16)
+            self.decoded_common["C_Version"] = int_list_to_string(
+                ModbusClientMixin.convert_from_registers(
+                    inverter_data.registers[0:8],
+                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                )
             )
 
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                inverter_data.registers, byteorder=Endian.BIG
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "AC_Current",
+                "AC_Current_A",
+                "AC_Current_B",
+                "AC_Current_C",
+                "AC_Voltage_AB",
+                "AC_Voltage_BC",
+                "AC_Voltage_CA",
+                "AC_Voltage_AN",
+                "AC_Voltage_BN",
+                "AC_Voltage_CN",
+                "AC_Frequency",
+                "AC_Energy_WH_SF",
+                "I_DC_Current",
+                "I_DC_Voltage",
+            ]
+
+            uint16_data = (
+                inverter_data.registers[0:6]
+                + inverter_data.registers[7:13]
+                + [inverter_data.registers[16]]
+                + inverter_data.registers[26:28]
+                + [inverter_data.registers[29]]
             )
 
             self.decoded_model = OrderedDict(
-                [
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-                    ("AC_Current", decoder.decode_16bit_uint()),
-                    ("AC_Current_A", decoder.decode_16bit_uint()),
-                    ("AC_Current_B", decoder.decode_16bit_uint()),
-                    ("AC_Current_C", decoder.decode_16bit_uint()),
-                    ("AC_Current_SF", decoder.decode_16bit_int()),
-                    ("AC_Voltage_AB", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_BC", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_CA", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_AN", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_BN", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_CN", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_SF", decoder.decode_16bit_int()),
-                    ("AC_Power", decoder.decode_16bit_int()),
-                    ("AC_Power_SF", decoder.decode_16bit_int()),
-                    ("AC_Frequency", decoder.decode_16bit_uint()),
-                    ("AC_Frequency_SF", decoder.decode_16bit_int()),
-                    ("AC_VA", decoder.decode_16bit_int()),
-                    ("AC_VA_SF", decoder.decode_16bit_int()),
-                    ("AC_var", decoder.decode_16bit_int()),
-                    ("AC_var_SF", decoder.decode_16bit_int()),
-                    ("AC_PF", decoder.decode_16bit_int()),
-                    ("AC_PF_SF", decoder.decode_16bit_int()),
-                    ("AC_Energy_WH", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_SF", decoder.decode_16bit_uint()),
-                    ("I_DC_Current", decoder.decode_16bit_uint()),
-                    ("I_DC_Current_SF", decoder.decode_16bit_int()),
-                    ("I_DC_Voltage", decoder.decode_16bit_uint()),
-                    ("I_DC_Voltage_SF", decoder.decode_16bit_int()),
-                    ("I_DC_Power", decoder.decode_16bit_int()),
-                    ("I_DC_Power_SF", decoder.decode_16bit_int()),
-                    ("I_Temp_Cab", decoder.decode_16bit_int()),
-                    ("I_Temp_Sink", decoder.decode_16bit_int()),
-                    ("I_Temp_Trns", decoder.decode_16bit_int()),
-                    ("I_Temp_Other", decoder.decode_16bit_int()),
-                    ("I_Temp_SF", decoder.decode_16bit_int()),
-                    ("I_Status", decoder.decode_16bit_int()),
-                    ("I_Status_Vendor", decoder.decode_16bit_int()),
-                ]
+                zip(
+                    uint16_fields,
+                    ModbusClientMixin.convert_from_registers(
+                        uint16_data,
+                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                    ),
+                    strict=True,
+                )
+            )
+
+            int16_fields = [
+                "AC_Current_SF",
+                "AC_Voltage_SF",
+                "AC_Power",
+                "AC_Power_SF",
+                "AC_Frequency_SF",
+                "AC_VA",
+                "AC_VA_SF",
+                "AC_var",
+                "AC_var_SF",
+                "AC_PF",
+                "AC_PF_SF",
+                "I_DC_Current_SF",
+                "I_DC_Voltage_SF",
+                "I_DC_Power",
+                "I_DC_Power_SF",
+                "I_Temp_Cab",
+                "I_Temp_Sink",
+                "I_Temp_Trns",
+                "I_Temp_Other",
+                "I_Temp_SF",
+                "I_Status",
+                "I_Status_Vendor",
+            ]
+
+            int16_data = (
+                [inverter_data.registers[6]]
+                + inverter_data.registers[13:16]
+                + inverter_data.registers[17:24]
+                + [inverter_data.registers[28]]
+                + inverter_data.registers[30:40]
+            )
+
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        int16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            int16_data,
+                            data_type=ModbusClientMixin.DATATYPE.INT16,
+                        ),
+                        strict=True,
+                    )
+                )
+            )
+
+            self.decoded_model.update(
+                OrderedDict(
+                    [
+                        (
+                            "AC_Energy_WH",
+                            ModbusClientMixin.convert_from_registers(
+                                inverter_data.registers[24:26],
+                                data_type=ModbusClientMixin.DATATYPE.UINT32,
+                            ),
+                        ),
+                    ]
+                )
             )
 
             if (
@@ -996,51 +1114,130 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=40123, rcount=mmppt_registers
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers, byteorder=Endian.BIG
-                )
-
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
+
+                    int16_fields = [
+                        "mmppt_DCA_SF",
+                        "mmppt_DCV_SF",
+                        "mmppt_DCW_SF",
+                        "mmppt_DCWH_SF",
+                        "mmppt_TmsPer",
+                    ]
+
+                    int16_data = inverter_data.registers[0:4] + [
+                        inverter_data.registers[7]
+                    ]
+
+                    self.decoded_model.update(
+                        OrderedDict(
+                            zip(
+                                int16_fields,
+                                ModbusClientMixin.convert_from_registers(
+                                    int16_data,
+                                    data_type=ModbusClientMixin.DATATYPE.INT16,
+                                ),
+                                strict=True,
+                            )
+                        )
+                    )
+
                     self.decoded_model.update(
                         OrderedDict(
                             [
-                                ("mmppt_DCA_SF", decoder.decode_16bit_int()),
-                                ("mmppt_DCV_SF", decoder.decode_16bit_int()),
-                                ("mmppt_DCW_SF", decoder.decode_16bit_int()),
-                                ("mmppt_DCWH_SF", decoder.decode_16bit_int()),
-                                ("mmppt_Events", decoder.decode_32bit_uint()),
-                                ("ignore", decoder.skip_bytes(2)),
-                                ("mmppt_TmsPer", decoder.decode_16bit_uint()),
+                                (
+                                    "mmppt_Events",
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[4:6],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    ),
+                                ),
                             ]
                         )
                     )
 
                     for mmppt_unit_id in mmppt_unit_ids:
+                        unit_offset = mmppt_unit_id * 20
+
                         mmppt_unit_data = OrderedDict(
                             [
-                                ("ID", decoder.decode_16bit_uint()),
                                 (
-                                    "IDStr",
-                                    parse_modbus_string(decoder.decode_string(16)),
+                                    "IDStr",  # string(16)
+                                    int_list_to_string(
+                                        ModbusClientMixin.convert_from_registers(
+                                            inverter_data.registers[
+                                                9 + unit_offset : 17 + unit_offset
+                                            ],
+                                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                        )
+                                    ),
                                 ),
-                                ("DCA", decoder.decode_16bit_uint()),
-                                ("DCV", decoder.decode_16bit_uint()),
-                                ("DCW", decoder.decode_16bit_uint()),
-                                ("DCWH", decoder.decode_32bit_uint()),
-                                ("Tms", decoder.decode_32bit_uint()),
-                                ("Tmp", decoder.decode_16bit_int()),
-                                ("DCSt", decoder.decode_16bit_uint()),
-                                ("DCEvt", decoder.decode_32bit_uint()),
+                                (
+                                    "Tmp",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[24 + unit_offset]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    ),
+                                ),
                             ]
                         )
+
+                        uint16_fields = [
+                            "ID",
+                            "DCA",
+                            "DCV",
+                            "DCW",
+                            "DCSt",
+                        ]
+                        uint16_data = (
+                            [inverter_data.registers[8 + unit_offset]]
+                            + [inverter_data.registers[17 + unit_offset]]
+                            + [inverter_data.registers[18 + unit_offset]]
+                            + [inverter_data.registers[19 + unit_offset]]
+                            + [inverter_data.registers[25 + unit_offset]]
+                        )
+                        mmppt_unit_data.update(
+                            OrderedDict(
+                                zip(
+                                    uint16_fields,
+                                    ModbusClientMixin.convert_from_registers(
+                                        uint16_data,
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    ),
+                                    strict=True,
+                                )
+                            )
+                        )
+
+                        uint32_fields = [
+                            "DCWH",
+                            "Tms",
+                            "DCEvt",
+                        ]
+                        uint32_data = (
+                            inverter_data.registers[20 + unit_offset : 22 + unit_offset]
+                            + inverter_data.registers[
+                                22 + unit_offset : 24 + unit_offset
+                            ]
+                            + inverter_data.registers[
+                                26 + unit_offset : 28 + unit_offset
+                            ]
+                        )
+                        mmppt_unit_data.update(
+                            OrderedDict(
+                                zip(
+                                    uint32_fields,
+                                    ModbusClientMixin.convert_from_registers(
+                                        uint32_data,
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    ),
+                                    strict=True,
+                                )
+                            )
+                        )
+
                         self.decoded_model.update(
                             OrderedDict([(f"mmppt_{mmppt_unit_id}", mmppt_unit_data)])
                         )
-
-                try:
-                    del self.decoded_model["ignore"]
-                except KeyError:
-                    pass
 
             except ModbusIOError:
                 raise ModbusReadError(
@@ -1056,21 +1253,37 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=61440, rcount=4
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("I_RRCR", decoder.decode_16bit_uint()),
-                            ("I_Power_Limit", decoder.decode_16bit_uint()),
-                            ("I_CosPhi", decoder.decode_32bit_float()),
+                            (
+                                "I_RRCR",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[0]],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "I_Power_Limit",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[1]],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "I_CosPhi",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[2:4],
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
+
                 self.global_power_control = True
 
             except ModbusIllegalAddress:
@@ -1094,59 +1307,114 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=61696, rcount=86
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
+                int32_fields = [
+                    "PwrFrqDeratingConfig",
+                    "ReactivePwrConfig",
+                    "ActivePwrGrad",
+                    "AdvPwrCtrlEn",
+                    "FrtEn",
+                ]
+                int32_data = (
+                    inverter_data.registers[2:6]
+                    + inverter_data.registers[8:10]
+                    + inverter_data.registers[66:70]
+                )
+                self.decoded_model.update(
+                    OrderedDict(
+                        zip(
+                            int32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                int32_data,
+                                data_type=ModbusClientMixin.DATATYPE.INT32,
+                                word_order="little",
+                            ),
+                            strict=True,
+                        )
+                    )
+                )
+
+                float32_fields = [
+                    "FixedCosPhiPhase",
+                    "FixedReactPwr",
+                    "ReactCosPhiVsPX_0",
+                    "ReactCosPhiVsPX_1",
+                    "ReactCosPhiVsPX_2",
+                    "ReactCosPhiVsPX_3",
+                    "ReactCosPhiVsPX_4",
+                    "ReactCosPhiVsPX_5",
+                    "ReactCosPhiVsPY_0",
+                    "ReactCosPhiVsPY_1",
+                    "ReactCosPhiVsPY_2",
+                    "ReactCosPhiVsPY_3",
+                    "ReactCosPhiVsPY_4",
+                    "ReactCosPhiVsPY_5",
+                    "ReactQVsVgX_0",
+                    "ReactQVsVgX_1",
+                    "ReactQVsVgX_2",
+                    "ReactQVsVgX_3",
+                    "ReactQVsVgX_4",
+                    "ReactQVsVgX_5",
+                    "ReactQVsVgY_0",
+                    "ReactQVsVgY_1",
+                    "ReactQVsVgY_2",
+                    "ReactQVsVgY_3",
+                    "ReactQVsVgY_4",
+                    "ReactQVsVgY_5",
+                    "FRT_KFactor",
+                    "PowerReduce",
+                    "MaxWakeupFreq",
+                    "MinWakeupFreq",
+                    "MaxWakeupVg",
+                    "MinWakeupVg",
+                    "Vnom",
+                    "Inom",
+                    "PwrVsFreqX_0",
+                    "PwrVsFreqX_1",
+                ]
+                float32_data = (
+                    inverter_data.registers[10:66] + inverter_data.registers[70:86]
+                )
+                self.decoded_model.update(
+                    OrderedDict(
+                        zip(
+                            float32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                float32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
+                            ),
+                            strict=True,
+                        )
+                    )
                 )
 
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("CommitPwrCtlSettings", decoder.decode_16bit_int()),
-                            ("RestorePwrCtlDefaults", decoder.decode_16bit_int()),
-                            ("PwrFrqDeratingConfig", decoder.decode_32bit_int()),
-                            ("ReactivePwrConfig", decoder.decode_32bit_int()),
-                            ("ReactPwrIterTime", decoder.decode_32bit_uint()),
-                            ("ActivePwrGrad", decoder.decode_32bit_int()),
-                            ("FixedCosPhiPhase", decoder.decode_32bit_float()),
-                            ("FixedReactPwr", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_0", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_1", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_2", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_3", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_4", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPX_5", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_0", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_1", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_2", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_3", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_4", decoder.decode_32bit_float()),
-                            ("ReactCosPhiVsPY_5", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_0", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_1", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_2", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_3", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_4", decoder.decode_32bit_float()),
-                            ("ReactQVsVgX_5", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_0", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_1", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_2", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_3", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_4", decoder.decode_32bit_float()),
-                            ("ReactQVsVgY_5", decoder.decode_32bit_float()),
-                            ("FRT_KFactor", decoder.decode_32bit_float()),
-                            ("PowerReduce", decoder.decode_32bit_float()),
-                            ("AdvPwrCtrlEn", decoder.decode_32bit_int()),
-                            ("FrtEn", decoder.decode_32bit_int()),
-                            ("MaxWakeupFreq", decoder.decode_32bit_float()),
-                            ("MinWakeupFreq", decoder.decode_32bit_float()),
-                            ("MaxWakeupVg", decoder.decode_32bit_float()),
-                            ("MinWakeupVg", decoder.decode_32bit_float()),
-                            ("Vnom", decoder.decode_32bit_float()),
-                            ("Inom", decoder.decode_32bit_float()),
-                            ("PwrVsFreqX_0", decoder.decode_32bit_float()),
-                            ("PwrVsFreqX_1", decoder.decode_32bit_float()),
+                            (
+                                "CommitPwrCtlSettings",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[0]],
+                                    data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "RestorePwrCtlDefaults",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[1]],
+                                    data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "ReactPwrIterTime",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[6:8],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
@@ -1155,70 +1423,85 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=61782, rcount=84
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
+                float32_fields = [
+                    "PwrVsFreqY_0",
+                    "PwrVsFreqY_1",
+                    "ResetFreq",
+                    "MaxFreq",
+                    "ReactQVsPX_0",
+                    "ReactQVsPX_1",
+                    "ReactQVsPX_2",
+                    "ReactQVsPX_3",
+                    "ReactQVsPX_4",
+                    "ReactQVsPX_5",
+                    "ReactQVsPY_0",
+                    "ReactQVsPY_1",
+                    "ReactQVsPY_2",
+                    "ReactQVsPY_3",
+                    "ReactQVsPY_4",
+                    "ReactQVsPY_5",
+                    "ReactCosPhiVsPVgLockInMax",
+                    "ReactCosPhiVsPVgLockInMin",
+                    "ReactCosPhiVsPVgLockOutMax",
+                    "ReactCosPhiVsPVgLockOutMin",
+                    "ReactQVsVgPLockInMax",
+                    "ReactQVsVgPLockInMin",
+                    "ReactQVsVgPLockOutMax",
+                    "ReactQVsVgPLockOutMin",
+                    "MaxCurrent",
+                    "PwrVsVgX_0",
+                    "PwrVsVgX_1",
+                    "PwrVsVgX_2",
+                    "PwrVsVgX_3",
+                    "PwrVsVgX_4",
+                    "PwrVsVgX_5",
+                    "PwrVsVgY_0",
+                    "PwrVsVgY_1",
+                    "PwrVsVgY_2",
+                    "PwrVsVgY_3",
+                    "PwrVsVgY_4",
+                    "PwrVsVgY_5",
+                    "DisconnectAtZeroPwrLim",
+                ]
+                float32_data = (
+                    inverter_data.registers[0:32]
+                    + inverter_data.registers[36:52]
+                    + inverter_data.registers[56:84]
                 )
-
                 self.decoded_model.update(
                     OrderedDict(
-                        [
-                            ("PwrVsFreqY_0", decoder.decode_32bit_float()),
-                            ("PwrVsFreqY_1", decoder.decode_32bit_float()),
-                            ("ResetFreq", decoder.decode_32bit_float()),
-                            ("MaxFreq", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_0", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_1", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_2", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_3", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_4", decoder.decode_32bit_float()),
-                            ("ReactQVsPX_5", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_0", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_1", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_2", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_3", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_4", decoder.decode_32bit_float()),
-                            ("ReactQVsPY_5", decoder.decode_32bit_float()),
-                            ("PwrFrqDeratingResetTime", decoder.decode_32bit_uint()),
-                            ("PwrFrqDeratingGradTime", decoder.decode_32bit_uint()),
-                            (
-                                "ReactCosPhiVsPVgLockInMax",
-                                decoder.decode_32bit_float(),
+                        zip(
+                            float32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                float32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
                             ),
-                            (
-                                "ReactCosPhiVsPVgLockInMin",
-                                decoder.decode_32bit_float(),
+                            strict=True,
+                        )
+                    )
+                )
+
+                uint32_fields = [
+                    "PwrFrqDeratingResetTime",
+                    "PwrFrqDeratingGradTime",
+                    "ReactQVsVgType",
+                    "PwrSoftStartTime",
+                ]
+                uint32_data = (
+                    inverter_data.registers[32:36] + inverter_data.registers[52:56]
+                )
+                self.decoded_model.update(
+                    OrderedDict(
+                        zip(
+                            uint32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                uint32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
                             ),
-                            (
-                                "ReactCosPhiVsPVgLockOutMax",
-                                decoder.decode_32bit_float(),
-                            ),
-                            (
-                                "ReactCosPhiVsPVgLockOutMin",
-                                decoder.decode_32bit_float(),
-                            ),
-                            ("ReactQVsVgPLockInMax", decoder.decode_32bit_float()),
-                            ("ReactQVsVgPLockInMin", decoder.decode_32bit_float()),
-                            ("ReactQVsVgPLockOutMax", decoder.decode_32bit_float()),
-                            ("ReactQVsVgPLockOutMin", decoder.decode_32bit_float()),
-                            ("ReactQVsVgType", decoder.decode_32bit_uint()),
-                            ("PwrSoftStartTime", decoder.decode_32bit_uint()),
-                            ("MaxCurrent", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_0", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_1", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_2", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_3", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_4", decoder.decode_32bit_float()),
-                            ("PwrVsVgX_5", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_0", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_1", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_2", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_3", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_4", decoder.decode_32bit_float()),
-                            ("PwrVsVgY_5", decoder.decode_32bit_float()),
-                            ("DisconnectAtZeroPwrLim", decoder.decode_32bit_float()),
-                        ]
+                            strict=True,
+                        )
                     )
                 )
 
@@ -1249,18 +1532,33 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=57344, rcount=4
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("E_Lim_Ctl_Mode", decoder.decode_16bit_uint()),
-                            ("E_Lim_Ctl", decoder.decode_16bit_uint()),
-                            ("E_Site_Limit", decoder.decode_32bit_float()),
+                            (
+                                "E_Lim_Ctl_Mode",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[0]],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "E_Lim_Ctl",
+                                ModbusClientMixin.convert_from_registers(
+                                    [inverter_data.registers[1]],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                    word_order="little",
+                                ),
+                            ),
+                            (
+                                "E_Site_Limit",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[2:4],
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
@@ -1284,16 +1582,17 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=57362, rcount=2
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("Ext_Prod_Max", decoder.decode_32bit_float()),
+                            (
+                                "Ext_Prod_Max",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[0:2],
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
@@ -1318,16 +1617,17 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=40113, rcount=2
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
-                )
-
                 self.decoded_model.update(
                     OrderedDict(
                         [
-                            ("I_Grid_Status", decoder.decode_32bit_uint()),
+                            (
+                                "I_Grid_Status",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[0:2],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    word_order="little",
+                                ),
+                            ),
                         ]
                     )
                 )
@@ -1385,24 +1685,65 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=57348, rcount=14
                 )
 
-                decoder = BinaryPayloadDecoder.fromRegisters(
-                    inverter_data.registers,
-                    byteorder=Endian.BIG,
-                    wordorder=Endian.LITTLE,
+                uint16_fields = [
+                    "control_mode",
+                    "ac_charge_policy",
+                    "default_mode",
+                    "command_mode",
+                ]
+                uint16_data = (
+                    inverter_data.registers[0:2]
+                    + [inverter_data.registers[6]]
+                    + [inverter_data.registers[9]]
+                )
+                self.decoded_storage_control = OrderedDict(
+                    zip(
+                        uint16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint16_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                            word_order="little",
+                        ),
+                        strict=True,
+                    )
                 )
 
-                self.decoded_storage_control = OrderedDict(
-                    [
-                        ("control_mode", decoder.decode_16bit_uint()),
-                        ("ac_charge_policy", decoder.decode_16bit_uint()),
-                        ("ac_charge_limit", decoder.decode_32bit_float()),
-                        ("backup_reserve", decoder.decode_32bit_float()),
-                        ("default_mode", decoder.decode_16bit_uint()),
-                        ("command_timeout", decoder.decode_32bit_uint()),
-                        ("command_mode", decoder.decode_16bit_uint()),
-                        ("charge_limit", decoder.decode_32bit_float()),
-                        ("discharge_limit", decoder.decode_32bit_float()),
-                    ]
+                float32_fields = [
+                    "ac_charge_limit",
+                    "backup_reserve",
+                    "charge_limit",
+                    "discharge_limit",
+                ]
+                float32_data = (
+                    inverter_data.registers[2:6] + inverter_data.registers[10:14]
+                )
+                self.decoded_storage_control.update(
+                    OrderedDict(
+                        zip(
+                            float32_fields,
+                            ModbusClientMixin.convert_from_registers(
+                                float32_data,
+                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                word_order="little",
+                            ),
+                            strict=True,
+                        )
+                    )
+                )
+
+                self.decoded_storage_control.update(
+                    OrderedDict(
+                        [
+                            (
+                                "command_timeout",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[7:9],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    word_order="little",
+                                ),
+                            ),
+                        ]
+                    )
                 )
 
                 for name, value in iter(self.decoded_storage_control.items()):
@@ -1545,26 +1886,73 @@ class SolarEdgeMeter:
                 _LOGGER.debug(meter_info)
                 raise ModbusReadError(meter_info)
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                meter_info.registers, byteorder=Endian.BIG
-            )
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "C_Device_address",
+            ]
+            uint16_data = meter_info.registers[0:2] + [meter_info.registers[66]]
+
             self.decoded_common = OrderedDict(
-                [
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-                    (
-                        "C_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
+                zip(
+                    uint16_fields,
+                    ModbusClientMixin.convert_from_registers(
+                        uint16_data,
+                        data_type=ModbusClientMixin.DATATYPE.UINT16,
                     ),
-                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
-                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
-                    (
-                        "C_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
-                    ),
-                    ("C_Device_address", decoder.decode_16bit_uint()),
-                ]
+                )
+            )
+
+            self.decoded_common.update(
+                OrderedDict(
+                    [
+                        (
+                            "C_Manufacturer",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    meter_info.registers[2:18],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Model",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    meter_info.registers[18:34],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Option",  # string(16)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    meter_info.registers[34:42],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Version",  # string(16)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    meter_info.registers[42:50],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_SerialNumber",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    meter_info.registers[50:66],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                    ]
+                )
             )
 
             for name, value in iter(self.decoded_common.items()):
@@ -1614,87 +2002,135 @@ class SolarEdgeMeter:
                 rcount=107,
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                meter_data.registers, byteorder=Endian.BIG
-            )
-
             self.decoded_model = OrderedDict(
                 [
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-                    ("AC_Current", decoder.decode_16bit_int()),
-                    ("AC_Current_A", decoder.decode_16bit_int()),
-                    ("AC_Current_B", decoder.decode_16bit_int()),
-                    ("AC_Current_C", decoder.decode_16bit_int()),
-                    ("AC_Current_SF", decoder.decode_16bit_int()),
-                    ("AC_Voltage_LN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_AN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_BN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_CN", decoder.decode_16bit_int()),
-                    ("AC_Voltage_LL", decoder.decode_16bit_int()),
-                    ("AC_Voltage_AB", decoder.decode_16bit_int()),
-                    ("AC_Voltage_BC", decoder.decode_16bit_int()),
-                    ("AC_Voltage_CA", decoder.decode_16bit_int()),
-                    ("AC_Voltage_SF", decoder.decode_16bit_int()),
-                    ("AC_Frequency", decoder.decode_16bit_int()),
-                    ("AC_Frequency_SF", decoder.decode_16bit_int()),
-                    ("AC_Power", decoder.decode_16bit_int()),
-                    ("AC_Power_A", decoder.decode_16bit_int()),
-                    ("AC_Power_B", decoder.decode_16bit_int()),
-                    ("AC_Power_C", decoder.decode_16bit_int()),
-                    ("AC_Power_SF", decoder.decode_16bit_int()),
-                    ("AC_VA", decoder.decode_16bit_int()),
-                    ("AC_VA_A", decoder.decode_16bit_int()),
-                    ("AC_VA_B", decoder.decode_16bit_int()),
-                    ("AC_VA_C", decoder.decode_16bit_int()),
-                    ("AC_VA_SF", decoder.decode_16bit_int()),
-                    ("AC_var", decoder.decode_16bit_int()),
-                    ("AC_var_A", decoder.decode_16bit_int()),
-                    ("AC_var_B", decoder.decode_16bit_int()),
-                    ("AC_var_C", decoder.decode_16bit_int()),
-                    ("AC_var_SF", decoder.decode_16bit_int()),
-                    ("AC_PF", decoder.decode_16bit_int()),
-                    ("AC_PF_A", decoder.decode_16bit_int()),
-                    ("AC_PF_B", decoder.decode_16bit_int()),
-                    ("AC_PF_C", decoder.decode_16bit_int()),
-                    ("AC_PF_SF", decoder.decode_16bit_int()),
-                    ("AC_Energy_WH_Exported", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Exported_A", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Exported_B", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Exported_C", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported_A", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported_B", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_Imported_C", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_SF", decoder.decode_16bit_int()),
-                    ("M_VAh_Exported", decoder.decode_32bit_uint()),
-                    ("M_VAh_Exported_A", decoder.decode_32bit_uint()),
-                    ("M_VAh_Exported_B", decoder.decode_32bit_uint()),
-                    ("M_VAh_Exported_C", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported_A", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported_B", decoder.decode_32bit_uint()),
-                    ("M_VAh_Imported_C", decoder.decode_32bit_uint()),
-                    ("M_VAh_SF", decoder.decode_16bit_int()),
-                    ("M_varh_Import_Q1", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q1_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q1_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q1_C", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Import_Q2_C", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q3_C", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4_A", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4_B", decoder.decode_32bit_uint()),
-                    ("M_varh_Export_Q4_C", decoder.decode_32bit_uint()),
-                    ("M_varh_SF", decoder.decode_16bit_int()),
-                    ("M_Events", decoder.decode_32bit_uint()),
+                    (
+                        "C_SunSpec_DID",
+                        ModbusClientMixin.convert_from_registers(
+                            [meter_data.registers[0]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
+                    (
+                        "C_SunSpec_Length",
+                        ModbusClientMixin.convert_from_registers(
+                            [meter_data.registers[1]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    ),
                 ]
+            )
+
+            int16_fields = [
+                "AC_Current",
+                "AC_Current_A",
+                "AC_Current_B",
+                "AC_Current_C",
+                "AC_Current_SF",
+                "AC_Voltage_LN",
+                "AC_Voltage_AN",
+                "AC_Voltage_BN",
+                "AC_Voltage_CN",
+                "AC_Voltage_LL",
+                "AC_Voltage_AB",
+                "AC_Voltage_BC",
+                "AC_Voltage_CA",
+                "AC_Voltage_SF",
+                "AC_Frequency",
+                "AC_Frequency_SF",
+                "AC_Power",
+                "AC_Power_A",
+                "AC_Power_B",
+                "AC_Power_C",
+                "AC_Power_SF",
+                "AC_VA",
+                "AC_VA_A",
+                "AC_VA_B",
+                "AC_VA_C",
+                "AC_VA_SF",
+                "AC_var",
+                "AC_var_A",
+                "AC_var_B",
+                "AC_var_C",
+                "AC_var_SF",
+                "AC_PF",
+                "AC_PF_A",
+                "AC_PF_B",
+                "AC_PF_C",
+                "AC_PF_SF",
+                "AC_Energy_WH_SF",
+                "M_VAh_SF",
+                "M_varh_SF",
+            ]
+            int16_data = (
+                meter_data.registers[2:38]
+                + [meter_data.registers[54]]
+                + [meter_data.registers[71]]
+                + [meter_data.registers[104]]
+            )
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        int16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            int16_data,
+                            data_type=ModbusClientMixin.DATATYPE.INT16,
+                        ),
+                    )
+                )
+            )
+
+            uint32_fields = [
+                "AC_Energy_WH_Exported",
+                "AC_Energy_WH_Exported_A",
+                "AC_Energy_WH_Exported_B",
+                "AC_Energy_WH_Exported_C",
+                "AC_Energy_WH_Imported",
+                "AC_Energy_WH_Imported_A",
+                "AC_Energy_WH_Imported_B",
+                "AC_Energy_WH_Imported_C",
+                "M_VAh_Exported",
+                "M_VAh_Exported_A",
+                "M_VAh_Exported_B",
+                "M_VAh_Exported_C",
+                "M_VAh_Imported",
+                "M_VAh_Imported_A",
+                "M_VAh_Imported_B",
+                "M_VAh_Imported_C",
+                "M_varh_Import_Q1",
+                "M_varh_Import_Q1_A",
+                "M_varh_Import_Q1_B",
+                "M_varh_Import_Q1_C",
+                "M_varh_Import_Q2",
+                "M_varh_Import_Q2_A",
+                "M_varh_Import_Q2_B",
+                "M_varh_Import_Q2_C",
+                "M_varh_Export_Q3",
+                "M_varh_Export_Q3_A",
+                "M_varh_Export_Q3_B",
+                "M_varh_Export_Q3_C",
+                "M_varh_Export_Q4",
+                "M_varh_Export_Q4_A",
+                "M_varh_Export_Q4_B",
+                "M_varh_Export_Q4_C",
+                "M_Events",
+            ]
+            uint32_data = (
+                meter_data.registers[38:54]
+                + meter_data.registers[55:70]
+                + meter_data.registers[71:104]
+                + meter_data.registers[105:107]
+            )
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint32_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint32_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
+                        ),
+                    )
+                )
             )
 
         except ModbusIOError:
@@ -1775,33 +2211,66 @@ class SolarEdgeBattery:
                 unit=self.inverter_unit_id, address=self.start_address, rcount=68
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                battery_info.registers,
-                byteorder=Endian.BIG,
-                wordorder=Endian.LITTLE,
-            )
             self.decoded_common = OrderedDict(
                 [
                     (
-                        "B_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        "B_Manufacturer",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[0:16],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
                     ),
-                    ("B_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("B_Version", parse_modbus_string(decoder.decode_string(32))),
                     (
-                        "B_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
+                        "B_Model",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[16:32],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
                     ),
-                    ("B_Device_Address", decoder.decode_16bit_uint()),
-                    ("ignore", decoder.skip_bytes(2)),
-                    ("B_RatedEnergy", decoder.decode_32bit_float()),
+                    (
+                        "B_Version",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[32:48],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
+                    ),
+                    (
+                        "B_SerialNumber",  # string(32)
+                        int_list_to_string(
+                            ModbusClientMixin.convert_from_registers(
+                                battery_info.registers[48:64],
+                                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                word_order="little",
+                            )
+                        ),
+                    ),
+                    (
+                        "B_Device_Address",
+                        ModbusClientMixin.convert_from_registers(
+                            [battery_info.registers[64]],
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                            word_order="little",
+                        ),
+                    ),
+                    (
+                        "B_RatedEnergy",
+                        ModbusClientMixin.convert_from_registers(
+                            battery_info.registers[66:68],
+                            data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                            word_order="little",
+                        ),
+                    ),
                 ]
             )
-
-            try:
-                del self.decoded_common["ignore"]
-            except KeyError:
-                pass
 
             for name, value in iter(self.decoded_common.items()):
                 if isinstance(value, float):
@@ -1870,55 +2339,101 @@ class SolarEdgeBattery:
                 rcount=86,
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                battery_data.registers,
-                byteorder=Endian.BIG,
-                wordorder=Endian.LITTLE,
+            float32_fields = [
+                "B_MaxChargePower",
+                "B_MaxDischargePower",
+                "B_MaxChargePeakPower",
+                "B_MaxDischargePeakPower",
+                "B_Temp_Average",
+                "B_Temp_Max",
+                "B_DC_Voltage",
+                "B_DC_Current",
+                "B_DC_Power",
+                "B_Energy_Max",
+                "B_Energy_Available",
+                "B_SOH",
+                "B_SOE",
+            ]
+            float32_data = (
+                battery_data.registers[0:8]
+                + battery_data.registers[40:50]
+                + battery_data.registers[58:66]
             )
-
             self.decoded_model = OrderedDict(
-                [
-                    ("B_MaxChargePower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePower", decoder.decode_32bit_float()),
-                    ("B_MaxChargePeakPower", decoder.decode_32bit_float()),
-                    ("B_MaxDischargePeakPower", decoder.decode_32bit_float()),
-                    ("ignore", decoder.skip_bytes(64)),
-                    ("B_Temp_Average", decoder.decode_32bit_float()),
-                    ("B_Temp_Max", decoder.decode_32bit_float()),
-                    ("B_DC_Voltage", decoder.decode_32bit_float()),
-                    ("B_DC_Current", decoder.decode_32bit_float()),
-                    ("B_DC_Power", decoder.decode_32bit_float()),
-                    ("B_Export_Energy_WH", decoder.decode_64bit_uint()),
-                    ("B_Import_Energy_WH", decoder.decode_64bit_uint()),
-                    ("B_Energy_Max", decoder.decode_32bit_float()),
-                    ("B_Energy_Available", decoder.decode_32bit_float()),
-                    ("B_SOH", decoder.decode_32bit_float()),
-                    ("B_SOE", decoder.decode_32bit_float()),
-                    ("B_Status", decoder.decode_32bit_uint()),
-                    ("B_Status_Vendor", decoder.decode_32bit_uint()),
-                    ("B_Event_Log1", decoder.decode_16bit_uint()),
-                    ("B_Event_Log2", decoder.decode_16bit_uint()),
-                    ("B_Event_Log3", decoder.decode_16bit_uint()),
-                    ("B_Event_Log4", decoder.decode_16bit_uint()),
-                    ("B_Event_Log5", decoder.decode_16bit_uint()),
-                    ("B_Event_Log6", decoder.decode_16bit_uint()),
-                    ("B_Event_Log7", decoder.decode_16bit_uint()),
-                    ("B_Event_Log8", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor1", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor2", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor3", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor4", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor5", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor6", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor7", decoder.decode_16bit_uint()),
-                    ("B_Event_Log_Vendor8", decoder.decode_16bit_uint()),
-                ]
+                zip(
+                    float32_fields,
+                    ModbusClientMixin.convert_from_registers(
+                        float32_data,
+                        data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                        word_order="little",
+                    ),
+                )
             )
 
-            try:
-                del self.decoded_model["ignore"]
-            except KeyError:
-                pass
+            uint64_fields = [
+                "B_Export_Energy_WH",
+                "B_Import_Energy_WH",
+            ]
+            uint64_data = battery_data.registers[50:58]
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint64_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint64_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT64,
+                            word_order="little",
+                        ),
+                    )
+                )
+            )
+
+            uint32_fields = ["B_Status", "B_Status_Vendor"]
+            uint32_data = battery_data.registers[66:70]
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint32_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint32_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
+                            word_order="little",
+                        ),
+                    )
+                )
+            )
+
+            uint16_fields = [
+                "B_Event_Log1",
+                "B_Event_Log2",
+                "B_Event_Log3",
+                "B_Event_Log4",
+                "B_Event_Log5",
+                "B_Event_Log6",
+                "B_Event_Log7",
+                "B_Event_Log8",
+                "B_Event_Log_Vendor1",
+                "B_Event_Log_Vendor2",
+                "B_Event_Log_Vendor3",
+                "B_Event_Log_Vendor4",
+                "B_Event_Log_Vendor5",
+                "B_Event_Log_Vendor6",
+                "B_Event_Log_Vendor7",
+                "B_Event_Log_Vendor8",
+            ]
+            uint16_data = battery_data.registers[70:86]
+            self.decoded_model.update(
+                OrderedDict(
+                    zip(
+                        uint16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint16_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                            word_order="little",
+                        ),
+                    )
+                )
+            )
 
         except ModbusIOError:
             raise ModbusReadError(
