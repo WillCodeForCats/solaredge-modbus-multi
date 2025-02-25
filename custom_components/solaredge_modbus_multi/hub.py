@@ -780,14 +780,6 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40000, rcount=69
             )
 
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "C_Device_address",
-            ]
-
-            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
-
             self.decoded_common = OrderedDict(
                 [
                     (
@@ -800,6 +792,12 @@ class SolarEdgeInverter:
                 ]
             )
 
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "C_Device_address",
+            ]
+            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
             self.decoded_common.update(
                 OrderedDict(
                     zip(
@@ -1007,7 +1005,6 @@ class SolarEdgeInverter:
                 "I_DC_Current",
                 "I_DC_Voltage",
             ]
-
             uint16_data = (
                 inverter_data.registers[0:6]
                 + inverter_data.registers[7:13]
@@ -1015,7 +1012,6 @@ class SolarEdgeInverter:
                 + inverter_data.registers[26:28]
                 + [inverter_data.registers[29]]
             )
-
             self.decoded_model = OrderedDict(
                 zip(
                     uint16_fields,
@@ -1051,7 +1047,6 @@ class SolarEdgeInverter:
                 "I_Status",
                 "I_Status_Vendor",
             ]
-
             int16_data = (
                 [inverter_data.registers[6]]
                 + inverter_data.registers[13:16]
@@ -1059,7 +1054,6 @@ class SolarEdgeInverter:
                 + [inverter_data.registers[28]]
                 + inverter_data.registers[30:40]
             )
-
             self.decoded_model.update(
                 OrderedDict(
                     zip(
@@ -1129,11 +1123,9 @@ class SolarEdgeInverter:
                         "mmppt_DCWH_SF",
                         "mmppt_TmsPer",
                     ]
-
                     int16_data = inverter_data.registers[0:4] + [
                         inverter_data.registers[7]
                     ]
-
                     self.decoded_model.update(
                         OrderedDict(
                             zip(
