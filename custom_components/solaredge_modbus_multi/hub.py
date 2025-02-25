@@ -780,7 +780,6 @@ class SolarEdgeInverter:
                 unit=self.inverter_unit_id, address=40000, rcount=69
             )
 
-
             self.decoded_common = OrderedDict(
                 [
                     (
