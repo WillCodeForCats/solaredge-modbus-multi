@@ -44,7 +44,7 @@
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
-          "advanced_power_control": "Erweiterte Leistungssteuerung",
+          "advanced_power_control": "Optionen zur Leistungssteuerung",
           "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
         }
       },

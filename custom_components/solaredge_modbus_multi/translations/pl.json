@@ -44,7 +44,7 @@
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
-          "advanced_power_control": "Zaawansowana kontrola mocy",
+          "advanced_power_control": "Opcje kontroli mocy",
           "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
         }
       },
