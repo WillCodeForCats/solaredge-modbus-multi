@@ -44,7 +44,7 @@
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
           "detect_extras": "Automatische detectie van aanvullende entiteiten",
-          "advanced_power_control": "Geavanceerde stroomregeling",
+          "advanced_power_control": "Opties voor vermogensregeling",
           "sleep_after_write": "Omvormer commando vertraging (seconden)"
         }
       },
