@@ -19,6 +19,7 @@ from .const import (
     BATTERY_REG_BASE,
     DOMAIN,
     METER_REG_BASE,
+    PYMODBUS_REQUIRED_VERSION,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -201,6 +202,18 @@ class SolarEdgeModbusMultiHub:
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
+
+        pymodbus_version_tuple = tuple(map(int, self.pymodbus_version.split(".")))
+        required_version_tuple = tuple(
+            map(int, self.pymodbus_required_version.split("."))
+        )
+
+        if pymodbus_version_tuple < required_version_tuple:
+            raise HubInitFailed(
+                f"pymodbus version must be at least {self.pymodbus_required_version}, "
+                f"but {self.pymodbus_version} is installed. Please remove other custom "
+                "integrations that depend on an older version of pymodbus."
+            )
 
         if not self.is_connected:
             ir.async_create_issue(
@@ -722,6 +735,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def sleep_after_write(self) -> int:
         return self._sleep_after_write
+
+    @property
+    def pymodbus_required_version(self) -> str:
+        return PYMODBUS_REQUIRED_VERSION
 
     @property
     def pymodbus_version(self) -> str:
