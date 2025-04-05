@@ -212,7 +212,7 @@ class SolarEdgeModbusMultiHub:
             raise HubInitFailed(
                 f"pymodbus version must be at least {self.pymodbus_required_version}, "
                 f"but {self.pymodbus_version} is installed. Please remove other custom "
-                "integrations that depend on an older version of pymodbus."
+                "integrations that depend on an older version of pymodbus and restart."
             )
 
         if not self.is_connected:
