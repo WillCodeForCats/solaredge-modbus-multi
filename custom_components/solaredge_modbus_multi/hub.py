@@ -203,9 +203,9 @@ class SolarEdgeModbusMultiHub:
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
 
-        pymodbus_version_tuple = tuple(map(int, self.pymodbus_version.split(".")))
-        required_version_tuple = tuple(
-            map(int, self.pymodbus_required_version.split("."))
+        pymodbus_version_tuple = self._safe_version_tuple(self.pymodbus_version)
+        required_version_tuple = self._safe_version_tuple(
+            self.pymodbus_required_version
         )
 
         if pymodbus_version_tuple < required_version_tuple:
