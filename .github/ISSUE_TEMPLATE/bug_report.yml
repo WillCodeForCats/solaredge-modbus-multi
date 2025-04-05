@@ -33,7 +33,7 @@ body:
     id: diagnostic-file
     attributes:
       label: Diagnostic File
-      description: REQUIRED. Drag and drop to attach your diagnostic file. The diagnostic file is a snapshot. Make sure it's taken at the exact time the issue is happening. Diagnostic file is not required when reporting an issue that prevents the integration from starting.
+      description: REQUIRED. Drag and drop to attach your diagnostic file. The diagnostic file is a snapshot. Make sure it's taken at the exact time the issue is happening. Diagnostic file is not required when reporting an issue that prevents the integration from starting. https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Integration-Diagnostics
     validations:
       required: true
   - type: textarea
