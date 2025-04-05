@@ -641,6 +641,15 @@ class SolarEdgeModbusMultiHub:
                 self.disconnect()
                 raise ModbusWriteError(result)
 
+    @staticmethod
+    def _safe_version_tuple(version_str: str) -> tuple[int, ...]:
+        try:
+            version_parts = version_str.split(".")
+            version_tuple = tuple(int(part) for part in version_parts)
+            return version_tuple
+        except ValueError:
+            raise ValueError(f"Invalid version string: {version_str}")
+
     @property
     def online(self):
         return self._online
