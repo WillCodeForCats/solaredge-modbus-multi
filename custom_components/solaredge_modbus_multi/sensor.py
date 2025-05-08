@@ -2242,6 +2242,10 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
 
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        self._log_warning = True
+
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_avail_energy"
@@ -2263,11 +2267,14 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             self._platform.decoded_common["B_RatedEnergy"]
             * self._platform.battery_rating_adjust
         ):
-            _LOGGER.warning(
-                f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
-                "Battery available energy exceeds rated energy. "
-                "Set configuration for Battery Rating Adjustment when necessary."
-            )
+            if self._log_warning:
+                _LOGGER.warning(
+                    f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
+                    "Battery available energy exceeds rated energy. "
+                    "Set configuration for Battery Rating Adjustment when necessary."
+                )
+                self._log_warning = False
+
             return None
 
         else:
