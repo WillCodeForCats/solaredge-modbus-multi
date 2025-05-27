@@ -531,30 +531,31 @@ class SolarEdgeModbusMultiHub:
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(f"Unit {unit} Read IllegalAddress: {result}")
+                    _LOGGER.debug(f"I{unit} Read IllegalAddress: {result}")
                     raise ModbusIllegalAddress(result)
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(f"Unit {unit} Read IllegalFunction: {result}")
+                    _LOGGER.debug(f"I{unit} Read IllegalFunction: {result}")
                     raise ModbusIllegalFunction(result)
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"Unit {unit} Read IllegalValue: {result}")
+                    _LOGGER.debug(f"I{unit} Read IllegalValue: {result}")
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
 
         _LOGGER.debug(
-            f"Registers received requested : {len(result.registers)} {self._rr_count}"
+            f"I{self._rr_unit}: Registers received requested : "
+            f"{len(result.registers)} {self._rr_count}"
         )
 
         if len(result.registers) != rcount:
             _LOGGER.error(
-                "Registers received != requested : "
+                "I{self._rr_unit}: Registers received != requested : "
                 f"{len(result.registers)} != {self._rr_count}"
             )
             raise ModbusReadError(
-                f"Registers received != requested on inverter ID {self._rr_count}"
+                f"I{self._rr_unit}: Registers received != requested from inverter."
             )
 
         return result
