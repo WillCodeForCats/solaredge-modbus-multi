@@ -92,7 +92,7 @@ async def async_setup_entry(
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
 
         """ Power Control Block """
-        if hub.option_detect_extras and inverter.advanced_power_control:
+        if hub.option_detect_extras:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
@@ -1344,12 +1344,6 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
         return attrs
 
 
-class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
-    @property
-    def available(self) -> bool:
-        return super().available and self._platform.global_power_control
-
-
 class StatusVendor(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
 
@@ -1388,6 +1382,12 @@ class StatusVendor(SolarEdgeSensorBase):
 
         except KeyError:
             return None
+
+
+class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.global_power_control
 
 
 class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
@@ -2336,7 +2336,13 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return self._platform.decoded_model["B_SOE"]
 
 
-class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
+class SolarEdgeAdvancedPowerControlBlock(SolarEdgeSensorBase):
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.advanced_power_control
+
+
+class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Commit Power Control Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
@@ -2375,7 +2381,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
         return attrs
 
 
-class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
+class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Restore Power Control Default Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
