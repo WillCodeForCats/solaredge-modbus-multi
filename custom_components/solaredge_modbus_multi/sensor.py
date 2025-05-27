@@ -2357,6 +2357,12 @@ class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
         return "Commit Power Settings"
 
     @property
+    def available(self) -> bool:
+        return (
+            super().available and "CommitPwrCtlSettings" in self._platform.decoded_model
+        )
+
+    @property
     def native_value(self):
         return self._platform.decoded_model["CommitPwrCtlSettings"]
 
@@ -2394,6 +2400,13 @@ class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
     @property
     def name(self) -> str:
         return "Default Power Settings"
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "RestorePwrCtlDefaults" in self._platform.decoded_model
+        )
 
     @property
     def native_value(self):
