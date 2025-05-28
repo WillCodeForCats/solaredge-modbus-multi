@@ -7,23 +7,31 @@
           "name": "Sensorvoorvoegsel",
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",
-          "device_id": "Inverter Modbus-adresse (enhets-ID)",
-          "number_of_inverters": "Antall omformere koblet sammen"
+          "device_list": "Inverter-enhetsliste"
+        }
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-konfigurasjon",
+        "data": {
+          "host": "IP-adres van omvormer",
+          "port": "Modbus/TCP-poort",
+          "device_list": "Inverter-enhetsliste"
         }
       }
     },
     "error": {
       "already_configured": "Enheten er allerede konfigurert",
-      "max_device_id": "Enhets-ID må være mellom 1 og 247.",
-      "min_device_id": "Enhets-ID må være mellom 1 og 247.",
-      "max_inverters": "Må være mellom 1 og 32 omformere.",
-      "min_inverters": "Må være mellom 1 og 32 omformere.",
-      "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+      "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
+      "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",
       "invalid_host": "Ugyldig IP-adresse.",
-      "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
+      "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
+      "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
+      "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
+      "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi."
     },
     "abort": {
-      "already_configured": "Enheten er allerede konfigurert"
+      "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
+      "reconfigure_successful": "Omkonfigureringen var vellykket"
     }
   },
   "options": {
@@ -36,7 +44,7 @@
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
           "detect_extras": "Automatisk oppdage flere enheter",
-          "advanced_power_control": "Avansert strømkontroll",
+          "advanced_power_control": "Strømkontrollalternativer",
           "sleep_after_write": "Inverter Command Delay (sekunder)"
         }
       },
@@ -46,7 +54,7 @@
           "adv_storage_control": "Aktiver lagringskontroll",
           "adv_site_limit_control": "Aktiver Site Limit Control"
         },
-        "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
+        "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar! Justerbare parametere i Modbus-registre er beregnet for langtidslagring. Periodiske endringer kan skade flashminnet."
       },
       "battery_options": {
         "title": "Batterialternativer",
@@ -80,13 +88,14 @@
           }
         },
         "error": {
-          "max_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "min_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "max_inverters": "Må være mellom 1 og 32 omformere.",
-          "min_inverters": "Må være mellom 1 og 32 omformere.",
-          "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+          "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
+          "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",    
           "invalid_host": "Ugyldig IP-adresse.",
-          "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
+          "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
+          "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
+          "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
+          "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
+          "already_configured": "Vert og port er allerede konfigurert i en annen hub."
         }
       }
     }

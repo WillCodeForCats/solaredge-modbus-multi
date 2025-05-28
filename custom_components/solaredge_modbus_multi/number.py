@@ -15,8 +15,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadBuilder
+from pymodbus.client.mixin import ModbusClientMixin
 
 from .const import DOMAIN, BatteryLimit, SunSpecNotImpl
 from .helpers import float_to_hex
@@ -180,10 +179,13 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
         await self._platform.write_registers(
-            address=57350, payload=builder.to_registers()
+            address=57350,
+            payload=ModbusClientMixin.convert_to_registers(
+                float(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -231,10 +233,13 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
-            address=57352, payload=builder.to_registers()
+            address=57352,
+            payload=ModbusClientMixin.convert_to_registers(
+                int(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -283,10 +288,13 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_uint(int(value))
         await self._platform.write_registers(
-            address=57355, payload=builder.to_registers()
+            address=57355,
+            payload=ModbusClientMixin.convert_to_registers(
+                int(value),
+                data_type=ModbusClientMixin.DATATYPE.UINT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -335,10 +343,13 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
-            address=57358, payload=builder.to_registers()
+            address=57358,
+            payload=ModbusClientMixin.convert_to_registers(
+                int(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -389,10 +400,13 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
-            address=57360, payload=builder.to_registers()
+            address=57360,
+            payload=ModbusClientMixin.convert_to_registers(
+                int(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -437,10 +451,13 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
-            address=57346, payload=builder.to_registers()
+            address=57346,
+            payload=ModbusClientMixin.convert_to_registers(
+                int(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -487,10 +504,13 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(int(value))
         await self._platform.write_registers(
-            address=57362, payload=builder.to_registers()
+            address=57362,
+            payload=ModbusClientMixin.convert_to_registers(
+                int(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -537,10 +557,13 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_16bit_uint(int(value))
         await self._platform.write_registers(
-            address=61441, payload=builder.to_registers()
+            address=61441,
+            payload=ModbusClientMixin.convert_to_registers(
+                int(value),
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -588,10 +611,13 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
         await self._platform.write_registers(
-            address=61442, payload=builder.to_registers()
+            address=61442,
+            payload=ModbusClientMixin.convert_to_registers(
+                float(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -639,10 +665,13 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
         await self._platform.write_registers(
-            address=61760, payload=builder.to_registers()
+            address=61760,
+            payload=ModbusClientMixin.convert_to_registers(
+                float(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()
 
@@ -689,9 +718,12 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
-        builder.add_32bit_float(float(value))
         await self._platform.write_registers(
-            address=61838, payload=builder.to_registers()
+            address=61838,
+            payload=ModbusClientMixin.convert_to_registers(
+                float(value),
+                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                word_order="little",
+            ),
         )
         await self.async_update()

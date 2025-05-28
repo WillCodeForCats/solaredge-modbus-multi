@@ -5,21 +5,16 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Any
 
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_NAME,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-    Platform,
-)
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName, RetrySettings
+from .const import DOMAIN, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,56 +28,46 @@ PLATFORMS: list[str] = [
     Platform.SWITCH,
 ]
 
+# This is probably not allowed per ADR-0010, but I need a way to
+# set advanced config that shouldn't appear in any UI dialogs.
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                "retry": vol.Schema(
+                    {
+                        vol.Optional("time"): vol.Coerce(int),
+                        vol.Optional("ratio"): vol.Coerce(int),
+                        vol.Optional("limit"): vol.Coerce(int),
+                    }
+                ),
+                "modbus": vol.Schema(
+                    {
+                        vol.Optional("timeout"): vol.Coerce(int),
+                        vol.Optional("reconnect_delay"): vol.Coerce(float),
+                        vol.Optional("reconnect_delay_max"): vol.Coerce(float),
+                    }
+                ),
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up SolarEdge Modbus Muti advanced YAML config."""
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
+
+    return True
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
-    entry_updates: dict[str, Any] = {}
-    if CONF_SCAN_INTERVAL in entry.data:
-        data = {**entry.data}
-        entry_updates["data"] = data
-        entry_updates["options"] = {
-            **entry.options,
-            CONF_SCAN_INTERVAL: data.pop(CONF_SCAN_INTERVAL),
-        }
-    if entry_updates:
-        hass.config_entries.async_update_entry(entry, **entry_updates)
-
     solaredge_hub = SolarEdgeModbusMultiHub(
-        hass,
-        entry.entry_id,
-        entry.data[CONF_NAME],
-        entry.data[CONF_HOST],
-        entry.data[CONF_PORT],
-        entry.data.get(ConfName.NUMBER_INVERTERS, ConfDefaultInt.NUMBER_INVERTERS),
-        entry.data.get(ConfName.DEVICE_ID, ConfDefaultInt.DEVICE_ID),
-        entry.options.get(ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)),
-        entry.options.get(
-            ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
-        ),
-        entry.options.get(ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)),
-        entry.options.get(
-            ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
-        ),
-        entry.options.get(
-            ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
-        ),
-        entry.options.get(
-            ConfName.ADV_SITE_LIMIT_CONTROL,
-            bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
-        ),
-        entry.options.get(
-            ConfName.ALLOW_BATTERY_ENERGY_RESET,
-            bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
-        ),
-        entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
-        entry.options.get(
-            ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
-        ),
-        entry.options.get(
-            ConfName.BATTERY_ENERGY_RESET_CYCLES,
-            ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
-        ),
+        hass, entry.entry_id, entry.data, entry.options
     )
 
     coordinator = SolarEdgeCoordinator(
@@ -91,7 +76,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL),
     )
 
-    hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
         "coordinator": coordinator,
@@ -170,6 +154,81 @@ async def async_remove_config_entry_device(
     return True
 
 
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    _LOGGER.debug(
+        "Migrating from config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
+    )
+
+    if config_entry.version > 2:
+        return False
+
+    if config_entry.version == 1:
+        _LOGGER.debug("Migrating from version 1")
+
+        update_data = {**config_entry.data}
+        update_options = {**config_entry.options}
+
+        if CONF_SCAN_INTERVAL in update_data:
+            update_options = {
+                **update_options,
+                CONF_SCAN_INTERVAL: update_data.pop(CONF_SCAN_INTERVAL),
+            }
+
+        start_device_id = update_data.pop(ConfName.DEVICE_ID)
+        number_of_inverters = update_data.pop(ConfName.NUMBER_INVERTERS)
+
+        inverter_list = []
+        for inverter_index in range(number_of_inverters):
+            inverter_unit_id = inverter_index + start_device_id
+            inverter_list.append(inverter_unit_id)
+
+        update_data = {
+            **update_data,
+            ConfName.DEVICE_LIST: inverter_list,
+        }
+
+        hass.config_entries.async_update_entry(
+            config_entry,
+            data=update_data,
+            options=update_options,
+            version=2,
+            minor_version=0,
+        )
+
+    if config_entry.version == 2 and config_entry.minor_version < 1:
+        _LOGGER.debug("Migrating from version 2.0")
+
+        config_entry_data = {**config_entry.data}
+
+        # Use host:port address string as the config entry unique ID.
+        # This is technically not a valid HA unique ID, but with modbus
+        # we can't know anything like a serial number per IP since a
+        # single SE modbus IP could have up to 32 different serial numbers
+        # and the "leader" modbus unit id can't be known programmatically.
+
+        old_unique_id = config_entry.unique_id
+        new_unique_id = f"{config_entry_data[CONF_HOST]}:{config_entry_data[CONF_PORT]}"
+
+        _LOGGER.warning(
+            "Migrating config entry unique ID from %s to %s",
+            old_unique_id,
+            new_unique_id,
+        )
+
+        hass.config_entries.async_update_entry(
+            config_entry, unique_id=new_unique_id, version=2, minor_version=1
+        )
+
+    _LOGGER.warning(
+        "Migrated to config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
+    )
+
+    return True
+
+
 class SolarEdgeCoordinator(DataUpdateCoordinator):
     def __init__(
         self, hass: HomeAssistant, hub: SolarEdgeModbusMultiHub, scan_interval: int
@@ -181,8 +240,9 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
         self._hub = hub
+        self._yaml_config = hass.data[DOMAIN]["yaml"]
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> bool:
         try:
             while self._hub.has_write:
                 _LOGGER.debug(f"Waiting for write {self._hub.has_write}")
@@ -190,9 +250,15 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
-                limit=RetrySettings.Limit,
-                wait_ms=RetrySettings.Time,
-                wait_ratio=RetrySettings.Ratio,
+                limit=self._yaml_config.get("retry", {}).get(
+                    "limit", RetrySettings.Limit
+                ),
+                wait_ms=self._yaml_config.get("retry", {}).get(
+                    "time", RetrySettings.Time
+                ),
+                wait_ratio=self._yaml_config.get("retry", {}).get(
+                    "ratio", RetrySettings.Ratio
+                ),
             )
 
         except HubInitFailed as e:
@@ -204,10 +270,10 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
     async def _refresh_modbus_data_with_retry(
         self,
         ex_type=Exception,
-        limit=0,
-        wait_ms=100,
-        wait_ratio=2,
-    ):
+        limit: int = 0,
+        wait_ms: int = 100,
+        wait_ratio: int = 2,
+    ) -> bool:
         """
         Retry refresh until no exception occurs or retries exhaust
         :param ex_type: retry only if exception is subclass of this type
@@ -219,6 +285,7 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                  or exception is not an instance of ex_type
         Credit: https://gist.github.com/davidohana/c0518ff6a6b95139e905c8a8caef9995
         """
+        _LOGGER.debug(f"Retry limit={limit} time={wait_ms} ratio={wait_ratio}")
         attempt = 1
         while True:
             try:

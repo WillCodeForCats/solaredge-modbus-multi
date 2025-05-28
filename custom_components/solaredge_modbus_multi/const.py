@@ -9,6 +9,9 @@ from typing import Final
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 
+# raise a startup exception if pymodbus version is less than this
+PYMODBUS_REQUIRED_VERSION = "3.8.3"
+
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
@@ -26,6 +29,26 @@ DOMAIN_REGEX = re.compile(
     r")\Z",
     re.IGNORECASE,
 )
+
+
+class ModbusExceptions:
+    """An enumeration of the valid modbus exceptions."""
+
+    """
+        Copied from pymodbus source:
+        https://github.com/pymodbus-dev/pymodbus/blob/a1c14c7a8fbea52618ba1cbc9933c1dd24c3339d/pymodbus/pdu/pdu.py#L72
+    """
+
+    IllegalFunction = 0x01
+    IllegalAddress = 0x02
+    IllegalValue = 0x03
+    SlaveFailure = 0x04
+    Acknowledge = 0x05
+    SlaveBusy = 0x06
+    NegativeAcknowledge = 0x07
+    MemoryParityError = 0x08
+    GatewayPathUnavailable = 0x0A
+    GatewayNoResponse = 0x0B
 
 
 class RetrySettings(IntEnum):
@@ -77,8 +100,6 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 300
     PORT = 1502
-    NUMBER_INVERTERS = 1
-    DEVICE_ID = 1
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
@@ -89,7 +110,7 @@ class ConfDefaultFlag(IntEnum):
 
     DETECT_METERS = 1
     DETECT_BATTERIES = 0
-    DETECT_EXTRAS = 1
+    DETECT_EXTRAS = 0
     KEEP_MODBUS_OPEN = 0
     ADV_PWR_CONTROL = 0
     ADV_STORAGE_CONTROL = 0
@@ -97,9 +118,14 @@ class ConfDefaultFlag(IntEnum):
     ALLOW_BATTERY_ENERGY_RESET = 0
 
 
+class ConfDefaultStr(StrEnum):
+    """Defaults for options that are strings."""
+
+    DEVICE_LIST = "1"
+
+
 class ConfName(StrEnum):
-    NUMBER_INVERTERS = "number_of_inverters"
-    DEVICE_ID = "device_id"
+    DEVICE_LIST = "device_list"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
     DETECT_EXTRAS = "detect_extras"
@@ -111,6 +137,10 @@ class ConfName(StrEnum):
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
+
+    # Old config entry names for migration
+    NUMBER_INVERTERS = "number_of_inverters"
+    DEVICE_ID = "device_id"
 
 
 class SunSpecAccum(IntEnum):
@@ -246,35 +276,35 @@ SUNSPEC_DID = {
 }
 
 METER_EVENTS = {
-    2: "M_EVENT_Power_Failure",
-    3: "M_EVENT_Under_Voltage",
-    4: "M_EVENT_Low_PF",
-    5: "M_EVENT_Over_Current",
-    6: "M_EVENT_Over_Voltage",
-    7: "M_EVENT_Missing_Sensor",
-    8: "M_EVENT_Reserved1",
-    9: "M_EVENT_Reserved2",
-    10: "M_EVENT_Reserved3",
-    11: "M_EVENT_Reserved4",
-    12: "M_EVENT_Reserved5",
-    13: "M_EVENT_Reserved6",
-    14: "M_EVENT_Reserved7",
-    15: "M_EVENT_Reserved8",
-    16: "M_EVENT_OEM1",
-    17: "M_EVENT_OEM2",
-    18: "M_EVENT_OEM3",
-    19: "M_EVENT_OEM4",
-    20: "M_EVENT_OEM5",
-    21: "M_EVENT_OEM6",
-    22: "M_EVENT_OEM7",
-    23: "M_EVENT_OEM8",
-    24: "M_EVENT_OEM9",
-    25: "M_EVENT_OEM10",
-    26: "M_EVENT_OEM11",
-    27: "M_EVENT_OEM12",
-    28: "M_EVENT_OEM13",
-    29: "M_EVENT_OEM14",
-    30: "M_EVENT_OEM15",
+    2: "POWER_FAILURE",
+    3: "UNDER_VOLTAGE",
+    4: "LOW_PF",
+    5: "OVER_CURRENT",
+    6: "OVER_VOLTAGE",
+    7: "MISSING_SENSOR",
+    8: "RESERVED1",
+    9: "RESERVED2",
+    10: "RESERVED3",
+    11: "RESERVED4",
+    12: "RESERVED5",
+    13: "RESERVED6",
+    14: "RESERVED7",
+    15: "RESERVED8",
+    16: "OEM1",
+    17: "OEM2",
+    18: "OEM3",
+    19: "OEM4",
+    20: "OEM5",
+    21: "OEM6",
+    22: "OEM7",
+    23: "OEM8",
+    24: "OEM9",
+    25: "OEM10",
+    26: "OEM11",
+    27: "OEM12",
+    28: "OEM13",
+    29: "OEM14",
+    30: "OEM15",
 }
 
 BATTERY_STATUS = {

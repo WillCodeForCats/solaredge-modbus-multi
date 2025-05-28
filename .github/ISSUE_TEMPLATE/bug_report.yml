@@ -33,14 +33,14 @@ body:
     id: diagnostic-file
     attributes:
       label: Diagnostic File
-      description: Drag and drop to attach your diagnostic file. The diagnostic file is a snapshot. Make sure it's taken at the exact time the issue is happening.
+      description: REQUIRED. Drag and drop to attach your diagnostic file. The diagnostic file is a snapshot. Make sure it's taken at the exact time the issue is happening. Diagnostic file is not required when reporting an issue that prevents the integration from starting. https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Integration-Diagnostics
     validations:
       required: true
   - type: textarea
     id: log-file
     attributes:
       label: Debug logs
-      description: Debug logs are not always necessary, but may be required for more complex issues. You can enable debug logs in Home Assistant. Debug logging will generate a large amount of data. Turn on debug only to observe the isseue then turn off debug during normal operation.
+      description: Optional. Debug logs are not always necessary, but may be required for more complex issues. You can enable debug logs in Home Assistant. Debug logging will generate a large amount of data. Turn on debug only to observe the isseue then turn off debug during normal operation. Debug logs are required when reporting an issue that prevents the integration from starting.
       render: shell
   - type: input
     id: ha-version
@@ -73,11 +73,11 @@ body:
       label: Read the Instructions
       description: Make sure your configuration is correct, your LAN is working, and you have read about "Known Issues" in the wiki. Do not open an issue to ask how to set up or configure the integration.
       options:
-        - label: I have read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki
-          required: true
         - label: My configuration follows https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration
           required: true
-        - label: This issue is not about a template error (template errors should not be reported as an issue, read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Design-Notes)
+        - label: I have read the Known Issues https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Known-Issues
+          required: true
+        - label: This issue is not about a template error (do not report template errors, read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Design-Notes)
           required: true
   - type: textarea
     id: additional-context

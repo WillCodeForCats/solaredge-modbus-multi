@@ -7,23 +7,31 @@
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
-          "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
-          "number_of_inverters": "Anzahl Wechselrichter"
+          "device_list": "Liste der Wechselrichter-Geräte-IDs"
+        }
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-Konfiguration",
+        "data": {
+          "host": "Wechselrichter-IP-Adresse",
+          "port": "Modbus/TCP-Port",
+          "device_list": "Liste der Wechselrichter-Geräte-IDs"
         }
       }
     },
     "error": {
       "already_configured": "Der Wechselrichter ist bereits konfiguriert.",
-      "max_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-      "min_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-      "max_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-      "min_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-      "too_many_inverters": "Anzahl Wechselrichter zu hoch für Geräte-ID.",
+      "invalid_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
+      "invalid_inverter_count": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
       "invalid_host": "Ungültige IP-Adresse.",
-      "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535."
+      "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
+      "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
+      "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
+      "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert."
     },
     "abort": {
-      "already_configured": "Der Wechselrichter ist bereits konfiguriert."
+      "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert.",
+      "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
     }
   },
   "options": {
@@ -36,7 +44,7 @@
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
-          "advanced_power_control": "Erweiterte Leistungssteuerung",
+          "advanced_power_control": "Optionen zur Leistungssteuerung",
           "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
         }
       },
@@ -46,7 +54,7 @@
           "adv_storage_control": "Speichersteuerung aktivieren",
           "adv_site_limit_control": "Site-Limit-Kontrolle aktivieren"
         },
-        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr!"
+        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr! Einstellbare Parameter in Modbus-Registern sind für die Langzeitspeicherung vorgesehen. Regelmäßige Änderungen können den Flash-Speicher beschädigen."
       },
       "battery_options": {
         "title": "Batterieoptionen",
@@ -80,13 +88,14 @@
           }
         },
         "error": {
-          "max_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-          "min_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-          "max_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-          "min_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-          "too_many_inverters": "Anzahl Wechselrichter zu hoch für Geräte-ID.",
+          "invalid_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
+          "invalid_inverter_count": "Muss zwischen 1 und 32 Wechselrichtern liegen.",    
           "invalid_host": "Ungültige IP-Adresse.",
-          "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535."
+          "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
+          "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
+          "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
+          "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
+          "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert."
         }
       }
     }

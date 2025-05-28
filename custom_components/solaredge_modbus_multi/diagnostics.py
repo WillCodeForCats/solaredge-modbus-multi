@@ -12,20 +12,25 @@ from .const import DOMAIN
 from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
-REDACT_INVERTER = {"identifiers", "C_SerialNumber"}
-REDACT_METER = {"identifiers", "C_SerialNumber"}
-REDACT_BATTERY = {"identifiers", "B_SerialNumber"}
+REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
+REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
+REDACT_BATTERY = {"identifiers", "B_SerialNumber", "serial_number", "via_device"}
 
 
 def format_values(format_input) -> Any:
     if isinstance(format_input, dict):
+        formatted_dict = {}
         for name, value in iter(format_input.items()):
-            if isinstance(value, float):
+            if isinstance(value, dict):
+                display_value = format_values(value)
+            elif isinstance(value, float):
                 display_value = float_to_hex(value)
             else:
                 display_value = hex(value) if isinstance(value, int) else value
 
-            format_input[name] = display_value
+            formatted_dict[name] = display_value
+
+        return formatted_dict
 
     return format_input
 
@@ -37,7 +42,9 @@ async def async_get_config_entry_diagnostics(
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
 
     data: dict[str, Any] = {
-        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG)
+        "pymodbus_version": hub.pymodbus_version,
+        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
+        "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
 
     for inverter in hub.inverters:

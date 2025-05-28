@@ -1,6 +1,5 @@
 {
   "name": "SolarEdge Modbus Multi",
   "content_in_root": false,
-  "homeassistant": "2023.12.0",
-  "render_readme": false
+  "homeassistant": "2025.2.0"
 }
