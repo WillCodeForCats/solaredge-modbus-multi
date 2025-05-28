@@ -1322,7 +1322,7 @@ class SolarEdgeInverter:
             except TimeoutError:
                 self.global_power_control = False
                 ir.async_create_issue(
-                    self._hass,
+                    self.hub._hass,
                     DOMAIN,
                     "detect_timeout_gpc",
                     is_fixable=False,
@@ -1562,7 +1562,7 @@ class SolarEdgeInverter:
             except TimeoutError:
                 self.advanced_power_control = False
                 ir.async_create_issue(
-                    self._hass,
+                    self.hub._hass,
                     DOMAIN,
                     "detect_timeout_apc",
                     is_fixable=False,
