@@ -545,8 +545,9 @@ class SolarEdgeModbusMultiHub:
             raise ModbusReadError(result)
 
         _LOGGER.debug(
-            f"I{self._rr_unit}: Registers received requested : "
-            f"{len(result.registers)} {self._rr_count}"
+            f"I{self._rr_unit}: Registers received={len(result.registers)} "
+            f"requested={self._rr_count} address={self._rr_address} "
+            f"result={result}"
         )
 
         if len(result.registers) != rcount:
