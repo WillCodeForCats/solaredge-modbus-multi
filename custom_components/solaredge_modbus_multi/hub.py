@@ -1328,7 +1328,7 @@ class SolarEdgeInverter:
                     is_fixable=False,
                     severity=ir.IssueSeverity.WARNING,
                     translation_key="detect_timeout_gpc",
-                    data={"entry_id": self._entry_id},
+                    data={"entry_id": self.hub._entry_id},
                 )
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: global power control read timeout"
@@ -1568,7 +1568,7 @@ class SolarEdgeInverter:
                     is_fixable=False,
                     severity=ir.IssueSeverity.WARNING,
                     translation_key="detect_timeout_apc",
-                    data={"entry_id": self._entry_id},
+                    data={"entry_id": self.hub._entry_id},
                 )
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: advanced power control read timeout"
