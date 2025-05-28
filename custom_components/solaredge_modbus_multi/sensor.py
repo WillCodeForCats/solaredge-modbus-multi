@@ -1218,6 +1218,10 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
         return "RRCR Status"
 
     @property
+    def available(self) -> bool:
+        return super().available and "I_RRCR" in self._platform.decoded_model
+
+    @property
     def entity_registry_enabled_default(self) -> bool:
         if self._platform.global_power_control is True:
             return True
@@ -1237,9 +1241,6 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
                 return self._platform.decoded_model["I_RRCR"]
 
         except TypeError:
-            return None
-
-        except KeyError:
             return None
 
     @property
@@ -1278,24 +1279,24 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
         return "Active Power Limit"
 
     @property
+    def available(self) -> bool:
+        return super().available and "I_Power_Limit" in self._platform.decoded_model
+
+    @property
     def entity_registry_enabled_default(self) -> bool:
         return self._platform.global_power_control
 
     @property
     def native_value(self) -> int:
-        try:
-            if (
-                self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
-                or self._platform.decoded_model["I_Power_Limit"] > 100
-                or self._platform.decoded_model["I_Power_Limit"] < 0
-            ):
-                return None
-
-            else:
-                return self._platform.decoded_model["I_Power_Limit"]
-
-        except KeyError:
+        if (
+            self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
+            or self._platform.decoded_model["I_Power_Limit"] > 100
+            or self._platform.decoded_model["I_Power_Limit"] < 0
+        ):
             return None
+
+        else:
+            return self._platform.decoded_model["I_Power_Limit"]
 
 
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
@@ -1314,25 +1315,25 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
         return "CosPhi"
 
     @property
+    def available(self) -> bool:
+        return super().available and "I_CosPhi" in self._platform.decoded_model
+
+    @property
     def entity_registry_enabled_default(self) -> bool:
         return self._platform.global_power_control
 
     @property
     def native_value(self) -> float:
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["I_CosPhi"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["I_CosPhi"] > 1.0
-                or self._platform.decoded_model["I_CosPhi"] < -1.0
-            ):
-                return None
-
-            else:
-                return round(self._platform.decoded_model["I_CosPhi"], 1)
-
-        except KeyError:
+        if (
+            float_to_hex(self._platform.decoded_model["I_CosPhi"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["I_CosPhi"] > 1.0
+            or self._platform.decoded_model["I_CosPhi"] < -1.0
+        ):
             return None
+
+        else:
+            return round(self._platform.decoded_model["I_CosPhi"], 1)
 
 
 class MeterEvents(SolarEdgeSensorBase):
