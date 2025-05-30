@@ -1462,6 +1462,7 @@ class SolarEdgeInverter:
                         )
                     )
 
+                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
                     inverter_data = await self.hub.modbus_read_holding_registers(
                         unit=self.inverter_unit_id, address=61782, rcount=84
                     )
