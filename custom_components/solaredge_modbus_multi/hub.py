@@ -1312,6 +1312,7 @@ class SolarEdgeInverter:
                     )
 
                     self.global_power_control = True
+                    ir.async_delete_issue(self._hass, DOMAIN, "detect_timeout_gpc")
 
             except ModbusIllegalAddress:
                 self.global_power_control = False
@@ -1549,6 +1550,7 @@ class SolarEdgeInverter:
                     )
 
                     self.advanced_power_control = True
+                    ir.async_delete_issue(self._hass, DOMAIN, "detect_timeout_apc")
 
             except ModbusIllegalAddress:
                 self.advanced_power_control = False
