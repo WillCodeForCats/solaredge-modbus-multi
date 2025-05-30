@@ -98,6 +98,14 @@
           "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Global Dynamic Power Control Timeout",
+      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für globale dynamische Leistungssteuerung."
+    },
+    "detect_timeout_apc": {
+      "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
+      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen."
     }
   }
 }

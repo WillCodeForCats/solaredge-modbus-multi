@@ -98,6 +98,14 @@
           "already_configured": "Host en poort zijn al geconfigureerd in een andere hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Global Dynamic Power Control Time -out",
+      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor Global Dynamic Power Controls."
+    },
+    "detect_timeout_apc": {
+      "title": "Geavanceerde time -out voor stroomregeling",
+      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor geavanceerde stroomregeling."
     }
   }
 }
