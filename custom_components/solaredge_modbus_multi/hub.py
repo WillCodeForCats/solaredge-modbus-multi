@@ -762,11 +762,15 @@ class SolarEdgeModbusMultiHub:
             this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 2  # max 2 per inverter
+            if self.option_detect_extras:
+                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_batteries
+            if self.option_detect_extras:
+                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         this_timeout = this_timeout / 1000
 
