@@ -1317,7 +1317,9 @@ class SolarEdgeInverter:
             except ModbusIllegalAddress:
                 self.global_power_control = False
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: global power control NOT available"
+                    f"I{self.inverter_unit_id}: The inverter did not respond while "
+                    "reading data for Global Dynamic Power Controls. These entities "
+                    "will be unavailable."
                 )
 
             except TimeoutError:
@@ -1572,7 +1574,9 @@ class SolarEdgeInverter:
                     data={"entry_id": self.hub._entry_id},
                 )
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: advanced power control read timeout"
+                    f"I{self.inverter_unit_id}: The inverter did not respond while "
+                    "reading data for Advanced Power Controls. These entities "
+                    "will be unavailable."
                 )
 
             except ModbusIOError:
