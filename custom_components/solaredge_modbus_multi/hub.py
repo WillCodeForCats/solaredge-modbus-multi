@@ -481,7 +481,8 @@ class SolarEdgeModbusMultiHub:
                 "New AsyncModbusTcpClient: "
                 f"reconnect_delay={self._mb_reconnect_delay} "
                 f"reconnect_delay_max={self._mb_reconnect_delay_max} "
-                f"timeout={self._mb_timeout}"
+                f"timeout={self._mb_timeout} "
+                f"retries={self._mb_retries}"
             )
             self._client = AsyncModbusTcpClient(
                 host=self._host,
