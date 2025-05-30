@@ -70,6 +70,7 @@ class ModbusDefaults(IntEnum):
     """
 
     Timeout = 3  # Timeout for a request, in seconds.
+    Retries = 3  # Max number of retries per request.
     ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
     ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
 

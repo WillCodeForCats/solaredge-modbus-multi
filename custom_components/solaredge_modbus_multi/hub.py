@@ -165,6 +165,9 @@ class SolarEdgeModbusMultiHub:
         self._mb_timeout = self._yaml_config.get("modbus", {}).get(
             "timeout", ModbusDefaults.Timeout
         )
+        self._mb_retries = self._yaml_config.get("modbus", {}).get(
+            "retries", ModbusDefaults.Retries
+        )
         self._id = entry_data[CONF_NAME].lower()
         self._lock = asyncio.Lock()
         self.inverters = []
@@ -486,6 +489,7 @@ class SolarEdgeModbusMultiHub:
                 reconnect_delay=self._mb_reconnect_delay,
                 reconnect_delay_max=self._mb_reconnect_delay_max,
                 timeout=self._mb_timeout,
+                retries=self._mb_retries,
             )
 
         _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
