@@ -557,7 +557,7 @@ class SolarEdgeModbusMultiHub:
 
         if len(result.registers) != rcount:
             _LOGGER.error(
-                "I{self._rr_unit}: Registers received != requested : "
+                f"I{self._rr_unit}: Registers received != requested : "
                 f"{len(result.registers)} != {self._rr_count}"
             )
             raise ModbusReadError(
@@ -767,11 +767,15 @@ class SolarEdgeModbusMultiHub:
             this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 2  # max 2 per inverter
+            if self.option_detect_extras:
+                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_batteries
+            if self.option_detect_extras:
+                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         this_timeout = this_timeout / 1000
 
@@ -1280,47 +1284,64 @@ class SolarEdgeInverter:
             self.global_power_control is True or self.global_power_control is None
         ):
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61440, rcount=4
-                )
-
-                self.decoded_model.update(
-                    OrderedDict(
-                        [
-                            (
-                                "I_RRCR",
-                                ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[0]],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    word_order="little",
-                                ),
-                            ),
-                            (
-                                "I_Power_Limit",
-                                ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[1]],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    word_order="little",
-                                ),
-                            ),
-                            (
-                                "I_CosPhi",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[2:4],
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
-                            ),
-                        ]
+                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61440, rcount=4
                     )
-                )
 
-                self.global_power_control = True
+                    self.decoded_model.update(
+                        OrderedDict(
+                            [
+                                (
+                                    "I_RRCR",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[0]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                        word_order="little",
+                                    ),
+                                ),
+                                (
+                                    "I_Power_Limit",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[1]],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                        word_order="little",
+                                    ),
+                                ),
+                                (
+                                    "I_CosPhi",
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[2:4],
+                                        data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                        word_order="little",
+                                    ),
+                                ),
+                            ]
+                        )
+                    )
+
+                    self.global_power_control = True
 
             except ModbusIllegalAddress:
                 self.global_power_control = False
                 _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: " "global power control NOT available")
+                    f"I{self.inverter_unit_id}: global power control NOT available"
+                )
+
+            except TimeoutError:
+                ir.async_create_issue(
+                    self.hub._hass,
+                    DOMAIN,
+                    "detect_timeout_gpc",
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="detect_timeout_gpc",
+                    data={"entry_id": self.hub._entry_id},
+                )
+                _LOGGER.debug(
+                    f"I{self.inverter_unit_id}: The inverter did not respond while "
+                    "reading data for Global Dynamic Power Controls. These entities "
+                    "will be unavailable."
                 )
 
             except ModbusIOError:
@@ -1334,209 +1355,211 @@ class SolarEdgeInverter:
             self.advanced_power_control is True or self.advanced_power_control is None
         ):
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61696, rcount=86
-                )
-
-                int32_fields = [
-                    "PwrFrqDeratingConfig",
-                    "ReactivePwrConfig",
-                    "ActivePwrGrad",
-                    "AdvPwrCtrlEn",
-                    "FrtEn",
-                ]
-                int32_data = (
-                    inverter_data.registers[2:6]
-                    + inverter_data.registers[8:10]
-                    + inverter_data.registers[66:70]
-                )
-                self.decoded_model.update(
-                    OrderedDict(
-                        zip(
-                            int32_fields,
-                            ModbusClientMixin.convert_from_registers(
-                                int32_data,
-                                data_type=ModbusClientMixin.DATATYPE.INT32,
-                                word_order="little",
-                            ),
-                            strict=True,
-                        )
+                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61696, rcount=86
                     )
-                )
 
-                float32_fields = [
-                    "FixedCosPhiPhase",
-                    "FixedReactPwr",
-                    "ReactCosPhiVsPX_0",
-                    "ReactCosPhiVsPX_1",
-                    "ReactCosPhiVsPX_2",
-                    "ReactCosPhiVsPX_3",
-                    "ReactCosPhiVsPX_4",
-                    "ReactCosPhiVsPX_5",
-                    "ReactCosPhiVsPY_0",
-                    "ReactCosPhiVsPY_1",
-                    "ReactCosPhiVsPY_2",
-                    "ReactCosPhiVsPY_3",
-                    "ReactCosPhiVsPY_4",
-                    "ReactCosPhiVsPY_5",
-                    "ReactQVsVgX_0",
-                    "ReactQVsVgX_1",
-                    "ReactQVsVgX_2",
-                    "ReactQVsVgX_3",
-                    "ReactQVsVgX_4",
-                    "ReactQVsVgX_5",
-                    "ReactQVsVgY_0",
-                    "ReactQVsVgY_1",
-                    "ReactQVsVgY_2",
-                    "ReactQVsVgY_3",
-                    "ReactQVsVgY_4",
-                    "ReactQVsVgY_5",
-                    "FRT_KFactor",
-                    "PowerReduce",
-                    "MaxWakeupFreq",
-                    "MinWakeupFreq",
-                    "MaxWakeupVg",
-                    "MinWakeupVg",
-                    "Vnom",
-                    "Inom",
-                    "PwrVsFreqX_0",
-                    "PwrVsFreqX_1",
-                ]
-                float32_data = (
-                    inverter_data.registers[10:66] + inverter_data.registers[70:86]
-                )
-                self.decoded_model.update(
-                    OrderedDict(
-                        zip(
-                            float32_fields,
-                            ModbusClientMixin.convert_from_registers(
-                                float32_data,
-                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                word_order="little",
-                            ),
-                            strict=True,
-                        )
+                    int32_fields = [
+                        "PwrFrqDeratingConfig",
+                        "ReactivePwrConfig",
+                        "ActivePwrGrad",
+                        "AdvPwrCtrlEn",
+                        "FrtEn",
+                    ]
+                    int32_data = (
+                        inverter_data.registers[2:6]
+                        + inverter_data.registers[8:10]
+                        + inverter_data.registers[66:70]
                     )
-                )
-
-                self.decoded_model.update(
-                    OrderedDict(
-                        [
-                            (
-                                "CommitPwrCtlSettings",
+                    self.decoded_model.update(
+                        OrderedDict(
+                            zip(
+                                int32_fields,
                                 ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[0]],
-                                    data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    int32_data,
+                                    data_type=ModbusClientMixin.DATATYPE.INT32,
                                     word_order="little",
                                 ),
-                            ),
-                            (
-                                "RestorePwrCtlDefaults",
-                                ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[1]],
-                                    data_type=ModbusClientMixin.DATATYPE.INT16,
-                                    word_order="little",
-                                ),
-                            ),
-                            (
-                                "ReactPwrIterTime",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[6:8],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    word_order="little",
-                                ),
-                            ),
-                        ]
-                    )
-                )
-
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=61782, rcount=84
-                )
-
-                float32_fields = [
-                    "PwrVsFreqY_0",
-                    "PwrVsFreqY_1",
-                    "ResetFreq",
-                    "MaxFreq",
-                    "ReactQVsPX_0",
-                    "ReactQVsPX_1",
-                    "ReactQVsPX_2",
-                    "ReactQVsPX_3",
-                    "ReactQVsPX_4",
-                    "ReactQVsPX_5",
-                    "ReactQVsPY_0",
-                    "ReactQVsPY_1",
-                    "ReactQVsPY_2",
-                    "ReactQVsPY_3",
-                    "ReactQVsPY_4",
-                    "ReactQVsPY_5",
-                    "ReactCosPhiVsPVgLockInMax",
-                    "ReactCosPhiVsPVgLockInMin",
-                    "ReactCosPhiVsPVgLockOutMax",
-                    "ReactCosPhiVsPVgLockOutMin",
-                    "ReactQVsVgPLockInMax",
-                    "ReactQVsVgPLockInMin",
-                    "ReactQVsVgPLockOutMax",
-                    "ReactQVsVgPLockOutMin",
-                    "MaxCurrent",
-                    "PwrVsVgX_0",
-                    "PwrVsVgX_1",
-                    "PwrVsVgX_2",
-                    "PwrVsVgX_3",
-                    "PwrVsVgX_4",
-                    "PwrVsVgX_5",
-                    "PwrVsVgY_0",
-                    "PwrVsVgY_1",
-                    "PwrVsVgY_2",
-                    "PwrVsVgY_3",
-                    "PwrVsVgY_4",
-                    "PwrVsVgY_5",
-                    "DisconnectAtZeroPwrLim",
-                ]
-                float32_data = (
-                    inverter_data.registers[0:32]
-                    + inverter_data.registers[36:52]
-                    + inverter_data.registers[56:84]
-                )
-                self.decoded_model.update(
-                    OrderedDict(
-                        zip(
-                            float32_fields,
-                            ModbusClientMixin.convert_from_registers(
-                                float32_data,
-                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                word_order="little",
-                            ),
-                            strict=True,
+                                strict=True,
+                            )
                         )
                     )
-                )
 
-                uint32_fields = [
-                    "PwrFrqDeratingResetTime",
-                    "PwrFrqDeratingGradTime",
-                    "ReactQVsVgType",
-                    "PwrSoftStartTime",
-                ]
-                uint32_data = (
-                    inverter_data.registers[32:36] + inverter_data.registers[52:56]
-                )
-                self.decoded_model.update(
-                    OrderedDict(
-                        zip(
-                            uint32_fields,
-                            ModbusClientMixin.convert_from_registers(
-                                uint32_data,
-                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                word_order="little",
-                            ),
-                            strict=True,
+                    float32_fields = [
+                        "FixedCosPhiPhase",
+                        "FixedReactPwr",
+                        "ReactCosPhiVsPX_0",
+                        "ReactCosPhiVsPX_1",
+                        "ReactCosPhiVsPX_2",
+                        "ReactCosPhiVsPX_3",
+                        "ReactCosPhiVsPX_4",
+                        "ReactCosPhiVsPX_5",
+                        "ReactCosPhiVsPY_0",
+                        "ReactCosPhiVsPY_1",
+                        "ReactCosPhiVsPY_2",
+                        "ReactCosPhiVsPY_3",
+                        "ReactCosPhiVsPY_4",
+                        "ReactCosPhiVsPY_5",
+                        "ReactQVsVgX_0",
+                        "ReactQVsVgX_1",
+                        "ReactQVsVgX_2",
+                        "ReactQVsVgX_3",
+                        "ReactQVsVgX_4",
+                        "ReactQVsVgX_5",
+                        "ReactQVsVgY_0",
+                        "ReactQVsVgY_1",
+                        "ReactQVsVgY_2",
+                        "ReactQVsVgY_3",
+                        "ReactQVsVgY_4",
+                        "ReactQVsVgY_5",
+                        "FRT_KFactor",
+                        "PowerReduce",
+                        "MaxWakeupFreq",
+                        "MinWakeupFreq",
+                        "MaxWakeupVg",
+                        "MinWakeupVg",
+                        "Vnom",
+                        "Inom",
+                        "PwrVsFreqX_0",
+                        "PwrVsFreqX_1",
+                    ]
+                    float32_data = (
+                        inverter_data.registers[10:66] + inverter_data.registers[70:86]
+                    )
+                    self.decoded_model.update(
+                        OrderedDict(
+                            zip(
+                                float32_fields,
+                                ModbusClientMixin.convert_from_registers(
+                                    float32_data,
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                                strict=True,
+                            )
                         )
                     )
-                )
 
-                self.advanced_power_control = True
+                    self.decoded_model.update(
+                        OrderedDict(
+                            [
+                                (
+                                    "CommitPwrCtlSettings",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[0]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                        word_order="little",
+                                    ),
+                                ),
+                                (
+                                    "RestorePwrCtlDefaults",
+                                    ModbusClientMixin.convert_from_registers(
+                                        [inverter_data.registers[1]],
+                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                        word_order="little",
+                                    ),
+                                ),
+                                (
+                                    "ReactPwrIterTime",
+                                    ModbusClientMixin.convert_from_registers(
+                                        inverter_data.registers[6:8],
+                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                        word_order="little",
+                                    ),
+                                ),
+                            ]
+                        )
+                    )
+
+                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61782, rcount=84
+                    )
+
+                    float32_fields = [
+                        "PwrVsFreqY_0",
+                        "PwrVsFreqY_1",
+                        "ResetFreq",
+                        "MaxFreq",
+                        "ReactQVsPX_0",
+                        "ReactQVsPX_1",
+                        "ReactQVsPX_2",
+                        "ReactQVsPX_3",
+                        "ReactQVsPX_4",
+                        "ReactQVsPX_5",
+                        "ReactQVsPY_0",
+                        "ReactQVsPY_1",
+                        "ReactQVsPY_2",
+                        "ReactQVsPY_3",
+                        "ReactQVsPY_4",
+                        "ReactQVsPY_5",
+                        "ReactCosPhiVsPVgLockInMax",
+                        "ReactCosPhiVsPVgLockInMin",
+                        "ReactCosPhiVsPVgLockOutMax",
+                        "ReactCosPhiVsPVgLockOutMin",
+                        "ReactQVsVgPLockInMax",
+                        "ReactQVsVgPLockInMin",
+                        "ReactQVsVgPLockOutMax",
+                        "ReactQVsVgPLockOutMin",
+                        "MaxCurrent",
+                        "PwrVsVgX_0",
+                        "PwrVsVgX_1",
+                        "PwrVsVgX_2",
+                        "PwrVsVgX_3",
+                        "PwrVsVgX_4",
+                        "PwrVsVgX_5",
+                        "PwrVsVgY_0",
+                        "PwrVsVgY_1",
+                        "PwrVsVgY_2",
+                        "PwrVsVgY_3",
+                        "PwrVsVgY_4",
+                        "PwrVsVgY_5",
+                        "DisconnectAtZeroPwrLim",
+                    ]
+                    float32_data = (
+                        inverter_data.registers[0:32]
+                        + inverter_data.registers[36:52]
+                        + inverter_data.registers[56:84]
+                    )
+                    self.decoded_model.update(
+                        OrderedDict(
+                            zip(
+                                float32_fields,
+                                ModbusClientMixin.convert_from_registers(
+                                    float32_data,
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                                strict=True,
+                            )
+                        )
+                    )
+
+                    uint32_fields = [
+                        "PwrFrqDeratingResetTime",
+                        "PwrFrqDeratingGradTime",
+                        "ReactQVsVgType",
+                        "PwrSoftStartTime",
+                    ]
+                    uint32_data = (
+                        inverter_data.registers[32:36] + inverter_data.registers[52:56]
+                    )
+                    self.decoded_model.update(
+                        OrderedDict(
+                            zip(
+                                uint32_fields,
+                                ModbusClientMixin.convert_from_registers(
+                                    uint32_data,
+                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
+                                    word_order="little",
+                                ),
+                                strict=True,
+                            )
+                        )
+                    )
+
+                    self.advanced_power_control = True
 
             except ModbusIllegalAddress:
                 self.advanced_power_control = False
@@ -1545,6 +1568,22 @@ class SolarEdgeInverter:
                         f"I{self.inverter_unit_id}: "
                         "advanced power control NOT available"
                     )
+                )
+
+            except TimeoutError:
+                ir.async_create_issue(
+                    self.hub._hass,
+                    DOMAIN,
+                    "detect_timeout_apc",
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="detect_timeout_apc",
+                    data={"entry_id": self.hub._entry_id},
+                )
+                _LOGGER.debug(
+                    f"I{self.inverter_unit_id}: The inverter did not respond while "
+                    "reading data for Advanced Power Controls. These entities "
+                    "will be unavailable."
                 )
 
             except ModbusIOError:

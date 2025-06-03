@@ -98,6 +98,14 @@
           "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Tempsion mondial de contrôle de la puissance dynamique",
+      "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance dynamique globaux."
+    },
+    "detect_timeout_apc": {
+      "title": "Timeout de contrôle de puissance avancé",
+      "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance avancés."
     }
   }
 }
