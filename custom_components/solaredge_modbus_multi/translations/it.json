@@ -98,6 +98,14 @@
           "already_configured": "L'host e la porta sono già configurati in un altro hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Timeout di controllo del potere dinamico globale",
+      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza dinamica globali."
+    },
+    "detect_timeout_apc": {
+      "title": "Timeout di controllo del potere avanzato",
+      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza avanzati."
     }
   }
 }

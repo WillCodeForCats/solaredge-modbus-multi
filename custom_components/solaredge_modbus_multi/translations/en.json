@@ -97,6 +97,14 @@
           "already_configured": "Host and port is already configured in another hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+        "title": "Global Dynamic Power Control Timeout",
+        "description": "The inverter did not respond while reading data for Global Dynamic Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
+    },
+    "detect_timeout_apc": {
+        "title": "Advanced Power Control Timeout",
+        "description": "The inverter did not respond while reading data for Advanced Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
     }
   }
 }

@@ -44,6 +44,7 @@ CONFIG_SCHEMA = vol.Schema(
                 "modbus": vol.Schema(
                     {
                         vol.Optional("timeout"): vol.Coerce(int),
+                        vol.Optional("retries"): vol.Coerce(int),
                         vol.Optional("reconnect_delay"): vol.Coerce(float),
                         vol.Optional("reconnect_delay_max"): vol.Coerce(float),
                     }
