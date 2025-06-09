@@ -8,17 +8,28 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import DOMAIN_REGEX
 
 
-def float_to_hex(f):
+def float_to_hex(f: float) -> str:
+    """Convert a float number to a hex string for display."""
+    if not isinstance(f, (float, int)):
+        raise TypeError(f"Expected float or int, got {type(f).__name__}")
+
     try:
-        return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+        return hex(struct.unpack("<I", struct.pack("<f", float(f)))[0])
     except struct.error as e:
-        raise TypeError(e)
+        raise ValueError(f"Error converting {f} to hex: {e}")
 
 
-def parse_modbus_string(s: str) -> str:
-    s = s.decode(encoding="utf-8", errors="ignore")
-    s = s.replace("\x00", "").rstrip()
-    return str(s)
+def int_list_to_string(int_list: list[int]) -> str:
+    """Convert a list of 16-bit unsigned integers into a string. Each int is 2 bytes.
+
+    This method exists because pymodbus ModbusClientMixin.convert_from_registers with
+    data_type=DATATYPE.STRING needs errors="ignore" added to handle SolarEdge strings.
+
+    Ref: https://github.com/pymodbus-dev/pymodbus/blob/
+    7fc8d3e02d9d9011c25c80149eb88318e7f50d0e/pymodbus/client/mixin.py#L719
+    """
+    byte_data = b"".join(i.to_bytes(2, "big") for i in int_list)
+    return byte_data.decode("utf-8", errors="ignore").replace("\x00", "").rstrip()
 
 
 def update_accum(self, accum_value: int) -> None:

@@ -10,7 +10,8 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
+from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
@@ -28,26 +29,37 @@ from .const import (
 from .helpers import device_list_from_string, host_valid
 
 
-@callback
-def solaredge_modbus_multi_entries(hass: HomeAssistant):
-    """Return the hosts already configured."""
-    return set(
-        entry.data[CONF_HOST].lower()
-        for entry in hass.config_entries.async_entries(DOMAIN)
-    )
+def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
+    """Generate config flow or repair schema."""
+    schema: dict[vol.Marker, Any] = {}
+
+    if step_id == "user":
+        schema |= {vol.Required(CONF_NAME, default=user_input[CONF_NAME]): cv.string}
+
+    if step_id in ["reconfigure", "confirm", "user"]:
+        schema |= {
+            vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+            vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
+            vol.Required(
+                f"{ConfName.DEVICE_LIST}",
+                default=user_input[ConfName.DEVICE_LIST],
+            ): cv.string,
+        }
+
+    return vol.Schema(schema)
 
 
 class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 2
-    MINOR_VERSION = 0
+    MINOR_VERSION = 1
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Create the options flow for SolarEdge Modbus Multi."""
-        return SolaredgeModbusMultiOptionsFlowHandler(config_entry)
+        return SolaredgeModbusMultiOptionsFlowHandler()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -121,14 +133,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 if not host_valid(user_input[CONF_HOST]):
                     errors[CONF_HOST] = "invalid_host"
-                elif user_input[CONF_HOST] in solaredge_modbus_multi_entries(self.hass):
-                    errors[CONF_HOST] = "already_configured"
                 elif not 1 <= user_input[CONF_PORT] <= 65535:
                     errors[CONF_PORT] = "invalid_tcp_port"
                 elif not 1 <= inverter_count <= 32:
                     errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                 else:
-                    await self.async_set_unique_id(user_input[CONF_HOST])
+                    new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    await self.async_set_unique_id(new_unique_id)
 
                     self._abort_if_unique_id_configured()
 
@@ -162,6 +173,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): cv.string,
                 },
             ),
+
             errors=errors,
         )
 
@@ -199,10 +211,19 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[ConfName.DEVICE_LIST] = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
+                    this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+
+                    if this_unique_id != config_entry.unique_id:
+                        self._async_abort_entries_match(
+                            {
+                                "host": user_input[CONF_HOST],
+                                "port": user_input[CONF_PORT],
+                            }
+                        )
 
                     return self.async_update_reload_and_abort(
                         config_entry,
-                        unique_id=config_entry.unique_id,
+                        unique_id=this_unique_id,
                         data={**config_entry.data, **user_input},
                         reason="reconfigure_successful",
                     )
@@ -222,28 +243,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
-                    vol.Required(
-                        f"{ConfName.DEVICE_LIST}",
-                        default=user_input[ConfName.DEVICE_LIST],
-                    ): cv.string,
-                },
-            ),
+            data_schema=generate_config_schema("reconfigure", user_input),
             errors=errors,
         )
 
 
 class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
     """Handle an options flow for SolarEdge Modbus Multi."""
-
-    def __init__(self, config_entry: ConfigEntry):
-        """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

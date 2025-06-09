@@ -5,8 +5,6 @@ from __future__ import annotations
 import re
 from typing import cast
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.config_entries import ConfigEntry
@@ -14,7 +12,8 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import ConfDefaultStr, ConfName
+from .config_flow import generate_config_schema
+from .const import DOMAIN, ConfDefaultStr, ConfName
 from .helpers import device_list_from_string, host_valid
 
 
@@ -65,12 +64,28 @@ class CheckConfigurationRepairFlow(RepairsFlow):
                     user_input[ConfName.DEVICE_LIST] = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
-
-                    self.hass.config_entries.async_update_entry(
-                        self._entry, data={**self._entry.data, **user_input}
+                    this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    existing_entry = (
+                        self.hass.config_entries.async_entry_for_domain_unique_id(
+                            DOMAIN, this_unique_id
+                        )
                     )
 
-                    return self.async_create_entry(title="", data={})
+                    if (
+                        existing_entry is not None
+                        and self._entry.unique_id != this_unique_id
+                    ):
+                        errors[CONF_HOST] = "already_configured"
+                        errors[CONF_PORT] = "already_configured"
+
+                    else:
+                        self.hass.config_entries.async_update_entry(
+                            self._entry,
+                            unique_id=this_unique_id,
+                            data={**self._entry.data, **user_input},
+                        )
+
+                        return self.async_create_entry(title="", data={})
 
         else:
             reconfig_device_list = ",".join(
@@ -88,18 +103,7 @@ class CheckConfigurationRepairFlow(RepairsFlow):
 
         return self.async_show_form(
             step_id="confirm",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
-                    vol.Required(
-                        f"{ConfName.DEVICE_LIST}",
-                        default=user_input[ConfName.DEVICE_LIST],
-                    ): cv.string,
-                }
-            ),
+            data_schema=generate_config_schema("confirm", user_input),
             errors=errors,
         )
 

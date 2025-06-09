@@ -8,7 +8,7 @@ from datetime import timedelta
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_SCAN_INTERVAL, Platform
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
@@ -44,6 +44,7 @@ CONFIG_SCHEMA = vol.Schema(
                 "modbus": vol.Schema(
                     {
                         vol.Optional("timeout"): vol.Coerce(int),
+                        vol.Optional("retries"): vol.Coerce(int),
                         vol.Optional("reconnect_delay"): vol.Coerce(float),
                         vol.Optional("reconnect_delay_max"): vol.Coerce(float),
                     }
@@ -156,12 +157,16 @@ async def async_remove_config_entry_device(
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
-    _LOGGER.debug("Migrating from version {config_entry.version}")
+    _LOGGER.debug(
+        "Migrating from config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
+    )
 
-    if config_entry.version > 1:
+    if config_entry.version > 2:
         return False
 
     if config_entry.version == 1:
+        _LOGGER.debug("Migrating from version 1")
 
         update_data = {**config_entry.data}
         update_options = {**config_entry.options}
@@ -193,8 +198,33 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             minor_version=0,
         )
 
+    if config_entry.version == 2 and config_entry.minor_version < 1:
+        _LOGGER.debug("Migrating from version 2.0")
+
+        config_entry_data = {**config_entry.data}
+
+        # Use host:port address string as the config entry unique ID.
+        # This is technically not a valid HA unique ID, but with modbus
+        # we can't know anything like a serial number per IP since a
+        # single SE modbus IP could have up to 32 different serial numbers
+        # and the "leader" modbus unit id can't be known programmatically.
+
+        old_unique_id = config_entry.unique_id
+        new_unique_id = f"{config_entry_data[CONF_HOST]}:{config_entry_data[CONF_PORT]}"
+
+        _LOGGER.warning(
+            "Migrating config entry unique ID from %s to %s",
+            old_unique_id,
+            new_unique_id,
+        )
+
+        hass.config_entries.async_update_entry(
+            config_entry, unique_id=new_unique_id, version=2, minor_version=1
+        )
+
     _LOGGER.warning(
-        f"Migrated to version {config_entry.version}.{config_entry.minor_version}"
+        "Migrated to config version "
+        f"{config_entry.version}.{config_entry.minor_version}"
     )
 
     return True

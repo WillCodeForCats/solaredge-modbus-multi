@@ -36,7 +36,7 @@
       "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito."
     },
     "abort": {
-      "already_configured": "Il dispositivo è già configurato",
+      "already_configured": "L'host e la porta sono già configurati in un altro hub.",
       "reconfigure_successful": "La riconfigurazione ha avuto successo"
     }
   },
@@ -60,7 +60,7 @@
           "adv_storage_control": "Abilita il controllo dell'archiviazione",
           "adv_site_limit_control": "Abilita il controllo dei limiti del sito"
         },
-        "description": "Avvertenza: queste opzioni possono violare i contratti dei servizi pubblici, alterare la fatturazione dei servizi pubblici, potrebbero richiedere apparecchiature speciali e sovrascrivere la fornitura da parte di SolarEdge o dell'installatore. Utilizzare a proprio rischio!"
+        "description": "Avvertenza: queste opzioni possono violare i contratti dei servizi pubblici, alterare la fatturazione dei servizi pubblici, potrebbero richiedere apparecchiature speciali e sovrascrivere la fornitura da parte di SolarEdge o dell'installatore. Utilizzare a proprio rischio! I parametri regolabili nei registri Modbus sono destinati alla memorizzazione a lungo termine. Modifiche periodiche potrebbero danneggiare la memoria flash."
       },
       "battery_options": {
         "title": "Opzioni batteria",
@@ -100,9 +100,18 @@
           "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535.",
           "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
           "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
-          "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito."
+          "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito.",
+          "already_configured": "L'host e la porta sono già configurati in un altro hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Timeout di controllo del potere dinamico globale",
+      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza dinamica globali."
+    },
+    "detect_timeout_apc": {
+      "title": "Timeout di controllo del potere avanzato",
+      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza avanzati."
     }
   }
 }

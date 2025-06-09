@@ -11,13 +11,13 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
-    POWER_VOLT_AMPERE_REACTIVE,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfReactivePower,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -92,7 +92,7 @@ async def async_setup_entry(
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
 
         """ Power Control Block """
-        if hub.option_detect_extras and inverter.advanced_power_control:
+        if hub.option_detect_extras:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
@@ -662,9 +662,9 @@ class ACVoltAmp(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC VA"
+            return "AC Apparent Power"
         else:
-            return f"AC VA {self._phase.upper()}"
+            return f"AC Apparent Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -702,7 +702,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
 class ACVoltAmpReactive(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.REACTIVE_POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_VOLT_AMPERE_REACTIVE
+    native_unit_of_measurement = UnitOfReactivePower.VOLT_AMPERE_REACTIVE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -719,9 +719,9 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC var"
+            return "AC Reactive Power"
         else:
-            return f"AC var {self._phase.upper()}"
+            return f"AC Reactive Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -776,9 +776,9 @@ class ACPowerFactor(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         if self._phase is None:
-            return "AC PF"
+            return "AC Power Factor"
         else:
-            return f"AC PF {self._phase.upper()}"
+            return f"AC Power Factor {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -887,7 +887,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         if self._phase is None:
             return "AC Energy"
         else:
-            return f"{re.sub('_', ' ', self._phase)}"
+            return f"AC Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def available(self) -> bool:
@@ -1344,12 +1344,6 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
         return attrs
 
 
-class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
-    @property
-    def available(self) -> bool:
-        return super().available and self._platform.global_power_control
-
-
 class StatusVendor(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
 
@@ -1388,6 +1382,12 @@ class StatusVendor(SolarEdgeSensorBase):
 
         except KeyError:
             return None
+
+
+class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.global_power_control
 
 
 class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
@@ -1652,7 +1652,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{re.sub('_', ' ', self._phase)} VAh"
+            return f"Apparent Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def native_value(self):
@@ -1730,7 +1730,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{re.sub('_', ' ', self._phase)} varh"
+            return f"Reactive Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def native_value(self):
@@ -2242,6 +2242,10 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
 
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        self._log_warning = True
+
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_avail_energy"
@@ -2256,12 +2260,21 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
-            or self._platform.decoded_model["B_Energy_Available"]
-            > (
-                self._platform.decoded_common["B_RatedEnergy"]
-                * self._platform.battery_rating_adjust
-            )
         ):
+            return None
+
+        if self._platform.decoded_model["B_Energy_Available"] > (
+            self._platform.decoded_common["B_RatedEnergy"]
+            * self._platform.battery_rating_adjust
+        ):
+            if self._log_warning:
+                _LOGGER.warning(
+                    f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
+                    "Battery available energy exceeds rated energy. "
+                    "Set configuration for Battery Rating Adjustment when necessary."
+                )
+                self._log_warning = False
+
             return None
 
         else:
@@ -2323,7 +2336,13 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return self._platform.decoded_model["B_SOE"]
 
 
-class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
+class SolarEdgeAdvancedPowerControlBlock(SolarEdgeSensorBase):
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.advanced_power_control
+
+
+class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Commit Power Control Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
@@ -2336,6 +2355,12 @@ class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return "Commit Power Settings"
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available and "CommitPwrCtlSettings" in self._platform.decoded_model
+        )
 
     @property
     def native_value(self):
@@ -2362,7 +2387,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
         return attrs
 
 
-class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
+class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Restore Power Control Default Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
@@ -2375,6 +2400,13 @@ class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return "Default Power Settings"
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "RestorePwrCtlDefaults" in self._platform.decoded_model
+        )
 
     @property
     def native_value(self):

@@ -36,7 +36,7 @@
       "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert."
     },
     "abort": {
-      "already_configured": "Gerät ist bereits konfiguriert",
+      "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert.",
       "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
     }
   },
@@ -50,7 +50,7 @@
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
-          "advanced_power_control": "Erweiterte Leistungssteuerung",
+          "advanced_power_control": "Optionen zur Leistungssteuerung",
           "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
         }
       },
@@ -60,7 +60,7 @@
           "adv_storage_control": "Speichersteuerung aktivieren",
           "adv_site_limit_control": "Site-Limit-Kontrolle aktivieren"
         },
-        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr!"
+        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr! Einstellbare Parameter in Modbus-Registern sind für die Langzeitspeicherung vorgesehen. Regelmäßige Änderungen können den Flash-Speicher beschädigen."
       },
       "battery_options": {
         "title": "Batterieoptionen",
@@ -100,9 +100,18 @@
           "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
           "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
           "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
-          "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert."
+          "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
+          "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Global Dynamic Power Control Timeout",
+      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für globale dynamische Leistungssteuerung."
+    },
+    "detect_timeout_apc": {
+      "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
+      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen."
     }
   }
 }
