@@ -7,8 +7,7 @@
           "name": "Sensor prefix",
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
-          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
-          "number_of_inverters": "Aantal aangesloten omvormers"
+          "device_list": "Omvormerapparaat-ID-lijst"
         }
       },
       "reconfigure": {
@@ -16,23 +15,22 @@
         "data": {
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
-          "device_id": "Omvormer Modbus-adres (apparaat-ID)",
-          "number_of_inverters": "Aantal aangesloten omvormers"
+          "device_list": "Omvormerapparaat-ID-lijst"
         }
       }
     },
     "error": {
       "already_configured": "Apparaat is al geconfigureerd",
-      "max_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-      "min_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-      "max_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-      "min_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-      "too_many_inverters": "Aantal omvormers te hoog voor Device ID.",
+      "invalid_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+      "invalid_inverter_count": "Moet tussen 1 en 32 omvormers zijn.",
       "invalid_host": "Ongeldig IP-adres.",
-      "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
+      "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
+      "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
+      "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
+      "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
     },
     "abort": {
-      "already_configured": "Apparaat is al geconfigureerd",
+      "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
       "reconfigure_successful": "De herconfiguratie was succesvol"
     }
   },
@@ -46,7 +44,7 @@
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
           "detect_extras": "Automatische detectie van aanvullende entiteiten",
-          "advanced_power_control": "Geavanceerde stroomregeling",
+          "advanced_power_control": "Opties voor vermogensregeling",
           "sleep_after_write": "Omvormer commando vertraging (seconden)"
         }
       },
@@ -56,7 +54,7 @@
           "adv_storage_control": "Opslagbeheer inschakelen",
           "adv_site_limit_control": "Beheer van sitelimiet inschakelen"
         },
-        "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico!"
+        "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico! Instelbare parameters in Modbus-registers zijn bedoeld voor langdurige opslag. Periodieke wijzigingen kunnen het flashgeheugen beschadigen."
       },
       "battery_options": {
         "title": "Batterij opties",
@@ -90,15 +88,24 @@
           }
         },
         "error": {
-          "max_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-          "min_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-          "max_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-          "min_inverters": "Moet tussen 1 en 32 omvormers zijn.",
-          "too_many_inverters": "Aantal omvormers te hoog voor Device ID.",
+          "invalid_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
+          "invalid_inverter_count": "Moet tussen 1 en 32 omvormers zijn.",    
           "invalid_host": "Ongeldig IP-adres.",
-          "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535."
+          "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
+          "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
+          "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
+          "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde.",
+          "already_configured": "Host en poort zijn al geconfigureerd in een andere hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Global Dynamic Power Control Time -out",
+      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor Global Dynamic Power Controls."
+    },
+    "detect_timeout_apc": {
+      "title": "Geavanceerde time -out voor stroomregeling",
+      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor geavanceerde stroomregeling."
     }
   }
 }

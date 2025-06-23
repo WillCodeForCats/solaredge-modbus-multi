@@ -7,8 +7,7 @@
           "name": "Prefix sensora",
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
-          "device_id": "Adres Modbus Inwertera (Device ID)",
-          "number_of_inverters": "Ilość inwerterów"
+          "device_list": "Lista identyfikatorów urządzeń falownika"
         }
       },
       "reconfigure": {
@@ -16,23 +15,22 @@
         "data": {
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
-          "device_id": "Adres Modbus Inwertera (Device ID)",
-          "number_of_inverters": "Ilość inwerterów"
+          "device_list": "Lista identyfikatorów urządzeń falownika"
         }
       }
     },
     "error": {
       "already_configured": "Urządzenie jest już skonfigurowane!",
-      "max_device_id": "Device ID musi być pomiędzy  1 i 247.",
-      "min_device_id": "Device ID musi być pomiędzy  1 i 247.",
-      "max_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-      "min_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-      "too_many_inverters": "Liczba inwerterów za duża dla Device ID.",
+      "invalid_device_id": "Device ID musi być pomiędzy 1 i 247.",
+      "invalid_inverter_count": "Dopuszczalna liczba inwerterów to od  1 do 32.",
       "invalid_host": "Błędny adres IP.",
-      "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535."
+      "invalid_tcp_port": "Dozwolony zakres portów to od 1 do 65535.",
+      "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
+      "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
+      "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość."
     },
     "abort": {
-      "already_configured": "Urządzenie jest już skonfigurowane",
+      "already_configured": "Host i port są już skonfigurowane w innym koncentratorze.",
       "reconfigure_successful": "Ponowna konfiguracja przebiegła pomyślnie"
     }
   },
@@ -46,7 +44,7 @@
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
-          "advanced_power_control": "Zaawansowana kontrola mocy",
+          "advanced_power_control": "Opcje kontroli mocy",
           "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
         }
       },
@@ -56,7 +54,7 @@
           "adv_storage_control": "Włącz kontrolę pamięci",
           "adv_site_limit_control": "Włącz kontrolę limitu witryny"
         },
-        "description": "Ostrzeżenie: opcje te mogą naruszać umowy za media, zmieniać rozliczenia za media, mogą wymagać specjalnego sprzętu i nadpisać udostępnianie przez SolarEdge lub instalatora. Używaj na własne ryzyko!"
+        "description": "Ostrzeżenie: opcje te mogą naruszać umowy za media, zmieniać rozliczenia za media, mogą wymagać specjalnego sprzętu i nadpisać udostępnianie przez SolarEdge lub instalatora. Używaj na własne ryzyko! Parametry regulowane w rejestrach Modbus przeznaczone są do długotrwałego przechowywania. Okresowe zmiany mogą uszkodzić pamięć flash."
       },
       "battery_options": {
         "title": "Opcje baterii",
@@ -90,15 +88,24 @@
           }
         },
         "error": {
-          "max_device_id": "Device ID musi być pomiędzy  1 i 247.",
-          "min_device_id": "Device ID musi być pomiędzy  1 i 247.",
-          "max_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-          "min_inverters": "Dopuszczalna liczba inwerterów to od  1 do 32.",
-          "too_many_inverters": "Liczba inwerterów za duża dla Device ID.",
+          "invalid_device_id": "Device ID musi być pomiędzy 1 i 247.",
+          "invalid_inverter_count": "Dopuszczalna liczba inwerterów to od  1 do 32.",    
           "invalid_host": "Błędny adres IP.",
-          "invalid_tcp_port": "Dozwolony zakres portów to od  1 do 65535."
+          "invalid_tcp_port": "Dozwolony zakres portów to od 1 do 65535.",
+          "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
+          "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
+          "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość.",
+          "already_configured": "Host i port są już skonfigurowane w innym koncentratorze."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Globalny limit dynamicznej kontroli mocy",
+      "description": "Falownik nie zareagował podczas czytania danych dla globalnej dynamicznej kontroli mocy."
+    },
+    "detect_timeout_apc": {
+      "title": "Zaawansowany limit czasu kontroli mocy",
+      "description": "Falownik nie zareagował podczas czytania danych pod kątem zaawansowanych kontroli mocy."
     }
   }
 }

@@ -7,8 +7,7 @@
           "name": "Sensor Prefix",
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
-          "device_id": "Inverter Modbus Address (Device ID)",
-          "number_of_inverters": "Number of Inverters"
+          "device_list": "Inverter Device ID List"
         }
       },
       "reconfigure": {
@@ -16,23 +15,22 @@
         "data": {
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
-          "device_id": "Inverter Modbus Address (Device ID)",
-          "number_of_inverters": "Number of Inverters"
+          "device_list": "Inverter Device ID List"
         }
       }
     },
     "error": {
       "already_configured": "Device is already configured!",
-      "max_device_id": "Device ID must be between 1 to 247.",
-      "min_device_id": "Device ID must be between 1 to 247.",
-      "max_inverters": "Must be between 1 to 32 inverters.",
-      "min_inverters": "Must be between 1 to 32 inverters.",
-      "too_many_inverters": "Number of inverters too high for Device ID.",
+      "invalid_device_id": "Device ID must be between 1 to 247.",
+      "invalid_inverter_count": "Must be between 1 to 32 inverters.",
       "invalid_host": "Invalid IP address.",
-      "invalid_tcp_port": "Valid port range is 1 to 65535."
+      "invalid_tcp_port": "Valid port range is 1 to 65535.",
+      "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
+      "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
+      "empty_device_id": "The ID list contains an empty or undefined value."
     },
     "abort": {
-      "already_configured": "Device is already configured",
+      "already_configured": "Host and port is already configured in another hub.",
       "reconfigure_successful": "Re-configuration was successful"
     }
   },
@@ -56,7 +54,7 @@
           "adv_storage_control": "Enable Storage Control",
           "adv_site_limit_control": "Enable Site Limit Control"
         },
-        "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk!"
+        "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk! Adjustable parameters in Modbus registers are intended for long-term storage. Periodic changes may damage the flash memory."
       },
       "battery_options": {
         "title": "Battery Options",
@@ -84,21 +82,29 @@
             "data": {
               "host": "Inverter IP Address",
               "port": "Modbus/TCP Port",
-              "device_id": "Inverter Modbus Address (Device ID)",
-              "number_of_inverters": "Number of Inverters"
+              "device_list": "Inverter Device ID List"
             }
           }
         },
         "error": {
-          "max_device_id": "Device ID must be between 1 to 247.",
-          "min_device_id": "Device ID must be between 1 to 247.",
-          "max_inverters": "Must be between 1 to 32 inverters.",
-          "min_inverters": "Must be between 1 to 32 inverters.",
-          "too_many_inverters": "Number of inverters too high for Device ID.",
+          "invalid_device_id": "Device ID must be between 1 to 247.",
+          "invalid_inverter_count": "Must be between 1 to 32 inverters.",    
           "invalid_host": "Invalid IP address.",
-          "invalid_tcp_port": "Valid port range is 1 to 65535."
+          "invalid_tcp_port": "Valid port range is 1 to 65535.",
+          "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
+          "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
+          "empty_device_id": "The ID list contains an empty or undefined value.",
+          "already_configured": "Host and port is already configured in another hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+        "title": "Global Dynamic Power Control Timeout",
+        "description": "The inverter did not respond while reading data for Global Dynamic Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
+    },
+    "detect_timeout_apc": {
+        "title": "Advanced Power Control Timeout",
+        "description": "The inverter did not respond while reading data for Advanced Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
     }
   }
 }
