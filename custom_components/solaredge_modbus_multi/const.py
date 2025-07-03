@@ -10,7 +10,7 @@ DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 
 # raise a startup exception if pymodbus version is less than this
-PYMODBUS_REQUIRED_VERSION = "3.8.3"
+PYMODBUS_REQUIRED_VERSION = "4.0.0"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
