@@ -1,6 +1,5 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
-![GitHub Release](https://img.shields.io/github/v/release/WillCodeForCats/solaredge-modbus-multi)
-![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/WillCodeForCats/solaredge-modbus-multi/latest/total)
+![GitHub Release](https://img.shields.io/github/v/release/WillCodeForCats/solaredge-modbus-multi?style=for-the-badge)
 
 # 🌞 SolarEdge Modbus Multi
 ### The Complete Local SolarEdge Integration for Home Assistant
