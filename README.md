@@ -6,8 +6,7 @@
 
 **Fast • Reliable • Cloud-Free • Actively Maintained**
 
-Transform your SolarEdge system into a powerful Home Assistant experience with real-time local monitoring of inverters, meters, and batteries. No cloud dependencies and no delays
-with a Modbus/TCP connection directly to the inverter.
+Transform your SolarEdge system into a powerful Home Assistant experience with real-time local monitoring (and control where supported) of inverters, meters, and batteries. No cloud dependencies and no delays with a Modbus/TCP connection directly to the inverter.
 
 ---
 
