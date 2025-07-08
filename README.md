@@ -74,3 +74,15 @@ After rebooting Home Assistant, this integration can be configured through the i
 * [@maksyms](https://github.com/maksyms)
 * [@pwo108](https://github.com/pwo108)
 * [@barrown](https://github.com/barrown)
+
+---
+
+## ⭐ Love This Integration?
+
+If this integration has improved your Home Assistant experience, please:
+- ⭐ **Star this repository**
+- 🐛 **Report any issues** you encounter
+- 💡 **Share feature requests**
+- 🗣️ **Tell others** about it
+
+**Made with ❤️ for the Home Assistant community**
