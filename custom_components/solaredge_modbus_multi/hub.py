@@ -253,7 +253,6 @@ class SolarEdgeModbusMultiHub:
             )
 
         for inverter_unit_id in self._inverter_list:
-
             try:
                 _LOGGER.debug(
                     f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
@@ -530,7 +529,6 @@ class SolarEdgeModbusMultiHub:
         )
 
         if result.isError():
-
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
@@ -1149,7 +1147,6 @@ class SolarEdgeInverter:
                 )
 
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
-
                     int16_fields = [
                         "mmppt_DCA_SF",
                         "mmppt_DCV_SF",
