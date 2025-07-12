@@ -1322,7 +1322,7 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: global power control NOT available"
                 )
 
-            except TimeoutError:
+            except (TimeoutError, ModbusIOException):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
@@ -1564,7 +1564,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except TimeoutError:
+            except (TimeoutError, ModbusIOException):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
