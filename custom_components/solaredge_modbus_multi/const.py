@@ -10,7 +10,7 @@ DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 
 # raise a startup exception if pymodbus version is less than this
-PYMODBUS_REQUIRED_VERSION = "3.8.3"
+PYMODBUS_REQUIRED_VERSION = "4.0.0"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
@@ -42,9 +42,9 @@ class ModbusExceptions:
     IllegalFunction = 0x01
     IllegalAddress = 0x02
     IllegalValue = 0x03
-    SlaveFailure = 0x04
+    DeviceFailure = 0x04
     Acknowledge = 0x05
-    SlaveBusy = 0x06
+    DeviceBusy = 0x06
     NegativeAcknowledge = 0x07
     MemoryParityError = 0x08
     GatewayPathUnavailable = 0x0A
