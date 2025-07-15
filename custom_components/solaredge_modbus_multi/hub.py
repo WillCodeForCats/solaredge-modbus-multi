@@ -253,7 +253,6 @@ class SolarEdgeModbusMultiHub:
             )
 
         for inverter_unit_id in self._inverter_list:
-
             try:
                 _LOGGER.debug(
                     f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
@@ -502,7 +501,7 @@ class SolarEdgeModbusMultiHub:
         if self._client is not None:
             _LOGGER.debug(
                 (
-                    f"Disconnectng from {self._host}:{self._port} "
+                    f"Disconnecting from {self._host}:{self._port} "
                     f"(clear_client={clear_client})."
                 )
             )
@@ -530,7 +529,6 @@ class SolarEdgeModbusMultiHub:
         )
 
         if result.isError():
-
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
@@ -556,12 +554,9 @@ class SolarEdgeModbusMultiHub:
         )
 
         if len(result.registers) != rcount:
-            _LOGGER.error(
-                f"I{self._rr_unit}: Registers received != requested : "
-                f"{len(result.registers)} != {self._rr_count}"
-            )
             raise ModbusReadError(
-                f"I{self._rr_unit}: Registers received != requested from inverter."
+                f"I{self._rr_unit}: Registers received != requested : "
+                f"{len(result.registers)} != {self._rr_count} at {self._rr_address}"
             )
 
         return result
@@ -1152,7 +1147,6 @@ class SolarEdgeInverter:
                 )
 
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
-
                     int16_fields = [
                         "mmppt_DCA_SF",
                         "mmppt_DCV_SF",
@@ -1328,7 +1322,7 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: global power control NOT available"
                 )
 
-            except TimeoutError:
+            except (TimeoutError, ModbusIOException):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
@@ -1570,7 +1564,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except TimeoutError:
+            except (TimeoutError, ModbusIOException):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
@@ -1703,27 +1697,19 @@ class SolarEdgeInverter:
                 )
                 self._grid_status = True
 
-            except (ModbusIllegalAddress, ModbusIOException) as e:
-
-                if (
-                    type(e) is ModbusIOException
-                    and "No response recieved after" not in e
-                ):
-                    raise
-
-                try:
-                    del self.decoded_model["I_Grid_Status"]
-                except KeyError:
-                    pass
-
+            except ModbusIllegalAddress:
                 self._grid_status = False
-
-                _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: Grid On/Off NOT available: {e}")
-                )
+                _LOGGER.debug((f"I{self.inverter_unit_id}: Grid On/Off NOT available"))
 
                 if not self.hub.is_connected:
                     await self.hub.connect()
+
+            except ModbusIOException as e:
+                _LOGGER.debug(
+                    f"I{self.inverter_unit_id}: A modbus I/O exception occurred "
+                    "while reading data for Grid On/Off Status. This entity "
+                    f"will be unavailable: {e}"
+                )
 
             except ModbusIOError:
                 raise ModbusReadError(

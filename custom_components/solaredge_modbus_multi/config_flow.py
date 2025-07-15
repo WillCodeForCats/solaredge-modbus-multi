@@ -207,7 +207,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 elif not 1 <= inverter_count <= 32:
                     errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                 else:
-
                     user_input[ConfName.DEVICE_LIST] = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
