@@ -63,6 +63,7 @@ async def async_setup_entry(
         entities.append(Version(inverter, config_entry, coordinator))
         entities.append(SolarEdgeInverterStatus(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
+        entities.append(StatusVendor4(inverter, config_entry, coordinator))
         entities.append(ACCurrentSensor(inverter, config_entry, coordinator))
         entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "A"))
         entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "B"))
@@ -1382,6 +1383,56 @@ class StatusVendor(SolarEdgeSensorBase):
 
         except KeyError:
             return None
+
+
+class StatusVendor4(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        self._msw = None
+        self._lsw = None
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_status_vendor_4"
+
+    @property
+    def name(self) -> str:
+        return "Status Vendor"
+
+    @property
+    def available(self) -> bool:
+        try:
+            if (
+                self._platform.decoded_model["I_Status_Vendor4"]
+                == SunSpecNotImpl.UINT32
+            ):
+                return False
+
+        except KeyError:
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["I_Status_Vendor4"]
+
+    @property
+    def extra_state_attributes(self):
+        """Split UINT32 into Most Significant Word and Least Significant Word"""
+        self._msw = (
+            self._platform.decoded_model["I_Status_Vendor4"] >> 16
+        ) & 0xFFFF  # Upper 16 bits
+        self._lsw = (
+            self._platform.decoded_model["I_Status_Vendor4"] & 0xFFFF
+        )  # Lower 16 bits
+
+        return {
+            "MSW": self._msw,
+            "LSW": self._lsw,
+        }
 
 
 class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
