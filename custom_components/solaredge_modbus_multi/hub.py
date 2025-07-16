@@ -803,7 +803,21 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
         self._grid_status = None
-        self._i_status_vendor4 = None
+
+    def _parse_version(version_string):
+        """
+        Parse version string in format "0004.0014.0229"
+        Returns tuple of (major, minor, patch) as integers
+        """
+        parts = version_string.split(".")
+        if len(parts) != 3:
+            raise ValueError(f"Invalid version format: {version_string}")
+
+        major = int(parts[0])
+        minor = int(parts[1])
+        patch = int(parts[2])
+
+        return major, minor, patch
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1120,6 +1134,29 @@ class SolarEdgeInverter:
                 or self.decoded_model["C_SunSpec_Length"] != 50
             ):
                 raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
+
+            ver_major, ver_minor, ver_patch = self._parse_version(self.fw_version)
+
+            if ver_major > 3 or (ver_major == 3 and ver_major >= 19):
+                # CPU v3.19xx and later, including 4.x
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=40119, rcount=2
+                )
+
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            (
+                                "I_Status_Vendor4",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[0:2],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                    word_order="little",
+                                ),
+                            ),
+                        ]
+                    )
+                )
 
         except ModbusIOError:
             raise ModbusReadError(
@@ -1716,51 +1753,6 @@ class SolarEdgeInverter:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
-
-        """ I_Status_Vendor4 """
-        if self._i_status_vendor4 is not False:
-            try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40119, rcount=2
-                )
-
-                self.decoded_model.update(
-                    OrderedDict(
-                        [
-                            (
-                                "I_Status_Vendor4",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0:2],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    word_order="little",
-                                ),
-                            ),
-                        ]
-                    )
-                )
-                self._i_status_vendor4 = True
-
-            except ModbusIllegalAddress:
-                self._i_status_vendor4 = False
-                _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: I_Status_Vendor4 NOT available")
-                )
-
-            except ModbusIOException as e:
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: A modbus I/O exception occurred "
-                    "while reading data for I_Status_Vendor4. This entity "
-                    f"will be unavailable: {e}"
-                )
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from I{self.inverter_unit_id} on I_Status_Vendor4."
-                )
-
-            finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
