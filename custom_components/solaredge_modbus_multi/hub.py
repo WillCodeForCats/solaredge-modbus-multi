@@ -1343,6 +1343,10 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
+            finally:
+                if not self.hub.is_connected:
+                    await self.hub.connect()
+
         """ Advanced Power Control """
         """ Power Control Block """
         if self.hub.option_detect_extras is True and (
@@ -1585,6 +1589,10 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
+            finally:
+                if not self.hub.is_connected:
+                    await self.hub.connect()
+
         """ Power Control Options: Site Limit Control """
         if (
             self.hub.option_site_limit_control is True
@@ -1701,9 +1709,6 @@ class SolarEdgeInverter:
                 self._grid_status = False
                 _LOGGER.debug((f"I{self.inverter_unit_id}: Grid On/Off NOT available"))
 
-                if not self.hub.is_connected:
-                    await self.hub.connect()
-
             except ModbusIOException as e:
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: A modbus I/O exception occurred "
@@ -1715,6 +1720,10 @@ class SolarEdgeInverter:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
+
+            finally:
+                if not self.hub.is_connected:
+                    await self.hub.connect()
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
