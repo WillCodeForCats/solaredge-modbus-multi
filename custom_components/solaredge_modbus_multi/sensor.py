@@ -1203,7 +1203,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return "Temp Sink"
+        return "Temperature"
 
     @property
     def native_value(self):

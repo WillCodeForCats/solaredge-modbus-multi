@@ -253,7 +253,6 @@ class SolarEdgeModbusMultiHub:
             )
 
         for inverter_unit_id in self._inverter_list:
-
             try:
                 _LOGGER.debug(
                     f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
@@ -502,7 +501,7 @@ class SolarEdgeModbusMultiHub:
         if self._client is not None:
             _LOGGER.debug(
                 (
-                    f"Disconnectng from {self._host}:{self._port} "
+                    f"Disconnecting from {self._host}:{self._port} "
                     f"(clear_client={clear_client})."
                 )
             )
@@ -530,7 +529,6 @@ class SolarEdgeModbusMultiHub:
         )
 
         if result.isError():
-
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
@@ -1149,7 +1147,6 @@ class SolarEdgeInverter:
                 )
 
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
-
                     int16_fields = [
                         "mmppt_DCA_SF",
                         "mmppt_DCV_SF",
@@ -1325,7 +1322,7 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: global power control NOT available"
                 )
 
-            except TimeoutError:
+            except (TimeoutError, ModbusIOException):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
@@ -1345,6 +1342,10 @@ class SolarEdgeInverter:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
+
+            finally:
+                if not self.hub.is_connected:
+                    await self.hub.connect()
 
         """ Advanced Power Control """
         """ Power Control Block """
@@ -1567,7 +1568,7 @@ class SolarEdgeInverter:
                     )
                 )
 
-            except TimeoutError:
+            except (TimeoutError, ModbusIOException):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
@@ -1587,6 +1588,10 @@ class SolarEdgeInverter:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
+
+            finally:
+                if not self.hub.is_connected:
+                    await self.hub.connect()
 
         """ Power Control Options: Site Limit Control """
         if (
@@ -1704,9 +1709,6 @@ class SolarEdgeInverter:
                 self._grid_status = False
                 _LOGGER.debug((f"I{self.inverter_unit_id}: Grid On/Off NOT available"))
 
-                if not self.hub.is_connected:
-                    await self.hub.connect()
-
             except ModbusIOException as e:
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: A modbus I/O exception occurred "
@@ -1718,6 +1720,10 @@ class SolarEdgeInverter:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
+
+            finally:
+                if not self.hub.is_connected:
+                    await self.hub.connect()
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
