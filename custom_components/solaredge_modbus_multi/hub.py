@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.metadata
+import inspect
 import logging
 from collections import OrderedDict
 
@@ -524,9 +525,16 @@ class SolarEdgeModbusMultiHub:
         self._rr_address = address
         self._rr_count = rcount
 
-        result = await self._client.read_holding_registers(
-            address=self._rr_address, count=self._rr_count, device_id=self._rr_unit
-        )
+        sig = inspect.signature(self._client.read_holding_registers)
+
+        if "device_id" in sig.parameters:
+            result = await self._client.read_holding_registers(
+                address=self._rr_address, count=self._rr_count, device_id=self._rr_unit
+            )
+        else:
+            result = await self._client.read_holding_registers(
+                address=self._rr_address, count=self._rr_count, slave=self._rr_unit
+            )
 
         if result.isError():
             if type(result) is ModbusIOException:
@@ -573,11 +581,20 @@ class SolarEdgeModbusMultiHub:
                 if not self.is_connected:
                     await self.connect()
 
-                result = await self._client.write_registers(
-                    address=self._wr_address,
-                    values=self._wr_payload,
-                    device_id=self._wr_unit,
-                )
+                sig = inspect.signature(self._client.write_registers)
+
+                if "device_id" in sig.parameters:
+                    result = await self._client.write_registers(
+                        address=self._wr_address,
+                        values=self._wr_payload,
+                        device_id=self._wr_unit,
+                    )
+                else:
+                    result = await self._client.write_registers(
+                        address=self._wr_address,
+                        values=self._wr_payload,
+                        slave=self._wr_unit,
+                    )
 
                 self.has_write = address
 
