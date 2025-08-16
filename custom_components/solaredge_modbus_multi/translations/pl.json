@@ -89,7 +89,7 @@
         },
         "error": {
           "invalid_device_id": "Device ID musi być pomiędzy 1 i 247.",
-          "invalid_inverter_count": "Dopuszczalna liczba inwerterów to od  1 do 32.",    
+          "invalid_inverter_count": "Dopuszczalna liczba inwerterów to od  1 do 32.",
           "invalid_host": "Błędny adres IP.",
           "invalid_tcp_port": "Dozwolony zakres portów to od 1 do 65535.",
           "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
