@@ -19,7 +19,7 @@ on:
     branches: [main]
   schedule:
     - cron: "31 7 * * 1"
-
+permissions: read-all
 jobs:
   analyze:
     name: Analyze

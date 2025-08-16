@@ -9,7 +9,7 @@ on:
       - main
   schedule:
     - cron: "0 0 * * *"
-
+permissions: read-all
 jobs:
   validate:
     runs-on: "ubuntu-latest"
