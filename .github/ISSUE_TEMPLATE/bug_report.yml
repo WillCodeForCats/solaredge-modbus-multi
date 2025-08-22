@@ -79,6 +79,7 @@ body:
           required: true
         - label: This issue is not about a template error (do not report template errors, read https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Design-Notes)
           required: true
+        - label: Do not report "Setup failed for custom integration 'solaredge_modbus_multi': Requirements for solaredge_modbus_multi not found: ['pymodbus>=3.6.6,<3.8']" this means you are running a version of solaredge_modbus_multi older than February 2025 and you need to upgrade.
   - type: textarea
     id: additional-context
     attributes:
