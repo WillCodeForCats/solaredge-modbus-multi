@@ -16,8 +16,10 @@ from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
 
 try:
+    # for pymodbus 3.11.1 and newer
     from pymodbus.pdu.pdu import ExceptionResponse
 except ImportError:
+    # or backwards compatibility
     from pymodbus.pdu import ExceptionResponse
 
 from .const import (
