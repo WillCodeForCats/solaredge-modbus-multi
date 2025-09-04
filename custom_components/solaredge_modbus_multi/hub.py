@@ -14,6 +14,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
+
 try:
     from pymodbus.pdu.pdu import ExceptionResponse
 except ImportError:
@@ -107,7 +108,6 @@ class DeviceInvalid(SolarEdgeException):
 
 
 class SolarEdgeModbusMultiHub:
-
     def __init__(
         self,
         hass: HomeAssistant,
@@ -545,14 +545,10 @@ class SolarEdgeModbusMultiHub:
                 address=self._rr_address, count=self._rr_count, slave=self._rr_unit
             )
 
-        _LOGGER.debug(
-            f"I{self._rr_unit}: result is error: {result.isError()} "
-        )
+        _LOGGER.debug(f"I{self._rr_unit}: result is error: {result.isError()} ")
 
         if result.isError():
-            _LOGGER.debug(
-                f"I{self._rr_unit}: error result: {type(result)} "
-            )
+            _LOGGER.debug(f"I{self._rr_unit}: error result: {type(result)} ")
 
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
