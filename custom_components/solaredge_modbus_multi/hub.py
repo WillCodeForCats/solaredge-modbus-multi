@@ -14,7 +14,13 @@ from homeassistant.helpers.entity import DeviceInfo
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
-from pymodbus.pdu import ExceptionResponse
+
+try:
+    # for pymodbus 3.11.1 and newer
+    from pymodbus.pdu.pdu import ExceptionResponse
+except ImportError:
+    # or backwards compatibility
+    from pymodbus.pdu import ExceptionResponse
 
 from .const import (
     BATTERY_REG_BASE,
@@ -528,6 +534,11 @@ class SolarEdgeModbusMultiHub:
 
         sig = inspect.signature(self._client.read_holding_registers)
 
+        _LOGGER.debug(
+            f"I{self._rr_unit}: modbus_read_holding_registers "
+            f"address={self._rr_address} count={self._rr_count}"
+        )
+
         if "device_id" in sig.parameters:
             result = await self._client.read_holding_registers(
                 address=self._rr_address, count=self._rr_count, device_id=self._rr_unit
@@ -537,7 +548,11 @@ class SolarEdgeModbusMultiHub:
                 address=self._rr_address, count=self._rr_count, slave=self._rr_unit
             )
 
+        _LOGGER.debug(f"I{self._rr_unit}: result is error: {result.isError()} ")
+
         if result.isError():
+            _LOGGER.debug(f"I{self._rr_unit}: error result: {type(result)} ")
+
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
