@@ -110,6 +110,7 @@ class DeviceInvalid(SolarEdgeException):
 
 
 class SolarEdgeModbusMultiHub:
+
     def __init__(
         self,
         hass: HomeAssistant,
