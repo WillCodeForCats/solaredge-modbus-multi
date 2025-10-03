@@ -110,7 +110,6 @@ class DeviceInvalid(SolarEdgeException):
 
 
 class SolarEdgeModbusMultiHub:
-
     def __init__(
         self,
         hass: HomeAssistant,
@@ -457,8 +456,7 @@ class SolarEdgeModbusMultiHub:
             self._timeout_counter += 1
 
             _LOGGER.debug(
-                f"Refresh timeout {self._timeout_counter} "
-                f"limit {self._retry_limit}"
+                f"Refresh timeout {self._timeout_counter} " f"limit {self._retry_limit}"
             )
 
             if self._timeout_counter >= self._retry_limit:
@@ -662,9 +660,7 @@ class SolarEdgeModbusMultiHub:
                     )
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(
-                        f"Unit {self._wr_unit} Write IllegalValue: {result}"
-                    )
+                    _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalValue: {result}")
                     raise HomeAssistantError(
                         "Value invalid for device at ID {self._wr_unit}."
                     )
