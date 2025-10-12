@@ -51,6 +51,7 @@ body:
   - type: input
     id: version
     attributes:
+      description: If you're not running the latest release you should try upgrading first. Any diagnostics or fixes will be based on the latest release.
       label: solaredge-modbus-multi Version
     validations:
       required: true
