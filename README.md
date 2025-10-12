@@ -45,7 +45,8 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 - Home Assistant 2025.2.0 or newer
 - Python 3.11 or newer
-- pymodbus 3.8.3 or newer
+- pymodbus 3.8.3 or newer (pymodbus>=3.10.0 requires release v3.1.6 or newer)
+
 
 ## Specifications
 
