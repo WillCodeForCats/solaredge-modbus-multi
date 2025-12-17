@@ -2323,6 +2323,9 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
+        if "B_Energy_Available" not in self._platform.decoded_model:
+            return False
+
         if (
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == hex(SunSpecNotImpl.FLOAT32)
@@ -2367,6 +2370,9 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
+        if "B_SOH" not in self._platform.decoded_model:
+            return False
+
         if (
             float_to_hex(self._platform.decoded_model["B_SOH"])
             == hex(SunSpecNotImpl.FLOAT32)
@@ -2398,6 +2404,9 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
+        if "B_SOE" not in self._platform.decoded_model:
+            return False
+
         if (
             float_to_hex(self._platform.decoded_model["B_SOE"])
             == hex(SunSpecNotImpl.FLOAT32)
