@@ -2326,7 +2326,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
         if (
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_Energy_Available"] >= 0
+            or self._platform.decoded_model["B_Energy_Available"] < 0
         ):
             return False
 
