@@ -2323,13 +2323,14 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        return (
-            super().available
-            and "B_Energy_Available" in self._platform.decoded_model
-            and float_to_hex(self._platform.decoded_model["B_Energy_Available"])
-            != hex(SunSpecNotImpl.FLOAT32)
-            and self._platform.decoded_model["B_Energy_Available"] >= 0
-        )
+        if (
+            float_to_hex(self._platform.decoded_model["B_Energy_Available"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["B_Energy_Available"] >= 0
+        ):
+            return False
+
+        return super().available
 
     @property
     def native_value(self):
@@ -2366,13 +2367,15 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        return (
-            super().available
-            and "B_SOH" in self._platform.decoded_model
-            and float_to_hex(self._platform.decoded_model["B_SOH"])
-            != hex(SunSpecNotImpl.FLOAT32)
-            and 0 <= self._platform.decoded_model["B_SOH"] <= 100
-        )
+        if (
+            float_to_hex(self._platform.decoded_model["B_SOH"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["B_SOH"] < 0
+            or self._platform.decoded_model["B_SOH"] > 100
+        ):
+            return False
+
+        return super().available
 
     @property
     def native_value(self):
@@ -2395,13 +2398,15 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        return (
-            super().available
-            and "B_SOE" in self._platform.decoded_model
-            and float_to_hex(self._platform.decoded_model["B_SOE"])
-            != hex(SunSpecNotImpl.FLOAT32)
-            and 0 <= self._platform.decoded_model["B_SOE"] <= 100
-        )
+        if (
+            float_to_hex(self._platform.decoded_model["B_SOE"])
+            == hex(SunSpecNotImpl.FLOAT32)
+            or self._platform.decoded_model["B_SOE"] < 0
+            or self._platform.decoded_model["B_SOE"] > 100
+        ):
+            return False
+
+        return super().available
 
     @property
     def native_value(self):
