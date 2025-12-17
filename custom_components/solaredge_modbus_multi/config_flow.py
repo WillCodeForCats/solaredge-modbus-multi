@@ -173,7 +173,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): cv.string,
                 },
             ),
-
             errors=errors,
         )
 
