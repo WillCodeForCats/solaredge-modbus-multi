@@ -11,14 +11,14 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DEFAULT_NAME,
     DOMAIN,
     SETUP_MANUAL,
-    SETUP_SCAN,
+    SETUP_SCAN_FAST,
     SETUP_SCAN_FULL,
     SETUP_TYPE,
     ConfDefaultFlag,
@@ -67,9 +67,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         data_schema = vol.Schema(
             {
-                vol.Required(SETUP_TYPE, default=SETUP_SCAN): vol.In(
+                vol.Required(SETUP_TYPE, default=SETUP_SCAN_FAST): vol.In(
                     (
-                        SETUP_SCAN,
+                        SETUP_SCAN_FAST,
                         SETUP_SCAN_FULL,
                         SETUP_MANUAL,
                     )
@@ -83,13 +83,16 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data_schema=data_schema,
             )
 
-        if user_input[SETUP_TYPE] == SETUP_MANUAL:
-            return await self.async_step_manual()
+        if user_input[SETUP_TYPE] == SETUP_SCAN_FAST:
+            return await self.async_step_scan_fast()
         if user_input[SETUP_TYPE] == SETUP_SCAN_FULL:
             return await self.async_step_scan_full()
-        return await self.async_step_scan()
+        if user_input[SETUP_TYPE] == SETUP_MANUAL:
+            return await self.async_step_manual()
 
-    async def async_step_scan(
+        raise AbortFlow(f"Unknown setup type: {user_input[SETUP_TYPE]}")
+
+    async def async_step_scan_fast(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """
@@ -98,7 +101,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """
         errors = {}
 
-        raise HomeAssistantError("async_step_scan")
+        raise AbortFlow("async_step_scan_fast")
 
     async def async_step_scan_full(
         self, user_input: dict[str, Any] | None = None
@@ -109,7 +112,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """
         errors = {}
 
-        raise HomeAssistantError("async_step_scan_full")
+        raise AbortFlow("async_step_scan_full")
 
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
