@@ -100,7 +100,6 @@ class SolarEdgeSelectBase(CoordinatorEntity, SelectEntity):
 
 
 class StorageControlMode(SolarEdgeSelectBase):
-
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_CONTROL_MODE
@@ -154,7 +153,6 @@ class StorageControlMode(SolarEdgeSelectBase):
 
 
 class StorageACChargePolicy(SolarEdgeSelectBase):
-
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_AC_CHARGE_POLICY
@@ -208,7 +206,6 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
 
 
 class StorageDefaultMode(SolarEdgeSelectBase):
-
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE
@@ -266,7 +263,6 @@ class StorageDefaultMode(SolarEdgeSelectBase):
 
 
 class StorageCommandMode(SolarEdgeSelectBase):
-
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE
@@ -324,7 +320,6 @@ class StorageCommandMode(SolarEdgeSelectBase):
 
 
 class SolaredgeLimitControlMode(SolarEdgeSelectBase):
-
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = LIMIT_CONTROL_MODE
@@ -387,7 +382,6 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
 
 
 class SolaredgeLimitControl(SolarEdgeSelectBase):
-
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = LIMIT_CONTROL
@@ -431,7 +425,6 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
 
 
 class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
-
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         self._options = REACTIVE_POWER_CONFIG

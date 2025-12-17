@@ -456,7 +456,7 @@ class SolarEdgeModbusMultiHub:
             self._timeout_counter += 1
 
             _LOGGER.debug(
-                f"Refresh timeout {self._timeout_counter} " f"limit {self._retry_limit}"
+                f"Refresh timeout {self._timeout_counter} limit {self._retry_limit}"
             )
 
             if self._timeout_counter >= self._retry_limit:
@@ -1587,10 +1587,7 @@ class SolarEdgeInverter:
             except ModbusIllegalAddress:
                 self.advanced_power_control = False
                 _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id}: "
-                        "advanced power control NOT available"
-                    )
+                    f"I{self.inverter_unit_id}: advanced power control NOT available"
                 )
 
             except (TimeoutError, ModbusIOException):
@@ -1665,7 +1662,7 @@ class SolarEdgeInverter:
             except ModbusIllegalAddress:
                 self.site_limit_control = False
                 _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: " "site limit control NOT available")
+                    f"I{self.inverter_unit_id}: site limit control NOT available"
                 )
 
             except ModbusIOError:
@@ -1700,7 +1697,7 @@ class SolarEdgeInverter:
                 except KeyError:
                     pass
 
-                _LOGGER.debug((f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available"))
+                _LOGGER.debug(f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available")
 
             except ModbusIOError:
                 raise ModbusReadError(
@@ -1732,7 +1729,7 @@ class SolarEdgeInverter:
 
             except ModbusIllegalAddress:
                 self._grid_status = False
-                _LOGGER.debug((f"I{self.inverter_unit_id}: Grid On/Off NOT available"))
+                _LOGGER.debug(f"I{self.inverter_unit_id}: Grid On/Off NOT available")
 
             except ModbusIOException as e:
                 _LOGGER.debug(
@@ -1756,7 +1753,7 @@ class SolarEdgeInverter:
             else:
                 display_value = hex(value) if isinstance(value, int) else value
             _LOGGER.debug(
-                f"I{self.inverter_unit_id}: " f"{name} {display_value} {type(value)}"
+                f"I{self.inverter_unit_id}: {name} {display_value} {type(value)}"
             )
 
         """ Power Control Options: Storage Control """
@@ -1849,7 +1846,7 @@ class SolarEdgeInverter:
             except ModbusIllegalAddress:
                 self.decoded_storage_control = False
                 _LOGGER.debug(
-                    (f"I{self.inverter_unit_id}: " "storage control NOT available")
+                    f"I{self.inverter_unit_id}: storage control NOT available"
                 )
 
             except ModbusIOError:
@@ -2076,8 +2073,7 @@ class SolarEdgeMeter:
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = (
-            f"{self.hub.hub_id.capitalize()} "
-            f"I{self.inverter_unit_id} M{self.meter_id}"
+            f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
 
         inverter_model = self.inverter_common["C_Model"]

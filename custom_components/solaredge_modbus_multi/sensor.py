@@ -1676,7 +1676,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{self._platform.uid_base}_" f"{self._phase.lower()}_vah"
+            return f"{self._platform.uid_base}_{self._phase.lower()}_vah"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
