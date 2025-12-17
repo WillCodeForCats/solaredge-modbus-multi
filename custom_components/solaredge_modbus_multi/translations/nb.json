@@ -89,7 +89,7 @@
         },
         "error": {
           "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",    
+          "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",
           "invalid_host": "Ugyldig IP-adresse.",
           "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
           "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",

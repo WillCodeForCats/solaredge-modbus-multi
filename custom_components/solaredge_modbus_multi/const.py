@@ -42,9 +42,9 @@ class ModbusExceptions:
     IllegalFunction = 0x01
     IllegalAddress = 0x02
     IllegalValue = 0x03
-    SlaveFailure = 0x04
+    DeviceFailure = 0x04
     Acknowledge = 0x05
-    SlaveBusy = 0x06
+    DeviceBusy = 0x06
     NegativeAcknowledge = 0x07
     MemoryParityError = 0x08
     GatewayPathUnavailable = 0x0A

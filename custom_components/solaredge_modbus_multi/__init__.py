@@ -231,6 +231,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
 
 class SolarEdgeCoordinator(DataUpdateCoordinator):
+
     def __init__(
         self, hass: HomeAssistant, hub: SolarEdgeModbusMultiHub, scan_interval: int
     ):

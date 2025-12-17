@@ -89,7 +89,7 @@
         },
         "error": {
           "invalid_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-          "invalid_inverter_count": "Muss zwischen 1 und 32 Wechselrichtern liegen.",    
+          "invalid_inverter_count": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
           "invalid_host": "Ungültige IP-Adresse.",
           "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
           "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
