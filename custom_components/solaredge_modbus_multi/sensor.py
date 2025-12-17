@@ -1497,7 +1497,17 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def available(self) -> bool:
-        return super().available and "I_Power_Limit" in self._platform.decoded_model
+        if "I_Power_Limit" not in self._platform.decoded_model:
+            return False
+
+        if (
+            self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
+            or self._platform.decoded_model["I_Power_Limit"] > 100
+            or self._platform.decoded_model["I_Power_Limit"] < 0
+        ):
+            return False
+
+        return super().available
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1505,15 +1515,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def native_value(self) -> int:
-        if (
-            self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
-            or self._platform.decoded_model["I_Power_Limit"] > 100
-            or self._platform.decoded_model["I_Power_Limit"] < 0
-        ):
-            return None
-
-        else:
-            return self._platform.decoded_model["I_Power_Limit"]
+        return self._platform.decoded_model["I_Power_Limit"]
 
 
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
