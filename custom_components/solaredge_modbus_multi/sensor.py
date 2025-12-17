@@ -2391,16 +2391,18 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
         return "State of Energy"
 
     @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "B_SOE" in self._platform.decoded_model
+            and float_to_hex(self._platform.decoded_model["B_SOE"])
+            != hex(SunSpecNotImpl.FLOAT32)
+            and 0 <= self._platform.decoded_model["B_SOE"] <= 100
+        )
+
+    @property
     def native_value(self):
-        if (
-            float_to_hex(self._platform.decoded_model["B_SOE"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_SOE"] < 0
-            or self._platform.decoded_model["B_SOE"] > 100
-        ):
-            return None
-        else:
-            return self._platform.decoded_model["B_SOE"]
+        return self._platform.decoded_model["B_SOE"]
 
 
 class SolarEdgeAdvancedPowerControlBlock(SolarEdgeSensorBase):
