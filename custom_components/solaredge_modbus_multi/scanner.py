@@ -1,4 +1,7 @@
-"""Device ID scanner for SolarEdge Modbus Multi."""
+"""Device ID scanner for SolarEdge Modbus Multi.
+
+Based on work by thargy: https://github.com/thargy/modbus-scanner
+"""
 
 from __future__ import annotations
 
@@ -60,6 +63,14 @@ class SolarEdgeDeviceScanner:
         timeout: float = 5.0,
         scan_retries: int = 3,
     ):
+        """Initialize the SolarEdge device scanner.
+
+        Args:
+            host: Target host address.
+            port: Target port number.
+            timeout: Connection timeout in seconds.
+            scan_retries: Number of retry attempts for failed scans.
+        """
         self._timeout = timeout
         self._scan_retries = scan_retries
         self._host = host
@@ -80,6 +91,14 @@ class SolarEdgeDeviceScanner:
     #            _LOGGER.debug(f"Closing connection ... FAILED: {e}")
 
     async def scan_list(self, device_list: list[int]) -> list[int]:
+        """Scan a list of device IDs for SolarEdge inverters.
+
+        Args:
+            device_list: List of Modbus device IDs to scan.
+
+        Returns:
+            List of device IDs that are SolarEdge inverters.
+        """
         for chunk in self._batch(device_list, 4):
             retry = []
             # Quick scan chunk
@@ -99,6 +118,7 @@ class SolarEdgeDeviceScanner:
         return self.inverters
 
     async def connect(self) -> None:
+        """Establish TCP connection to the Modbus device."""
         attempt = 1
 
         while self._writer is None and attempt <= self._scan_retries:
@@ -129,6 +149,7 @@ class SolarEdgeDeviceScanner:
             )
 
     async def disconnect(self) -> None:
+        """Close the TCP connection to the Modbus device."""
         if self._writer is not None:
             self._writer.close()
             await self._writer.wait_closed()
@@ -136,23 +157,16 @@ class SolarEdgeDeviceScanner:
         self._reader = None
 
     def device_is_inverter(self, request: list[int], response: list[int]) -> int:
-        """The function `device_is_inverter` checks if a given response matches the expected response for an inverter
-        device.
+        """Check if device response matches SolarEdge inverter signature.
 
-        Parameters
-        ----------
-        request
-            The request parameter is a list that contains the TCP request.
-        response
-            The `response` parameter is a list of values that represents the response received from a device.
+        Args:
+            request: The Modbus TCP request sent to the device.
+            response: The Modbus TCP response received from the device.
 
-        Returns
-        -------
-            The function `device_is_inverter` returns the result of the scanning process, which can be one of the following
-        values:
-        - `FOUND_INV`: Indicates that an inverter was found.
-        - `FOUND`: Indicates that a non-inverter device was found.
-        - `0`: Indicates an unknown response or no response was received within the specified timeout.
+        Returns:
+            FOUND_INV (2) if a SolarEdge inverter was detected.
+            FOUND (1) if a non-inverter Modbus device responded.
+            0 if the response was invalid or no device found.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
         """
@@ -175,25 +189,19 @@ class SolarEdgeDeviceScanner:
         return self.FOUND_INV
 
     async def scan_device_id(self, device_id: int, timeout: float = 5.0) -> int:
-        """The `scan_device_id` function scans a device ID by sending a request to a server and receiving a response,
-        and returns the result of the scan.
+        """Scan a specific Modbus device ID for a SolarEdge inverter.
 
-        Parameters
-        ----------
-        device_id
-            The `device_id` parameter is the ID of the device that you want to scan. It is used to update the
-            request and specify the device ID in the request packet.
-        timeout
-            The `timeout` parameter is the maximum amount of time (in seconds) to wait for a response from the
-            server before considering it as a timeout.
+        Args:
+            device_id: The Modbus device ID to scan (1-247).
+            timeout: Maximum time in seconds to wait for a response.
 
-        Returns
-        -------
-            The function `scan_device_id` returns the result of the scanning process, which can be
-            one of the following values:
-                - `FOUND_INV`: Indicates that an inverter was found.
-                - `FOUND`: Indicates that a non-inverter device was found.
-                - `0`: Indicates an unknown response or no response was received within the specified timeout.
+        Returns:
+            FOUND_INV (2) if a SolarEdge inverter was detected.
+            FOUND (1) if a non-inverter Modbus device responded.
+            0 if no valid response was received.
+
+        Raises:
+            HomeAssistantError: If scanning fails after all retry attempts.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
         """
@@ -251,18 +259,14 @@ class SolarEdgeDeviceScanner:
         return result
 
     def _batch(self, iterable, n=1):
-        """The `batch` function takes an iterable and returns a generator that yields batches of elements from
-        the iterable.
+        """Split an iterable into batches of size n.
 
-        Parameters
-        ----------
-        iterable
-            The `iterable` parameter is any sequence or collection that can be iterated over, such as a list,
-            tuple, or string. It is the input data that you want to process in batches.
-        n, optional
-            The parameter `n` in the `batch` function is an optional parameter that specifies the size of each
-            batch. By default, it is set to 1, which means each batch will contain only one element from the
-            iterable.
+        Args:
+            iterable: Sequence to split into batches.
+            n: Size of each batch (default: 1).
+
+        Yields:
+            Batches of up to n elements from the iterable.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
         """
