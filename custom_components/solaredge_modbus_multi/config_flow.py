@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import Any
 
@@ -27,6 +28,7 @@ from .const import (
     ConfName,
 )
 from .helpers import device_list_from_string, host_valid
+from .scanner import SolarEdgeDeviceScanner
 
 
 def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
@@ -84,35 +86,85 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         if user_input[SETUP_TYPE] == SETUP_SCAN_FAST:
-            return await self.async_step_scan_fast()
+            self.init_info = user_input
+            return await self.async_step_scan_ask_host()
         if user_input[SETUP_TYPE] == SETUP_SCAN_FULL:
-            return await self.async_step_scan_full()
+            self.init_info = user_input
+            return await self.async_step_scan_ask_host()
         if user_input[SETUP_TYPE] == SETUP_MANUAL:
             return await self.async_step_manual()
 
         raise AbortFlow(f"Unknown setup type: {user_input[SETUP_TYPE]}")
 
-    async def async_step_scan_fast(
+    async def async_step_scan_ask_host(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """
-        Handle the scan config flow step.
-        Quick scan only scans the first 32 IDs (Scan IDs 1-32)
-        """
         errors = {}
+        scan_list = []
 
-        raise AbortFlow("async_step_scan_fast")
+        if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].lower()
 
-    async def async_step_scan_full(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """
-        Handle the full scan config flow step.
-        Full scan will scan all possible IDs (Scan IDs 1-247)
-        """
-        errors = {}
+            if not host_valid(user_input[CONF_HOST]):
+                errors[CONF_HOST] = "invalid_host"
+            elif not 1 <= user_input[CONF_PORT] <= 65535:
+                errors[CONF_PORT] = "invalid_tcp_port"
+            else:
+                new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                await self.async_set_unique_id(new_unique_id)
 
-        raise AbortFlow("async_step_scan_full")
+                self._abort_if_unique_id_configured()
+
+                scanner = SolarEdgeDeviceScanner(
+                    user_input[CONF_HOST], user_input[CONF_PORT]
+                )
+
+                await scanner.connect()
+
+                try:
+                    if self.init_info[SETUP_TYPE] == SETUP_SCAN_FAST:
+                        scan_list = await scanner.scan_list(list(range(1, 33)))
+                    if self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
+                        scan_list = await scanner.scan_list(list(range(1, 248)))
+                except HomeAssistantError as e:
+                    raise AbortFlow(f"Scan failed: {e}")
+
+                await scanner.disconnect()
+                await asyncio.sleep(1.0)
+
+                if not scan_list:
+                    raise AbortFlow(
+                        f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    )
+
+                user_input[ConfName.DEVICE_LIST] = scan_list
+
+                return self.async_create_entry(
+                    title=user_input[CONF_NAME],
+                    data=user_input,
+                )
+
+        else:
+            user_input = {
+                CONF_NAME: DEFAULT_NAME,
+                CONF_HOST: "",
+                CONF_PORT: ConfDefaultInt.PORT,
+                ConfName.DEVICE_LIST: ConfDefaultStr.DEVICE_LIST,
+            }
+
+        return self.async_show_form(
+            step_id="scan_ask_host",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
+                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
+                        int
+                    ),
+                },
+            ),
+            errors=errors,
+        )
 
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
