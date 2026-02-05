@@ -16,6 +16,14 @@
           "device_list": "Liste der Wechselrichter-Geräte-IDs"
         }
       },
+      "scan_ask_host": {
+        "title": "Nach SolarEdge-Wechselrichtern suchen",
+        "data": {
+          "name": "Sensorpräfix",
+          "host": "Wechselrichter-IP-Adresse",
+          "port": "Modbus/TCP-Port"
+        }
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-Konfiguration",
         "data": {

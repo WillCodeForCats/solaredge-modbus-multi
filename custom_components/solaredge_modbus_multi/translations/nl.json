@@ -16,6 +16,14 @@
           "device_list": "Omvormerapparaat-ID-lijst"
         }
       },
+      "scan_ask_host": {
+        "title": "Zoek naar SolarEdge-omvormers",
+        "data": {
+          "name": "Sensor prefix",
+          "host": "omvormer IP-adres",
+          "port": "Modbus/TCP Port"
+        }
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-configuratie",
         "data": {

@@ -16,6 +16,14 @@
           "device_list": "Lista identyfikatorów urządzeń falownika"
         }
       },
+      "scan_ask_host": {
+        "title": "Wyszukaj falowniki SolarEdge",
+        "data": {
+          "name": "Prefix sensora",
+          "host": "Adres IP inwertera",
+          "port": "Modbus/TCP Port"
+        }
+      },
       "reconfigure": {
         "title": "Konfiguracja SolarEdge Modbus",
         "data": {

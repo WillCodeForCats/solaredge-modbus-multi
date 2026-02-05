@@ -16,6 +16,14 @@
           "device_list": "Elenco ID dispositivi inverter"
         }
       },
+      "scan_ask_host": {
+        "title": "Cerca inverter SolarEdge",
+        "data": {
+          "name": "Prefisso sensore",
+          "host": "Indirizzo IP dell'inverter",
+          "port": "Porta Modbus/TCP"
+        }
+      },
       "reconfigure": {
         "title": "Configurazione Modbus SolarEdge",
         "data": {

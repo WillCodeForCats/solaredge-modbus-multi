@@ -16,6 +16,14 @@
           "device_list": "Inverter-enhetsliste"
         }
       },
+      "scan_ask_host": {
+        "title": "Søk etter SolarEdge-invertere",
+        "data": {
+          "name": "Sensorvoorvoegsel",
+          "host": "IP-adres van omvormer",
+          "port": "Modbus/TCP-poort"
+        }
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-konfigurasjon",
         "data": {

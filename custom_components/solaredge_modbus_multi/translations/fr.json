@@ -16,6 +16,14 @@
           "device_list": "Liste des ID des appareils de l'onduleur"
         }
       },
+      "scan_ask_host": {
+        "title": "Rechercher des onduleurs SolarEdge",
+        "data": {
+          "name": "Prefix du capteur",
+          "host": "Adresse IP de l'onduleur",
+          "port": "Port Modbus/TCP"
+        }
+      },
       "reconfigure": {
         "title": "Configuration SolarEdge Modbus",
         "data": {
