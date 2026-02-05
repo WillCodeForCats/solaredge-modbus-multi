@@ -111,6 +111,37 @@ class SolarEdgeDeviceScanner:
 
         return self.inverters
 
+    async def check_list(self, device_list: list[int]) -> dict[str, list[int]]:
+        """Check a list of device IDs and categorize the results.
+
+        Args:
+            device_list: List of Modbus device IDs to validate.
+
+        Returns:
+            Dictionary with three lists:
+            - "inverters": Device IDs that are SolarEdge inverters
+            - "other_devices": Device IDs that responded but aren't SolarEdge inverters
+            - "no_response": Device IDs that didn't respond or timed out
+        """
+        inverters = []
+        other_devices = []
+        no_response = []
+
+        for device_id in device_list:
+            result = await self.scan_device_id(device_id, 1.0)
+            if result == self.FOUND_INV:
+                inverters.append(device_id)
+            elif result == self.FOUND:
+                other_devices.append(device_id)
+            else:
+                no_response.append(device_id)
+
+        return {
+            "inverters": inverters,
+            "other_devices": other_devices,
+            "no_response": no_response,
+        }
+
     async def connect(self) -> None:
         """Establish TCP connection to the Modbus device."""
         attempt = 1
