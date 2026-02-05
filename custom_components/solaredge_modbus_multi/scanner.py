@@ -275,9 +275,6 @@ class SolarEdgeDeviceScanner:
                 _LOGGER.debug(f" FAILED: {e}")
                 attempt = attempt + 1
 
-            finally:
-                break
-
         if attempt > self._scan_retries:
             raise HomeAssistantError(f"Aborted scanning after {attempt - 1} attempts!")
 
