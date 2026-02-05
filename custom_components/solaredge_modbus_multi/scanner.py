@@ -80,12 +80,14 @@ class SolarEdgeDeviceScanner:
 
         self.inverters = []
 
-
-    async def scan_list(self, device_list: list[int]) -> list[int]:
+    async def scan_list(
+        self, device_list: list[int], slow_scan: bool = False
+    ) -> list[int]:
         """Scan a list of device IDs for SolarEdge inverters.
 
         Args:
             device_list: List of Modbus device IDs to scan.
+            slow_scan: If True, retry non-responding devices with longer timeout.
 
         Returns:
             List of device IDs that are SolarEdge inverters.
@@ -100,11 +102,12 @@ class SolarEdgeDeviceScanner:
                 elif result != self.FOUND:
                     retry.append(device_id)
 
-            # Slow scan chunk
-            # for device_id in retry:
-            #    result = await self.scan_device_id(device_id, 5.0)
-            #    if result == self.FOUND_INV:
-            #        self.inverters.append(device_id)
+            # Slow scan chunk (optional)
+            if slow_scan:
+                for device_id in retry:
+                    result = await self.scan_device_id(device_id, 5.0)
+                    if result == self.FOUND_INV:
+                        self.inverters.append(device_id)
 
         return self.inverters
 
