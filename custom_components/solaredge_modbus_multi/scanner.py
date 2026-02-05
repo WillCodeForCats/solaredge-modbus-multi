@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import socket
 
 from homeassistant.exceptions import HomeAssistantError
 
@@ -245,7 +244,7 @@ class SolarEdgeDeviceScanner:
                 _LOGGER.debug(f" Timed out after {timeout}s")
                 attempt = attempt + 1
 
-            except socket.error as e:
+            except OSError as e:
                 _LOGGER.debug(f" FAILED: {e}")
                 attempt = attempt + 1
 
