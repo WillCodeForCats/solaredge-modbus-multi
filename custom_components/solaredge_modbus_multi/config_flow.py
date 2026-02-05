@@ -119,25 +119,26 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_HOST], user_input[CONF_PORT]
                 )
 
-                await scanner.connect()
-
                 try:
+                    await scanner.connect()
+
                     if self.init_info[SETUP_TYPE] == SETUP_SCAN_FAST:
                         scan_list = await scanner.scan_list(list(range(1, 33)))
                     if self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
                         scan_list = await scanner.scan_list(list(range(1, 248)))
+
+                    if not scan_list:
+                        raise AbortFlow(
+                            f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                        )
+
+                    user_input[ConfName.DEVICE_LIST] = scan_list
+
                 except HomeAssistantError as e:
                     raise AbortFlow(f"Scan failed: {e}")
-
-                await scanner.disconnect()
-                await asyncio.sleep(1.0)
-
-                if not scan_list:
-                    raise AbortFlow(
-                        f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                    )
-
-                user_input[ConfName.DEVICE_LIST] = scan_list
+                finally:
+                    await scanner.disconnect()
+                    await asyncio.sleep(1.0)
 
                 return self.async_create_entry(
                     title=user_input[CONF_NAME],
