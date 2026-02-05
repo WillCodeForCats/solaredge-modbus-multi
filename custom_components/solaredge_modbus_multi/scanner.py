@@ -75,7 +75,6 @@ class SolarEdgeDeviceScanner:
         self._scan_retries = scan_retries
         self._host = host
         self._port = port
-        self._sock = None
         self._reader = None
         self._writer = None
         self._transaction = 0
@@ -216,7 +215,7 @@ class SolarEdgeDeviceScanner:
         attempt = 1
         result = 0
 
-        if self._sock is None:
+        if self._writer is None:
             await self.connect()
 
         while attempt <= self._scan_retries:
