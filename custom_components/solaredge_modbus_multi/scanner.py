@@ -80,13 +80,6 @@ class SolarEdgeDeviceScanner:
 
         self.inverters = []
 
-    # def __del__(self):
-    #    if self._sock is not None:
-    #        try:
-    #            self._sock.close()
-    #            _LOGGER.debug("Closing connection ... SUCCEEDED")
-    #        except socket.error as e:
-    #            _LOGGER.debug(f"Closing connection ... FAILED: {e}")
 
     async def scan_list(self, device_list: list[int]) -> list[int]:
         """Scan a list of device IDs for SolarEdge inverters.
