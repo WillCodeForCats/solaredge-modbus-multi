@@ -232,7 +232,7 @@ class SolarEdgeDeviceScanner:
         """
 
         # Update request
-        self._transaction = self._transaction + 1
+        self._transaction = (self._transaction + 1) % 65536
         request = self.REQUEST.copy()
         request[self.TRANS_HIGH_INDEX] = int(self._transaction / 256)
         request[self.TRANS_LOW_INDEX] = self._transaction % 256
