@@ -84,14 +84,12 @@ class SolarEdgeDeviceScanner:
     async def scan_list(
         self,
         device_list: list[int],
-        slow_scan: bool = False,
         progress_callback: callable = None,
     ) -> list[int]:
         """Scan a list of device IDs for SolarEdge inverters.
 
         Args:
             device_list: List of Modbus device IDs to scan.
-            slow_scan: If True, retry non-responding devices with longer timeout.
             progress_callback: Optional callback to report progress.
                                Called with (scanned_count, total_count).
 
@@ -101,29 +99,16 @@ class SolarEdgeDeviceScanner:
         total = len(device_list)
         scanned = 0
 
-        for chunk in self._batch(device_list, 4):
-            retry = []
-            # Quick scan chunk
-            for device_id in chunk:
-                _LOGGER.debug(f"Calling scan_device_id on device_id={device_id}")
-                result = await self.scan_device_id(device_id, 0.5)
-                if result == self.FOUND_INV:
-                    self.inverters.append(device_id)
-                elif result != self.FOUND:
-                    retry.append(device_id)
-                
-                scanned += 1
-                if progress_callback:
-                    _LOGGER.debug(f"scan_list progress: {scanned} of {total}")
-                    await progress_callback(scanned, total)
+        for device_id in device_list:
+            _LOGGER.debug(f"Calling scan_device_id on device_id={device_id}")
+            result = await self.scan_device_id(device_id, 0.5)
+            if result == self.FOUND_INV:
+                self.inverters.append(device_id)
 
-            # Slow scan chunk (optional)
-            if slow_scan:
-                for device_id in retry:
-                    _LOGGER.debug(f"Calling scan_device_id (slow) on device_id={device_id}")
-                    result = await self.scan_device_id(device_id, 5.0)
-                    if result == self.FOUND_INV:
-                        self.inverters.append(device_id)
+            scanned += 1
+            if progress_callback:
+                _LOGGER.debug(f"scan_list progress: {scanned} of {total}")
+                await progress_callback(scanned, total)
 
         return self.inverters
 
