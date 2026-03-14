@@ -84,6 +84,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             scan_retries=2,
             scan_timeout=0.7,
         )
+        """Scanner job for async_create_task"""
 
         try:
             await scanner.connect()
@@ -97,20 +98,19 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     f"Unknown setup type: {self.init_info[SETUP_TYPE]}"
                 )
 
-            scan_list = await scanner.scan_list(
+            scan_return = await scanner.scan_return(
                 device_range,
                 progress_callback=self._async_update_progress_bar,
             )
 
         except Exception as e:
-            # return the exception; can't raise out of a job
-            scan_list = e
+            scan_return = e
 
         finally:
             await scanner.disconnect()
             await asyncio.sleep(1.0)
 
-        return scan_list
+        return scan_return
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -226,7 +226,8 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if not self._scan_task_result:
                 raise HomeAssistantError(
-                    f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    "No SolarEdge devices were detected at "
+                    f"{self._scan_user_input[CONF_HOST]}:{self._scan_user_input[CONF_PORT]}"
                 )
 
             self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
