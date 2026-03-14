@@ -62,6 +62,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         super().__init__()
         self._scan_task = None
         self._scan_user_input = None
+        self._scan_task_result = None
 
     @staticmethod
     @callback
@@ -101,16 +102,15 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 progress_callback=self._async_update_progress_bar,
             )
 
-            if not scan_list:
-                raise HomeAssistantError(
-                    f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                )
-
-            return scan_list
+        except Exception as e:
+            # return the exception; can't raise out of a job
+            scan_list = e
 
         finally:
             await scanner.disconnect()
             await asyncio.sleep(1.0)
+
+        return scan_list
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -160,24 +160,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     progress_task=self._scan_task,
                 )
 
-            # Task is done, handle the result
-            try:
-                scan_list = await self._scan_task
-                self._scan_user_input[ConfName.DEVICE_LIST] = scan_list
+            self._scan_task_result = await self._scan_task
+            self._scan_task = None
 
-                return self.async_show_progress_done(next_step_id="scan_complete")
-
-            except HomeAssistantError:
-                errors["base"] = "scan_failed"
-                self._scan_task = None
-                self._scan_user_input = None
-                # Fall through to show form again with error
-
-            except Exception as e:
-                raise AbortFlow(f"Scan failed: {e}")
-
-            finally:
-                self._scan_task = None
+            return self.async_show_progress_done(next_step_id="scan_complete")
 
         # Process user input and validate
         if user_input is not None:
@@ -233,6 +219,23 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Complete the scan and create the config entry."""
+
+        try:
+            if isinstance(self._scan_task_result, Exception):
+                raise self._scan_task_result
+
+            if not self._scan_task_result:
+                raise HomeAssistantError(
+                    f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                )
+
+            self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
+
+            return self.async_show_progress_done(next_step_id="scan_complete")
+
+        except Exception as e:
+            raise AbortFlow(f"Scan failed: {e}")
+
         if self._scan_user_input is None:
             raise AbortFlow("No scan data available")
 
