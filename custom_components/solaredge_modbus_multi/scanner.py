@@ -60,8 +60,9 @@ class SolarEdgeDeviceScanner:
         self,
         host: str,
         port: int,
-        timeout: float = 5.0,
+        connect_timeout: float = 5.0,
         scan_retries: int = 3,
+        scan_timeout: float = 3.0
     ):
         """Initialize the SolarEdge device scanner.
 
@@ -71,8 +72,9 @@ class SolarEdgeDeviceScanner:
             timeout: Connection timeout in seconds.
             scan_retries: Number of retry attempts for failed scans.
         """
-        self._timeout = timeout
+        self._connect_timeout = connect_timeout
         self._scan_retries = scan_retries
+        self._scan_timeout = scan_timeout
         self._host = host
         self._port = port
         self._reader = None
@@ -97,7 +99,7 @@ class SolarEdgeDeviceScanner:
             retry = []
             # Quick scan chunk
             for device_id in chunk:
-                result = await self.scan_device_id(device_id, 0.5)
+                result = await self.scan_device_id(device_id, self._scan_timeout)
                 if result == self.FOUND_INV:
                     self.inverters.append(device_id)
                 elif result != self.FOUND:
@@ -106,7 +108,7 @@ class SolarEdgeDeviceScanner:
             # Slow scan chunk (optional)
             if slow_scan:
                 for device_id in retry:
-                    result = await self.scan_device_id(device_id, 5.0)
+                    result = await self.scan_device_id(device_id, self._scan_timeout)
                     if result == self.FOUND_INV:
                         self.inverters.append(device_id)
 
@@ -129,7 +131,7 @@ class SolarEdgeDeviceScanner:
         no_response = []
 
         for device_id in device_list:
-            result = await self.scan_device_id(device_id, 1.0)
+            result = await self.scan_device_id(device_id, self._scan_timeout)
             if result == self.FOUND_INV:
                 inverters.append(device_id)
             elif result == self.FOUND:
@@ -152,7 +154,7 @@ class SolarEdgeDeviceScanner:
                 _LOGGER.debug(f"Connecting to {self._host}:{self._port} ... ")
                 self._reader, self._writer = await asyncio.wait_for(
                     asyncio.open_connection(self._host, self._port),
-                    timeout=self._timeout,
+                    timeout=self._connect_timeout,
                 )
             except asyncio.TimeoutError:
                 await self.disconnect()
