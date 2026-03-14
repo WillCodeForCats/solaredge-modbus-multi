@@ -105,7 +105,7 @@ class SolarEdgeDeviceScanner:
 
         for device_id in device_list:
             _LOGGER.debug(f"Calling scan_device_id on device_id={device_id}")
-            result = await self.scan_device_id(device_id, 0.5)
+            result = await self.scan_device_id(device_id, self._scan_timeout)
             if result == self.FOUND_INV:
                 self.inverters.append(device_id)
 
