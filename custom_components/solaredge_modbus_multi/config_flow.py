@@ -173,8 +173,8 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._scan_user_input = None
                 # Fall through to show form again with error
 
-            except Exception as exc:
-                raise AbortFlow(f"Scan failed: {exc}")
+            except Exception as e:
+                raise AbortFlow(f"Scan failed: {e}")
 
             finally:
                 self._scan_task = None
