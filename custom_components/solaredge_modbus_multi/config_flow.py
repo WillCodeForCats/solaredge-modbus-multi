@@ -69,6 +69,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
 
+    async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
+        try:
+            progress = scanned / total if total > 0 else 0
+            self.async_update_progress(progress)
+        except asyncio.CancelledError:
+            pass
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
