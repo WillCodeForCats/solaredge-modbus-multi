@@ -281,19 +281,3 @@ class SolarEdgeDeviceScanner:
 
         _LOGGER.debug(f" No device found at ID {device_id}")
         return self.NOT_FOUND
-
-    def _batch(self, iterable, n=1):
-        """Split an iterable into batches of size n.
-
-        Args:
-            iterable: Sequence to split into batches.
-            n: Size of each batch (default: 1).
-
-        Yields:
-            Batches of up to n elements from the iterable.
-
-        Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
-        """
-        length = len(iterable)
-        for ndx in range(0, length, n):
-            yield iterable[ndx : min(ndx + n, length)]
