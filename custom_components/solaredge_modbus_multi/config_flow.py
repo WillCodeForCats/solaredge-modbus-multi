@@ -148,9 +148,38 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_scan_ask_host(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Handle the scan step - ask for host/port and perform scan with progress."""
         errors = {}
-        scan_list = []
 
+        # If we have a scan task running, show progress
+        if self._scan_task:
+            if not self._scan_task.done():
+                return self.async_show_progress(
+                    step_id="scan_ask_host",
+                    progress_action="scanning_for_inverters",
+                    progress_task=self._scan_task,
+                )
+
+            # Task is done, handle the result
+            try:
+                scan_list = await self._scan_task
+                self._scan_user_input[ConfName.DEVICE_LIST] = scan_list
+
+                return self.async_show_progress_done(next_step_id="scan_complete")
+
+            except HomeAssistantError:
+                errors["base"] = "scan_failed"
+                self._scan_task = None
+                self._scan_user_input = None
+                # Fall through to show form again with error
+
+            except Exception as exc:
+                raise AbortFlow(f"Scan failed: {exc}")
+
+            finally:
+                self._scan_task = None
+
+        # Process user input and validate
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
 
@@ -164,36 +193,19 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 self._abort_if_unique_id_configured()
 
-                scanner = SolarEdgeDeviceScanner(
-                    host=user_input[CONF_HOST],
-                    port=user_input[CONF_PORT],
-                    scan_timeout=0.5,
+
+                # Store user input and create scan task
+                self._scan_user_input = user_input
+                self._scan_task = self.hass.async_create_task(
+                    self._async_scan_devices(user_input),
+                    f"Scan for SolarEdge inverters at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}",
                 )
 
-                try:
-                    await scanner.connect()
-
-                    if self.init_info[SETUP_TYPE] == SETUP_SCAN_FAST:
-                        scan_list = await scanner.scan_list(list(range(1, 33)))
-                    if self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
-                        scan_list = await scanner.scan_list(list(range(1, 248)))
-
-                    if not scan_list:
-                        raise AbortFlow(
-                            f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                        )
-
-                    user_input[ConfName.DEVICE_LIST] = scan_list
-
-                except HomeAssistantError as e:
-                    raise AbortFlow(f"Scan failed: {e}")
-                finally:
-                    await scanner.disconnect()
-                    await asyncio.sleep(1.0)
-
-                return self.async_create_entry(
-                    title=user_input[CONF_NAME],
-                    data=user_input,
+                # Show progress immediately
+                return self.async_show_progress(
+                    step_id="scan_ask_host",
+                    progress_action="scanning_for_inverters",
+                    progress_task=self._scan_task,
                 )
 
         else:
