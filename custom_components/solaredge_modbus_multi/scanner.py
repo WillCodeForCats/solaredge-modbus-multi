@@ -52,6 +52,7 @@ class SolarEdgeDeviceScanner:
     DEVICE_ID_INDEX = 6
     TRANS_HIGH_INDEX = 0
     TRANS_LOW_INDEX = 1
+    NOT_FOUND = 0
     FOUND = 1
     FOUND_INV = 2
 
@@ -239,7 +240,6 @@ class SolarEdgeDeviceScanner:
         request[self.DEVICE_ID_INDEX] = device_id
 
         attempt = 1
-        result = 0
 
         if self._writer is None:
             await self.connect()
@@ -255,6 +255,7 @@ class SolarEdgeDeviceScanner:
                     result = self.device_is_inverter(request, response)
                     if result == self.FOUND_INV:
                         _LOGGER.debug(f" {device_id} is INVERTER")
+                        return self.FOUND_INV
                     else:
                         _LOGGER.warning(
                             f"Scanned device {device_id} did not match signature: "
@@ -262,10 +263,9 @@ class SolarEdgeDeviceScanner:
                         )
 
                     _LOGGER.debug(f" Received ({len(response)} bytes)")
-
                     _LOGGER.debug(f" {' '.join(format(x, '02x') for x in response)}")
 
-                    return result
+                    return self.FOUND
 
             except asyncio.TimeoutError:
                 _LOGGER.debug(f" Timed out after {timeout}s")
@@ -275,10 +275,8 @@ class SolarEdgeDeviceScanner:
                 _LOGGER.debug(f" FAILED: {e}")
                 attempt = attempt + 1
 
-        if attempt > self._scan_retries:
-            raise HomeAssistantError(f"Aborted scanning after {attempt - 1} attempts!")
-
-        return result
+        _LOGGER.debug(f" No device found at ID {device_id}")
+        return self.NOT_FOUND
 
     def _batch(self, iterable, n=1):
         """Split an iterable into batches of size n.
