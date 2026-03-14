@@ -116,7 +116,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
 
                 scanner = SolarEdgeDeviceScanner(
-                    user_input[CONF_HOST], user_input[CONF_PORT]
+                    host=user_input[CONF_HOST],
+                    port=user_input[CONF_PORT],
+                    scan_timeout=0.5,
                 )
 
                 try:

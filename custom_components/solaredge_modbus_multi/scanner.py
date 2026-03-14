@@ -60,8 +60,9 @@ class SolarEdgeDeviceScanner:
         self,
         host: str,
         port: int,
-        timeout: float = 5.0,
+        connect_timeout: float = 5.0,
         scan_retries: int = 3,
+        scan_timeout: float = 3.0,
     ):
         """Initialize the SolarEdge device scanner.
 
@@ -71,8 +72,9 @@ class SolarEdgeDeviceScanner:
             timeout: Connection timeout in seconds.
             scan_retries: Number of retry attempts for failed scans.
         """
-        self._timeout = timeout
+        self._connect_timeout = connect_timeout
         self._scan_retries = scan_retries
+        self._scan_timeout = scan_timeout
         self._host = host
         self._port = port
         self._reader = None
@@ -131,7 +133,7 @@ class SolarEdgeDeviceScanner:
         no_response = []
 
         for device_id in device_list:
-            result = await self.scan_device_id(device_id, 1.0)
+            result = await self.scan_device_id(device_id, self._scan_timeout)
             if result == self.FOUND_INV:
                 inverters.append(device_id)
             elif result == self.FOUND:
@@ -154,7 +156,7 @@ class SolarEdgeDeviceScanner:
                 _LOGGER.debug(f"Connecting to {self._host}:{self._port} ... ")
                 self._reader, self._writer = await asyncio.wait_for(
                     asyncio.open_connection(self._host, self._port),
-                    timeout=self._timeout,
+                    timeout=self._connect_timeout,
                 )
             except asyncio.TimeoutError:
                 await self.disconnect()
@@ -194,12 +196,12 @@ class SolarEdgeDeviceScanner:
         Returns:
             FOUND_INV (2) if a SolarEdge inverter was detected.
             FOUND (1) if a non-inverter Modbus device responded.
-            0 if the response was invalid or no device found.
+            NOT_FOUND (0) if the response was invalid or no device found.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
         """
         if len(response) < 7 or len(request) < self.DEVICE_ID_INDEX:
-            return 0
+            return self.NOT_FOUND
 
         expected = self.RESPONSE.copy()
         expected[self.TRANS_HIGH_INDEX] = request[0]
@@ -211,7 +213,7 @@ class SolarEdgeDeviceScanner:
             if index >= len(expected):
                 return self.FOUND if index >= 7 else 0
             if a != expected[index]:
-                return 0
+                return self.NOT_FOUND
             index = index + 1
 
         return self.FOUND_INV
@@ -226,7 +228,7 @@ class SolarEdgeDeviceScanner:
         Returns:
             FOUND_INV (2) if a SolarEdge inverter was detected.
             FOUND (1) if a non-inverter Modbus device responded.
-            0 if no valid response was received.
+            NOT_FOUND (0) if no valid response was received.
 
         Raises:
             HomeAssistantError: If scanning fails after all retry attempts.
