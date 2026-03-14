@@ -76,6 +76,42 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except asyncio.CancelledError:
             pass
 
+    async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
+        scanner = SolarEdgeDeviceScanner(
+            host=user_input[CONF_HOST],
+            port=user_input[CONF_PORT],
+            scan_retries=2,
+            scan_timeout=0.7,
+        )
+
+        try:
+            await scanner.connect()
+
+            if self.init_info[SETUP_TYPE] == SETUP_SCAN_FAST:
+                device_range = list(range(1, 33))
+            elif self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
+                device_range = list(range(1, 248))
+            else:
+                raise HomeAssistantError(
+                    f"Unknown setup type: {self.init_info[SETUP_TYPE]}"
+                )
+
+            scan_list = await scanner.scan_list(
+                device_range,
+                progress_callback=self._async_update_progress_bar,
+            )
+
+            if not scan_list:
+                raise HomeAssistantError(
+                    f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                )
+
+            return scan_list
+
+        finally:
+            await scanner.disconnect()
+            await asyncio.sleep(1.0)
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
