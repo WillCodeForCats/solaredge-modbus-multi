@@ -169,6 +169,18 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_scan_complete(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Complete the scan and create the config entry."""
+        if self._scan_user_input is None:
+            raise AbortFlow("No scan data available")
+
+        return self.async_create_entry(
+            title=self._scan_user_input[CONF_NAME],
+            data=self._scan_user_input,
+        )
+
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
