@@ -62,7 +62,7 @@ class SolarEdgeDeviceScanner:
         port: int,
         connect_timeout: float = 5.0,
         scan_retries: int = 3,
-        scan_timeout: float = 3.0
+        scan_timeout: float = 3.0,
     ):
         """Initialize the SolarEdge device scanner.
 
