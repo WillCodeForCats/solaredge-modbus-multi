@@ -193,7 +193,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 self._abort_if_unique_id_configured()
 
-
                 # Store user input and create scan task
                 self._scan_user_input = user_input
                 self._scan_task = self.hass.async_create_task(
