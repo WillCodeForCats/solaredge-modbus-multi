@@ -24,6 +24,9 @@
           "port": "Modbus/TCP Port"
         }
       },
+      "scan_complete": {
+        "title": "Scan voltooid"
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-configuratie",
         "data": {
@@ -41,11 +44,15 @@
       "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
       "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
       "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
-      "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
+      "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde.",
+      "scan_failed": "Scannen naar omvormers mislukt. Controleer uw verbinding en probeer het opnieuw."
     },
     "abort": {
       "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
       "reconfigure_successful": "De herconfiguratie was succesvol"
+    },
+    "progress": {
+      "scanning_for_inverters": "Scannen naar SolarEdge-omvormers..."
     }
   },
   "options": {

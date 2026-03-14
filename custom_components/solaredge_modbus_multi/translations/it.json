@@ -24,6 +24,9 @@
           "port": "Porta Modbus/TCP"
         }
       },
+      "scan_complete": {
+        "title": "Scansione completata"
+      },
       "reconfigure": {
         "title": "Configurazione Modbus SolarEdge",
         "data": {
@@ -41,11 +44,15 @@
       "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535.",
       "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
       "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
-      "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito."
+      "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito.",
+      "scan_failed": "Scansione degli inverter non riuscita. Verificare la connessione e riprovare."
     },
     "abort": {
       "already_configured": "L'host e la porta sono già configurati in un altro hub.",
       "reconfigure_successful": "La riconfigurazione ha avuto successo"
+    },
+    "progress": {
+      "scanning_for_inverters": "Ricerca degli inverter SolarEdge in corso..."
     }
   },
   "options": {

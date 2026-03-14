@@ -24,6 +24,9 @@
           "port": "Modbus/TCP Port"
         }
       },
+      "scan_complete": {
+        "title": "Skanowanie zakończone"
+      },
       "reconfigure": {
         "title": "Konfiguracja SolarEdge Modbus",
         "data": {
@@ -41,11 +44,15 @@
       "invalid_tcp_port": "Dozwolony zakres portów to od 1 do 65535.",
       "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
       "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
-      "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość."
+      "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość.",
+      "scan_failed": "Skanowanie w poszukiwaniu falowników nie powiodło się. Sprawdź połączenie i spróbuj ponownie."
     },
     "abort": {
       "already_configured": "Host i port są już skonfigurowane w innym koncentratorze.",
       "reconfigure_successful": "Ponowna konfiguracja przebiegła pomyślnie"
+    },
+    "progress": {
+      "scanning_for_inverters": "Skanowanie w poszukiwaniu falowników SolarEdge..."
     }
   },
   "options": {

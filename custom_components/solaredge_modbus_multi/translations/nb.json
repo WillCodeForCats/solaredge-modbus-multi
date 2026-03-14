@@ -24,6 +24,9 @@
           "port": "Modbus/TCP-poort"
         }
       },
+      "scan_complete": {
+        "title": "Skanning fullført"
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-konfigurasjon",
         "data": {
@@ -41,11 +44,15 @@
       "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
       "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
       "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
-      "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi."
+      "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
+      "scan_failed": "Klarte ikke å skanne etter vekselrettere. Kontroller tilkoblingen og prøv igjen."
     },
     "abort": {
       "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
       "reconfigure_successful": "Omkonfigureringen var vellykket"
+    },
+    "progress": {
+      "scanning_for_inverters": "Søker etter SolarEdge-vekselrettere..."
     }
   },
   "options": {
