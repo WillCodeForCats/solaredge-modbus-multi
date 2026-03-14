@@ -192,12 +192,12 @@ class SolarEdgeDeviceScanner:
         Returns:
             FOUND_INV (2) if a SolarEdge inverter was detected.
             FOUND (1) if a non-inverter Modbus device responded.
-            0 if the response was invalid or no device found.
+            NOT_FOUND (0) if the response was invalid or no device found.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
         """
         if len(response) < 7 or len(request) < self.DEVICE_ID_INDEX:
-            return 0
+            return self.NOT_FOUND
 
         expected = self.RESPONSE.copy()
         expected[self.TRANS_HIGH_INDEX] = request[0]
@@ -209,7 +209,7 @@ class SolarEdgeDeviceScanner:
             if index >= len(expected):
                 return self.FOUND if index >= 7 else 0
             if a != expected[index]:
-                return 0
+                return self.NOT_FOUND
             index = index + 1
 
         return self.FOUND_INV
@@ -224,7 +224,7 @@ class SolarEdgeDeviceScanner:
         Returns:
             FOUND_INV (2) if a SolarEdge inverter was detected.
             FOUND (1) if a non-inverter Modbus device responded.
-            0 if no valid response was received.
+            NOT_FOUND (0) if no valid response was received.
 
         Raises:
             HomeAssistantError: If scanning fails after all retry attempts.
