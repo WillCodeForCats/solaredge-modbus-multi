@@ -98,7 +98,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     f"Unknown setup type: {self.init_info[SETUP_TYPE]}"
                 )
 
-            scan_return = await scanner.scan_return(
+            scan_return = await scanner.scan_list(
                 device_range,
                 progress_callback=self._async_update_progress_bar,
             )
