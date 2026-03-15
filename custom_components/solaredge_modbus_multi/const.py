@@ -10,9 +10,9 @@ DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 
 SETUP_TYPE = "setup_type"
-SETUP_SCAN_FAST = "Scan for Inverters (Fast: IDs 1-32)"  # Scan IDs 1-32
-SETUP_SCAN_FULL = "Scan for Inverters (Full: IDs 1-247)"  # Scan IDs 1-247
-SETUP_MANUAL = "Manual Setup"
+SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
+SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
+SETUP_MANUAL = "manual_list"
 
 SCAN_RETRIES = 3
 

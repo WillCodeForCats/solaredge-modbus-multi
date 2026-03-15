@@ -116,34 +116,28 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
-        data_schema = vol.Schema(
-            {
-                vol.Required(SETUP_TYPE, default=SETUP_SCAN_FAST): vol.In(
-                    (
-                        SETUP_SCAN_FAST,
-                        SETUP_SCAN_FULL,
-                        SETUP_MANUAL,
-                    )
-                )
-            }
+        return self.async_show_menu(
+            step_id="user",
+            menu_options=[SETUP_SCAN_FAST, SETUP_SCAN_FULL, SETUP_MANUAL],
         )
 
-        if user_input is None:
-            return self.async_show_form(
-                step_id="user",
-                data_schema=data_schema,
-            )
+    async def async_step_scan_fast(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
+        return await self.async_step_scan_ask_host()
 
-        if user_input[SETUP_TYPE] == SETUP_SCAN_FAST:
-            self.init_info = user_input
-            return await self.async_step_scan_ask_host()
-        if user_input[SETUP_TYPE] == SETUP_SCAN_FULL:
-            self.init_info = user_input
-            return await self.async_step_scan_ask_host()
-        if user_input[SETUP_TYPE] == SETUP_MANUAL:
-            return await self.async_step_manual()
+    async def async_step_scan_full(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        self.init_info = {SETUP_TYPE: SETUP_SCAN_FULL}
+        return await self.async_step_scan_ask_host()
 
-        raise AbortFlow(f"Unknown setup type: {user_input[SETUP_TYPE]}")
+    async def async_step_manual_list(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        self.init_info = {SETUP_TYPE: SETUP_MANUAL}
+        return await self.async_step_manual()
 
     async def async_step_scan_ask_host(
         self, user_input: dict[str, Any] | None = None
