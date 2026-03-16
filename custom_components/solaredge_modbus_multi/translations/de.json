@@ -3,8 +3,15 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-Konfiguration",
-        "data": {
-          "setup_type": "Wählen Sie eine Einrichtungsmethode"
+        "menu_options": {
+          "scan_fast": "Schnell-Scan nach Wechselrichtern",
+          "scan_full": "Vollständiger Scan nach Wechselrichtern",
+          "manual_list": "Manuelle Einrichtung"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan der ersten 32 Modbus-Geräte-IDs (1-32)",
+          "scan_full": "Scan aller Modbus-Geräte-IDs (1-247)",
+          "manual_list": "Manuelle Eingabe einer Liste von Wechselrichter-Geräte-IDs"
         }
       },
       "manual": {
@@ -24,6 +31,9 @@
           "port": "Modbus/TCP-Port"
         }
       },
+      "scan_complete": {
+        "title": "Scan abgeschlossen"
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-Konfiguration",
         "data": {
@@ -41,11 +51,15 @@
       "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
       "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
       "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
-      "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert."
+      "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
+      "scan_failed": "Suche nach Wechselrichtern fehlgeschlagen. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     },
     "abort": {
       "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert.",
       "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
+    },
+    "progress": {
+      "scanning_for_inverters": "Suche nach SolarEdge-Wechselrichtern..."
     }
   },
   "options": {

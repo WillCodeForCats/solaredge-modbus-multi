@@ -3,8 +3,15 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus Configuration",
-        "data": {
-          "setup_type": "Choose a Setup Method"
+        "menu_options": {
+          "scan_fast": "Fast Scan for Inverters",
+          "scan_full": "Complete Scan for Inverters",
+          "manual_list": "Manual Setup"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan first 32 modbus Device IDs (1-32)",
+          "scan_full": "Scan all modbus Device IDs (1-247)",
+          "manual_list": "Manually enter a list of inverter Device IDs"
         }
       },
       "manual": {
@@ -24,6 +31,9 @@
           "port": "Modbus/TCP Port"
         }
       },
+      "scan_complete": {
+        "title": "Scan Complete"
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus Configuration",
         "data": {
@@ -41,11 +51,15 @@
       "invalid_tcp_port": "Valid port range is 1 to 65535.",
       "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
       "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
-      "empty_device_id": "The ID list contains an empty or undefined value."
+      "empty_device_id": "The ID list contains an empty or undefined value.",
+      "scan_failed": "Failed to scan for inverters. Please check your connection and try again."
     },
     "abort": {
       "already_configured": "Host and port is already configured in another hub.",
       "reconfigure_successful": "Re-configuration was successful"
+    },
+    "progress": {
+      "scanning_for_inverters": "Scanning for SolarEdge inverters..."
     }
   },
   "options": {

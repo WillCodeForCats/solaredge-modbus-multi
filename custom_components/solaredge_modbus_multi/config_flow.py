@@ -57,51 +57,109 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 2
     MINOR_VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        super().__init__()
+        self._scan_task = None
+        self._scan_user_input = None
+        self._scan_task_result = None
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
 
+    async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
+        try:
+            progress = scanned / total if total > 0 else 0
+            self.async_update_progress(progress)
+        except asyncio.CancelledError:
+            pass
+
+    async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
+        scanner = SolarEdgeDeviceScanner(
+            host=user_input[CONF_HOST],
+            port=user_input[CONF_PORT],
+            scan_retries=2,
+            scan_timeout=0.7,
+        )
+        """Scanner job for async_create_task"""
+
+        try:
+            await scanner.connect()
+
+            if self.init_info[SETUP_TYPE] == SETUP_SCAN_FAST:
+                device_range = list(range(1, 33))
+            elif self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
+                device_range = list(range(1, 248))
+            else:
+                raise HomeAssistantError(
+                    f"Unknown setup type: {self.init_info[SETUP_TYPE]}"
+                )
+
+            scan_return = await scanner.scan_list(
+                device_range,
+                progress_callback=self._async_update_progress_bar,
+            )
+
+        except Exception as e:
+            scan_return = e
+
+        finally:
+            await scanner.disconnect()
+            await asyncio.sleep(1.0)
+
+        return scan_return
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
-        data_schema = vol.Schema(
-            {
-                vol.Required(SETUP_TYPE, default=SETUP_SCAN_FAST): vol.In(
-                    (
-                        SETUP_SCAN_FAST,
-                        SETUP_SCAN_FULL,
-                        SETUP_MANUAL,
-                    )
-                )
-            }
+        return self.async_show_menu(
+            step_id="user",
+            menu_options=[SETUP_SCAN_FAST, SETUP_SCAN_FULL, SETUP_MANUAL],
         )
 
-        if user_input is None:
-            return self.async_show_form(
-                step_id="user",
-                data_schema=data_schema,
-            )
+    async def async_step_scan_fast(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
+        return await self.async_step_scan_ask_host()
 
-        if user_input[SETUP_TYPE] == SETUP_SCAN_FAST:
-            self.init_info = user_input
-            return await self.async_step_scan_ask_host()
-        if user_input[SETUP_TYPE] == SETUP_SCAN_FULL:
-            self.init_info = user_input
-            return await self.async_step_scan_ask_host()
-        if user_input[SETUP_TYPE] == SETUP_MANUAL:
-            return await self.async_step_manual()
+    async def async_step_scan_full(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        self.init_info = {SETUP_TYPE: SETUP_SCAN_FULL}
+        return await self.async_step_scan_ask_host()
 
-        raise AbortFlow(f"Unknown setup type: {user_input[SETUP_TYPE]}")
+    async def async_step_manual_list(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        self.init_info = {SETUP_TYPE: SETUP_MANUAL}
+        return await self.async_step_manual()
 
     async def async_step_scan_ask_host(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Handle the scan step - ask for host/port and perform scan with progress."""
         errors = {}
-        scan_list = []
 
+        # If we have a scan task running, show progress
+        if self._scan_task:
+            if not self._scan_task.done():
+                return self.async_show_progress(
+                    step_id="scan_ask_host",
+                    progress_action="scanning_for_inverters",
+                    progress_task=self._scan_task,
+                )
+
+            self._scan_task_result = await self._scan_task
+            self._scan_task = None
+
+            return self.async_show_progress_done(next_step_id="scan_complete")
+
+        # Process user input and validate
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
 
@@ -115,36 +173,18 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 self._abort_if_unique_id_configured()
 
-                scanner = SolarEdgeDeviceScanner(
-                    host=user_input[CONF_HOST],
-                    port=user_input[CONF_PORT],
-                    scan_timeout=0.5,
+                # Store user input and create scan task
+                self._scan_user_input = user_input
+                self._scan_task = self.hass.async_create_task(
+                    self._async_scan_devices(user_input),
+                    f"Scan for SolarEdge inverters at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}",
                 )
 
-                try:
-                    await scanner.connect()
-
-                    if self.init_info[SETUP_TYPE] == SETUP_SCAN_FAST:
-                        scan_list = await scanner.scan_list(list(range(1, 33)))
-                    if self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
-                        scan_list = await scanner.scan_list(list(range(1, 248)))
-
-                    if not scan_list:
-                        raise AbortFlow(
-                            f"No SolarEdge devices were detected at {user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                        )
-
-                    user_input[ConfName.DEVICE_LIST] = scan_list
-
-                except HomeAssistantError as e:
-                    raise AbortFlow(f"Scan failed: {e}")
-                finally:
-                    await scanner.disconnect()
-                    await asyncio.sleep(1.0)
-
-                return self.async_create_entry(
-                    title=user_input[CONF_NAME],
-                    data=user_input,
+                # Show progress immediately
+                return self.async_show_progress(
+                    step_id="scan_ask_host",
+                    progress_action="scanning_for_inverters",
+                    progress_task=self._scan_task,
                 )
 
         else:
@@ -168,6 +208,34 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
+
+    async def async_step_scan_complete(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Complete the scan and create the config entry."""
+
+        try:
+            if isinstance(self._scan_task_result, Exception):
+                raise self._scan_task_result
+
+            if not self._scan_task_result:
+                raise HomeAssistantError(
+                    "No SolarEdge devices were detected at "
+                    f"{self._scan_user_input[CONF_HOST]}:{self._scan_user_input[CONF_PORT]}"
+                )
+
+            self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
+
+            if self._scan_user_input is None:
+                raise AbortFlow("No scan data available")
+
+            return self.async_create_entry(
+                title=self._scan_user_input[CONF_NAME],
+                data=self._scan_user_input,
+            )
+
+        except Exception as e:
+            raise AbortFlow(f"Scan failed: {e}")
 
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None

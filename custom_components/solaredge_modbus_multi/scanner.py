@@ -84,33 +84,35 @@ class SolarEdgeDeviceScanner:
         self.inverters = []
 
     async def scan_list(
-        self, device_list: list[int], slow_scan: bool = False
+        self,
+        device_list: list[int],
+        progress_callback: callable = None,
     ) -> list[int]:
         """Scan a list of device IDs for SolarEdge inverters.
 
         Args:
             device_list: List of Modbus device IDs to scan.
-            slow_scan: If True, retry non-responding devices with longer timeout.
+            progress_callback: Optional callback to report progress.
+                               Called with (scanned_count, total_count).
 
         Returns:
             List of device IDs that are SolarEdge inverters.
         """
-        for chunk in self._batch(device_list, 4):
-            retry = []
-            # Quick scan chunk
-            for device_id in chunk:
-                result = await self.scan_device_id(device_id, self._scan_timeout)
-                if result == self.FOUND_INV:
-                    self.inverters.append(device_id)
-                elif result != self.FOUND:
-                    retry.append(device_id)
+        total = len(device_list)
+        scanned = 0
 
-            # Slow scan chunk (optional)
-            if slow_scan:
-                for device_id in retry:
-                    result = await self.scan_device_id(device_id, self._scan_timeout)
-                    if result == self.FOUND_INV:
-                        self.inverters.append(device_id)
+        await progress_callback(scanned, total)
+
+        for device_id in device_list:
+            _LOGGER.debug(f"Calling scan_device_id on device_id={device_id}")
+            result = await self.scan_device_id(device_id, self._scan_timeout)
+            if result == self.FOUND_INV:
+                self.inverters.append(device_id)
+
+            scanned += 1
+            if progress_callback:
+                _LOGGER.debug(f"scan_list progress: {scanned} of {total}")
+                await progress_callback(scanned, total)
 
         return self.inverters
 
@@ -279,19 +281,3 @@ class SolarEdgeDeviceScanner:
 
         _LOGGER.debug(f" No device found at ID {device_id}")
         return self.NOT_FOUND
-
-    def _batch(self, iterable, n=1):
-        """Split an iterable into batches of size n.
-
-        Args:
-            iterable: Sequence to split into batches.
-            n: Size of each batch (default: 1).
-
-        Yields:
-            Batches of up to n elements from the iterable.
-
-        Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
-        """
-        length = len(iterable)
-        for ndx in range(0, length, n):
-            yield iterable[ndx : min(ndx + n, length)]
