@@ -3,8 +3,15 @@
     "step": {
       "user": {
         "title": "Konfiguracja SolarEdge Modbus",
-        "data": {
-          "setup_type": "Wybierz metodę konfiguracji"
+        "menu_options": {
+          "scan_fast": "Szybkie skanowanie inwerterów",
+          "scan_full": "Pełne skanowanie inwerterów",
+          "manual_list": "Ręczna konfiguracja"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Skanuj pierwsze 32 identyfikatory urządzeń Modbus (1-32)",
+          "scan_full": "Skanuj wszystkie identyfikatory urządzeń Modbus (1-247)",
+          "manual_list": "Ręcznie wprowadź listę identyfikatorów urządzeń inwertera"
         }
       },
       "manual": {

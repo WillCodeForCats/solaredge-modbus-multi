@@ -3,8 +3,15 @@
     "step": {
       "user": {
         "title": "Configurazione Modbus SolarEdge",
-        "data": {
-          "setup_type": "Scegli un metodo di configurazione"
+        "menu_options": {
+          "scan_fast": "Scansione rapida degli inverter",
+          "scan_full": "Scansione completa degli inverter",
+          "manual_list": "Configurazione manuale"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scansione dei primi 32 ID dispositivo Modbus (1-32)",
+          "scan_full": "Scansione di tutti gli ID dispositivo Modbus (1-247)",
+          "manual_list": "Inserisci manualmente un elenco di ID dispositivo inverter"
         }
       },
       "manual": {

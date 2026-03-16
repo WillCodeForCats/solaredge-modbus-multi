@@ -3,8 +3,15 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-Konfiguration",
-        "data": {
-          "setup_type": "Wählen Sie eine Einrichtungsmethode"
+        "menu_options": {
+          "scan_fast": "Schnell-Scan nach Wechselrichtern",
+          "scan_full": "Vollständiger Scan nach Wechselrichtern",
+          "manual_list": "Manuelle Einrichtung"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan der ersten 32 Modbus-Geräte-IDs (1-32)",
+          "scan_full": "Scan aller Modbus-Geräte-IDs (1-247)",
+          "manual_list": "Manuelle Eingabe einer Liste von Wechselrichter-Geräte-IDs"
         }
       },
       "manual": {

@@ -3,8 +3,15 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-konfigurasjon",
-        "data": {
-          "setup_type": "Velg en oppsettmetode"
+        "menu_options": {
+          "scan_fast": "Rask skanning etter vekselrettere",
+          "scan_full": "Komplett skanning etter vekselrettere",
+          "manual_list": "Manuell oppsett"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Skann de første 32 Modbus-enhets-IDer (1-32)",
+          "scan_full": "Skann alle Modbus-enhets-IDer (1-247)",
+          "manual_list": "Skriv inn en liste over vekselretter-enhets-IDer manuelt"
         }
       },
       "manual": {

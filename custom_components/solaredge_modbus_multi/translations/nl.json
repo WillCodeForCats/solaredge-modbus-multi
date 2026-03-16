@@ -3,8 +3,15 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-configuratie",
-        "data": {
-          "setup_type": "Kies een installatiemethode"
+        "menu_options": {
+          "scan_fast": "Snelle scan naar omvormers",
+          "scan_full": "Volledige scan naar omvormers",
+          "manual_list": "Handmatige installatie"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan de eerste 32 Modbus-apparaat-ID's (1-32)",
+          "scan_full": "Scan alle Modbus-apparaat-ID's (1-247)",
+          "manual_list": "Voer handmatig een lijst van omvormer-apparaat-ID's in"
         }
       },
       "manual": {
