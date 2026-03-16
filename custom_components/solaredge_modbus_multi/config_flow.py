@@ -31,6 +31,18 @@ from .helpers import device_list_from_string, host_valid
 from .scanner import SolarEdgeDeviceScanner
 
 
+class ScanOtherDeviceError(HomeAssistantError):
+    """Device IDs that responded but aren't SolarEdge inverters."""
+
+    pass
+
+
+class ScanNoResponseError(HomeAssistantError):
+    """Device IDs that didn't respond or timed out."""
+
+    pass
+
+
 def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
     """Generate config flow or repair schema."""
     schema: dict[vol.Marker, Any] = {}
@@ -78,13 +90,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             pass
 
     async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
+        """Scanner job for async_create_task"""
         scanner = SolarEdgeDeviceScanner(
             host=user_input[CONF_HOST],
             port=user_input[CONF_PORT],
             scan_retries=2,
             scan_timeout=0.7,
         )
-        """Scanner job for async_create_task"""
 
         try:
             await scanner.connect()
@@ -249,12 +261,41 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE
             )
 
+            scanner = SolarEdgeDeviceScanner(
+                host=user_input[CONF_HOST],
+                port=user_input[CONF_PORT],
+                scan_retries=3,
+                scan_timeout=0.5,
+            )
+
             try:
-                inverter_count = len(
-                    device_list_from_string(user_input[ConfName.DEVICE_LIST])
-                )
-            except HomeAssistantError as e:
+                device_list = device_list_from_string(user_input[ConfName.DEVICE_LIST])
+
+                await scanner.connect()
+
+                scan_return = await scanner.check_list(device_list)
+
+                if scan_return["other_devices"]:
+                    raise ScanOtherDeviceError(
+                        f"Invalid devices found at ID(s): {scan_return['other_devices']}"
+                    )
+
+                if scan_return["no_response"]:
+                    raise ScanNoResponseError(
+                        f"No response from ID(s): {scan_return['no_response']}"
+                    )
+
+                if not scan_return["inverters"]:
+                    raise HomeAssistantError("No inverter devices found in ID list.")
+
+                inverter_count = len(scan_return["inverters"])
+                user_input[ConfName.DEVICE_LIST] = scan_return["inverters"]
+
+            except (ScanOtherDeviceError, ScanNoResponseError) as e:
                 errors[ConfName.DEVICE_LIST] = f"{e}"
+
+            except HomeAssistantError as e:
+                errors[CONF_HOST] = f"{e}"
 
             else:
                 if not host_valid(user_input[CONF_HOST]):
@@ -268,10 +309,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     await self.async_set_unique_id(new_unique_id)
 
                     self._abort_if_unique_id_configured()
-
-                    user_input[ConfName.DEVICE_LIST] = device_list_from_string(
-                        user_input[ConfName.DEVICE_LIST]
-                    )
 
                     return self.async_create_entry(
                         title=user_input[CONF_NAME], data=user_input
