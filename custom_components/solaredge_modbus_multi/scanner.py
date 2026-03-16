@@ -101,7 +101,8 @@ class SolarEdgeDeviceScanner:
         total = len(device_list)
         scanned = 0
 
-        await progress_callback(scanned, total)
+        if progress_callback:
+            await progress_callback(scanned, total)
 
         for device_id in device_list:
             _LOGGER.debug(f"Calling scan_device_id on device_id={device_id}")
