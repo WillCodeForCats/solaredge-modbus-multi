@@ -297,22 +297,26 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except HomeAssistantError as e:
                 errors[CONF_HOST] = f"{e}"
 
+            finally:
+                await scanner.disconnect()
+                await asyncio.sleep(1.0)
+
+            if not host_valid(user_input[CONF_HOST]):
+                errors[CONF_HOST] = "invalid_host"
+            elif not 1 <= user_input[CONF_PORT] <= 65535:
+                errors[CONF_PORT] = "invalid_tcp_port"
+            elif not 1 <= inverter_count <= 32:
+                errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
             else:
-                if not host_valid(user_input[CONF_HOST]):
-                    errors[CONF_HOST] = "invalid_host"
-                elif not 1 <= user_input[CONF_PORT] <= 65535:
-                    errors[CONF_PORT] = "invalid_tcp_port"
-                elif not 1 <= inverter_count <= 32:
-                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
-                else:
-                    new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                    await self.async_set_unique_id(new_unique_id)
+                new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                await self.async_set_unique_id(new_unique_id)
 
-                    self._abort_if_unique_id_configured()
+                self._abort_if_unique_id_configured()
 
-                    return self.async_create_entry(
-                        title=user_input[CONF_NAME], data=user_input
-                    )
+                return self.async_create_entry(
+                    title=user_input[CONF_NAME], data=user_input
+                )
+
         else:
             user_input = {
                 CONF_NAME: DEFAULT_NAME,
