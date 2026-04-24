@@ -348,12 +348,18 @@ class SolarEdgeModbusMultiHub:
         try:
             for inverter in self.inverters:
                 await inverter.read_modbus_data()
-
             for meter in self.meters:
                 await meter.read_modbus_data()
-
             for battery in self.batteries:
                 await battery.read_modbus_data()
+
+            timestamp = dt.now()
+            for inverter in self.inverters:
+                inverter.set_last_update(timestamp)
+            for meter in self.meters:
+                meter.set_last_update(timestamp)
+            for battery in self.batteries:
+                battery.set_last_update(timestamp)
 
         except ModbusReadError as e:
             self.disconnect()
