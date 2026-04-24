@@ -727,7 +727,7 @@ class SolarEdgeModbusMultiHub:
     def hub_port(self) -> int:
         """Return the modbus client port."""
         return self._port
-        
+
     @property
     def hass_config(self):
         return self._hass.config
@@ -2567,7 +2567,7 @@ class SolarEdgeBattery:
                 f"{name} {display_value} {type(value)}"
             )
 
-    def set_last_update(self,timestamp) -> None:
+    def set_last_update(self, timestamp) -> None:
         self._last_update_timestamp = timestamp
 
     @property
