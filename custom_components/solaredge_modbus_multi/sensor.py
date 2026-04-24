@@ -2515,7 +2515,7 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return "Last Update Timestamp"
+        return "Last Update"
 
     @property
     def available(self) -> bool:
