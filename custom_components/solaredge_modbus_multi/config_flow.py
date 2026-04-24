@@ -148,7 +148,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_manual_list(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        self.init_info = {SETUP_TYPE: SETUP_MANUAL}
         return await self.async_step_manual()
 
     async def async_step_scan_ask_host(
