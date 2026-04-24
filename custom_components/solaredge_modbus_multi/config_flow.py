@@ -261,61 +261,63 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE
             )
 
-            scanner = SolarEdgeDeviceScanner(
-                host=user_input[CONF_HOST],
-                port=user_input[CONF_PORT],
-                scan_retries=3,
-                scan_timeout=0.5,
-            )
-
-            try:
-                device_list = device_list_from_string(user_input[ConfName.DEVICE_LIST])
-
-                await scanner.connect()
-
-                scan_return = await scanner.check_list(device_list)
-
-                if scan_return["other_devices"]:
-                    raise ScanOtherDeviceError(
-                        f"Invalid devices found at ID(s): {scan_return['other_devices']}"
-                    )
-
-                if scan_return["no_response"]:
-                    raise ScanNoResponseError(
-                        f"No response from ID(s): {scan_return['no_response']}"
-                    )
-
-                if not scan_return["inverters"]:
-                    raise HomeAssistantError("No inverter devices found in ID list.")
-
-                inverter_count = len(scan_return["inverters"])
-                user_input[ConfName.DEVICE_LIST] = scan_return["inverters"]
-
-            except (ScanOtherDeviceError, ScanNoResponseError) as e:
-                errors[ConfName.DEVICE_LIST] = f"{e}"
-
-            except HomeAssistantError as e:
-                errors[CONF_HOST] = f"{e}"
-
-            finally:
-                await scanner.disconnect()
-                await asyncio.sleep(1.0)
-
             if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
             elif not 1 <= user_input[CONF_PORT] <= 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
-            elif not 1 <= inverter_count <= 32:
-                errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
             else:
-                new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                await self.async_set_unique_id(new_unique_id)
-
-                self._abort_if_unique_id_configured()
-
-                return self.async_create_entry(
-                    title=user_input[CONF_NAME], data=user_input
+                scanner = SolarEdgeDeviceScanner(
+                    host=user_input[CONF_HOST],
+                    port=user_input[CONF_PORT],
+                    scan_retries=3,
+                    scan_timeout=0.5,
                 )
+
+                try:
+                    device_list = device_list_from_string(user_input[ConfName.DEVICE_LIST])
+
+                    await scanner.connect()
+
+                    scan_return = await scanner.check_list(device_list)
+
+                    if scan_return["other_devices"]:
+                        raise ScanOtherDeviceError(
+                            f"Invalid devices found at ID(s): {scan_return['other_devices']}"
+                        )
+
+                    if scan_return["no_response"]:
+                        raise ScanNoResponseError(
+                            f"No response from ID(s): {scan_return['no_response']}"
+                        )
+
+                    if not scan_return["inverters"]:
+                        raise HomeAssistantError("No inverter devices found in ID list.")
+
+                    inverter_count = len(scan_return["inverters"])
+                    user_input[ConfName.DEVICE_LIST] = scan_return["inverters"]
+
+                except (ScanOtherDeviceError, ScanNoResponseError) as e:
+                    errors[ConfName.DEVICE_LIST] = f"{e}"
+
+                except HomeAssistantError as e:
+                    errors[CONF_HOST] = f"{e}"
+
+                else:
+                    if not 1 <= inverter_count <= 32:
+                        errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                    else:
+                        new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                        await self.async_set_unique_id(new_unique_id)
+
+                        self._abort_if_unique_id_configured()
+
+                        return self.async_create_entry(
+                            title=user_input[CONF_NAME], data=user_input
+                        )
+
+                finally:
+                    await scanner.disconnect()
+                    await asyncio.sleep(1.0)
 
         else:
             user_input = {
