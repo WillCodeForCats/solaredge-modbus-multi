@@ -161,14 +161,14 @@ class SolarEdgeDeviceScanner:
                 )
             except asyncio.TimeoutError:
                 await self.disconnect()
-                attempt = attempt + 1
+                attempt += 1
                 await asyncio.sleep(1.0)
                 _LOGGER.warning(
                     f"Timeout occurred while connecting to {self._host}:{self._port}"
                 )
             except OSError as e:
                 await self.disconnect()
-                attempt = attempt + 1
+                attempt += 1
                 await asyncio.sleep(1.0)
                 _LOGGER.warning(
                     f"Network error connecting to {self._host}:{self._port}: {e}"
@@ -274,11 +274,11 @@ class SolarEdgeDeviceScanner:
 
             except asyncio.TimeoutError:
                 _LOGGER.debug(f" Timed out after {timeout}s")
-                attempt = attempt + 1
+                attempt += 1
 
             except OSError as e:
                 _LOGGER.debug(f" FAILED: {e}")
-                attempt = attempt + 1
+                attempt += 1
 
         _LOGGER.debug(f" No device found at ID {device_id}")
         return self.NOT_FOUND
