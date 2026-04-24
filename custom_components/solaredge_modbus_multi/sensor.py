@@ -61,6 +61,7 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
+        entities.append(SolarEdgeLastUpdate(inverter, config_entry, coordinator))
         entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
         entities.append(Version(inverter, config_entry, coordinator))
         entities.append(SolarEdgeInverterStatus(inverter, config_entry, coordinator))
@@ -120,6 +121,7 @@ async def async_setup_entry(
                 )
 
     for meter in hub.meters:
+        entities.append(SolarEdgeLastUpdate(meter, config_entry, coordinator))
         entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
         entities.append(Version(meter, config_entry, coordinator))
         entities.append(MeterEvents(meter, config_entry, coordinator))
@@ -199,6 +201,7 @@ async def async_setup_entry(
         entities.append(MetervarhIE(meter, config_entry, coordinator, "Export_Q4_C"))
 
     for battery in hub.batteries:
+        entities.append(SolarEdgeLastUpdate(battery, config_entry, coordinator))
         entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
         entities.append(Version(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryAvgTemp(battery, config_entry, coordinator))
