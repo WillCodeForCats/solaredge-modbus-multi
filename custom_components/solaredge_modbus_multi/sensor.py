@@ -2500,3 +2500,24 @@ class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
             attrs["status"] = "ERROR"
 
         return attrs
+
+
+class SolarEdgeLastUpdate(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.TIMESTAMP
+    entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_last_update_timestamp"
+
+    @property
+    def name(self) -> str:
+        return "Last Update Timestamp"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.last_update
