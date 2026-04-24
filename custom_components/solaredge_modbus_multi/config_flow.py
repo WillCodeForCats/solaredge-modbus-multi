@@ -274,7 +274,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
 
                 try:
-                    device_list = device_list_from_string(user_input[ConfName.DEVICE_LIST])
+                    device_list = device_list_from_string(
+                        user_input[ConfName.DEVICE_LIST]
+                    )
 
                     await scanner.connect()
 
@@ -291,7 +293,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         )
 
                     if not scan_return["inverters"]:
-                        raise HomeAssistantError("No inverter devices found in ID list.")
+                        raise HomeAssistantError(
+                            "No inverter devices found in ID list."
+                        )
 
                     inverter_count = len(scan_return["inverters"])
                     user_input[ConfName.DEVICE_LIST] = scan_return["inverters"]
@@ -306,7 +310,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     if not 1 <= inverter_count <= 32:
                         errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                     else:
-                        new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                        new_unique_id = (
+                            f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                        )
                         await self.async_set_unique_id(new_unique_id)
 
                         self._abort_if_unique_id_configured()
