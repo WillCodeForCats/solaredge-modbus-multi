@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import importlib.metadata
 import inspect
 import logging
-import datetime as dt
 from collections import OrderedDict
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.util import dt
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
@@ -475,7 +476,7 @@ class SolarEdgeModbusMultiHub:
         if not self.keep_modbus_open:
             self.disconnect()
 
-        timestamp = dt.now(tz=self.hub.hass_config.time_zone)
+        timestamp = dt.now()
         for inverter in self.inverters:
             inverter.set_last_update(timestamp)
         for meter in self.meters:
@@ -727,10 +728,6 @@ class SolarEdgeModbusMultiHub:
     def hub_port(self) -> int:
         """Return the modbus client port."""
         return self._port
-
-    @property
-    def hass_config(self):
-        return self._hass.config
 
     @property
     def option_storage_control(self) -> bool:
@@ -1908,7 +1905,7 @@ class SolarEdgeInverter:
         return True
 
     @property
-    def last_update(self) -> dt | None:
+    def last_update(self) -> datetime.datetime | None:
         return self._last_update_timestamp
 
 
@@ -2295,7 +2292,7 @@ class SolarEdgeMeter:
         self._via_device = (DOMAIN, device)
 
     @property
-    def last_update(self) -> dt | None:
+    def last_update(self) -> datetime.datetime | None:
         return self._last_update_timestamp
 
 
@@ -2609,5 +2606,5 @@ class SolarEdgeBattery:
         return self.hub.battery_energy_reset_cycles
 
     @property
-    def last_update(self) -> dt | None:
+    def last_update(self) -> datetime.datetime | None:
         return self._last_update_timestamp
