@@ -1,10 +1,11 @@
 ---
 name: Change Request
 about: Request an update or change for the integration.
-title: ''
-labels: ''
-assignees: ''
+title: ""
+labels: ""
+assignees: ""
 ---
+
 <!-- IF YOU DO NOT FILL OUT THIS TEMPLATE YOUR ISSUE WILL BE CLOSED -->
 <!-- If you delete the template the issue will be closed and you will be asked to resubmit using the template. -->
 
@@ -22,8 +23,9 @@ A clear and concise description of what the feature should be.
 A clear and concise description of the proposed new or updated behavior.
 
 **Home Assistant (please complete the following information):**
- - Home Assistant Core Version:
- - solaredge-modbus-multi Version:
+
+- Home Assistant Core Version:
+- solaredge-modbus-multi Version:
 
 **Additional context**
 Add any other context about the request here.

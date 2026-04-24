@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 
+from awesomeversion import AwesomeVersion
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -11,15 +12,16 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
-    POWER_VOLT_AMPERE_REACTIVE,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfReactivePower,
     UnitOfTemperature,
 )
+from homeassistant.const import __version__ as HA_VERSION
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -92,7 +94,7 @@ async def async_setup_entry(
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
 
         """ Power Control Block """
-        if hub.option_detect_extras and inverter.advanced_power_control:
+        if hub.option_detect_extras:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
@@ -138,6 +140,7 @@ async def async_setup_entry(
         entities.append(ACPower(meter, config_entry, coordinator, "A"))
         entities.append(ACPower(meter, config_entry, coordinator, "B"))
         entities.append(ACPower(meter, config_entry, coordinator, "C"))
+        entities.append(ACPowerInverted(meter, config_entry, coordinator))
         entities.append(ACVoltAmp(meter, config_entry, coordinator))
         entities.append(ACVoltAmp(meter, config_entry, coordinator, "A"))
         entities.append(ACVoltAmp(meter, config_entry, coordinator, "B"))
@@ -203,6 +206,9 @@ async def async_setup_entry(
         entities.append(SolarEdgeBatteryVoltage(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryCurrent(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryPower(battery, config_entry, coordinator))
+        entities.append(
+            SolarEdgeBatteryPowerInverted(battery, config_entry, coordinator)
+        )
         entities.append(
             SolarEdgeBatteryEnergyExport(battery, config_entry, coordinator)
         )
@@ -603,6 +609,41 @@ class ACPower(SolarEdgeSensorBase):
         return abs(self._platform.decoded_model["AC_Power_SF"])
 
 
+class ACPowerInverted(ACPower):
+    """Inverted AC power sensor for Home Assistant energy dashboard compatibility.
+
+    This class exists solely due to a design decision by the Home Assistant team
+    for their energy dashboard, which requires power to be represented opposite
+    to how a grid-tie inverter normally reports it. The native_value is negated
+    to meet this requirement.
+
+    This does not represent how the inverter or SolarEdge dashboard will represent
+    the same sensor. You should normally refer to the non-inverted version.
+    """
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{super().unique_id}_inverted"
+
+    @property
+    def name(self) -> str:
+        return f"{super().name} Inverted"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return AwesomeVersion(HA_VERSION) < AwesomeVersion("2026.2")
+
+    @property
+    def native_value(self):
+        value = super().native_value
+        if value is None:
+            return None
+        return -value
+
+
 class ACFrequency(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.FREQUENCY
     state_class = SensorStateClass.MEASUREMENT
@@ -702,7 +743,7 @@ class ACVoltAmp(SolarEdgeSensorBase):
 class ACVoltAmpReactive(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.REACTIVE_POWER
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = POWER_VOLT_AMPERE_REACTIVE
+    native_unit_of_measurement = UnitOfReactivePower.VOLT_AMPERE_REACTIVE
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -1203,7 +1244,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 
     @property
     def name(self) -> str:
-        return "Temp Sink"
+        return "Temperature"
 
     @property
     def native_value(self):
@@ -1344,12 +1385,6 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
         return attrs
 
 
-class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
-    @property
-    def available(self) -> bool:
-        return super().available and self._platform.global_power_control
-
-
 class StatusVendor(SolarEdgeSensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
 
@@ -1388,6 +1423,12 @@ class StatusVendor(SolarEdgeSensorBase):
 
         except KeyError:
             return None
+
+
+class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.global_power_control
 
 
 class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
@@ -1641,7 +1682,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
         else:
-            return f"{self._platform.uid_base}_" f"{self._phase.lower()}_vah"
+            return f"{self._platform.uid_base}_{self._phase.lower()}_vah"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1917,6 +1958,41 @@ class SolarEdgeBatteryPower(DCPower):
 
         except TypeError:
             return None
+
+
+class SolarEdgeBatteryPowerInverted(SolarEdgeBatteryPower):
+    """Inverted battery power sensor for Home Assistant energy dashboard compatibility.
+
+    This class exists solely due to a design decision by the Home Assistant team
+    for their energy dashboard, which requires power to be represented opposite
+    to how a grid-tie inverter normally reports it. The native_value is negated
+    to meet this requirement.
+
+    This does not represent how the inverter or SolarEdge dashboard will represent
+    the same sensor. You should normally refer to the non-inverted version.
+    """
+
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+
+    @property
+    def unique_id(self) -> str:
+        return f"{super().unique_id}_inverted"
+
+    @property
+    def name(self) -> str:
+        return f"{super().name} Inverted"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return AwesomeVersion(HA_VERSION) < AwesomeVersion("2026.2")
+
+    @property
+    def native_value(self):
+        value = super().native_value
+        if value is None:
+            return None
+        return -value
 
 
 class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
@@ -2242,6 +2318,10 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
 
+    def __init__(self, platform, config_entry, coordinator):
+        super().__init__(platform, config_entry, coordinator)
+        self._log_warning = True
+
     @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_avail_energy"
@@ -2256,12 +2336,21 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
             float_to_hex(self._platform.decoded_model["B_Energy_Available"])
             == hex(SunSpecNotImpl.FLOAT32)
             or self._platform.decoded_model["B_Energy_Available"] < 0
-            or self._platform.decoded_model["B_Energy_Available"]
-            > (
-                self._platform.decoded_common["B_RatedEnergy"]
-                * self._platform.battery_rating_adjust
-            )
         ):
+            return None
+
+        if self._platform.decoded_model["B_Energy_Available"] > (
+            self._platform.decoded_common["B_RatedEnergy"]
+            * self._platform.battery_rating_adjust
+        ):
+            if self._log_warning:
+                _LOGGER.warning(
+                    f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
+                    "Battery available energy exceeds rated energy. "
+                    "Set configuration for Battery Rating Adjustment when necessary."
+                )
+                self._log_warning = False
+
             return None
 
         else:
@@ -2323,7 +2412,13 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
             return self._platform.decoded_model["B_SOE"]
 
 
-class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
+class SolarEdgeAdvancedPowerControlBlock(SolarEdgeSensorBase):
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.advanced_power_control
+
+
+class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Commit Power Control Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
@@ -2336,6 +2431,12 @@ class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return "Commit Power Settings"
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available and "CommitPwrCtlSettings" in self._platform.decoded_model
+        )
 
     @property
     def native_value(self):
@@ -2362,7 +2463,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeSensorBase):
         return attrs
 
 
-class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
+class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Restore Power Control Default Settings button."""
 
     entity_category = EntityCategory.DIAGNOSTIC
@@ -2375,6 +2476,13 @@ class SolarEdgeDefaultControlSettings(SolarEdgeSensorBase):
     @property
     def name(self) -> str:
         return "Default Power Settings"
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "RestorePwrCtlDefaults" in self._platform.decoded_model
+        )
 
     @property
     def native_value(self):

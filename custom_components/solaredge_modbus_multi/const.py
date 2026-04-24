@@ -9,6 +9,9 @@ from typing import Final
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
 
+# raise a startup exception if pymodbus version is less than this
+PYMODBUS_REQUIRED_VERSION = "3.8.3"
+
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
@@ -28,6 +31,26 @@ DOMAIN_REGEX = re.compile(
 )
 
 
+class ModbusExceptions:
+    """An enumeration of the valid modbus exceptions."""
+
+    """
+        Copied from pymodbus source:
+        https://github.com/pymodbus-dev/pymodbus/blob/a1c14c7a8fbea52618ba1cbc9933c1dd24c3339d/pymodbus/pdu/pdu.py#L72
+    """
+
+    IllegalFunction = 0x01
+    IllegalAddress = 0x02
+    IllegalValue = 0x03
+    DeviceFailure = 0x04
+    Acknowledge = 0x05
+    DeviceBusy = 0x06
+    NegativeAcknowledge = 0x07
+    MemoryParityError = 0x08
+    GatewayPathUnavailable = 0x0A
+    GatewayNoResponse = 0x0B
+
+
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
 
@@ -44,11 +67,15 @@ class ModbusDefaults(IntEnum):
         ReconnectDelay to ReconnectDelayMax.
         Set `ReconnectDelay = 0` to avoid automatic reconnection.
         Disabled because it didn't work properly with HA Async in PR#360.
+
+        ReconnectDelay and ReconnectDelayMax can be set to seconds.milliseconds
+        values using the advanced YAML configuration option.
     """
 
     Timeout = 3  # Timeout for a request, in seconds.
-    ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
-    ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
+    Retries = 3  # Max number of retries per request.
+    ReconnectDelay = 0  # Minimum in seconds before reconnecting.
+    ReconnectDelayMax = 3  # Maximum in seconds before reconnecting.
 
 
 class SolarEdgeTimeouts(IntEnum):
@@ -57,6 +84,7 @@ class SolarEdgeTimeouts(IntEnum):
     Inverter = 8400
     Device = 1200
     Init = 1200
+    Read = 6000
 
 
 class BatteryLimit(IntEnum):
@@ -87,7 +115,7 @@ class ConfDefaultFlag(IntEnum):
 
     DETECT_METERS = 1
     DETECT_BATTERIES = 0
-    DETECT_EXTRAS = 1
+    DETECT_EXTRAS = 0
     KEEP_MODBUS_OPEN = 0
     ADV_PWR_CONTROL = 0
     ADV_STORAGE_CONTROL = 0
