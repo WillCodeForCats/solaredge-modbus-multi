@@ -154,7 +154,7 @@ class SolarEdgeDeviceScanner:
 
         while self._writer is None and attempt <= self._scan_retries:
             try:
-                _LOGGER.debug(f"Connecting to {self._host}:{self._port} ... ")
+                _LOGGER.debug(f"Connecting to {self._host}:{self._port} ...")
                 self._reader, self._writer = await asyncio.wait_for(
                     asyncio.open_connection(self._host, self._port),
                     timeout=self._connect_timeout,
