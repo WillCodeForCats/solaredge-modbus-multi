@@ -2764,7 +2764,7 @@ class SolarEdgeEVSE:
         self.option = self.decoded_common["C_Option"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
-        self.name = f"{self.hub.hub_id.capitalize()} C{self.evse_unit_id}"
+        self.name = f"{self.hub.hub_id.capitalize()} E{self.evse_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
     async def read_modbus_data(self) -> None:
