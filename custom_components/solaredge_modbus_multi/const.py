@@ -30,6 +30,11 @@ DOMAIN_REGEX = re.compile(
     re.IGNORECASE,
 )
 
+DETECT_EVSE_REGEX = re.compile(
+    r"^(?:SE-EV-SA)",  # Add additional prefixes with |OTHER-PREFIX
+    re.IGNORECASE,
+)
+
 
 class ModbusExceptions:
     """An enumeration of the valid modbus exceptions."""
