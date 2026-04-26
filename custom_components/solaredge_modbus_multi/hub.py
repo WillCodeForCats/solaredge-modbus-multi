@@ -26,6 +26,7 @@ except ImportError:
 
 from .const import (
     BATTERY_REG_BASE,
+    DETECT_EVSE_REGEX,
     DOMAIN,
     METER_REG_BASE,
     PYMODBUS_REQUIRED_VERSION,
@@ -960,6 +961,9 @@ class SolarEdgeInverter:
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
             )
+
+        if DETECT_EVSE_REGEX.match(self.decoded_common["C_Model"]):
+            raise DeviceIsEVSE(f"Detected EVSE model: {self.decoded_common['C_Model']}")
 
         if (
             self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
