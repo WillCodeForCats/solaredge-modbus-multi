@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import logging
 import re
 
@@ -2522,5 +2523,5 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
         return True
 
     @property
-    def native_value(self):
+    def native_value(self) -> datetime.datetime | None:
         return self._platform.last_update
