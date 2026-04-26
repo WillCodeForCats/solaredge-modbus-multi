@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import importlib.metadata
 import inspect
 import logging
@@ -11,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.util import dt
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
@@ -352,12 +354,18 @@ class SolarEdgeModbusMultiHub:
         try:
             for inverter in self.inverters:
                 await inverter.read_modbus_data()
-
             for meter in self.meters:
                 await meter.read_modbus_data()
-
             for battery in self.batteries:
                 await battery.read_modbus_data()
+
+            timestamp = dt.now()
+            for inverter in self.inverters:
+                inverter.set_last_update(timestamp)
+            for meter in self.meters:
+                meter.set_last_update(timestamp)
+            for battery in self.batteries:
+                battery.set_last_update(timestamp)
 
         except ModbusReadError as e:
             self.disconnect()
@@ -479,6 +487,14 @@ class SolarEdgeModbusMultiHub:
 
         if not self.keep_modbus_open:
             self.disconnect()
+
+        timestamp = dt.now()
+        for inverter in self.inverters:
+            inverter.set_last_update(timestamp)
+        for meter in self.meters:
+            meter.set_last_update(timestamp)
+        for battery in self.batteries:
+            battery.set_last_update(timestamp)
 
         return True
 
@@ -834,6 +850,7 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
         self._grid_status = None
+        self._last_update_timestamp = None
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1864,6 +1881,9 @@ class SolarEdgeInverter:
         """Write inverter register."""
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
+    def set_last_update(self, timestamp) -> None:
+        self._last_update_timestamp = timestamp
+
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -1895,6 +1915,10 @@ class SolarEdgeInverter:
             return False
 
         return True
+
+    @property
+    def last_update(self) -> datetime.datetime | None:
+        return self._last_update_timestamp
 
 
 class SolarEdgeMMPPTUnit:
@@ -1950,6 +1974,7 @@ class SolarEdgeMeter:
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
         self._via_device = None
+        self._last_update_timestamp = None
 
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
@@ -2248,6 +2273,9 @@ class SolarEdgeMeter:
                 f"Meter {self.meter_id} ident incorrect or not installed."
             )
 
+    def set_last_update(self, timestamp) -> None:
+        self._last_update_timestamp = timestamp
+
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -2275,6 +2303,10 @@ class SolarEdgeMeter:
     def via_device(self, device: str) -> None:
         self._via_device = (DOMAIN, device)
 
+    @property
+    def last_update(self) -> datetime.datetime | None:
+        return self._last_update_timestamp
+
 
 class SolarEdgeBattery:
     """Defines a SolarEdge battery."""
@@ -2291,6 +2323,7 @@ class SolarEdgeBattery:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self._via_device = None
+        self._last_update_timestamp = None
 
         try:
             self.start_address = BATTERY_REG_BASE[self.battery_id]
@@ -2543,6 +2576,9 @@ class SolarEdgeBattery:
                 f"{name} {display_value} {type(value)}"
             )
 
+    def set_last_update(self, timestamp) -> None:
+        self._last_update_timestamp = timestamp
+
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -2580,6 +2616,10 @@ class SolarEdgeBattery:
     @property
     def battery_energy_reset_cycles(self) -> int:
         return self.hub.battery_energy_reset_cycles
+
+    @property
+    def last_update(self) -> datetime.datetime | None:
+        return self._last_update_timestamp
 
 
 class SolarEdgeCharger:
@@ -2673,65 +2713,6 @@ class SolarEdgeCharger:
             self.decoded_common["C_Version"] = parse_modbus_string(
                 decoder.decode_string(16)
             )
-
-            charger_data = await self.hub.modbus_read_holding_registers(
-                unit=self.charger_unit_id, address=40069, rcount=40
-            )
-
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                charger_data.registers, byteorder=Endian.BIG
-            )
-
-            self.decoded_model = OrderedDict(
-                [
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
-                    ("AC_Current", decoder.decode_16bit_uint()),
-                    ("AC_Current_A", decoder.decode_16bit_uint()),
-                    ("AC_Current_B", decoder.decode_16bit_uint()),
-                    ("AC_Current_C", decoder.decode_16bit_uint()),
-                    ("AC_Current_SF", decoder.decode_16bit_int()),
-                    ("AC_Voltage_AB", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_BC", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_CA", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_AN", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_BN", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_CN", decoder.decode_16bit_uint()),
-                    ("AC_Voltage_SF", decoder.decode_16bit_int()),
-                    ("AC_Power", decoder.decode_16bit_int()),
-                    ("AC_Power_SF", decoder.decode_16bit_int()),
-                    ("AC_Frequency", decoder.decode_16bit_uint()),
-                    ("AC_Frequency_SF", decoder.decode_16bit_int()),
-                    ("AC_VA", decoder.decode_16bit_int()),
-                    ("AC_VA_SF", decoder.decode_16bit_int()),
-                    ("AC_var", decoder.decode_16bit_int()),
-                    ("AC_var_SF", decoder.decode_16bit_int()),
-                    ("AC_PF", decoder.decode_16bit_int()),
-                    ("AC_PF_SF", decoder.decode_16bit_int()),
-                    ("AC_Energy_WH", decoder.decode_32bit_uint()),
-                    ("AC_Energy_WH_SF", decoder.decode_16bit_uint()),
-                    ("I_DC_Current", decoder.decode_16bit_uint()),
-                    ("I_DC_Current_SF", decoder.decode_16bit_int()),
-                    ("I_DC_Voltage", decoder.decode_16bit_uint()),
-                    ("I_DC_Voltage_SF", decoder.decode_16bit_int()),
-                    ("I_DC_Power", decoder.decode_16bit_int()),
-                    ("I_DC_Power_SF", decoder.decode_16bit_int()),
-                    ("I_Temp_Cab", decoder.decode_16bit_int()),
-                    ("I_Temp_Sink", decoder.decode_16bit_int()),
-                    ("I_Temp_Trns", decoder.decode_16bit_int()),
-                    ("I_Temp_Other", decoder.decode_16bit_int()),
-                    ("I_Temp_SF", decoder.decode_16bit_int()),
-                    ("I_Status", decoder.decode_16bit_int()),
-                    ("I_Status_Vendor", decoder.decode_16bit_int()),
-                ]
-            )
-
-            if (
-                self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-                or self.decoded_model["C_SunSpec_DID"] not in [101, 102, 103]
-                or self.decoded_model["C_SunSpec_Length"] != 50
-            ):
-                raise DeviceInvalid(f"Charger {self.charger_unit_id} not usable.")
 
         except ModbusIOError:
             raise ModbusReadError(f"No response from charger ID {self.charger_unit_id}")
