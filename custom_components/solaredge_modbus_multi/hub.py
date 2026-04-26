@@ -63,8 +63,8 @@ class DeviceInitFailed(SolarEdgeException):
     pass
 
 
-class DeviceIsCharger(SolarEdgeException):
-    """Raised when an inverter device matches a charger model"""
+class DeviceIsEVSE(SolarEdgeException):
+    """Raised when an inverter device matches a EVSE model"""
 
     pass
 
@@ -2622,11 +2622,11 @@ class SolarEdgeBattery:
         return self._last_update_timestamp
 
 
-class SolarEdgeCharger:
-    """Class that defines a SolarEdge EV Charger."""
+class SolarEdgeEVSE:
+    """Class that defines a SolarEdge EVSE."""
 
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
-        self.charger_unit_id = device_id
+        self.evse_unit_id = device_id
         self.hub = hub
         self.decoded_common = []
         self.decoded_model = []
@@ -2636,12 +2636,12 @@ class SolarEdgeCharger:
         """Set up data about the device from modbus."""
 
         try:
-            charger_data = await self.hub.modbus_read_holding_registers(
-                unit=self.charger_unit_id, address=40000, rcount=69
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40000, rcount=69
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
-                charger_data.registers, byteorder=Endian.BIG
+                evse_data.registers, byteorder=Endian.BIG
             )
 
             self.decoded_common = OrderedDict(
@@ -2667,19 +2667,17 @@ class SolarEdgeCharger:
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
                     (
-                        f"C{self.charger_unit_id}: "
+                        f"C{self.evse_unit_id}: "
                         f"{name} {hex(value) if isinstance(value, int) else value}"
                         f"{type(value)}"
                     ),
                 )
 
-            self.hub.inverter_common[self.charger_unit_id] = self.decoded_common
-
         except ModbusIOError:
-            raise DeviceInvalid(f"No response from charger ID {self.charger_unit_id}")
+            raise DeviceInvalid(f"No response from evse ID {self.evse_unit_id}")
 
         except ModbusIllegalAddress:
-            raise DeviceInvalid(f"ID {self.charger_unit_id} is not SunSpec.")
+            raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
 
         if (
             self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
@@ -2688,26 +2686,26 @@ class SolarEdgeCharger:
             or self.decoded_common["C_SunSpec_DID"] != 0x0001
             or self.decoded_common["C_SunSpec_Length"] != 65
         ):
-            raise DeviceInvalid(f"ID {self.charger_unit_id} is not SunSpec.")
+            raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
 
         self.manufacturer = self.decoded_common["C_Manufacturer"]
         self.model = self.decoded_common["C_Model"]
         self.option = self.decoded_common["C_Option"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
-        self.name = f"{self.hub.hub_id.capitalize()} C{self.charger_unit_id}"
+        self.name = f"{self.hub.hub_id.capitalize()} C{self.evse_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
     async def read_modbus_data(self) -> None:
         """Read and update dynamic modbus registers."""
 
         try:
-            charger_data = await self.hub.modbus_read_holding_registers(
-                unit=self.charger_unit_id, address=40044, rcount=16
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40044, rcount=16
             )
 
             decoder = BinaryPayloadDecoder.fromRegisters(
-                charger_data.registers, byteorder=Endian.BIG
+                evse_data.registers, byteorder=Endian.BIG
             )
 
             self.decoded_common["C_Version"] = parse_modbus_string(
@@ -2715,7 +2713,7 @@ class SolarEdgeCharger:
             )
 
         except ModbusIOError:
-            raise ModbusReadError(f"No response from charger ID {self.charger_unit_id}")
+            raise ModbusReadError(f"No response from EVSE ID {self.evse_unit_id}")
 
     @property
     def online(self) -> bool:
