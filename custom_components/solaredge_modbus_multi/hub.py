@@ -188,6 +188,7 @@ class SolarEdgeModbusMultiHub:
         self.inverters = []
         self.meters = []
         self.batteries = []
+        self.evses = []
         self.inverter_common = {}
         self.mmppt_common = {}
         self.has_write = None
@@ -284,6 +285,14 @@ class SolarEdgeModbusMultiHub:
                 # Inverters are mandatory
                 _LOGGER.error(f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}")
                 raise HubInitFailed(f"{e}")
+
+            except DeviceIsEVSE as e:
+                _LOGGER.debug(
+                    f"Device model matches EVSE at {self.hub_host} ID {inverter_unit_id}: {e}"
+                )
+                new_evse = SolarEdgeEVSE(inverter_unit_id, self)
+                await new_evse.init_device()
+                self.evses.append(new_evse)
 
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
@@ -963,7 +972,7 @@ class SolarEdgeInverter:
             )
 
         if DETECT_EVSE_REGEX.match(self.decoded_common["C_Model"]):
-            raise DeviceIsEVSE(f"Detected EVSE model: {self.decoded_common['C_Model']}")
+            raise DeviceIsEVSE(f"Model {self.decoded_common['C_Model']}")
 
         if (
             self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
