@@ -15,6 +15,7 @@ REDACT_CONFIG = {"unique_id", "host"}
 REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
 REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
 REDACT_BATTERY = {"identifiers", "B_SerialNumber", "serial_number", "via_device"}
+REDACT_EVSE = {"identifiers", "C_SerialNumber", "serial_number"}
 
 
 def format_values(format_input) -> Any:
@@ -86,5 +87,15 @@ async def async_get_config_entry_diagnostics(
             }
         }
         data.update(async_redact_data(battery, REDACT_BATTERY))
+
+    for evse in hub.evses:
+        evse: dict[str, Any] = {
+            f"evse_unit_id_{evse.evse_unit_id}": {
+                "device_info": evse.device_info,
+                "common": evse.decoded_common,
+                "model": format_values(evse.decoded_model),
+            }
+        }
+        data.update(async_redact_data(evse, REDACT_EVSE))
 
     return data
