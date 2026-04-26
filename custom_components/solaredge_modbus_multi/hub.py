@@ -2640,28 +2640,86 @@ class SolarEdgeEVSE:
                 unit=self.evse_unit_id, address=40000, rcount=69
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                evse_data.registers, byteorder=Endian.BIG
-            )
-
             self.decoded_common = OrderedDict(
                 [
-                    ("C_SunSpec_ID", decoder.decode_32bit_uint()),
-                    ("C_SunSpec_DID", decoder.decode_16bit_uint()),
-                    ("C_SunSpec_Length", decoder.decode_16bit_uint()),
                     (
-                        "C_Manufacturer",
-                        parse_modbus_string(decoder.decode_string(32)),
-                    ),
-                    ("C_Model", parse_modbus_string(decoder.decode_string(32))),
-                    ("C_Option", parse_modbus_string(decoder.decode_string(16))),
-                    ("C_Version", parse_modbus_string(decoder.decode_string(16))),
-                    (
-                        "C_SerialNumber",
-                        parse_modbus_string(decoder.decode_string(32)),
-                    ),
-                    ("C_Device_address", decoder.decode_16bit_uint()),
+                        "C_SunSpec_ID",
+                        ModbusClientMixin.convert_from_registers(
+                            evse_data.registers[0:2],
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
+                        ),
+                    )
                 ]
+            )
+
+            uint16_fields = [
+                "C_SunSpec_DID",
+                "C_SunSpec_Length",
+                "C_Device_address",
+            ]
+            uint16_data = evse_data.registers[2:4] + [evse_data.registers[68]]
+            self.decoded_common.update(
+                OrderedDict(
+                    zip(
+                        uint16_fields,
+                        ModbusClientMixin.convert_from_registers(
+                            uint16_data,
+                            data_type=ModbusClientMixin.DATATYPE.UINT16,
+                        ),
+                    )
+                )
+            )
+
+            self.decoded_common.update(
+                OrderedDict(
+                    [
+                        (
+                            "C_Manufacturer",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    evse_data.registers[4:20],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Model",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    evse_data.registers[20:36],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Option",  # string(16)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    evse_data.registers[36:44],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_Version",  # string(16)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    evse_data.registers[44:52],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                        (
+                            "C_SerialNumber",  # string(32)
+                            int_list_to_string(
+                                ModbusClientMixin.convert_from_registers(
+                                    evse_data.registers[52:68],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                                )
+                            ),
+                        ),
+                    ]
+                )
             )
 
             for name, value in iter(self.decoded_common.items()):
@@ -2704,12 +2762,11 @@ class SolarEdgeEVSE:
                 unit=self.evse_unit_id, address=40044, rcount=16
             )
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                evse_data.registers, byteorder=Endian.BIG
-            )
-
-            self.decoded_common["C_Version"] = parse_modbus_string(
-                decoder.decode_string(16)
+            self.decoded_common["C_Version"] = int_list_to_string(
+                ModbusClientMixin.convert_from_registers(
+                    evse_data.registers[0:8],
+                    data_type=ModbusClientMixin.DATATYPE.UINT16,
+                )
             )
 
         except ModbusIOError:
