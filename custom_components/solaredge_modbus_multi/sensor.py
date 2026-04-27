@@ -241,6 +241,7 @@ async def async_setup_entry(
 
     for evse in hub.evses:
         entities.append(Version(evse, config_entry, coordinator))
+        entities.append(SolarEdgeEvseState(evse, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -2528,3 +2529,21 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
     @property
     def native_value(self) -> datetime.datetime | None:
         return self._platform.last_update
+
+
+class SolarEdgeEvseState(SolarEdgeSensorBase):
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_charging_state"
+
+    @property
+    def name(self) -> str:
+        return "Charging State"
+
+    @property
+    def available(self) -> bool:
+        return super().available and "E_State" in self._platform.decoded_model
+
+    @property
+    def native_value(self):
+        return self._platform.decoded_model["E_State"]
