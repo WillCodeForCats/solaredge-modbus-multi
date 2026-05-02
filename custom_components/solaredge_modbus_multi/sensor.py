@@ -2523,5 +2523,9 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
         return True
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
     def native_value(self) -> datetime.datetime | None:
         return self._platform.last_update
