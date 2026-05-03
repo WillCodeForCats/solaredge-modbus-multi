@@ -34,7 +34,7 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
-        """ Dynamic Power Control """
+        """Dynamic Power Control"""
         if hub.option_detect_extras and inverter.global_power_control:
             entities.append(
                 SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator)
