@@ -95,8 +95,7 @@ async def async_setup_entry(
             )
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
 
-        """ Power Control Block """
-        if hub.option_detect_extras:
+        if hub.option_detect_extras and inverter.advanced_power_control:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
