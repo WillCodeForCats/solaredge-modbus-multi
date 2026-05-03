@@ -88,15 +88,14 @@ async def async_setup_entry(
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
 
-        if hub.option_detect_extras:
+        if hub.option_detect_extras and inverter.global_power_control:
             entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
             entities.append(
                 SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
             )
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
 
-        """ Power Control Block """
-        if hub.option_detect_extras:
+        if hub.option_detect_extras and inverter.advanced_power_control:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
@@ -2521,6 +2520,10 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
     @property
     def available(self) -> bool:
         return True
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
 
     @property
     def native_value(self) -> datetime.datetime | None:

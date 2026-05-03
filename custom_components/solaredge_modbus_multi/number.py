@@ -33,13 +33,18 @@ async def async_setup_entry(
 
     entities = []
 
-    """ Dynamic Power Control """
-    if hub.option_detect_extras:
-        for inverter in hub.inverters:
+    for inverter in hub.inverters:
+        """Dynamic Power Control"""
+        if hub.option_detect_extras and inverter.global_power_control:
             entities.append(
                 SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator)
             )
             entities.append(SolarEdgeCosPhiSet(inverter, config_entry, coordinator))
+
+        """ Power Control Block """
+        if hub.option_detect_extras and inverter.advanced_power_control:
+            entities.append(SolarEdgePowerReduce(inverter, config_entry, coordinator))
+            entities.append(SolarEdgeCurrentLimit(inverter, config_entry, coordinator))
 
     """ Power Control Options: Storage Control """
     if hub.option_storage_control is True:
@@ -62,12 +67,6 @@ async def async_setup_entry(
             entities.append(
                 SolarEdgeExternalProductionMax(inverter, config_entry, coordinator)
             )
-
-    """ Power Control Block """
-    if hub.option_detect_extras and inverter.advanced_power_control:
-        for inverter in hub.inverters:
-            entities.append(SolarEdgePowerReduce(inverter, config_entry, coordinator))
-            entities.append(SolarEdgeCurrentLimit(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
