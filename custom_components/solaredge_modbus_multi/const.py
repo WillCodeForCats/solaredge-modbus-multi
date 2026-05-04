@@ -30,6 +30,8 @@ DOMAIN_REGEX = re.compile(
     re.IGNORECASE,
 )
 
+STATUS_VENDOR4_VERSION = "3.20.0"
+
 
 class ModbusExceptions:
     """An enumeration of the valid modbus exceptions."""

@@ -7,6 +7,7 @@ import inspect
 import logging
 from collections import OrderedDict
 
+from awesomeversion import AwesomeVersion
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -29,6 +30,7 @@ from .const import (
     DOMAIN,
     METER_REG_BASE,
     PYMODBUS_REQUIRED_VERSION,
+    STATUS_VENDOR4_VERSION,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -845,6 +847,7 @@ class SolarEdgeInverter:
         self.site_limit_control = None
         self._grid_status = None
         self._last_update_timestamp = None
+        self._use_status_vendor4 = False
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1036,6 +1039,8 @@ class SolarEdgeInverter:
         self.device_address = self.decoded_common["C_Device_address"]
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
+
+        self._use_status_vendor4 = this_ver >= AwesomeVersion(STATUS_VENDOR4_VERSION)
 
         if self.decoded_mmppt is not None:
             for unit_index in range(self.decoded_mmppt["mmppt_Units"]):
@@ -1913,6 +1918,10 @@ class SolarEdgeInverter:
     @property
     def last_update(self) -> datetime.datetime | None:
         return self._last_update_timestamp
+
+    @property
+    def use_status_vendor4(self) -> bool:
+        return self._use_status_vendor4
 
 
 class SolarEdgeMMPPTUnit:
