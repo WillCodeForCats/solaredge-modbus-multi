@@ -2793,18 +2793,16 @@ class SolarEdgeEVSE:
                 unit=self.evse_unit_id, address=1000, rcount=2
             )
 
-            self.decoded_model.update(
-                OrderedDict(
-                    [
-                        (
-                            "E_State",
-                            ModbusClientMixin.convert_from_registers(
-                                evse_data.registers[0:2],
-                                data_type=ModbusClientMixin.DATATYPE.UINT32,
-                            ),
+            self.decoded_model = OrderedDict(
+                [
+                    (
+                        "E_State",
+                        ModbusClientMixin.convert_from_registers(
+                            evse_data.registers[0:2],
+                            data_type=ModbusClientMixin.DATATYPE.UINT32,
                         ),
-                    ]
-                )
+                    ),
+                ]
             )
 
         except ModbusIllegalAddress:
