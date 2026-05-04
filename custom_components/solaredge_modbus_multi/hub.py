@@ -1135,10 +1135,6 @@ class SolarEdgeInverter:
                 + inverter_data.registers[30:40]
             )
 
-            if self.use_status_vendor4:
-                int16_fields.append("I_Status_Vendor4")
-                int16_data = int16_data + inverter_data.registers[41:43]
-
             self.decoded_model.update(
                 OrderedDict(
                     zip(
@@ -1165,6 +1161,21 @@ class SolarEdgeInverter:
                     ]
                 )
             )
+
+            if self.use_status_vendor4:
+                self.decoded_model.update(
+                    OrderedDict(
+                        [
+                            (
+                                "I_Status_Vendor4",
+                                ModbusClientMixin.convert_from_registers(
+                                    inverter_data.registers[40:42],
+                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
+                                ),
+                            ),
+                        ]
+                    )
+                )
 
             if (
                 self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
