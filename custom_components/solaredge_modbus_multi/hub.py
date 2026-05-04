@@ -8,6 +8,10 @@ import logging
 from collections import OrderedDict
 
 from awesomeversion import AwesomeVersion
+from awesomeversion.exceptions import (
+    AwesomeVersionCompareException,
+    AwesomeVersionStrategyException,
+)
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -1040,7 +1044,15 @@ class SolarEdgeInverter:
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
-        self._use_status_vendor4 = this_ver >= AwesomeVersion(STATUS_VENDOR4_VERSION)
+        try:
+            this_ver = AwesomeVersion(self.decoded_common["C_Version"])
+            self._use_status_vendor4 = this_ver >= AwesomeVersion(
+                STATUS_VENDOR4_VERSION
+            )
+        except (AwesomeVersionCompareException, AwesomeVersionStrategyException) as e:
+            _LOGGER.error(
+                f"Error checking inverter version: {e}. Please report this issue."
+            )
 
         if self.decoded_mmppt is not None:
             for unit_index in range(self.decoded_mmppt["mmppt_Units"]):
