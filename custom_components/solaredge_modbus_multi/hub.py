@@ -2840,6 +2840,16 @@ class SolarEdgeEVSE:
                     ]
                 )
             )
+
+            for name, value in iter(self.decoded_model.items()):
+                if isinstance(value, float):
+                    display_value = float_to_hex(value)
+                else:
+                    display_value = hex(value) if isinstance(value, int) else value
+                _LOGGER.debug(
+                    f"E{self.evse_unit_id}: {name} {display_value} {type(value)}"
+                )
+
         except ModbusIllegalAddress:
             _LOGGER.error(f"E{self.evse_unit_id}: E_State NOT available")
 
