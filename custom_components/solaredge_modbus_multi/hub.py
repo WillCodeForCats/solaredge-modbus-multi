@@ -2851,7 +2851,7 @@ class SolarEdgeEVSE:
                 )
 
         except ModbusIllegalAddress:
-            _LOGGER.error(f"E{self.evse_unit_id}: E_State NOT available")
+            _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
 
         except ModbusIOError:
             raise ModbusReadError(f"No response from EVSE ID {self.evse_unit_id}")
