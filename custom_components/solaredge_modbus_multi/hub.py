@@ -2745,7 +2745,7 @@ class SolarEdgeEVSE:
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
                     (
-                        f"C{self.evse_unit_id}: "
+                        f"E{self.evse_unit_id}: "
                         f"{name} {hex(value) if isinstance(value, int) else value}"
                         f"{type(value)}"
                     ),
