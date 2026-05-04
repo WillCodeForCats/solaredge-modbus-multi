@@ -41,6 +41,7 @@ from .const import (
     RRCR_STATUS,
     SUNSPEC_DID,
     SUNSPEC_SF_RANGE,
+    VENDOR4_STATUS,
     VENDOR_STATUS,
     BatteryLimit,
     SunSpecAccum,
@@ -1425,6 +1426,60 @@ class StatusVendor(SolarEdgeSensorBase):
                 return None
 
         except KeyError:
+            return None
+
+
+class StatusVendor4(SolarEdgeSensorBase):
+    entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_status_vendor4"
+
+    @property
+    def name(self) -> str:
+        return "Status Vendor 4"
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "I_Status_Vendor4" in self._platform.decoded_model
+            and self._platform.decoded_model["I_Status_Vendor4"]
+            != SunSpecNotImpl.UINT32
+        )
+
+    @property
+    def native_value(self):
+        try:
+            value = self._platform.decoded_model["I_Status_Vendor4"]
+            controller = (value >> 16) & 0xFFFF
+            error = value & 0xFFFF
+            return f"{controller:X}x{error:X}"
+        except TypeError:
+            return None
+
+    @property
+    def extra_state_attributes(self):
+        try:
+            value = self._platform.decoded_model["I_Status_Vendor4"]
+
+            controller = (value >> 16) & 0xFFFF
+            error = value & 0xFFFF
+            attrs = {
+                "controller": hex(controller),
+                "error_code": hex(error),
+            }
+
+            if controller in VENDOR4_STATUS and error in VENDOR4_STATUS[controller]:
+                attrs["description"] = VENDOR4_STATUS[controller][error]
+
+            return attrs
+
+        except KeyError:
+            return None
+
+        except TypeError:
             return None
 
 
