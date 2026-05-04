@@ -2823,6 +2823,23 @@ class SolarEdgeEVSE:
                 )
             )
 
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=1016, rcount=2
+            )
+
+            self.decoded_model.update(
+                OrderedDict(
+                    [
+                        (
+                            "E_Type_Features",
+                            ModbusClientMixin.convert_from_registers(
+                                evse_data.registers[0:2],
+                                data_type=ModbusClientMixin.DATATYPE.UINT32,
+                            ),
+                        ),
+                    ]
+                )
+            )
         except ModbusIllegalAddress:
             _LOGGER.error(f"E{self.evse_unit_id}: E_State NOT available")
 
