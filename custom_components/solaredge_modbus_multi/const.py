@@ -274,6 +274,8 @@ VENDOR_STATUS = {
 
 VENDOR4_STATUS: dict[int, dict[int, str]] = {
     # controller: {error_code: "description"}
+    0x3: {0x6E: "Meter Communication Error"},
+    0x18: {0xC7: "Rapid Shutdown (RSD) Error"},
 }
 
 SUNSPEC_DID = {
