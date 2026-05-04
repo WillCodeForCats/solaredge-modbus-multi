@@ -1062,8 +1062,9 @@ class SolarEdgeInverter:
                 )
             )
 
+            rcount = 40 if self.use_status_vendor4 else 42
             inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40069, rcount=40
+                unit=self.inverter_unit_id, address=40069, rcount=rcount
             )
 
             uint16_fields = [
@@ -1133,6 +1134,11 @@ class SolarEdgeInverter:
                 + [inverter_data.registers[28]]
                 + inverter_data.registers[30:40]
             )
+
+            if self.use_status_vendor4:
+                int16_fields.append("I_Status_Vendor4")
+                int16_data = int16_data + inverter_data.registers[41:43]
+
             self.decoded_model.update(
                 OrderedDict(
                     zip(
