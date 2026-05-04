@@ -368,6 +368,8 @@ class SolarEdgeModbusMultiHub:
                 await meter.read_modbus_data()
             for battery in self.batteries:
                 await battery.read_modbus_data()
+            for evse in self.evses:
+                await evse.read_modbus_data()
 
             timestamp = dt.now()
             for inverter in self.inverters:
@@ -458,6 +460,8 @@ class SolarEdgeModbusMultiHub:
                     await meter.read_modbus_data()
                 for battery in self.batteries:
                     await battery.read_modbus_data()
+                for evse in self.evses:
+                    await evse.read_modbus_data()
 
         except ModbusReadError as e:
             self.disconnect()
