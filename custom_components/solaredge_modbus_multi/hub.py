@@ -293,7 +293,7 @@ class SolarEdgeModbusMultiHub:
                 new_evse = SolarEdgeEVSE(inverter_unit_id, self)
                 await new_evse.init_device()
                 self.evses.append(new_evse)
-                
+
                 # Skip meter and battery detection if DeviceIsEVSE
                 continue
 
