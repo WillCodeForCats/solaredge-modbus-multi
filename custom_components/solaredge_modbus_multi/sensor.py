@@ -1455,7 +1455,7 @@ class StatusVendor4(SolarEdgeSensorBase):
     def native_value(self):
         try:
             value = self._platform.decoded_model["I_Status_Vendor4"]
-            controller = (value >> 16) & 0xFFFF
+            controller = (value >> 24) & 0xFF
             error = value & 0xFFFF
             return f"{controller:X}x{error:X}"
         except TypeError:
@@ -1466,7 +1466,7 @@ class StatusVendor4(SolarEdgeSensorBase):
         try:
             value = self._platform.decoded_model["I_Status_Vendor4"]
 
-            controller = (value >> 16) & 0xFFFF
+            controller = (value >> 24) & 0xFF
             error = value & 0xFFFF
             attrs = {
                 "controller": hex(controller),
