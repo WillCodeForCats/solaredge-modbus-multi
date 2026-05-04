@@ -1074,7 +1074,7 @@ class SolarEdgeInverter:
                 )
             )
 
-            rcount = 40 if self.use_status_vendor4 else 42
+            rcount = 42 if self.use_status_vendor4 else 40
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=rcount
             )
