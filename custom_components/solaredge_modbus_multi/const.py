@@ -272,6 +272,10 @@ VENDOR_STATUS = {
     256: "Arc Detected",
 }
 
+VENDOR4_STATUS: dict[int, dict[int, str]] = {
+    # controller: {error_code: "description"}
+}
+
 SUNSPEC_DID = {
     101: "Single Phase Inverter",
     102: "Split Phase Inverter",
