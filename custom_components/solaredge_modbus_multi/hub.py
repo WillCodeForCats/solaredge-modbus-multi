@@ -568,7 +568,7 @@ class SolarEdgeModbusMultiHub:
         sig = inspect.signature(self._client.read_holding_registers)
 
         _LOGGER.debug(
-            f"I{self._rr_unit}: modbus_read_holding_registers "
+            f"unit={self._rr_unit}: modbus_read_holding_registers "
             f"address={self._rr_address} count={self._rr_count}"
         )
 
@@ -581,38 +581,40 @@ class SolarEdgeModbusMultiHub:
                 address=self._rr_address, count=self._rr_count, slave=self._rr_unit
             )
 
-        _LOGGER.debug(f"I{self._rr_unit}: result is error: {result.isError()} ")
+        _LOGGER.debug(f"unit={self._rr_unit}: result is error: {result.isError()} ")
 
         if result.isError():
-            _LOGGER.debug(f"I{self._rr_unit}: error result: {type(result)} ")
+            _LOGGER.debug(f"unit={self._rr_unit}: error result: {type(result)} ")
 
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(f"I{unit} Read IllegalAddress: {result}")
+                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalAddress: {result}")
                     raise ModbusIllegalAddress(result)
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(f"I{unit} Read IllegalFunction: {result}")
+                    _LOGGER.debug(
+                        f"unit={self._rr_unit} Read IllegalFunction: {result}"
+                    )
                     raise ModbusIllegalFunction(result)
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"I{unit} Read IllegalValue: {result}")
+                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalValue: {result}")
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
 
         _LOGGER.debug(
-            f"I{self._rr_unit}: Registers received={len(result.registers)} "
+            f"unit={self._rr_unit}: Registers received={len(result.registers)} "
             f"requested={self._rr_count} address={self._rr_address} "
             f"result={result}"
         )
 
         if len(result.registers) != rcount:
             raise ModbusReadError(
-                f"I{self._rr_unit}: Registers received != requested : "
+                f"unit={self._rr_unit}: Registers received != requested : "
                 f"{len(result.registers)} != {self._rr_count} at {self._rr_address}"
             )
 
