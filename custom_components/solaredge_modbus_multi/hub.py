@@ -1177,7 +1177,7 @@ class SolarEdgeInverter:
                     unit=self.inverter_unit_id, address=40119, rcount=2
                 )
                 self.decoded_model.update(
-                    OrderedDict(
+                    dict(
                         [
                             (
                                 "I_Status_Vendor4",
