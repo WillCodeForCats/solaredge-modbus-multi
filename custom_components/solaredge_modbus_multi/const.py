@@ -271,6 +271,7 @@ VENDOR_STATUS = {
     150: "Arc Fault Detected",
     151: "Arc Fault Detected",
     153: "Hardware Error",
+    191: "Swing Rcommon Overheat",
     256: "Arc Detected",
 }
 
