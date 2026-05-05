@@ -833,9 +833,9 @@ class SolarEdgeInverter:
         self.inverter_unit_id = device_id
         self.hub = hub
         self.mmppt_units = []
-        self.decoded_common = []
-        self.decoded_model = []
-        self.decoded_mmppt = []
+        self.decoded_common = {}
+        self.decoded_model = {}
+        self.decoded_mmppt = {}
         self.decoded_storage_control = None
         self.has_parent = False
         self.has_battery = None
@@ -1960,8 +1960,8 @@ class SolarEdgeMeter:
     ) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = []
-        self.decoded_model = []
+        self.decoded_common = {}
+        self.decoded_model = {}
         self.meter_id = meter_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
@@ -2309,8 +2309,8 @@ class SolarEdgeBattery:
     ) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = []
-        self.decoded_model = []
+        self.decoded_common = {}
+        self.decoded_model = {}
         self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
