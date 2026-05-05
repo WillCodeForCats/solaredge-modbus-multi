@@ -2659,7 +2659,7 @@ class SolarEdgeEVSE:
                 unit=self.evse_unit_id, address=40000, rcount=69
             )
 
-            self.decoded_common = OrderedDict(
+            self.decoded_common = dict(
                 [
                     (
                         "C_SunSpec_ID",
@@ -2678,7 +2678,7 @@ class SolarEdgeEVSE:
             ]
             uint16_data = evse_data.registers[2:4] + [evse_data.registers[68]]
             self.decoded_common.update(
-                OrderedDict(
+                dict(
                     zip(
                         uint16_fields,
                         ModbusClientMixin.convert_from_registers(
@@ -2690,7 +2690,7 @@ class SolarEdgeEVSE:
             )
 
             self.decoded_common.update(
-                OrderedDict(
+                dict(
                     [
                         (
                             "C_Manufacturer",  # string(32)
