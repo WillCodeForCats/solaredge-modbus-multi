@@ -274,8 +274,30 @@ VENDOR_STATUS = {
 
 VENDOR4_STATUS: dict[int, dict[int, str]] = {
     # controller: {error_code: "description"}
-    0x3: {0x6E: "Meter Communication Error"},
-    0x18: {0xC7: "Rapid Shutdown (RSD) Error"},
+    0x3: {
+        0x2: "Inverter Communication Error",
+        0x1C: "Battery without Firmware",
+        0x6B: "Battery Communication Error",
+        0x6E: "Meter Communication Error",
+        0xA5: "Modbus Routing Packets Debug",
+    },
+    0x18: {
+        0x14: "Inv. Power Error - No Code",
+        0x1C: "V-L1 Min1",
+        0x3D: "I-RCD Step",
+        0x40: "F-L1 Max1",
+        0x61: "Vin Buck Max",
+        0xA5: "Tz Over Current 3",
+        0xB5: "Vcap11 Surge",
+        0xB6: "Vcap12 Surge",
+        0xB9: "Vcap31 Surge",
+        0xBA: "Vcap33 Surge",
+        0xBE: "Swing Rdiff Overheat",
+        0xBF: "Swing Rcommon Overheat",
+        0xC7: "Rapid Shutdown (RSD) Error",
+        0xD6: "Multiple Seq. GB",
+        0x100: "Arc Detected",
+    },
 }
 
 SUNSPEC_DID = {
