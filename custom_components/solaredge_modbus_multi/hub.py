@@ -2649,8 +2649,8 @@ class SolarEdgeEVSE:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
         self.evse_unit_id = device_id
         self.hub = hub
-        self.decoded_common = []
-        self.decoded_model = []
+        self.decoded_common = {}
+        self.decoded_model = {}
         self.has_parent = False
 
     async def init_device(self) -> None:
