@@ -1403,6 +1403,10 @@ class StatusVendor(SolarEdgeSensorBase):
         return "Status Vendor"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return not self._platform.use_status_vendor4
+
+    @property
     def native_value(self):
         try:
             if self._platform.decoded_model["I_Status_Vendor"] == SunSpecNotImpl.INT16:
