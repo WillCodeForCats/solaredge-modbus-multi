@@ -2789,56 +2789,33 @@ class SolarEdgeEVSE:
                 )
             )
 
+            # blind read sunspec ranges to see if we can see any differences
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=1000, rcount=2
+                unit=self.evse_unit_id, address=40069, rcount=64
             )
-
-            self.decoded_model = OrderedDict(
-                [
-                    (
-                        "E_State",
-                        ModbusClientMixin.convert_from_registers(
-                            evse_data.registers[0:2],
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
-                    ),
-                ]
-            )
-
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=1004, rcount=2
+                unit=self.evse_unit_id, address=40133, rcount=64
             )
-
-            self.decoded_model.update(
-                OrderedDict(
-                    [
-                        (
-                            "E_Cable_State",
-                            ModbusClientMixin.convert_from_registers(
-                                evse_data.registers[0:2],
-                                data_type=ModbusClientMixin.DATATYPE.UINT32,
-                            ),
-                        ),
-                    ]
-                )
-            )
-
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=1016, rcount=2
+                unit=self.evse_unit_id, address=40197, rcount=64
             )
-
-            self.decoded_model.update(
-                OrderedDict(
-                    [
-                        (
-                            "E_Type_Features",
-                            ModbusClientMixin.convert_from_registers(
-                                evse_data.registers[0:2],
-                                data_type=ModbusClientMixin.DATATYPE.UINT32,
-                            ),
-                        ),
-                    ]
-                )
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40261, rcount=64
+            )
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40325, rcount=64
+            )
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40389, rcount=64
+            )
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40453, rcount=64
+            )
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40517, rcount=64
+            )
+            evse_data = await self.hub.modbus_read_holding_registers(
+                unit=self.evse_unit_id, address=40581, rcount=64
             )
 
             for name, value in iter(self.decoded_model.items()):

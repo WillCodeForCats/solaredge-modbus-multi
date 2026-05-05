@@ -240,7 +240,6 @@ async def async_setup_entry(
 
     for evse in hub.evses:
         entities.append(Version(evse, config_entry, coordinator))
-        entities.append(SolarEdgeEvseState(evse, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
