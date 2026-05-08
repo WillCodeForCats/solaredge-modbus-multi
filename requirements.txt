@@ -1,2 +1,2 @@
-pymodbus>=3.8.3
-awesomeversion>=25.5.0
+pymodbus>=3.13.0
+awesomeversion>=25.8.0
