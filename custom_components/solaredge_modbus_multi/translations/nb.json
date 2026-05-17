@@ -3,12 +3,36 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-konfigurasjon",
+        "menu_options": {
+          "scan_fast": "Rask skanning etter vekselrettere",
+          "scan_full": "Komplett skanning etter vekselrettere",
+          "manual_list": "Manuell oppsett"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Skann de første 32 Modbus-enhets-IDer (1-32)",
+          "scan_full": "Skann alle Modbus-enhets-IDer (1-247)",
+          "manual_list": "Skriv inn en liste over vekselretter-enhets-IDer manuelt"
+        }
+      },
+      "manual": {
+        "title": "Manuell Modbus-konfigurasjon",
         "data": {
           "name": "Sensorvoorvoegsel",
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",
           "device_list": "Inverter-enhetsliste"
         }
+      },
+      "scan_ask_host": {
+        "title": "Søk etter SolarEdge-invertere",
+        "data": {
+          "name": "Sensorvoorvoegsel",
+          "host": "IP-adres van omvormer",
+          "port": "Modbus/TCP-poort"
+        }
+      },
+      "scan_complete": {
+        "title": "Skanning fullført"
       },
       "reconfigure": {
         "title": "SolarEdge Modbus-konfigurasjon",
@@ -27,11 +51,15 @@
       "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
       "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
       "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
-      "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi."
+      "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
+      "scan_failed": "Klarte ikke å skanne etter vekselrettere. Kontroller tilkoblingen og prøv igjen."
     },
     "abort": {
       "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
       "reconfigure_successful": "Omkonfigureringen var vellykket"
+    },
+    "progress": {
+      "scanning_for_inverters": "Søker etter SolarEdge-vekselrettere..."
     }
   },
   "options": {

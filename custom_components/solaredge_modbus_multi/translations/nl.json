@@ -3,12 +3,36 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-configuratie",
+        "menu_options": {
+          "scan_fast": "Snelle scan naar omvormers",
+          "scan_full": "Volledige scan naar omvormers",
+          "manual_list": "Handmatige installatie"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan de eerste 32 Modbus-apparaat-ID's (1-32)",
+          "scan_full": "Scan alle Modbus-apparaat-ID's (1-247)",
+          "manual_list": "Voer handmatig een lijst van omvormer-apparaat-ID's in"
+        }
+      },
+      "manual": {
+        "title": "Handmatige Modbus-configuratie",
         "data": {
           "name": "Sensor prefix",
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
           "device_list": "Omvormerapparaat-ID-lijst"
         }
+      },
+      "scan_ask_host": {
+        "title": "Zoek naar SolarEdge-omvormers",
+        "data": {
+          "name": "Sensor prefix",
+          "host": "omvormer IP-adres",
+          "port": "Modbus/TCP Port"
+        }
+      },
+      "scan_complete": {
+        "title": "Scan voltooid"
       },
       "reconfigure": {
         "title": "SolarEdge Modbus-configuratie",
@@ -27,11 +51,15 @@
       "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
       "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
       "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
-      "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde."
+      "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde.",
+      "scan_failed": "Scannen naar omvormers mislukt. Controleer uw verbinding en probeer het opnieuw."
     },
     "abort": {
       "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
       "reconfigure_successful": "De herconfiguratie was succesvol"
+    },
+    "progress": {
+      "scanning_for_inverters": "Scannen naar SolarEdge-omvormers..."
     }
   },
   "options": {

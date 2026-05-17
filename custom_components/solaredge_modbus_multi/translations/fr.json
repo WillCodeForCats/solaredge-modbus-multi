@@ -3,12 +3,36 @@
     "step": {
       "user": {
         "title": "Configuration SolarEdge Modbus",
+        "menu_options": {
+          "scan_fast": "Scan rapide des onduleurs",
+          "scan_full": "Scan complet des onduleurs",
+          "manual_list": "Configuration manuelle"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan des 32 premiers ID d'appareils Modbus (1-32)",
+          "scan_full": "Scan de tous les ID d'appareils Modbus (1-247)",
+          "manual_list": "Entrer manuellement une liste d'ID d'appareils onduleurs"
+        }
+      },
+      "manual": {
+        "title": "Configuration Modbus manuelle",
         "data": {
           "name": "Prefix du capteur",
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
           "device_list": "Liste des ID des appareils de l'onduleur"
         }
+      },
+      "scan_ask_host": {
+        "title": "Rechercher des onduleurs SolarEdge",
+        "data": {
+          "name": "Prefix du capteur",
+          "host": "Adresse IP de l'onduleur",
+          "port": "Port Modbus/TCP"
+        }
+      },
+      "scan_complete": {
+        "title": "Scan terminé"
       },
       "reconfigure": {
         "title": "Configuration SolarEdge Modbus",
@@ -27,11 +51,15 @@
       "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535.",
       "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
       "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
-      "empty_device_id": "La liste d'ID contient une valeur vide ou non définie."
+      "empty_device_id": "La liste d'ID contient une valeur vide ou non définie.",
+      "scan_failed": "Échec du scan des onduleurs. Veuillez vérifier votre connexion et réessayer."
     },
     "abort": {
       "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub.",
       "reconfigure_successful": "La reconfiguration a réussi"
+    },
+    "progress": {
+      "scanning_for_inverters": "Recherche des onduleurs SolarEdge en cours..."
     }
   },
   "options": {
