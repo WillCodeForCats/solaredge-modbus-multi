@@ -61,6 +61,7 @@ async def async_get_config_entry_diagnostics(
                 "mmppt": format_values(inverter.decoded_mmppt),
                 "has_battery": inverter.has_battery,
                 "storage_control": format_values(inverter.decoded_storage_control),
+                "use_status_vendor4": inverter.use_status_vendor4,
             }
         }
 
