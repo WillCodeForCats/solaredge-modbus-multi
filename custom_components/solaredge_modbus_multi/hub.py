@@ -2832,34 +2832,34 @@ class SolarEdgeEVSE:
 
             # blind read sunspec ranges to see if we can see any differences
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50000, rcount=69
+                unit=self.evse_unit_id, address=0, rcount=69
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50069, rcount=64
+                unit=self.evse_unit_id, address=69, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50133, rcount=64
+                unit=self.evse_unit_id, address=133, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50197, rcount=64
+                unit=self.evse_unit_id, address=197, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50261, rcount=64
+                unit=self.evse_unit_id, address=261, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50325, rcount=64
+                unit=self.evse_unit_id, address=325, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50389, rcount=64
+                unit=self.evse_unit_id, address=389, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50453, rcount=64
+                unit=self.evse_unit_id, address=453, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50517, rcount=64
+                unit=self.evse_unit_id, address=517, rcount=64
             )
             evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=50581, rcount=64
+                unit=self.evse_unit_id, address=581, rcount=64
             )
 
             for name, value in iter(self.decoded_model.items()):
