@@ -5,12 +5,3 @@ updates:
     schedule:
       interval: weekly
       time: "06:00"
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: daily
-      time: "00:00"
-    groups:
-      python-packages:
-        patterns:
-          - "*"
