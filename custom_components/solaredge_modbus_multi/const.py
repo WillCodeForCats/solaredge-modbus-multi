@@ -40,7 +40,8 @@ DETECT_EVSE_REGEX = re.compile(
     re.IGNORECASE,
 )
 
-STATUS_VENDOR4_VERSION = "3.20.0"
+STATUS_VENDOR4_VERSION = "3.20.0"  # solaredge firmware version
+INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 
 
 class ModbusExceptions:

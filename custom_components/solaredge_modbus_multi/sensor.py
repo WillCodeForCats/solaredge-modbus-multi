@@ -36,6 +36,7 @@ from .const import (
     DOMAIN,
     ENERGY_VOLT_AMPERE_HOUR,
     ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
+    INVERTED_POWER_VERSION,
     METER_EVENTS,
     MMPPT_EVENTS,
     RRCR_STATUS,
@@ -643,7 +644,7 @@ class ACPowerInverted(ACPower):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return AwesomeVersion(HA_VERSION) < AwesomeVersion("2026.2")
+        return AwesomeVersion(HA_VERSION) < AwesomeVersion(INVERTED_POWER_VERSION)
 
     @property
     def native_value(self):
@@ -2052,7 +2053,7 @@ class SolarEdgeBatteryPowerInverted(SolarEdgeBatteryPower):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return AwesomeVersion(HA_VERSION) < AwesomeVersion("2026.2")
+        return AwesomeVersion(HA_VERSION) < AwesomeVersion(INVERTED_POWER_VERSION)
 
     @property
     def native_value(self):
