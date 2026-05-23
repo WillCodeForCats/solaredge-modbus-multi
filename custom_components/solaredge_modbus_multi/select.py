@@ -44,16 +44,12 @@ async def async_setup_entry(
 
         """ Power Control Options: Site Limit Control """
         if hub.option_site_limit_control:
-            entities.append(
-                SolaredgeLimitControlMode(inverter, config_entry, coordinator)
-            )
+            entities.append(SolaredgeLimitControlMode(inverter, config_entry, coordinator))
             entities.append(SolaredgeLimitControl(inverter, config_entry, coordinator))
 
         """ Power Control Block """
         if hub.option_detect_extras and inverter.advanced_power_control:
-            entities.append(
-                SolarEdgeReactivePowerMode(inverter, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeReactivePowerMode(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -122,10 +118,8 @@ class StorageControlMode(SolarEdgeSelectBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["control_mode"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["control_mode"]
-                not in self._options
+                or self._platform.decoded_storage_control["control_mode"] == SunSpecNotImpl.UINT16
+                or self._platform.decoded_storage_control["control_mode"] not in self._options
             ):
                 return False
 
@@ -175,10 +169,8 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["ac_charge_policy"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["ac_charge_policy"]
-                not in self._options
+                or self._platform.decoded_storage_control["ac_charge_policy"] == SunSpecNotImpl.UINT16
+                or self._platform.decoded_storage_control["ac_charge_policy"] not in self._options
             ):
                 return False
 
@@ -228,18 +220,12 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["default_mode"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["default_mode"]
-                not in self._options
+                or self._platform.decoded_storage_control["default_mode"] == SunSpecNotImpl.UINT16
+                or self._platform.decoded_storage_control["default_mode"] not in self._options
             ):
                 return False
 
-            # Available only in remote control mode
-            return (
-                super().available
-                and self._platform.decoded_storage_control["control_mode"] == 4
-            )
+            return super().available
 
         except KeyError:
             return False
@@ -285,18 +271,13 @@ class StorageCommandMode(SolarEdgeSelectBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["command_mode"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["command_mode"]
-                not in self._options
+                or self._platform.decoded_storage_control["command_mode"] == SunSpecNotImpl.UINT16
+                or self._platform.decoded_storage_control["command_mode"] not in self._options
             ):
                 return False
 
             # Available only in remote control mode
-            return (
-                super().available
-                and self._platform.decoded_storage_control["control_mode"] == 4
-            )
+            return super().available and self._platform.decoded_storage_control["control_mode"] == 4
 
         except KeyError:
             return False
@@ -329,7 +310,7 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
     def available(self) -> bool:
         try:
             if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
-                return None
+                return False
 
             return super().available
 
@@ -434,10 +415,8 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
     def available(self) -> bool:
         try:
             if (
-                self._platform.decoded_model["ReactivePwrConfig"]
-                == SunSpecNotImpl.INT32
-                or self._platform.decoded_model["ReactivePwrConfig"]
-                not in self._options
+                self._platform.decoded_model["ReactivePwrConfig"] == SunSpecNotImpl.INT32
+                or self._platform.decoded_model["ReactivePwrConfig"] not in self._options
             ):
                 return False
 

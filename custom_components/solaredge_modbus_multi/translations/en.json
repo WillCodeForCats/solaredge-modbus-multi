@@ -52,7 +52,9 @@
       "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
       "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
       "empty_device_id": "The ID list contains an empty or undefined value.",
-      "scan_failed": "Failed to scan for inverters. Please check your connection and try again."
+      "scan_failed": "Failed to scan for inverters. Please check your connection and try again.",
+      "no_response_from_ids": "One or more device IDs did not respond. Verify the inverter is online and the device IDs are correct.",
+      "non_inverter_device": "A non-SolarEdge device was found at one or more device IDs. Check the device IDs are correct."
     },
     "abort": {
       "already_configured": "Host and port is already configured in another hub.",
@@ -96,7 +98,8 @@
     "error": {
       "invalid_scan_interval": "Valid interval is 1 to 86400 seconds.",
       "invalid_sleep_interval": "Valid interval is 0 to 60 seconds.",
-      "invalid_percent": "Valid range is 0 to 100 percent."
+      "invalid_percent": "Valid range is 0 to 100 percent.",
+      "invalid_reset_cycles": "Valid range is 0 to 1000 cycles."
     }
   },
   "issues": {
@@ -122,7 +125,9 @@
           "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
           "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
           "empty_device_id": "The ID list contains an empty or undefined value.",
-          "already_configured": "Host and port is already configured in another hub."
+          "already_configured": "Host and port is already configured in another hub.",
+          "no_response_from_ids": "One or more device IDs did not respond. Verify the inverter is online and the device IDs are correct.",
+          "non_inverter_device": "A non-SolarEdge device was found at one or more device IDs. Check the device IDs are correct."
         }
       }
     },

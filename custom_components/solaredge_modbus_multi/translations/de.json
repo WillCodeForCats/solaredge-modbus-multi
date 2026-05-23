@@ -52,7 +52,9 @@
       "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
       "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
       "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
-      "scan_failed": "Suche nach Wechselrichtern fehlgeschlagen. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+      "scan_failed": "Suche nach Wechselrichtern fehlgeschlagen. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "no_response_from_ids": "Eine oder mehrere Geräte-IDs haben nicht geantwortet. Stellen Sie sicher, dass der Wechselrichter online ist und die Geräte-IDs korrekt sind.",
+      "non_inverter_device": "An einer oder mehreren Geräte-IDs wurde ein Nicht-SolarEdge-Gerät gefunden. Überprüfen Sie, ob die Geräte-IDs korrekt sind."
     },
     "abort": {
       "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert.",
@@ -96,7 +98,8 @@
     "error": {
       "invalid_scan_interval": "Gültiges Intervall ist 1 bis 86400 Sekunden.",
       "invalid_sleep_interval": "Gültiges Intervall ist 0 bis 60 Sekunden.",
-      "invalid_percent": "Gültiges Bereich ist 0 bis 100 Prozent."
+      "invalid_percent": "Gültiges Bereich ist 0 bis 100 Prozent.",
+      "invalid_reset_cycles": "Gültiges Bereich ist 0 bis 1000 Zyklen."
     }
   },
   "issues": {
@@ -123,7 +126,9 @@
           "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
           "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
           "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
-          "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert."
+          "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert.",
+          "no_response_from_ids": "Eine oder mehrere Geräte-IDs haben nicht geantwortet. Stellen Sie sicher, dass der Wechselrichter online ist und die Geräte-IDs korrekt sind.",
+          "non_inverter_device": "An einer oder mehreren Geräte-IDs wurde ein Nicht-SolarEdge-Gerät gefunden. Überprüfen Sie, ob die Geräte-IDs korrekt sind."
         }
       }
     },

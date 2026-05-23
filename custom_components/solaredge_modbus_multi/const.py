@@ -224,13 +224,13 @@ DEVICE_STATUS = {
 # English descriptions of parameter names
 DEVICE_STATUS_TEXT = {
     1: "Off",
-    2: "Sleeping (Auto-Shutdown)",
-    3: "Grid Monitoring",
+    2: "Sleeping (Night Mode)",
+    3: "Grid Monitoring / Wake-Up",
     4: "Production",
     5: "Production (Curtailed)",
     6: "Shutting Down",
     7: "Fault",
-    8: "Maintenance",
+    8: "Maintenance / Setup",
 }
 
 VENDOR_STATUS = {

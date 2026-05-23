@@ -1,5 +1,5 @@
 ---
-name: Ruff
+name: Tests
 
 on:
   push:
@@ -10,8 +10,8 @@ on:
 permissions: read-all
 
 jobs:
-  ruff:
-    name: Ruff Lint & Format
+  tests:
+    name: pytest
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,12 +21,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements_test.txt
 
-      - name: Install ruff
-        run: pip install ruff
+      - name: Install dependencies
+        run: pip install -r requirements_test.txt
 
-      - name: Lint
-        run: ruff check .
-
-      - name: Format check
-        run: ruff format --check .
+      - name: Run tests
+        run: pytest tests/ -v --tb=short

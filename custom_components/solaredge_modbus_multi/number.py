@@ -36,9 +36,7 @@ async def async_setup_entry(
     for inverter in hub.inverters:
         """Dynamic Power Control"""
         if hub.option_detect_extras and inverter.global_power_control:
-            entities.append(
-                SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator))
             entities.append(SolarEdgeCosPhiSet(inverter, config_entry, coordinator))
 
         """ Power Control Block """
@@ -56,17 +54,13 @@ async def async_setup_entry(
             entities.append(StorageCommandTimeout(inverter, config_entry, coordinator))
             if inverter.has_battery is True:
                 entities.append(StorageChargeLimit(inverter, config_entry, coordinator))
-                entities.append(
-                    StorageDischargeLimit(inverter, config_entry, coordinator)
-                )
+                entities.append(StorageDischargeLimit(inverter, config_entry, coordinator))
 
     """ Power Control Options: Site Limit Control """
     if hub.option_site_limit_control is True:
         for inverter in hub.inverters:
             entities.append(SolarEdgeSiteLimit(inverter, config_entry, coordinator))
-            entities.append(
-                SolarEdgeExternalProductionMax(inverter, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeExternalProductionMax(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -132,18 +126,14 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or float_to_hex(
-                    self._platform.decoded_storage_control["ac_charge_limit"]
-                )
+                or float_to_hex(self._platform.decoded_storage_control["ac_charge_limit"])
                 == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_storage_control["ac_charge_limit"] < 0
             ):
                 return False
 
             # Available for AC charge policies 2 & 3
-            return super().available and self._platform.decoded_storage_control[
-                "ac_charge_policy"
-            ] in [2, 3]
+            return super().available and self._platform.decoded_storage_control["ac_charge_policy"] in [2, 3]
 
         except (TypeError, KeyError):
             return False
@@ -177,6 +167,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         return int(self._platform.decoded_storage_control["ac_charge_limit"])
 
     async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=57350,
@@ -212,10 +203,7 @@ class StorageBackupReserve(SolarEdgeNumberBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or float_to_hex(
-                    self._platform.decoded_storage_control["backup_reserve"]
-                )
-                == hex(SunSpecNotImpl.FLOAT32)
+                or float_to_hex(self._platform.decoded_storage_control["backup_reserve"]) == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_storage_control["backup_reserve"] < 0
                 or self._platform.decoded_storage_control["backup_reserve"] > 100
             ):
@@ -230,12 +218,13 @@ class StorageBackupReserve(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["backup_reserve"])
 
-    async def async_set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=57352,
             payload=ModbusClientMixin.convert_to_registers(
-                int(value),
+                float(value),
                 data_type=ModbusClientMixin.DATATYPE.FLOAT32,
                 word_order="little",
             ),
@@ -266,17 +255,13 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["command_timeout"]
-                == SunSpecNotImpl.UINT32
+                or self._platform.decoded_storage_control["command_timeout"] == SunSpecNotImpl.UINT32
                 or self._platform.decoded_storage_control["command_timeout"] > 86400
             ):
                 return False
 
             # Available only in remote control mode
-            return (
-                super().available
-                and self._platform.decoded_storage_control["control_mode"] == 4
-            )
+            return super().available and self._platform.decoded_storage_control["control_mode"] == 4
 
         except (TypeError, KeyError):
             return False
@@ -286,6 +271,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
         return int(self._platform.decoded_storage_control["command_timeout"])
 
     async def async_set_native_value(self, value: int) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, int(value)))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=57355,
@@ -317,17 +303,13 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or float_to_hex(self._platform.decoded_storage_control["charge_limit"])
-                == hex(SunSpecNotImpl.FLOAT32)
+                or float_to_hex(self._platform.decoded_storage_control["charge_limit"]) == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_storage_control["charge_limit"] < 0
             ):
                 return False
 
             # Available only in remote control mode
-            return (
-                super().available
-                and self._platform.decoded_storage_control["control_mode"] == 4
-            )
+            return super().available and self._platform.decoded_storage_control["control_mode"] == 4
 
         except (TypeError, KeyError):
             return False
@@ -340,12 +322,13 @@ class StorageChargeLimit(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["charge_limit"])
 
-    async def async_set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=57358,
             payload=ModbusClientMixin.convert_to_registers(
-                int(value),
+                float(value),
                 data_type=ModbusClientMixin.DATATYPE.FLOAT32,
                 word_order="little",
             ),
@@ -372,19 +355,14 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or float_to_hex(
-                    self._platform.decoded_storage_control["discharge_limit"]
-                )
+                or float_to_hex(self._platform.decoded_storage_control["discharge_limit"])
                 == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_storage_control["discharge_limit"] < 0
             ):
                 return False
 
             # Available only in remote control mode
-            return (
-                super().available
-                and self._platform.decoded_storage_control["control_mode"] == 4
-            )
+            return super().available and self._platform.decoded_storage_control["control_mode"] == 4
 
         except (TypeError, KeyError):
             return False
@@ -397,12 +375,13 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_storage_control["discharge_limit"])
 
-    async def async_set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=57360,
             payload=ModbusClientMixin.convert_to_registers(
-                int(value),
+                float(value),
                 data_type=ModbusClientMixin.DATATYPE.FLOAT32,
                 word_order="little",
             ),
@@ -427,9 +406,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         try:
-            if float_to_hex(self._platform.decoded_model["E_Site_Limit"]) == hex(
-                SunSpecNotImpl.FLOAT32
-            ):
+            if float_to_hex(self._platform.decoded_model["E_Site_Limit"]) == hex(SunSpecNotImpl.FLOAT32):
                 return False
 
             return super().available and (
@@ -448,12 +425,13 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
         return int(self._platform.decoded_model["E_Site_Limit"])
 
-    async def async_set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=57346,
             payload=ModbusClientMixin.convert_to_registers(
-                int(value),
+                float(value),
                 data_type=ModbusClientMixin.DATATYPE.FLOAT32,
                 word_order="little",
             ),
@@ -479,16 +457,12 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     def available(self) -> bool:
         try:
             if (
-                float_to_hex(self._platform.decoded_model["Ext_Prod_Max"])
-                == hex(SunSpecNotImpl.FLOAT32)
+                float_to_hex(self._platform.decoded_model["Ext_Prod_Max"]) == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["Ext_Prod_Max"] < 0
             ):
                 return False
 
-            return (
-                super().available
-                and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
-            )
+            return super().available and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
 
         except (TypeError, KeyError):
             return False
@@ -501,12 +475,13 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return int(self._platform.decoded_model["Ext_Prod_Max"])
 
-    async def async_set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=57362,
             payload=ModbusClientMixin.convert_to_registers(
-                int(value),
+                float(value),
                 data_type=ModbusClientMixin.DATATYPE.FLOAT32,
                 word_order="little",
             ),
@@ -554,7 +529,8 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     def native_value(self) -> int:
         return self._platform.decoded_model["I_Power_Limit"]
 
-    async def async_set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=61441,
@@ -592,8 +568,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
     def available(self) -> bool:
         try:
             if (
-                float_to_hex(self._platform.decoded_model["I_CosPhi"])
-                == hex(SunSpecNotImpl.FLOAT32)
+                float_to_hex(self._platform.decoded_model["I_CosPhi"]) == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["I_CosPhi"] > 1.0
                 or self._platform.decoded_model["I_CosPhi"] < -1.0
             ):
@@ -609,6 +584,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
         return round(self._platform.decoded_model["I_CosPhi"], 1)
 
     async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=61442,
@@ -646,8 +622,7 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
     def available(self) -> bool:
         try:
             if (
-                float_to_hex(self._platform.decoded_model["PowerReduce"])
-                == hex(SunSpecNotImpl.FLOAT32)
+                float_to_hex(self._platform.decoded_model["PowerReduce"]) == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["PowerReduce"] > 100
                 or self._platform.decoded_model["PowerReduce"] < 0
             ):
@@ -663,6 +638,7 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
         return round(self._platform.decoded_model["PowerReduce"], 0)
 
     async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=61760,
@@ -699,8 +675,7 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
     def available(self) -> bool:
         try:
             if (
-                float_to_hex(self._platform.decoded_model["MaxCurrent"])
-                == hex(SunSpecNotImpl.FLOAT32)
+                float_to_hex(self._platform.decoded_model["MaxCurrent"]) == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_model["MaxCurrent"] > 256
                 or self._platform.decoded_model["MaxCurrent"] < 0
             ):
@@ -716,6 +691,7 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
         return round(self._platform.decoded_model["MaxCurrent"], 0)
 
     async def async_set_native_value(self, value: float) -> None:
+        value = max(self.native_min_value, min(self.native_max_value, value))
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write_registers(
             address=61838,

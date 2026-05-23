@@ -52,7 +52,9 @@
       "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
       "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
       "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito.",
-      "scan_failed": "Scansione degli inverter non riuscita. Verificare la connessione e riprovare."
+      "scan_failed": "Scansione degli inverter non riuscita. Verificare la connessione e riprovare.",
+      "no_response_from_ids": "Uno o più ID dispositivo non hanno risposto. Verificare che l'inverter sia online e che gli ID dispositivo siano corretti.",
+      "non_inverter_device": "È stato trovato un dispositivo non SolarEdge a uno o più ID dispositivo. Verificare che gli ID dispositivo siano corretti."
     },
     "abort": {
       "already_configured": "L'host e la porta sono già configurati in un altro hub.",
@@ -96,7 +98,8 @@
     "error": {
       "invalid_scan_interval": "L'intervallo valido è compreso tra 1 e 86400 secondi.",
       "invalid_sleep_interval": "L'intervallo valido è compreso tra 0 e 60 secondi.",
-      "invalid_percent": "L'intervallo valido è compreso tra 0 e 100%."
+      "invalid_percent": "L'intervallo valido è compreso tra 0 e 100%.",
+      "invalid_reset_cycles": "L'intervallo valido è compreso tra 0 e 1000 cicli."
     }
   },
   "issues": {
@@ -123,7 +126,9 @@
           "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
           "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
           "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito.",
-          "already_configured": "L'host e la porta sono già configurati in un altro hub."
+          "already_configured": "L'host e la porta sono già configurati in un altro hub.",
+          "no_response_from_ids": "Uno o più ID dispositivo non hanno risposto. Verificare che l'inverter sia online e che gli ID dispositivo siano corretti.",
+          "non_inverter_device": "È stato trovato un dispositivo non SolarEdge a uno o più ID dispositivo. Verificare che gli ID dispositivo siano corretti."
         }
       }
     },

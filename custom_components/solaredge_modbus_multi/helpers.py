@@ -51,7 +51,7 @@ def update_accum(self, accum_value: int) -> None:
 def host_valid(host):
     """Return True if hostname or IP address is valid."""
     try:
-        if ipaddress.ip_address(host).version == (4 or 6):
+        if ipaddress.ip_address(host).version in (4, 6):
             return True
 
     except ValueError:
@@ -117,7 +117,7 @@ def check_device_id(value: str | int) -> int:
     Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
     """
 
-    if len(value) == 0:
+    if isinstance(value, str) and len(value) == 0:
         raise HomeAssistantError("empty_device_id")
 
     try:

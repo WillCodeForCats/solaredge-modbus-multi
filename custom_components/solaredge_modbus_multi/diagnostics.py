@@ -35,9 +35,7 @@ def format_values(format_input) -> Any:
     return format_input
 
 
-async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> dict[str, Any]:
+async def async_get_config_entry_diagnostics(hass: HomeAssistant, config_entry: ConfigEntry) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
 

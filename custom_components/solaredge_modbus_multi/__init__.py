@@ -67,9 +67,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
-    solaredge_hub = SolarEdgeModbusMultiHub(
-        hass, entry.entry_id, entry.data, entry.options
-    )
+    solaredge_hub = SolarEdgeModbusMultiHub(hass, entry.entry_id, entry.data, entry.options)
 
     coordinator = SolarEdgeCoordinator(
         hass,
@@ -117,35 +115,21 @@ async def async_remove_config_entry_device(
     known_devices = []
 
     for inverter in solaredge_hub.inverters:
-        inverter_device_ids = {
-            dev_id[1]
-            for dev_id in inverter.device_info["identifiers"]
-            if dev_id[0] == DOMAIN
-        }
+        inverter_device_ids = {dev_id[1] for dev_id in inverter.device_info["identifiers"] if dev_id[0] == DOMAIN}
         for dev_id in inverter_device_ids:
             known_devices.append(dev_id)
 
     for meter in solaredge_hub.meters:
-        meter_device_ids = {
-            dev_id[1]
-            for dev_id in meter.device_info["identifiers"]
-            if dev_id[0] == DOMAIN
-        }
+        meter_device_ids = {dev_id[1] for dev_id in meter.device_info["identifiers"] if dev_id[0] == DOMAIN}
         for dev_id in meter_device_ids:
             known_devices.append(dev_id)
 
     for battery in solaredge_hub.batteries:
-        battery_device_ids = {
-            dev_id[1]
-            for dev_id in battery.device_info["identifiers"]
-            if dev_id[0] == DOMAIN
-        }
+        battery_device_ids = {dev_id[1] for dev_id in battery.device_info["identifiers"] if dev_id[0] == DOMAIN}
         for dev_id in battery_device_ids:
             known_devices.append(dev_id)
 
-    this_device_ids = {
-        dev_id[1] for dev_id in device_entry.identifiers if dev_id[0] == DOMAIN
-    }
+    this_device_ids = {dev_id[1] for dev_id in device_entry.identifiers if dev_id[0] == DOMAIN}
 
     for device_id in this_device_ids:
         if device_id in known_devices:
@@ -157,10 +141,7 @@ async def async_remove_config_entry_device(
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
-    _LOGGER.debug(
-        "Migrating from config version "
-        f"{config_entry.version}.{config_entry.minor_version}"
-    )
+    _LOGGER.debug(f"Migrating from config version {config_entry.version}.{config_entry.minor_version}")
 
     if config_entry.version > 2:
         return False
@@ -218,22 +199,15 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             new_unique_id,
         )
 
-        hass.config_entries.async_update_entry(
-            config_entry, unique_id=new_unique_id, version=2, minor_version=1
-        )
+        hass.config_entries.async_update_entry(config_entry, unique_id=new_unique_id, version=2, minor_version=1)
 
-    _LOGGER.warning(
-        "Migrated to config version "
-        f"{config_entry.version}.{config_entry.minor_version}"
-    )
+    _LOGGER.warning(f"Migrated to config version {config_entry.version}.{config_entry.minor_version}")
 
     return True
 
 
 class SolarEdgeCoordinator(DataUpdateCoordinator):
-    def __init__(
-        self, hass: HomeAssistant, hub: SolarEdgeModbusMultiHub, scan_interval: int
-    ):
+    def __init__(self, hass: HomeAssistant, hub: SolarEdgeModbusMultiHub, scan_interval: int):
         super().__init__(
             hass,
             _LOGGER,
@@ -251,15 +225,9 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
-                limit=self._yaml_config.get("retry", {}).get(
-                    "limit", RetrySettings.Limit
-                ),
-                wait_ms=self._yaml_config.get("retry", {}).get(
-                    "time", RetrySettings.Time
-                ),
-                wait_ratio=self._yaml_config.get("retry", {}).get(
-                    "ratio", RetrySettings.Ratio
-                ),
+                limit=self._yaml_config.get("retry", {}).get("limit", RetrySettings.Limit),
+                wait_ms=self._yaml_config.get("retry", {}).get("time", RetrySettings.Time),
+                wait_ratio=self._yaml_config.get("retry", {}).get("ratio", RetrySettings.Ratio),
             )
 
         except HubInitFailed as e:
@@ -301,8 +269,6 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug(f"Failed data refresh attempt {attempt}")
 
                 attempt += 1
-                _LOGGER.debug(
-                    f"Waiting {wait_ms} ms before data refresh attempt {attempt}"
-                )
+                _LOGGER.debug(f"Waiting {wait_ms} ms before data refresh attempt {attempt}")
                 await asyncio.sleep(wait_ms / 1000)
                 wait_ms *= wait_ratio

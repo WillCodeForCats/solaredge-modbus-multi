@@ -106,9 +106,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
                 device_range = list(range(1, 248))
             else:
-                raise HomeAssistantError(
-                    f"Unknown setup type: {self.init_info[SETUP_TYPE]}"
-                )
+                raise HomeAssistantError(f"Unknown setup type: {self.init_info[SETUP_TYPE]}")
 
             scan_return = await scanner.scan_list(
                 device_range,
@@ -124,35 +122,25 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return scan_return
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
         return self.async_show_menu(
             step_id="user",
             menu_options=[SETUP_SCAN_FAST, SETUP_SCAN_FULL, SETUP_MANUAL],
         )
 
-    async def async_step_scan_fast(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_scan_fast(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
         return await self.async_step_scan_ask_host()
 
-    async def async_step_scan_full(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_scan_full(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         self.init_info = {SETUP_TYPE: SETUP_SCAN_FULL}
         return await self.async_step_scan_ask_host()
 
-    async def async_step_manual_list(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_manual_list(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return await self.async_step_manual()
 
-    async def async_step_scan_ask_host(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_scan_ask_host(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the scan step - ask for host/port and perform scan with progress."""
         errors = {}
 
@@ -212,17 +200,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
                     vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
+                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
                 },
             ),
             errors=errors,
         )
 
-    async def async_step_scan_complete(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_scan_complete(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Complete the scan and create the config entry."""
 
         try:
@@ -235,10 +219,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     f"{self._scan_user_input[CONF_HOST]}:{self._scan_user_input[CONF_PORT]}"
                 )
 
-            self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
-
             if self._scan_user_input is None:
                 raise AbortFlow("No scan data available")
+
+            self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
 
             return self.async_create_entry(
                 title=self._scan_user_input[CONF_NAME],
@@ -248,17 +232,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception as e:
             raise AbortFlow(f"Scan failed: {e}")
 
-    async def async_step_manual(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_manual(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the manual config flow step."""
         errors = {}
 
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
-            user_input[ConfName.DEVICE_LIST] = re.sub(
-                r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE
-            )
+            user_input[ConfName.DEVICE_LIST] = re.sub(r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE)
 
             if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
@@ -273,34 +253,29 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
 
                 try:
-                    device_list = device_list_from_string(
-                        user_input[ConfName.DEVICE_LIST]
-                    )
+                    device_list = device_list_from_string(user_input[ConfName.DEVICE_LIST])
 
                     await scanner.connect()
 
                     scan_return = await scanner.check_list(device_list)
 
                     if scan_return["other_devices"]:
-                        raise ScanOtherDeviceError(
-                            f"Invalid devices found at ID(s): {scan_return['other_devices']}"
-                        )
+                        raise ScanOtherDeviceError(f"Invalid devices found at ID(s): {scan_return['other_devices']}")
 
                     if scan_return["no_response"]:
-                        raise ScanNoResponseError(
-                            f"No response from ID(s): {scan_return['no_response']}"
-                        )
+                        raise ScanNoResponseError(f"No response from ID(s): {scan_return['no_response']}")
 
                     if not scan_return["inverters"]:
-                        raise HomeAssistantError(
-                            "No inverter devices found in ID list."
-                        )
+                        raise HomeAssistantError("No inverter devices found in ID list.")
 
                     inverter_count = len(scan_return["inverters"])
                     user_input[ConfName.DEVICE_LIST] = scan_return["inverters"]
 
-                except (ScanOtherDeviceError, ScanNoResponseError) as e:
-                    errors[ConfName.DEVICE_LIST] = f"{e}"
+                except ScanNoResponseError:
+                    errors[ConfName.DEVICE_LIST] = "no_response_from_ids"
+
+                except ScanOtherDeviceError:
+                    errors[ConfName.DEVICE_LIST] = "non_inverter_device"
 
                 except HomeAssistantError as e:
                     errors[CONF_HOST] = f"{e}"
@@ -309,16 +284,12 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     if not 1 <= inverter_count <= 32:
                         errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
                     else:
-                        new_unique_id = (
-                            f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                        )
+                        new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
                         await self.async_set_unique_id(new_unique_id)
 
                         self._abort_if_unique_id_configured()
 
-                        return self.async_create_entry(
-                            title=user_input[CONF_NAME], data=user_input
-                        )
+                        return self.async_create_entry(title=user_input[CONF_NAME], data=user_input)
 
                 finally:
                     await scanner.disconnect()
@@ -338,9 +309,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
                     vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
+                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
                     vol.Required(
                         f"{ConfName.DEVICE_LIST}",
                         default=user_input[ConfName.DEVICE_LIST],
@@ -350,61 +319,83 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_reconfigure(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the reconfigure flow step."""
         errors = {}
-        config_entry = self.hass.config_entries.async_get_entry(
-            self.context["entry_id"]
-        )
+        config_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
 
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
-            user_input[ConfName.DEVICE_LIST] = re.sub(
-                r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE
-            )
+            user_input[ConfName.DEVICE_LIST] = re.sub(r"\s+", "", user_input[ConfName.DEVICE_LIST], flags=re.UNICODE)
 
-            try:
-                inverter_count = len(
-                    device_list_from_string(user_input[ConfName.DEVICE_LIST])
-                )
-            except HomeAssistantError as e:
-                errors[ConfName.DEVICE_LIST] = f"{e}"
-
+            if not host_valid(user_input[CONF_HOST]):
+                errors[CONF_HOST] = "invalid_host"
+            elif not 1 <= user_input[CONF_PORT] <= 65535:
+                errors[CONF_PORT] = "invalid_tcp_port"
             else:
-                if not host_valid(user_input[CONF_HOST]):
-                    errors[CONF_HOST] = "invalid_host"
-                elif not 1 <= user_input[CONF_PORT] <= 65535:
-                    errors[CONF_PORT] = "invalid_tcp_port"
-                elif not 1 <= inverter_count <= 32:
-                    errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                try:
+                    device_list = device_list_from_string(user_input[ConfName.DEVICE_LIST])
+                except HomeAssistantError as e:
+                    errors[ConfName.DEVICE_LIST] = f"{e}"
                 else:
-                    user_input[ConfName.DEVICE_LIST] = device_list_from_string(
-                        user_input[ConfName.DEVICE_LIST]
-                    )
-                    this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-
-                    if this_unique_id != config_entry.unique_id:
-                        self._async_abort_entries_match(
-                            {
-                                "host": user_input[CONF_HOST],
-                                "port": user_input[CONF_PORT],
-                            }
+                    if not 1 <= len(device_list) <= 32:
+                        errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                    else:
+                        scanner = SolarEdgeDeviceScanner(
+                            host=user_input[CONF_HOST],
+                            port=user_input[CONF_PORT],
+                            scan_retries=3,
+                            scan_timeout=0.5,
                         )
 
-                    return self.async_update_reload_and_abort(
-                        config_entry,
-                        unique_id=this_unique_id,
-                        data={**config_entry.data, **user_input},
-                        reason="reconfigure_successful",
-                    )
+                        try:
+                            await scanner.connect()
+                            scan_return = await scanner.check_list(device_list)
+
+                            if scan_return["other_devices"]:
+                                raise ScanOtherDeviceError()
+
+                            if scan_return["no_response"]:
+                                raise ScanNoResponseError()
+
+                            if not scan_return["inverters"]:
+                                raise HomeAssistantError("No inverter devices found in ID list.")
+
+                            user_input[ConfName.DEVICE_LIST] = scan_return["inverters"]
+
+                        except ScanNoResponseError:
+                            errors[ConfName.DEVICE_LIST] = "no_response_from_ids"
+
+                        except ScanOtherDeviceError:
+                            errors[ConfName.DEVICE_LIST] = "non_inverter_device"
+
+                        except HomeAssistantError as e:
+                            errors[CONF_HOST] = f"{e}"
+
+                        else:
+                            this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+
+                            if this_unique_id != config_entry.unique_id:
+                                self._async_abort_entries_match(
+                                    {
+                                        "host": user_input[CONF_HOST],
+                                        "port": user_input[CONF_PORT],
+                                    }
+                                )
+
+                            return self.async_update_reload_and_abort(
+                                config_entry,
+                                unique_id=this_unique_id,
+                                data={**config_entry.data, **user_input},
+                                reason="reconfigure_successful",
+                            )
+
+                        finally:
+                            await scanner.disconnect()
+                            await asyncio.sleep(1.0)
         else:
             reconfig_device_list = ",".join(
-                str(device)
-                for device in config_entry.data.get(
-                    ConfName.DEVICE_LIST, ConfDefaultStr.DEVICE_LIST
-                )
+                str(device) for device in config_entry.data.get(ConfName.DEVICE_LIST, ConfDefaultStr.DEVICE_LIST)
             )
 
             user_input = {
@@ -423,9 +414,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
     """Handle an options flow for SolarEdge Modbus Multi."""
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial options flow step."""
         errors = {}
 
@@ -452,9 +441,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
 
         else:
             user_input = {
-                CONF_SCAN_INTERVAL: self.config_entry.options.get(
-                    CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
-                ),
+                CONF_SCAN_INTERVAL: self.config_entry.options.get(CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
                     ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
                 ),
@@ -512,14 +499,16 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_battery_options(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_battery_options(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Battery Options"""
         errors = {}
 
         if user_input is not None:
-            if user_input[ConfName.BATTERY_RATING_ADJUST] < 0:
+            if user_input[ConfName.BATTERY_ENERGY_RESET_CYCLES] < 0:
+                errors[ConfName.BATTERY_ENERGY_RESET_CYCLES] = "invalid_reset_cycles"
+            elif user_input[ConfName.BATTERY_ENERGY_RESET_CYCLES] > 1000:
+                errors[ConfName.BATTERY_ENERGY_RESET_CYCLES] = "invalid_reset_cycles"
+            elif user_input[ConfName.BATTERY_RATING_ADJUST] < 0:
                 errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
             elif user_input[ConfName.BATTERY_RATING_ADJUST] > 100:
                 errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
@@ -528,9 +517,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     self.init_info = {**self.init_info, **user_input}
                     return await self.async_step_adv_pwr_ctl()
 
-                return self.async_create_entry(
-                    title="", data={**self.init_info, **user_input}
-                )
+                return self.async_create_entry(title="", data={**self.init_info, **user_input})
 
         else:
             user_input = {
@@ -569,16 +556,12 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_adv_pwr_ctl(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_adv_pwr_ctl(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Power Control Options"""
         errors = {}
 
         if user_input is not None:
-            return self.async_create_entry(
-                title="", data={**self.init_info, **user_input}
-            )
+            return self.async_create_entry(title="", data={**self.init_info, **user_input})
 
         else:
             user_input = {

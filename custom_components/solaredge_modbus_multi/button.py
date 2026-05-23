@@ -32,12 +32,8 @@ async def async_setup_entry(
 
         """ Power Control Block """
         if hub.option_detect_extras and inverter.advanced_power_control:
-            entities.append(
-                SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
-            )
-            entities.append(
-                SolarEdgeDefaultControlSettings(inverter, config_entry, coordinator)
-            )
+            entities.append(SolarEdgeCommitControlSettings(inverter, config_entry, coordinator))
+            entities.append(SolarEdgeDefaultControlSettings(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)

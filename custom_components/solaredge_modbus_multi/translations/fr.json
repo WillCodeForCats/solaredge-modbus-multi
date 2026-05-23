@@ -52,7 +52,9 @@
       "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
       "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
       "empty_device_id": "La liste d'ID contient une valeur vide ou non définie.",
-      "scan_failed": "Échec du scan des onduleurs. Veuillez vérifier votre connexion et réessayer."
+      "scan_failed": "Échec du scan des onduleurs. Veuillez vérifier votre connexion et réessayer.",
+      "no_response_from_ids": "Un ou plusieurs identifiants d'appareils n'ont pas répondu. Vérifiez que l'onduleur est en ligne et que les identifiants sont corrects.",
+      "non_inverter_device": "Un appareil non SolarEdge a été trouvé à un ou plusieurs identifiants d'appareils. Vérifiez que les identifiants sont corrects."
     },
     "abort": {
       "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub.",
@@ -96,7 +98,8 @@
     "error": {
       "invalid_scan_interval": "L'intervalle valide est de 1 à 86 400 secondes.",
       "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
-      "invalid_percent": "La plage valide est de 0 à 100 %."
+      "invalid_percent": "La plage valide est de 0 à 100 %.",
+      "invalid_reset_cycles": "La plage valide est de 0 à 1000 cycles."
     }
   },
   "issues": {
@@ -123,7 +126,9 @@
           "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
           "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
           "empty_device_id": "La liste d'ID contient une valeur vide ou non définie.",
-          "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub."
+          "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub.",
+          "no_response_from_ids": "Un ou plusieurs identifiants d'appareils n'ont pas répondu. Vérifiez que l'onduleur est en ligne et que les identifiants sont corrects.",
+          "non_inverter_device": "Un appareil non SolarEdge a été trouvé à un ou plusieurs identifiants d'appareils. Vérifiez que les identifiants sont corrects."
         }
       }
     },

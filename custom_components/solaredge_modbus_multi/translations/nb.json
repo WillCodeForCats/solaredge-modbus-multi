@@ -52,7 +52,9 @@
       "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
       "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
       "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
-      "scan_failed": "Klarte ikke å skanne etter vekselrettere. Kontroller tilkoblingen og prøv igjen."
+      "scan_failed": "Klarte ikke å skanne etter vekselrettere. Kontroller tilkoblingen og prøv igjen.",
+      "no_response_from_ids": "En eller flere enhets-IDer svarte ikke. Kontroller at vekselretteren er tilkoblet og at enhets-IDene er riktige.",
+      "non_inverter_device": "En ikke-SolarEdge-enhet ble funnet ved en eller flere enhets-IDer. Kontroller at enhets-IDene er riktige."
     },
     "abort": {
       "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
@@ -96,7 +98,8 @@
     "error": {
       "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
       "invalid_sleep_interval": "Gyldig intervall er 0 til 60 sekunder.",
-      "invalid_percent": "Gyldig område er 0 til 100 prosent."
+      "invalid_percent": "Gyldig område er 0 til 100 prosent.",
+      "invalid_reset_cycles": "Gyldig område er 0 til 1000 sykluser."
     }
   },
   "issues": {
@@ -123,7 +126,9 @@
           "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
           "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
           "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
-          "already_configured": "Vert og port er allerede konfigurert i en annen hub."
+          "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
+          "no_response_from_ids": "En eller flere enhets-IDer svarte ikke. Kontroller at vekselretteren er tilkoblet og at enhets-IDene er riktige.",
+          "non_inverter_device": "En ikke-SolarEdge-enhet ble funnet ved en eller flere enhets-IDer. Kontroller at enhets-IDene er riktige."
         }
       }
     },

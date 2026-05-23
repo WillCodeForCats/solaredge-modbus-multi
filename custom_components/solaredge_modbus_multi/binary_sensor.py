@@ -107,9 +107,7 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
     @property
     def available(self) -> bool:
-        return (
-            super().available and "I_Grid_Status" in self._platform.decoded_model.keys()
-        )
+        return super().available and "I_Grid_Status" in self._platform.decoded_model.keys()
 
     @property
     def unique_id(self) -> str:

@@ -52,7 +52,9 @@
       "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
       "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
       "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde.",
-      "scan_failed": "Scannen naar omvormers mislukt. Controleer uw verbinding en probeer het opnieuw."
+      "scan_failed": "Scannen naar omvormers mislukt. Controleer uw verbinding en probeer het opnieuw.",
+      "no_response_from_ids": "Een of meer apparaat-ID's hebben niet gereageerd. Controleer of de omvormer online is en of de apparaat-ID's correct zijn.",
+      "non_inverter_device": "Een niet-SolarEdge-apparaat werd gevonden bij een of meer apparaat-ID's. Controleer of de apparaat-ID's correct zijn."
     },
     "abort": {
       "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
@@ -96,7 +98,8 @@
     "error": {
       "invalid_scan_interval": "Geldig interval is 1 tot 86400 seconden.",
       "invalid_sleep_interval": "Geldig interval is 0 tot 60 seconden.",
-      "invalid_percent": "Het geldige bereik is 0 tot 100 procent."
+      "invalid_percent": "Het geldige bereik is 0 tot 100 procent.",
+      "invalid_reset_cycles": "Het geldige bereik is 0 tot 1000 cycli."
     }
   },
   "issues": {
@@ -123,7 +126,9 @@
           "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
           "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
           "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde.",
-          "already_configured": "Host en poort zijn al geconfigureerd in een andere hub."
+          "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
+          "no_response_from_ids": "Een of meer apparaat-ID's hebben niet gereageerd. Controleer of de omvormer online is en of de apparaat-ID's correct zijn.",
+          "non_inverter_device": "Een niet-SolarEdge-apparaat werd gevonden bij een of meer apparaat-ID's. Controleer of de apparaat-ID's correct zijn."
         }
       }
     },

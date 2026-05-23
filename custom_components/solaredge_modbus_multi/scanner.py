@@ -159,25 +159,19 @@ class SolarEdgeDeviceScanner:
                     asyncio.open_connection(self._host, self._port),
                     timeout=self._connect_timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await self.disconnect()
                 attempt += 1
                 await asyncio.sleep(1.0)
-                _LOGGER.warning(
-                    f"Timeout occurred while connecting to {self._host}:{self._port}"
-                )
+                _LOGGER.warning(f"Timeout occurred while connecting to {self._host}:{self._port}")
             except OSError as e:
                 await self.disconnect()
                 attempt += 1
                 await asyncio.sleep(1.0)
-                _LOGGER.warning(
-                    f"Network error connecting to {self._host}:{self._port}: {e}"
-                )
+                _LOGGER.warning(f"Network error connecting to {self._host}:{self._port}: {e}")
 
         if attempt > self._scan_retries:
-            raise HomeAssistantError(
-                f"Unable to connect to {self._host}:{self._port} after {attempt - 1} attempts."
-            )
+            raise HomeAssistantError(f"Unable to connect to {self._host}:{self._port} after {attempt - 1} attempts.")
 
     async def disconnect(self) -> None:
         """Close the TCP connection to the Modbus device."""
@@ -212,12 +206,12 @@ class SolarEdgeDeviceScanner:
         index = 0
         for a in response:
             if index >= len(expected):
-                return self.FOUND if index >= 7 else 0
+                return self.FOUND if index >= 7 else self.NOT_FOUND
             if a != expected[index]:
                 return self.NOT_FOUND
             index = index + 1
 
-        return self.FOUND_INV
+        return self.FOUND_INV if index >= len(expected) else self.NOT_FOUND
 
     async def scan_device_id(self, device_id: int, timeout: float = 5.0) -> int:
         """Scan a specific Modbus device ID for a SolarEdge inverter.
@@ -272,7 +266,7 @@ class SolarEdgeDeviceScanner:
 
                     return self.FOUND
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 _LOGGER.debug(f" Timed out after {timeout}s")
                 attempt += 1
 

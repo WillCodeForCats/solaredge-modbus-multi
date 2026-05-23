@@ -1,3 +1,11 @@
 .DS_Store
 solaredge-modbus-multi.bbprojectd
 /megalinter-reports
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.egg-info/
+coverage.json

@@ -1,0 +1,31 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes (undefined names, unused imports)
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "UP",  # pyupgrade (safe syntax modernisation)
+]
+ignore = [
+    "E501",  # line too long — enforced by formatter instead
+    "UP006", # Use type instead of Type — existing annotations use Type
+    "UP007", # Use X | Y for union types — existing code uses Optional
+    "UP035", # Import from typing_extensions — not needed here
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401", "F811"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["."]
