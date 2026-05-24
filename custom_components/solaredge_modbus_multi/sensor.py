@@ -242,6 +242,9 @@ async def async_setup_entry(
         entities.append(SolarEdgeBatterySOE(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryStatus(battery, config_entry, coordinator))
 
+    for evse in hub.evses:
+        entities.append(Version(evse, config_entry, coordinator))
+
     if entities:
         async_add_entities(entities)
 
