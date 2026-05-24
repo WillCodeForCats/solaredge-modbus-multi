@@ -1094,6 +1094,8 @@ class SolarEdgeInverter:
                 "AC_Energy_WH_SF",
                 "I_DC_Current",
                 "I_DC_Voltage",
+                "I_Status",
+                "I_Status_Vendor",
             ]
             uint16_data = (
                 inverter_data.registers[0:6]
@@ -1101,6 +1103,7 @@ class SolarEdgeInverter:
                 + [inverter_data.registers[16]]
                 + inverter_data.registers[26:28]
                 + [inverter_data.registers[29]]
+                + inverter_data.registers[38:40]
             )
             self.decoded_model = dict(
                 zip(
@@ -1134,15 +1137,13 @@ class SolarEdgeInverter:
                 "I_Temp_Trns",
                 "I_Temp_Other",
                 "I_Temp_SF",
-                "I_Status",
-                "I_Status_Vendor",
             ]
             int16_data = (
                 [inverter_data.registers[6]]
                 + inverter_data.registers[13:16]
                 + inverter_data.registers[17:24]
                 + [inverter_data.registers[28]]
-                + inverter_data.registers[30:40]
+                + inverter_data.registers[30:38]
             )
 
             self.decoded_model.update(

@@ -234,7 +234,7 @@ DEVICE_STATUS_TEXT = {
 }
 
 VENDOR_STATUS = {
-    SunSpecNotImpl.INT16: None,
+    SunSpecNotImpl.UINT16: None,
     0: "No Error",
     17: "Temperature Too High",
     25: "Isolation Faults",

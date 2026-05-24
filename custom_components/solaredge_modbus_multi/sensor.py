@@ -1328,7 +1328,7 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
     @property
     def native_value(self):
         try:
-            if self._platform.decoded_model["I_Status"] == SunSpecNotImpl.INT16:
+            if self._platform.decoded_model["I_Status"] == SunSpecNotImpl.UINT16:
                 return None
 
             return str(DEVICE_STATUS[self._platform.decoded_model["I_Status"]])
@@ -1410,7 +1410,7 @@ class StatusVendor(SolarEdgeSensorBase):
     @property
     def native_value(self):
         try:
-            if self._platform.decoded_model["I_Status_Vendor"] == SunSpecNotImpl.INT16:
+            if self._platform.decoded_model["I_Status_Vendor"] == SunSpecNotImpl.UINT16:
                 return None
 
             else:
