@@ -43,14 +43,6 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
-### Network Security
-
-Modbus/TCP has no built-in authentication or encryption. **All communication with the inverter is plaintext and unauthenticated.** Anyone with TCP access to the inverter's Modbus port can read register data or send control commands — including power limits, storage modes, and site limits.
-
-**Required:** The inverter's Modbus port should be firewalled so only the Home Assistant host can reach it. Do not expose the Modbus port to an untrusted network segment.
-
-Enabling Power Control Options (storage control, site limit control) on an inverter reachable by untrusted hosts is a safety risk.
-
 ### Minimum Required Versions
 
 - Home Assistant 2025.2.0 (HA=>2025.9.0 requires release v3.1.7 or newer)
