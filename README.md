@@ -13,7 +13,7 @@ This integration provides Modbus/TCP local polling to one or more SolarEdge inve
 - Automatically detects meters and batteries.
 - Supports Three Phase Inverters with Synergy Technology.
 - Polling frequency configuration option (1 to 86400 seconds).
-- Configurable starting inverter device ID.
+- Auto-discovers inverters via Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
 - Informational sensor for device and its attributes
 - Supports status and error reporting sensors.
