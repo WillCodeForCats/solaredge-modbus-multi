@@ -4,6 +4,8 @@
 
 This integration provides Modbus/TCP local polling to one or more SolarEdge inverters for Home Assistant. Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters, multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and `solaredge_modbus_multi` is actively maintained.
 
+By default only features which are officially documented on the SolarEdge website are enabled: inverters, synergy inverters, and meters. All of the battery (read only) and control features (read/write battery and limit controls) are from documentation not publicly available on the SolarEdge website or through user discovery, but can be enabled by configuring the hub after you add it to your Home Assistant.
+
 ## Features
 
 - Inverter support for 1 to 32 SolarEdge inverters.
