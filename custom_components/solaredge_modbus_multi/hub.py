@@ -388,7 +388,7 @@ class SolarEdgeModbusMultiHub:
             for battery in self.batteries:
                 battery.set_last_update(timestamp)
 
-        except ModbusReadError as e:
+        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
             self.disconnect()
             raise HubInitFailed(f"Read error: {e}")
 
@@ -471,7 +471,7 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except ModbusReadError as e:
+        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
             self.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}")
 
