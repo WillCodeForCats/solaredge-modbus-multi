@@ -542,8 +542,8 @@ class SolarEdgeModbusMultiHub:
                     retries=self._mb_retries,
                 )
 
-                _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
-                await self._client.connect()
+            _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
+            await self._client.connect()
 
     def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
