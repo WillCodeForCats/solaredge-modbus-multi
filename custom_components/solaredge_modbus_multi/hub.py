@@ -413,8 +413,7 @@ class SolarEdgeModbusMultiHub:
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
 
-        if not self.is_connected:
-            await self.connect()
+        await self.connect()
 
         if not self.initalized:
             try:
@@ -637,8 +636,7 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = payload
 
         try:
-            if not self.is_connected:
-                await self.connect()
+            await self.connect()
 
             sig = inspect.signature(self._client.write_registers)
 
@@ -1453,8 +1451,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         """ Advanced Power Control """
         """ Power Control Block """
@@ -1696,8 +1693,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         """ Power Control Options: Site Limit Control """
         if (
@@ -1828,8 +1824,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
