@@ -203,6 +203,7 @@ class SolarEdgeModbusMultiHub:
         self._timeout_counter = 0
 
         self._client = None
+        self._connect_lock = asyncio.Lock()
 
         self._pymodbus_version = pymodbus_version
 
@@ -412,8 +413,7 @@ class SolarEdgeModbusMultiHub:
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
 
-        if not self.is_connected:
-            await self.connect()
+        await self.connect()
 
         if not self.initalized:
             try:
@@ -522,26 +522,28 @@ class SolarEdgeModbusMultiHub:
 
     async def connect(self) -> None:
         """Connect to inverter."""
+        async with self._connect_lock:
+            if self.is_connected:
+                return
+            if self._client is None:
+                _LOGGER.debug(
+                    "New AsyncModbusTcpClient: "
+                    f"reconnect_delay={self._mb_reconnect_delay} "
+                    f"reconnect_delay_max={self._mb_reconnect_delay_max} "
+                    f"timeout={self._mb_timeout} "
+                    f"retries={self._mb_retries}"
+                )
+                self._client = AsyncModbusTcpClient(
+                    host=self._host,
+                    port=self._port,
+                    reconnect_delay=self._mb_reconnect_delay,
+                    reconnect_delay_max=self._mb_reconnect_delay_max,
+                    timeout=self._mb_timeout,
+                    retries=self._mb_retries,
+                )
 
-        if self._client is None:
-            _LOGGER.debug(
-                "New AsyncModbusTcpClient: "
-                f"reconnect_delay={self._mb_reconnect_delay} "
-                f"reconnect_delay_max={self._mb_reconnect_delay_max} "
-                f"timeout={self._mb_timeout} "
-                f"retries={self._mb_retries}"
-            )
-            self._client = AsyncModbusTcpClient(
-                host=self._host,
-                port=self._port,
-                reconnect_delay=self._mb_reconnect_delay,
-                reconnect_delay_max=self._mb_reconnect_delay_max,
-                timeout=self._mb_timeout,
-                retries=self._mb_retries,
-            )
-
-        _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
-        await self._client.connect()
+            _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
+            await self._client.connect()
 
     def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
@@ -634,8 +636,7 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = payload
 
         try:
-            if not self.is_connected:
-                await self.connect()
+            await self.connect()
 
             sig = inspect.signature(self._client.write_registers)
 
@@ -1450,8 +1451,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         """ Advanced Power Control """
         """ Power Control Block """
@@ -1693,8 +1693,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         """ Power Control Options: Site Limit Control """
         if (
@@ -1825,8 +1824,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
