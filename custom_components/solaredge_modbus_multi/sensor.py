@@ -1247,6 +1247,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -1287,6 +1288,7 @@ class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    entity_category = EntityCategory.DIAGNOSTIC
     suggested_display_precision = 0
 
     @property
