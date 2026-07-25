@@ -545,20 +545,21 @@ class SolarEdgeModbusMultiHub:
             _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
             await self._client.connect()
 
-    def disconnect(self, clear_client: bool = False) -> None:
+    async def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
 
-        if self._client is not None:
-            _LOGGER.debug(
-                (
-                    f"Disconnecting from {self._host}:{self._port} "
-                    f"(clear_client={clear_client})."
+        async with self._connect_lock:
+            if self._client is not None:
+                _LOGGER.debug(
+                    (
+                        f"Disconnecting from {self._host}:{self._port} "
+                        f"(clear_client={clear_client})."
+                    )
                 )
-            )
-            self._client.close()
+                self._client.close()
 
-            if clear_client:
-                self._client = None
+                if clear_client:
+                    self._client = None
 
     async def shutdown(self) -> None:
         """Shut down the hub and disconnect."""
