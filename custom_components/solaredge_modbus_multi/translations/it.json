@@ -68,7 +68,6 @@
         "title": "Opzioni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequenza di polling (secondi)",
-          "keep_modbus_open": "Mantieni aperta la connessione Modbus",
           "detect_meters": "Misuratori di rilevamento automatico",
           "detect_batteries": "Rilevamento automatico delle batterie",
           "detect_extras": "Rileva automaticamente entità aggiuntive",

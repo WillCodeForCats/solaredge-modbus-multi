@@ -68,7 +68,6 @@
         "title": "Options SolarEdge Modbus",
         "data": {
           "scan_interval": "Fréquence de rafraichissement (en secondes)",
-          "keep_modbus_open": "Garder la connection Modbus ouverte",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",

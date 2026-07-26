@@ -146,9 +146,6 @@ class SolarEdgeModbusMultiHub:
         self._detect_extras = entry_options.get(
             ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
         )
-        self._keep_modbus_open = entry_options.get(
-            ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
-        )
         self._adv_storage_control = entry_options.get(
             ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
         )
@@ -196,7 +193,6 @@ class SolarEdgeModbusMultiHub:
                 f"detect_meters={self._detect_meters}, "
                 f"detect_batteries={self._detect_batteries}, "
                 f"detect_extras={self._detect_extras}, "
-                f"keep_modbus_open={self._keep_modbus_open}, "
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
@@ -403,8 +399,7 @@ class SolarEdgeModbusMultiHub:
 
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
-            if not self.keep_modbus_open:
-                await self.disconnect()
+            await self.disconnect()
 
             return True
 
@@ -475,8 +470,7 @@ class SolarEdgeModbusMultiHub:
             )
             self._timeout_counter = 0
 
-        if not self.keep_modbus_open:
-            await self.disconnect()
+        await self.disconnect()
 
         timestamp = dt.now()
         for inverter in self.inverters:
@@ -729,19 +723,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def option_detect_extras(self) -> bool:
         return self._detect_extras
-
-    @property
-    def keep_modbus_open(self) -> bool:
-        return self._keep_modbus_open
-
-    @keep_modbus_open.setter
-    def keep_modbus_open(self, value: bool) -> None:
-        if value is True:
-            self._keep_modbus_open = True
-        else:
-            self._keep_modbus_open = False
-
-        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
 
     @property
     def allow_battery_energy_reset(self) -> bool:
