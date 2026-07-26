@@ -515,12 +515,6 @@ class SolarEdgeModbusMultiHub:
                 if clear_client:
                     self._client = None
 
-    async def shutdown(self) -> None:
-        """Shut down the hub and disconnect."""
-
-        self.online = False
-        await self.disconnect(clear_client=True)
-
     async def modbus_read_holding_registers(self, unit, address, rcount):
         """Read modbus registers from inverter."""
 
