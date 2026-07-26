@@ -86,6 +86,9 @@ class ModbusTransport:
         return self._lock_holder is asyncio.current_task()
 
     async def _connect_unlocked(self) -> None:
+        if self.connected:
+            return
+
         if self._client is None:
             _LOGGER.debug(
                 "New AsyncModbusTcpClient: "
@@ -169,8 +172,7 @@ class ModbusTransport:
         ~2 minutes, and a write must not fail just because polling is slow.
         """
         async with self._lock:
-            if not self.connected:
-                await self._connect_unlocked()
+            await self._connect_unlocked()
 
             self.stats.writes += 1
             if self._use_device_id_param:

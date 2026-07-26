@@ -440,13 +440,17 @@ class SolarEdgeModbusMultiHub:
 
         except (
             ModbusReadError,
+            ModbusIllegalFunction,
+            ModbusIllegalValue,
             DeviceInvalid,
             ConnectionException,
             ModbusIOException,
             TimeoutError,
         ) as e:
             await self.disconnect()
-            if isinstance(e, ModbusReadError):
+            if isinstance(
+                e, (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue)
+            ):
                 raise HubInitFailed(f"Read error: {e}")
             if isinstance(e, DeviceInvalid):
                 raise HubInitFailed(f"Invalid device: {e}")
@@ -461,8 +465,7 @@ class SolarEdgeModbusMultiHub:
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
 
-        if not self.is_connected:
-            await self.connect()
+        await self.connect()
 
         if not self.initalized:
             try:
@@ -539,12 +542,16 @@ class SolarEdgeModbusMultiHub:
 
         except (
             ModbusReadError,
+            ModbusIllegalFunction,
+            ModbusIllegalValue,
             DeviceInvalid,
             ConnectionException,
             ModbusIOException,
         ) as e:
             await self.disconnect()
-            if isinstance(e, ModbusReadError):
+            if isinstance(
+                e, (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue)
+            ):
                 raise DataUpdateFailed(f"Update failed: {e}")
             if isinstance(e, DeviceInvalid):
                 raise DataUpdateFailed(f"Invalid device: {e}")

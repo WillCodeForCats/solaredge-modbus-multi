@@ -731,8 +731,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         """ Advanced Power Control """
         """ Power Control Block """
@@ -899,8 +898,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         """ Power Control Options: Site Limit Control """
         if (
@@ -1014,8 +1012,7 @@ class SolarEdgeInverter:
                 )
 
             finally:
-                if not self.hub.is_connected:
-                    await self.hub.connect()
+                await self.hub.connect()
 
         log_decoded(f"I{self.inverter_unit_id}", self.decoded_model)
 

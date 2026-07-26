@@ -58,6 +58,43 @@ async def test_hub_connect(mock_hub, mock_modbus_client) -> None:
     mock_modbus_client.return_value.connect.assert_called_once()
 
 
+async def test_hub_concurrent_connect_is_idempotent(
+    mock_hub, mock_modbus_client
+) -> None:
+    """Concurrent callers share one connection attempt."""
+    with patch(
+        "custom_components.solaredge_modbus_multi.hub.AsyncModbusTcpClient",
+        mock_modbus_client,
+    ):
+        await asyncio.gather(mock_hub.connect(), mock_hub.connect())
+
+    mock_modbus_client.assert_called_once()
+    mock_modbus_client.return_value.connect.assert_awaited_once()
+    assert mock_hub._transport.stats.connects == 1
+    assert mock_hub._transport.stats.reconnects == 0
+
+
+async def test_hub_reconnects_existing_disconnected_client(
+    mock_hub, mock_modbus_client
+) -> None:
+    """A disconnected client still performs a real reconnect."""
+    mock_client = mock_modbus_client.return_value
+
+    with patch(
+        "custom_components.solaredge_modbus_multi.hub.AsyncModbusTcpClient",
+        mock_modbus_client,
+    ):
+        await mock_hub.connect()
+        mock_client.connect.reset_mock()
+        mock_client.connected = False
+        await mock_hub.connect()
+
+    mock_modbus_client.assert_called_once()
+    mock_client.connect.assert_awaited_once()
+    assert mock_hub._transport.stats.connects == 1
+    assert mock_hub._transport.stats.reconnects == 1
+
+
 async def test_hub_disconnect(mock_hub, mock_modbus_client) -> None:
     """Test hub disconnection."""
     with patch(
@@ -292,6 +329,34 @@ async def test_hub_init_inverter_timeout_error(mock_hub, mock_modbus_client) -> 
             await mock_hub._async_init_solaredge()
 
 
+@pytest.mark.parametrize("error_type", [ModbusIllegalFunction, ModbusIllegalValue])
+async def test_hub_init_illegal_response_is_read_error(
+    mock_hub, mock_modbus_client, error_type
+) -> None:
+    """Illegal function and value responses become initialization read errors."""
+    mock_hub._detect_meters = False
+    mock_hub._detect_batteries = False
+
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.AsyncModbusTcpClient",
+            mock_modbus_client,
+        ),
+        patch.object(SolarEdgeInverter, "init_device", new=AsyncMock()),
+        patch.object(
+            SolarEdgeInverter,
+            "read_modbus_data",
+            new=AsyncMock(side_effect=error_type("Illegal response")),
+        ),
+    ):
+        await mock_hub.connect()
+
+        with pytest.raises(HubInitFailed, match="Read error"):
+            await mock_hub._async_init_solaredge()
+
+    mock_modbus_client.return_value.close.assert_called_once()
+
+
 # Refresh Modbus Data Tests
 
 
@@ -364,6 +429,29 @@ async def test_refresh_modbus_data_modbus_read_error(
 
         with pytest.raises(DataUpdateFailed, match="Update failed"):
             await mock_hub.async_refresh_modbus_data()
+
+
+@pytest.mark.parametrize("error_type", [ModbusIllegalFunction, ModbusIllegalValue])
+async def test_refresh_illegal_response_is_update_error(
+    mock_hub, mock_modbus_client, error_type
+) -> None:
+    """Illegal function and value responses become update read errors."""
+    mock_hub._initalized = True
+
+    inverter = MagicMock()
+    inverter.read_modbus_data = AsyncMock(side_effect=error_type("Illegal response"))
+    mock_hub.inverters = [inverter]
+
+    with patch(
+        "custom_components.solaredge_modbus_multi.hub.AsyncModbusTcpClient",
+        mock_modbus_client,
+    ):
+        await mock_hub.connect()
+
+        with pytest.raises(DataUpdateFailed, match="Update failed"):
+            await mock_hub.async_refresh_modbus_data()
+
+    mock_modbus_client.return_value.close.assert_called_once()
 
 
 async def test_refresh_modbus_data_connection_exception(

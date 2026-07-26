@@ -1051,6 +1051,7 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        entity_category=EntityCategory.DIAGNOSTIC,
     )
 
     @property
@@ -1072,6 +1073,7 @@ class SolarEdgeTemperatureMMPPT(SolarEdgeMMPPTSensorBase):
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=0,
+        entity_category=EntityCategory.DIAGNOSTIC,
     )
 
     @property

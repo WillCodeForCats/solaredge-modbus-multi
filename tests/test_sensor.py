@@ -16,6 +16,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 
 from custom_components.solaredge_modbus_multi.const import (
     BATTERY_STATUS,
@@ -732,6 +733,7 @@ class TestHeatSinkTemperature:
         assert sensor.native_unit_of_measurement == UnitOfTemperature.CELSIUS
         assert sensor.unique_id == "se_inv_1_temp_sink"
         assert sensor.name == "Temperature"
+        assert sensor.entity_category == EntityCategory.DIAGNOSTIC
         # 450 * 10^-1 = 45.0
         assert sensor.native_value == 45.0
         assert sensor.suggested_display_precision == 1
@@ -1691,6 +1693,7 @@ class TestMMPPTSensors:
         assert sensor.native_unit_of_measurement == UnitOfTemperature.CELSIUS
         assert sensor.unique_id == "se_inv_1_tmp_mmppt1"
         assert sensor.name == "Temperature"
+        assert sensor.entity_category == EntityCategory.DIAGNOSTIC
         assert sensor.suggested_display_precision == 0
         assert sensor.native_value == 45
 

@@ -366,7 +366,7 @@
   "device_class": "temperature",
   "state_class": "measurement",
   "native_unit_of_measurement": "\u00b0C",
-  "entity_category": null,
+  "entity_category": "diagnostic",
   "icon": null
  },
  {
@@ -1206,7 +1206,7 @@
   "device_class": "temperature",
   "state_class": "measurement",
   "native_unit_of_measurement": "\u00b0C",
-  "entity_category": null,
+  "entity_category": "diagnostic",
   "icon": null
  },
  {
@@ -1216,7 +1216,7 @@
   "device_class": "temperature",
   "state_class": "measurement",
   "native_unit_of_measurement": "\u00b0C",
-  "entity_category": null,
+  "entity_category": "diagnostic",
   "icon": null
  },
  {
