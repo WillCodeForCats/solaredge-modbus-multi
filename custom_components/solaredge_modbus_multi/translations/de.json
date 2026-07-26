@@ -134,6 +134,10 @@
     "detect_timeout_apc": {
       "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
       "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen."
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus-YAML-Konfiguration wird nicht mehr unterstützt",
+      "description": "Der Abschnitt `modbus` unter `solaredge_modbus_multi` in der `configuration.yaml` wird nicht mehr unterstützt und wird ignoriert. Bitte entfernen Sie ihn aus Ihrer YAML-Konfiguration."
     }
   }
 }

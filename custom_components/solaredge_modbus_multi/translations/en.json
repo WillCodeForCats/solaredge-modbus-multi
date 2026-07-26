@@ -133,6 +133,10 @@
     "detect_timeout_apc": {
       "title": "Advanced Power Control Timeout",
       "description": "The inverter did not respond while reading data for Advanced Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML Configuration No Longer Supported",
+      "description": "The `modbus` section under `solaredge_modbus_multi` in `configuration.yaml` is no longer supported and is being ignored. Please remove it from your YAML configuration."
     }
   }
 }

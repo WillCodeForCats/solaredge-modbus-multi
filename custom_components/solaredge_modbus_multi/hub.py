@@ -177,18 +177,10 @@ class SolarEdgeModbusMultiHub:
         self._retry_limit = self._yaml_config.get("retry", {}).get(
             "limit", RetrySettings.Limit
         )
-        self._mb_reconnect_delay = self._yaml_config.get("modbus", {}).get(
-            "reconnect_delay", ModbusDefaults.ReconnectDelay
-        )
-        self._mb_reconnect_delay_max = self._yaml_config.get("modbus", {}).get(
-            "reconnect_delay_max", ModbusDefaults.ReconnectDelayMax
-        )
-        self._mb_timeout = self._yaml_config.get("modbus", {}).get(
-            "timeout", ModbusDefaults.Timeout
-        )
-        self._mb_retries = self._yaml_config.get("modbus", {}).get(
-            "retries", ModbusDefaults.Retries
-        )
+        self._mb_reconnect_delay = ModbusDefaults.ReconnectDelay
+        self._mb_reconnect_delay_max = ModbusDefaults.ReconnectDelayMax
+        self._mb_timeout = ModbusDefaults.Timeout
+        self._mb_retries = ModbusDefaults.Retries
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
         self.meters = []

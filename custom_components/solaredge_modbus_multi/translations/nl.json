@@ -134,6 +134,10 @@
     "detect_timeout_apc": {
       "title": "Geavanceerde time -out voor stroomregeling",
       "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor geavanceerde stroomregeling."
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML-configuratie niet meer ondersteund",
+      "description": "De sectie `modbus` onder `solaredge_modbus_multi` in `configuration.yaml` wordt niet meer ondersteund en wordt genegeerd. Verwijder deze uit uw YAML-configuratie."
     }
   }
 }

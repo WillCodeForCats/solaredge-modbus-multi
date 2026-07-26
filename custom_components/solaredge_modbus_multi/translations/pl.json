@@ -134,6 +134,10 @@
     "detect_timeout_apc": {
       "title": "Zaawansowany limit czasu kontroli mocy",
       "description": "Falownik nie zareagował podczas czytania danych pod kątem zaawansowanych kontroli mocy."
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Konfiguracja YAML Modbus nie jest już obsługiwana",
+      "description": "Sekcja `modbus` w `solaredge_modbus_multi` w pliku `configuration.yaml` nie jest już obsługiwana i jest ignorowana. Usuń ją z konfiguracji YAML."
     }
   }
 }

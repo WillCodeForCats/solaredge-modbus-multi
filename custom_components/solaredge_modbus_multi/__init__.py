@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -41,14 +42,6 @@ CONFIG_SCHEMA = vol.Schema(
                         vol.Optional("limit"): vol.Coerce(int),
                     }
                 ),
-                "modbus": vol.Schema(
-                    {
-                        vol.Optional("timeout"): vol.Coerce(int),
-                        vol.Optional("retries"): vol.Coerce(int),
-                        vol.Optional("reconnect_delay"): vol.Coerce(float),
-                        vol.Optional("reconnect_delay_max"): vol.Coerce(float),
-                    }
-                ),
             }
         )
     },
@@ -60,6 +53,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up SolarEdge Modbus Muti advanced YAML config."""
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
+
+    if "modbus" in hass.data[DOMAIN]["yaml"]:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "deprecated_yaml_modbus",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="deprecated_yaml_modbus",
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, "deprecated_yaml_modbus")
 
     return True
 

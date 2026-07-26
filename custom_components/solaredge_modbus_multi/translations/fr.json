@@ -134,6 +134,10 @@
     "detect_timeout_apc": {
       "title": "Timeout de contrôle de puissance avancé",
       "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance avancés."
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Configuration YAML Modbus non prise en charge",
+      "description": "La section `modbus` sous `solaredge_modbus_multi` dans `configuration.yaml` n'est plus prise en charge et est ignorée. Veuillez la supprimer de votre configuration YAML."
     }
   }
 }

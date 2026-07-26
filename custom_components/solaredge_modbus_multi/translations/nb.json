@@ -134,6 +134,10 @@
     "detect_timeout_apc": {
       "title": "Avansert timeout for strømkontroll",
       "description": "Omformeren svarte ikke mens du leste data for avanserte strømkontroller."
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML-konfigurasjon støttes ikke lenger",
+      "description": "Seksjonen `modbus` under `solaredge_modbus_multi` i `configuration.yaml` støttes ikke lenger og blir ignorert. Fjern den fra YAML-konfigurasjonen din."
     }
   }
 }

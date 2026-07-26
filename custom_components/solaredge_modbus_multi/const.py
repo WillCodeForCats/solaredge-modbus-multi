@@ -80,9 +80,6 @@ class ModbusDefaults(IntEnum):
         ReconnectDelay to ReconnectDelayMax.
         Set `ReconnectDelay = 0` to avoid automatic reconnection.
         Disabled because it didn't work properly with HA Async in PR#360.
-
-        ReconnectDelay and ReconnectDelayMax can be set to seconds.milliseconds
-        values using the advanced YAML configuration option.
     """
 
     Timeout = 3  # Timeout for a request, in seconds.

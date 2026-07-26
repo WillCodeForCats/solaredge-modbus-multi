@@ -134,6 +134,10 @@
     "detect_timeout_apc": {
       "title": "Timeout di controllo del potere avanzato",
       "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza avanzati."
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Configurazione YAML Modbus non più supportata",
+      "description": "La sezione `modbus` sotto `solaredge_modbus_multi` in `configuration.yaml` non è più supportata e viene ignorata. Rimuovila dalla tua configurazione YAML."
     }
   }
 }
