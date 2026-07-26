@@ -227,6 +227,16 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             config_entry, unique_id=new_unique_id, version=2, minor_version=1
         )
 
+    if config_entry.version == 2 and config_entry.minor_version < 2:
+        _LOGGER.debug("Migrating from version 2.1")
+
+        update_options = {**config_entry.options}
+        update_options.pop("keep_modbus_open", None)
+
+        hass.config_entries.async_update_entry(
+            config_entry, options=update_options, version=2, minor_version=2
+        )
+
     _LOGGER.warning(
         "Migrated to config version "
         f"{config_entry.version}.{config_entry.minor_version}"
