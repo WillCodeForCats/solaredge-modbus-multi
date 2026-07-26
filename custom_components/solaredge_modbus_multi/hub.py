@@ -39,7 +39,6 @@ from .const import (
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
-    ModbusDefaults,
     ModbusExceptions,
     RetrySettings,
     SolarEdgeTimeouts,
@@ -177,10 +176,6 @@ class SolarEdgeModbusMultiHub:
         self._retry_limit = self._yaml_config.get("retry", {}).get(
             "limit", RetrySettings.Limit
         )
-        self._mb_reconnect_delay = ModbusDefaults.ReconnectDelay
-        self._mb_reconnect_delay_max = ModbusDefaults.ReconnectDelayMax
-        self._mb_timeout = ModbusDefaults.Timeout
-        self._mb_retries = ModbusDefaults.Retries
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
         self.meters = []
@@ -518,20 +513,12 @@ class SolarEdgeModbusMultiHub:
             if self.is_connected:
                 return
             if self._client is None:
-                _LOGGER.debug(
-                    "New AsyncModbusTcpClient: "
-                    f"reconnect_delay={self._mb_reconnect_delay} "
-                    f"reconnect_delay_max={self._mb_reconnect_delay_max} "
-                    f"timeout={self._mb_timeout} "
-                    f"retries={self._mb_retries}"
-                )
+                _LOGGER.debug(f"New AsyncModbusTcpClient: {self._host}:{self._port}")
                 self._client = AsyncModbusTcpClient(
                     host=self._host,
                     port=self._port,
-                    reconnect_delay=self._mb_reconnect_delay,
-                    reconnect_delay_max=self._mb_reconnect_delay_max,
-                    timeout=self._mb_timeout,
-                    retries=self._mb_retries,
+                    reconnect_delay=0,
+                    retries=0,
                 )
 
             _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))

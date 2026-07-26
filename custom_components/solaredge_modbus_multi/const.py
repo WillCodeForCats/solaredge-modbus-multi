@@ -72,22 +72,6 @@ class RetrySettings(IntEnum):
     Limit = 5  # number of attempts before failing
 
 
-class ModbusDefaults(IntEnum):
-    """Values to pass to pymodbus"""
-
-    """
-        ReconnectDelay doubles automatically with each unsuccessful connect, from
-        ReconnectDelay to ReconnectDelayMax.
-        Set `ReconnectDelay = 0` to avoid automatic reconnection.
-        Disabled because it didn't work properly with HA Async in PR#360.
-    """
-
-    Timeout = 3  # Timeout for a request, in seconds.
-    Retries = 3  # Max number of retries per request.
-    ReconnectDelay = 0  # Minimum in seconds before reconnecting.
-    ReconnectDelayMax = 3  # Maximum in seconds before reconnecting.
-
-
 class SolarEdgeTimeouts(IntEnum):
     """Timeouts in milliseconds."""
 
