@@ -357,7 +357,7 @@ class SolarEdgeModbusMultiHub:
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
-        
+
         try:
             await self.connection.connect()
         except (ModbusConnectionError, ModbusProtocolError) as e:

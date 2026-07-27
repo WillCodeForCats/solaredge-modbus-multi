@@ -238,7 +238,17 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         _LOGGER.debug("Migrating from version 2.1")
 
         update_options = {**config_entry.options}
-        update_options.pop("keep_modbus_open", None)
+        had_keep_modbus_open = update_options.pop("keep_modbus_open", False)
+
+        if had_keep_modbus_open:
+            ir.async_create_issue(
+                hass,
+                DOMAIN,
+                "deprecated_keep_modbus_open",
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="deprecated_keep_modbus_open",
+            )
 
         hass.config_entries.async_update_entry(
             config_entry, options=update_options, version=2, minor_version=2

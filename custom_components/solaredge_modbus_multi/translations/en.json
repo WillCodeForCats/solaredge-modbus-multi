@@ -136,6 +136,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus YAML Configuration No Longer Supported",
       "description": "The `modbus` section under `solaredge_modbus_multi` in `configuration.yaml` is no longer supported and is being ignored. Please remove it from your YAML configuration."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Keep Modbus Connection Open Option Removed",
+      "description": "The \"Keep Modbus Connection Open\" option is no longer supported and has been removed from this integration's configuration. No action is required."
     }
   }
 }
