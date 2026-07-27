@@ -116,6 +116,15 @@ class DeviceInvalid(SolarEdgeException):
     pass
 
 
+class ModbusReadResult:
+    """Wraps a modbus-connection register list like pymodbus for compatibility."""
+
+    __slots__ = ("registers",)
+
+    def __init__(self, registers: list[int]) -> None:
+        self.registers = registers
+
+
 class SolarEdgeModbusMultiHub:
     def __init__(
         self,
