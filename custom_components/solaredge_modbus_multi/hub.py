@@ -15,13 +15,19 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.util import dt
+from modbus_connection.decode import (
+    decode_float32,
+    decode_int16,
+    decode_int32,
+    decode_uint32,
+    decode_uint64,
+)
 from modbus_connection.exceptions import (
     ModbusConnectionError,
     ModbusExceptionError,
     ModbusProtocolError,
     ModbusTimeoutError,
 )
-from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
 
 from .const import (
@@ -660,10 +666,7 @@ class SolarEdgeInverter:
                 [
                     (
                         "C_SunSpec_ID",
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[0:2],
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
+                        decode_uint32(inverter_data.registers[0:2]),
                     )
                 ]
             )
@@ -678,10 +681,7 @@ class SolarEdgeInverter:
                 dict(
                     zip(
                         uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                        uint16_data,
                     )
                 )
             )
@@ -691,48 +691,23 @@ class SolarEdgeInverter:
                     [
                         (
                             "C_Manufacturer",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[4:20],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(inverter_data.registers[4:20]),
                         ),
                         (
                             "C_Model",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[20:36],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(inverter_data.registers[20:36]),
                         ),
                         (
                             "C_Option",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[36:44],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(inverter_data.registers[36:44]),
                         ),
                         (
                             "C_Version",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[44:52],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(inverter_data.registers[44:52]),
                         ),
                         (
                             "C_SerialNumber",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[52:68],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(inverter_data.registers[52:68]),
                         ),
                     ]
                 )
@@ -780,24 +755,15 @@ class SolarEdgeInverter:
                 [
                     (
                         "mmppt_DID",
-                        ModbusClientMixin.convert_from_registers(
-                            [mmppt_common.registers[0]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                        mmppt_common.registers[0],
                     ),
                     (
                         "mmppt_Length",
-                        ModbusClientMixin.convert_from_registers(
-                            [mmppt_common.registers[1]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                        mmppt_common.registers[1],
                     ),
                     (
                         "mmppt_Units",
-                        ModbusClientMixin.convert_from_registers(
-                            [mmppt_common.registers[8]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                        mmppt_common.registers[8],
                     ),
                 ]
             )
@@ -866,10 +832,7 @@ class SolarEdgeInverter:
             )
 
             self.decoded_common["C_Version"] = int_list_to_string(
-                ModbusClientMixin.convert_from_registers(
-                    inverter_data.registers[0:8],
-                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                )
+                inverter_data.registers[0:8]
             )
 
             inverter_data = await self.hub.modbus_read_holding_registers(
@@ -907,10 +870,7 @@ class SolarEdgeInverter:
             self.decoded_model = dict(
                 zip(
                     uint16_fields,
-                    ModbusClientMixin.convert_from_registers(
-                        uint16_data,
-                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                    ),
+                    uint16_data,
                     strict=True,
                 )
             )
@@ -949,10 +909,7 @@ class SolarEdgeInverter:
                 dict(
                     zip(
                         int16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            int16_data,
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
+                        [decode_int16([r]) for r in int16_data],
                         strict=True,
                     )
                 )
@@ -963,10 +920,7 @@ class SolarEdgeInverter:
                     [
                         (
                             "AC_Energy_WH",
-                            ModbusClientMixin.convert_from_registers(
-                                inverter_data.registers[24:26],
-                                data_type=ModbusClientMixin.DATATYPE.UINT32,
-                            ),
+                            decode_uint32(inverter_data.registers[24:26]),
                         ),
                     ]
                 )
@@ -981,10 +935,7 @@ class SolarEdgeInverter:
                         [
                             (
                                 "I_Status_Vendor4",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0:2],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                ),
+                                decode_uint32(inverter_data.registers[0:2]),
                             ),
                         ]
                     )
@@ -1038,10 +989,7 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 int16_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    int16_data,
-                                    data_type=ModbusClientMixin.DATATYPE.INT16,
-                                ),
+                                [decode_int16([r]) for r in int16_data],
                                 strict=True,
                             )
                         )
@@ -1052,10 +1000,7 @@ class SolarEdgeInverter:
                             [
                                 (
                                     "mmppt_Events",
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[4:6],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
+                                    decode_uint32(inverter_data.registers[4:6]),
                                 ),
                             ]
                         )
@@ -1069,19 +1014,15 @@ class SolarEdgeInverter:
                                 (
                                     "IDStr",  # string(16)
                                     int_list_to_string(
-                                        ModbusClientMixin.convert_from_registers(
-                                            inverter_data.registers[
-                                                9 + unit_offset : 17 + unit_offset
-                                            ],
-                                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                        )
+                                        inverter_data.registers[
+                                            9 + unit_offset : 17 + unit_offset
+                                        ]
                                     ),
                                 ),
                                 (
                                     "Tmp",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[24 + unit_offset]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
+                                    decode_int16(
+                                        [inverter_data.registers[24 + unit_offset]]
                                     ),
                                 ),
                             ]
@@ -1105,10 +1046,7 @@ class SolarEdgeInverter:
                             dict(
                                 zip(
                                     uint16_fields,
-                                    ModbusClientMixin.convert_from_registers(
-                                        uint16_data,
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    ),
+                                    uint16_data,
                                     strict=True,
                                 )
                             )
@@ -1132,10 +1070,7 @@ class SolarEdgeInverter:
                             dict(
                                 zip(
                                     uint32_fields,
-                                    ModbusClientMixin.convert_from_registers(
-                                        uint32_data,
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
+                                    decode_uint32(uint32_data),
                                     strict=True,
                                 )
                             )
@@ -1165,25 +1100,16 @@ class SolarEdgeInverter:
                             [
                                 (
                                     "I_RRCR",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[0]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                        word_order="little",
-                                    ),
+                                    inverter_data.registers[0],
                                 ),
                                 (
                                     "I_Power_Limit",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[1]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                        word_order="little",
-                                    ),
+                                    inverter_data.registers[1],
                                 ),
                                 (
                                     "I_CosPhi",
-                                    ModbusClientMixin.convert_from_registers(
+                                    decode_float32(
                                         inverter_data.registers[2:4],
-                                        data_type=ModbusClientMixin.DATATYPE.FLOAT32,
                                         word_order="little",
                                     ),
                                 ),
@@ -1247,11 +1173,7 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 int32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    int32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.INT32,
-                                    word_order="little",
-                                ),
+                                decode_int32(int32_data, word_order="little"),
                                 strict=True,
                             )
                         )
@@ -1302,11 +1224,7 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 float32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    float32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
+                                decode_float32(float32_data, word_order="little"),
                                 strict=True,
                             )
                         )
@@ -1317,25 +1235,16 @@ class SolarEdgeInverter:
                             [
                                 (
                                     "CommitPwrCtlSettings",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[0]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                        word_order="little",
-                                    ),
+                                    decode_int16([inverter_data.registers[0]]),
                                 ),
                                 (
                                     "RestorePwrCtlDefaults",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[1]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                        word_order="little",
-                                    ),
+                                    decode_int16([inverter_data.registers[1]]),
                                 ),
                                 (
                                     "ReactPwrIterTime",
-                                    ModbusClientMixin.convert_from_registers(
+                                    decode_uint32(
                                         inverter_data.registers[6:8],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
                                         word_order="little",
                                     ),
                                 ),
@@ -1397,11 +1306,7 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 float32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    float32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
+                                decode_float32(float32_data, word_order="little"),
                                 strict=True,
                             )
                         )
@@ -1420,11 +1325,7 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 uint32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    uint32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
+                                decode_float32(uint32_data, word_order="little"),
                                 strict=True,
                             )
                         )
@@ -1475,26 +1376,16 @@ class SolarEdgeInverter:
                         [
                             (
                                 "E_Lim_Ctl_Mode",
-                                ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[0]],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    word_order="little",
-                                ),
+                                inverter_data.registers[0],
                             ),
                             (
                                 "E_Lim_Ctl",
-                                ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[1]],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    word_order="little",
-                                ),
+                                inverter_data.registers[1],
                             ),
                             (
                                 "E_Site_Limit",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[2:4],
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
+                                decode_float32(
+                                    inverter_data.registers[2:4], word_order="little"
                                 ),
                             ),
                         ]
@@ -1525,10 +1416,8 @@ class SolarEdgeInverter:
                         [
                             (
                                 "Ext_Prod_Max",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0:2],
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
+                                decode_float32(
+                                    inverter_data.registers[0:2], word_order="little"
                                 ),
                             ),
                         ]
@@ -1560,10 +1449,8 @@ class SolarEdgeInverter:
                         [
                             (
                                 "I_Grid_Status",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0:2],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    word_order="little",
+                                decode_uint32(
+                                    inverter_data.registers[0:2], word_order="little"
                                 ),
                             ),
                         ]
@@ -1626,11 +1513,7 @@ class SolarEdgeInverter:
                 self.decoded_storage_control = dict(
                     zip(
                         uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                            word_order="little",
-                        ),
+                        uint16_data,
                         strict=True,
                     )
                 )
@@ -1648,11 +1531,7 @@ class SolarEdgeInverter:
                     dict(
                         zip(
                             float32_fields,
-                            ModbusClientMixin.convert_from_registers(
-                                float32_data,
-                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                word_order="little",
-                            ),
+                            decode_float32(float32_data, word_order="little"),
                             strict=True,
                         )
                     )
@@ -1663,10 +1542,8 @@ class SolarEdgeInverter:
                         [
                             (
                                 "command_timeout",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[7:9],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    word_order="little",
+                                decode_uint32(
+                                    inverter_data.registers[7:9], word_order="little"
                                 ),
                             ),
                         ]
@@ -1835,10 +1712,7 @@ class SolarEdgeMeter:
             self.decoded_common = dict(
                 zip(
                     uint16_fields,
-                    ModbusClientMixin.convert_from_registers(
-                        uint16_data,
-                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                    ),
+                    uint16_data,
                 )
             )
 
@@ -1847,48 +1721,23 @@ class SolarEdgeMeter:
                     [
                         (
                             "C_Manufacturer",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[2:18],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(meter_info.registers[2:18]),
                         ),
                         (
                             "C_Model",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[18:34],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(meter_info.registers[18:34]),
                         ),
                         (
                             "C_Option",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[34:42],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(meter_info.registers[34:42]),
                         ),
                         (
                             "C_Version",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[42:50],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(meter_info.registers[42:50]),
                         ),
                         (
                             "C_SerialNumber",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[50:66],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(meter_info.registers[50:66]),
                         ),
                     ]
                 )
@@ -1944,17 +1793,11 @@ class SolarEdgeMeter:
                 [
                     (
                         "C_SunSpec_DID",
-                        ModbusClientMixin.convert_from_registers(
-                            [meter_data.registers[0]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                        meter_data.registers[0],
                     ),
                     (
                         "C_SunSpec_Length",
-                        ModbusClientMixin.convert_from_registers(
-                            [meter_data.registers[1]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                        meter_data.registers[1],
                     ),
                 ]
             )
@@ -2010,10 +1853,7 @@ class SolarEdgeMeter:
                 dict(
                     zip(
                         int16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            int16_data,
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
+                        [decode_int16([r]) for r in int16_data],
                     )
                 )
             )
@@ -2063,10 +1903,7 @@ class SolarEdgeMeter:
                 dict(
                     zip(
                         uint32_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint32_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
+                        decode_uint32(uint32_data),
                     )
                 )
             )
@@ -2161,58 +1998,28 @@ class SolarEdgeBattery:
                 [
                     (
                         "B_Manufacturer",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[0:16],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
+                        int_list_to_string(battery_info.registers[0:16]),
                     ),
                     (
                         "B_Model",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[16:32],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
+                        int_list_to_string(battery_info.registers[16:32]),
                     ),
                     (
                         "B_Version",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[32:48],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
+                        int_list_to_string(battery_info.registers[32:48]),
                     ),
                     (
                         "B_SerialNumber",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[48:64],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
+                        int_list_to_string(battery_info.registers[48:64]),
                     ),
                     (
                         "B_Device_Address",
-                        ModbusClientMixin.convert_from_registers(
-                            [battery_info.registers[64]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                            word_order="little",
-                        ),
+                        battery_info.registers[64],
                     ),
                     (
                         "B_RatedEnergy",
-                        ModbusClientMixin.convert_from_registers(
-                            battery_info.registers[66:68],
-                            data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                            word_order="little",
+                        decode_float32(
+                            battery_info.registers[66:68], word_order="little"
                         ),
                     ),
                 ]
@@ -2308,11 +2115,7 @@ class SolarEdgeBattery:
             self.decoded_model = dict(
                 zip(
                     float32_fields,
-                    ModbusClientMixin.convert_from_registers(
-                        float32_data,
-                        data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                        word_order="little",
-                    ),
+                    decode_float32(float32_data, word_order="little"),
                 )
             )
 
@@ -2325,11 +2128,7 @@ class SolarEdgeBattery:
                 dict(
                     zip(
                         uint64_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint64_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT64,
-                            word_order="little",
-                        ),
+                        decode_uint64(uint64_data, word_order="little"),
                     )
                 )
             )
@@ -2340,11 +2139,7 @@ class SolarEdgeBattery:
                 dict(
                     zip(
                         uint32_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint32_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                            word_order="little",
-                        ),
+                        decode_uint32(uint32_data, word_order="little"),
                     )
                 )
             )
@@ -2372,11 +2167,7 @@ class SolarEdgeBattery:
                 dict(
                     zip(
                         uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                            word_order="little",
-                        ),
+                        uint16_data,
                     )
                 )
             )
@@ -2465,10 +2256,7 @@ class SolarEdgeEVSE:
                 [
                     (
                         "C_SunSpec_ID",
-                        ModbusClientMixin.convert_from_registers(
-                            evse_data.registers[0:2],
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
+                        decode_uint32(evse_data.registers[0:2]),
                     )
                 ]
             )
@@ -2483,10 +2271,7 @@ class SolarEdgeEVSE:
                 dict(
                     zip(
                         uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
+                        uint16_data,
                     )
                 )
             )
@@ -2496,48 +2281,23 @@ class SolarEdgeEVSE:
                     [
                         (
                             "C_Manufacturer",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[4:20],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(evse_data.registers[4:20]),
                         ),
                         (
                             "C_Model",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[20:36],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(evse_data.registers[20:36]),
                         ),
                         (
                             "C_Option",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[36:44],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(evse_data.registers[36:44]),
                         ),
                         (
                             "C_Version",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[44:52],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(evse_data.registers[44:52]),
                         ),
                         (
                             "C_SerialNumber",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[52:68],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
+                            int_list_to_string(evse_data.registers[52:68]),
                         ),
                     ]
                 )
@@ -2584,10 +2344,7 @@ class SolarEdgeEVSE:
             )
 
             self.decoded_common["C_Version"] = int_list_to_string(
-                ModbusClientMixin.convert_from_registers(
-                    evse_data.registers[0:8],
-                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                )
+                evse_data.registers[0:8]
             )
 
             for name, value in iter(self.decoded_model.items()):
