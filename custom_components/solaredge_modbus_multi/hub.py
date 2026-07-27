@@ -483,7 +483,7 @@ class SolarEdgeModbusMultiHub:
 
         return result
 
-    async def write_registers(self, unit: int, address: int, payload) -> None:
+    async def modbus_write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
 
         try:
@@ -1717,7 +1717,7 @@ class SolarEdgeInverter:
 
     async def write_registers(self, address, payload) -> None:
         """Write inverter register."""
-        await self.hub.write_registers(self.inverter_unit_id, address, payload)
+        await self.hub.modbus_write_registers(self.inverter_unit_id, address, payload)
 
     def set_last_update(self, timestamp) -> None:
         self._last_update_timestamp = timestamp
