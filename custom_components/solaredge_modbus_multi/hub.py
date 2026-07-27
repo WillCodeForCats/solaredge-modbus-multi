@@ -28,7 +28,6 @@ from modbus_connection.exceptions import (
     ModbusProtocolError,
     ModbusTimeoutError,
 )
-from pymodbus.exceptions import ConnectionException, ModbusIOException
 
 from .const import (
     BATTERY_REG_BASE,
@@ -348,11 +347,8 @@ class SolarEdgeModbusMultiHub:
         except DeviceInvalid as e:
             raise HubInitFailed(f"Invalid device: {e}")
 
-        except ConnectionException as e:
+        except ModbusIOError as e:
             raise HubInitFailed(f"Connection failed: {e}")
-
-        except ModbusIOException as e:
-            raise HubInitFailed(f"Modbus error: {e}")
 
         except TimeoutError as e:
             raise HubInitFailed(f"Timeout error: {e}")
@@ -367,7 +363,7 @@ class SolarEdgeModbusMultiHub:
                 async with asyncio.timeout(self.coordinator_timeout):
                     await self._async_init_solaredge()
 
-            except (ConnectionException, ModbusIOException, TimeoutError) as e:
+            except (ModbusIOError, TimeoutError) as e:
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -405,11 +401,8 @@ class SolarEdgeModbusMultiHub:
         except DeviceInvalid as e:
             raise DataUpdateFailed(f"Invalid device: {e}")
 
-        except ConnectionException as e:
+        except ModbusIOError as e:
             raise DataUpdateFailed(f"Connection failed: {e}")
-
-        except ModbusIOException as e:
-            raise DataUpdateFailed(f"Modbus error: {e}")
 
         except TimeoutError as e:
             self._timeout_counter += 1
@@ -1125,7 +1118,7 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: global power control NOT available"
                 )
 
-            except (TimeoutError, ModbusIOException):
+            except (TimeoutError, ModbusIOError):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
@@ -1139,11 +1132,6 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: The inverter did not respond while "
                     "reading data for Global Dynamic Power Controls. These entities "
                     "will be unavailable."
-                )
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
         """ Advanced Power Control """
@@ -1339,7 +1327,7 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: advanced power control NOT available"
                 )
 
-            except (TimeoutError, ModbusIOException):
+            except (TimeoutError, ModbusIOError):
                 ir.async_create_issue(
                     self.hub._hass,
                     DOMAIN,
@@ -1353,11 +1341,6 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: The inverter did not respond while "
                     "reading data for Advanced Power Controls. These entities "
                     "will be unavailable."
-                )
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
         """ Power Control Options: Site Limit Control """
@@ -1462,16 +1445,11 @@ class SolarEdgeInverter:
                 self._grid_status = False
                 _LOGGER.debug(f"I{self.inverter_unit_id}: Grid On/Off NOT available")
 
-            except ModbusIOException as e:
+            except (TimeoutError, ModbusIOError) as e:
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: A modbus I/O exception occurred "
                     "while reading data for Grid On/Off Status. This entity "
                     f"will be unavailable: {e}"
-                )
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
         for name, value in iter(self.decoded_model.items()):
