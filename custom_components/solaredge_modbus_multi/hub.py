@@ -441,20 +441,11 @@ class SolarEdgeModbusMultiHub:
         self._rr_address = address
         self._rr_count = rcount
 
-        sig = inspect.signature(self._client.read_holding_registers)
-
         _LOGGER.debug(
             f"unit={self._rr_unit}: modbus_read_holding_registers "
             f"address={self._rr_address} count={self._rr_count}"
         )
 
-        if "device_id" in sig.parameters:
-            result = await self._client.read_holding_registers(
-                address=self._rr_address, count=self._rr_count, device_id=self._rr_unit
-            )
-        else:
-            result = await self._client.read_holding_registers(
-                address=self._rr_address, count=self._rr_count, slave=self._rr_unit
             )
 
         _LOGGER.debug(f"unit={self._rr_unit}: result is error: {result.isError()} ")
@@ -504,20 +495,6 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = payload
 
         try:
-            sig = inspect.signature(self._client.write_registers)
-
-            if "device_id" in sig.parameters:
-                result = await self._client.write_registers(
-                    address=self._wr_address,
-                    values=self._wr_payload,
-                    device_id=self._wr_unit,
-                )
-            else:
-                result = await self._client.write_registers(
-                    address=self._wr_address,
-                    values=self._wr_payload,
-                    slave=self._wr_unit,
-                )
 
             self.has_write = address
 
