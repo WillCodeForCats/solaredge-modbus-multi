@@ -486,10 +486,6 @@ class SolarEdgeModbusMultiHub:
     async def write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
 
-        self._wr_unit = unit
-        self._wr_address = address
-        self._wr_payload = payload
-
         try:
 
             self.has_write = address
