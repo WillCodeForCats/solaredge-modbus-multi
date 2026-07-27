@@ -127,11 +127,7 @@ class ModbusReadResult:
 
 class SolarEdgeModbusMultiHub:
     def __init__(
-        self,
-        hass: HomeAssistant,
-        entry_id: str,
-        entry_data,
-        entry_options,
+        self, hass: HomeAssistant, entry_id: str, entry_data, entry_options, connection
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -189,7 +185,7 @@ class SolarEdgeModbusMultiHub:
         self._online = True
         self._timeout_counter = 0
 
-        self._client = None
+        self.connection = connection
 
         _LOGGER.debug(
             (
