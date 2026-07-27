@@ -1704,10 +1704,6 @@ class SolarEdgeMeter:
                 address=self.start_address,
                 rcount=67,
             )
-            if meter_info.isError():
-                _LOGGER.debug(meter_info)
-                raise ModbusReadError(meter_info)
-
             uint16_fields = [
                 "C_SunSpec_DID",
                 "C_SunSpec_Length",
