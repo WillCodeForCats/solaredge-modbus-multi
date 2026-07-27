@@ -14,6 +14,8 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from modbus_connection.pymodbus import ModbusConnection
+from modbus_connection import ModbusTcpParams
 
 from .const import DOMAIN, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
@@ -72,8 +74,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
+    connection = ModbusConnection(
+        ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT])
+    )
+    entry.async_on_unload(connection.close)
+
     solaredge_hub = SolarEdgeModbusMultiHub(
-        hass, entry.entry_id, entry.data, entry.options
+        hass, entry.entry_id, entry.data, entry.options, connection
     )
 
     coordinator = SolarEdgeCoordinator(
