@@ -183,7 +183,6 @@ class SolarEdgeModbusMultiHub:
         self._timeout_counter = 0
 
         self._client = None
-        self._connect_lock = asyncio.Lock()
 
         _LOGGER.debug(
             (
