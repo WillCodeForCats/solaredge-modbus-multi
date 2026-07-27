@@ -14,8 +14,8 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from modbus_connection.pymodbus import ModbusConnection
 from modbus_connection import ModbusTcpParams
+from modbus_connection.pymodbus import ModbusConnection
 
 from .const import DOMAIN, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
