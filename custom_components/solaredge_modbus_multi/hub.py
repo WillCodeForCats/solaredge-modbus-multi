@@ -442,32 +442,28 @@ class SolarEdgeModbusMultiHub:
             f"address={address} count={rcount}"
         )
 
+        try:
+            registers = await self.connection.for_unit(unit).read_holding_registers(
+                address, rcount
             )
 
-        _LOGGER.debug(f"unit={self._rr_unit}: result is error: {result.isError()} ")
+        except ModbusExceptionError as e:
+            if e.exception_code == ModbusExceptions.IllegalAddress:
+                _LOGGER.debug(f"unit={unit} Read IllegalAddress: {e}")
+                raise ModbusIllegalAddress(e)
 
-        if result.isError():
-            _LOGGER.debug(f"unit={self._rr_unit}: error result: {type(result)} ")
+            if e.exception_code == ModbusExceptions.IllegalFunction:
+                _LOGGER.debug(f"unit={unit} Read IllegalFunction: {e}")
+                raise ModbusIllegalFunction(e)
 
-            if type(result) is ModbusIOException:
-                raise ModbusIOError(result)
+            if e.exception_code == ModbusExceptions.IllegalValue:
+                _LOGGER.debug(f"unit={unit} Read IllegalValue: {e}")
+                raise ModbusIllegalValue(e)
 
-            if type(result) is ExceptionResponse:
-                if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalAddress: {result}")
-                    raise ModbusIllegalAddress(result)
+            raise ModbusReadError(e)
 
-                if result.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(
-                        f"unit={self._rr_unit} Read IllegalFunction: {result}"
-                    )
-                    raise ModbusIllegalFunction(result)
-
-                if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalValue: {result}")
-                    raise ModbusIllegalValue(result)
-
-            raise ModbusReadError(result)
+        except (ModbusConnectionError, ModbusProtocolError) as e:
+            raise ModbusIOError(e)
 
         _LOGGER.debug(
             f"unit={self._rr_unit}: Registers received={len(result.registers)} "
