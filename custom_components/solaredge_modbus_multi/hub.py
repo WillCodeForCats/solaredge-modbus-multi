@@ -437,13 +437,9 @@ class SolarEdgeModbusMultiHub:
     async def modbus_read_holding_registers(self, unit, address, rcount):
         """Read modbus registers from inverter."""
 
-        self._rr_unit = unit
-        self._rr_address = address
-        self._rr_count = rcount
-
         _LOGGER.debug(
-            f"unit={self._rr_unit}: modbus_read_holding_registers "
-            f"address={self._rr_address} count={self._rr_count}"
+            f"unit={unit}: modbus_read_holding_registers "
+            f"address={address} count={rcount}"
         )
 
             )
