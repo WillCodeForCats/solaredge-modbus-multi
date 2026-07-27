@@ -16,7 +16,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.util import dt
-from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
 
@@ -377,8 +376,6 @@ class SolarEdgeModbusMultiHub:
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
 
-        await self.connect()
-
         if not self.initalized:
             try:
                 async with asyncio.timeout(self.coordinator_timeout):
@@ -482,23 +479,6 @@ class SolarEdgeModbusMultiHub:
 
         return True
 
-    async def connect(self) -> None:
-        """Connect to inverter."""
-        async with self._connect_lock:
-            if self.is_connected:
-                return
-            if self._client is None:
-                _LOGGER.debug(f"New AsyncModbusTcpClient: {self._host}:{self._port}")
-                self._client = AsyncModbusTcpClient(
-                    host=self._host,
-                    port=self._port,
-                    reconnect_delay=0,
-                    retries=0,
-                )
-
-            _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
-            await self._client.connect()
-
     async def disconnect(self, clear_client: bool = False) -> None:
         """Disconnect from inverter."""
 
@@ -585,8 +565,6 @@ class SolarEdgeModbusMultiHub:
         self._wr_payload = payload
 
         try:
-            await self.connect()
-
             sig = inspect.signature(self._client.write_registers)
 
             if "device_id" in sig.parameters:
@@ -1369,9 +1347,6 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-            finally:
-                await self.hub.connect()
-
         """ Advanced Power Control """
         """ Power Control Block """
         if self.hub.option_detect_extras is True and (
@@ -1611,9 +1586,6 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-            finally:
-                await self.hub.connect()
-
         """ Power Control Options: Site Limit Control """
         if (
             self.hub.option_site_limit_control is True
@@ -1741,9 +1713,6 @@ class SolarEdgeInverter:
                 raise ModbusReadError(
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
-
-            finally:
-                await self.hub.connect()
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
