@@ -1063,7 +1063,10 @@ class SolarEdgeInverter:
                             dict(
                                 zip(
                                     uint32_fields,
-                                    decode_uint32(uint32_data),
+                                    [
+                                        decode_uint32(uint32_data[i : i + 2])
+                                        for i in range(0, len(uint32_data), 2)
+                                    ],
                                     strict=True,
                                 )
                             )
@@ -1161,7 +1164,12 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 int32_fields,
-                                decode_int32(int32_data, word_order="little"),
+                                [
+                                    decode_int32(
+                                        int32_data[i : i + 2], word_order="little"
+                                    )
+                                    for i in range(0, len(int32_data), 2)
+                                ],
                                 strict=True,
                             )
                         )
@@ -1212,7 +1220,12 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 float32_fields,
-                                decode_float32(float32_data, word_order="little"),
+                                [
+                                    decode_float32(
+                                        float32_data[i : i + 2], word_order="little"
+                                    )
+                                    for i in range(0, len(float32_data), 2)
+                                ],
                                 strict=True,
                             )
                         )
@@ -1294,7 +1307,12 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 float32_fields,
-                                decode_float32(float32_data, word_order="little"),
+                                [
+                                    decode_float32(
+                                        float32_data[i : i + 2], word_order="little"
+                                    )
+                                    for i in range(0, len(float32_data), 2)
+                                ],
                                 strict=True,
                             )
                         )
@@ -1313,7 +1331,12 @@ class SolarEdgeInverter:
                         dict(
                             zip(
                                 uint32_fields,
-                                decode_float32(uint32_data, word_order="little"),
+                                [
+                                    decode_float32(
+                                        uint32_data[i : i + 2], word_order="little"
+                                    )
+                                    for i in range(0, len(uint32_data), 2)
+                                ],
                                 strict=True,
                             )
                         )
@@ -1509,7 +1532,12 @@ class SolarEdgeInverter:
                     dict(
                         zip(
                             float32_fields,
-                            decode_float32(float32_data, word_order="little"),
+                            [
+                                decode_float32(
+                                    float32_data[i : i + 2], word_order="little"
+                                )
+                                for i in range(0, len(float32_data), 2)
+                            ],
                             strict=True,
                         )
                     )
@@ -1881,7 +1909,10 @@ class SolarEdgeMeter:
                 dict(
                     zip(
                         uint32_fields,
-                        decode_uint32(uint32_data),
+                        [
+                            decode_uint32(uint32_data[i : i + 2])
+                            for i in range(0, len(uint32_data), 2)
+                        ],
                     )
                 )
             )
@@ -2093,7 +2124,10 @@ class SolarEdgeBattery:
             self.decoded_model = dict(
                 zip(
                     float32_fields,
-                    decode_float32(float32_data, word_order="little"),
+                    [
+                        decode_float32(float32_data[i : i + 2], word_order="little")
+                        for i in range(0, len(float32_data), 2)
+                    ],
                 )
             )
 
@@ -2106,7 +2140,10 @@ class SolarEdgeBattery:
                 dict(
                     zip(
                         uint64_fields,
-                        decode_uint64(uint64_data, word_order="little"),
+                        [
+                            decode_uint64(uint64_data[i : i + 4], word_order="little")
+                            for i in range(0, len(uint64_data), 4)
+                        ],
                     )
                 )
             )
@@ -2117,7 +2154,10 @@ class SolarEdgeBattery:
                 dict(
                     zip(
                         uint32_fields,
-                        decode_uint32(uint32_data, word_order="little"),
+                        [
+                            decode_uint32(uint32_data[i : i + 2], word_order="little")
+                            for i in range(0, len(uint32_data), 2)
+                        ],
                     )
                 )
             )
