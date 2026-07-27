@@ -477,7 +477,7 @@ class SolarEdgeModbusMultiHub:
                 f"{len(registers)} != {rcount} at {address}"
             )
 
-        return result
+        return ModbusReadResult(registers)
 
     async def modbus_write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
