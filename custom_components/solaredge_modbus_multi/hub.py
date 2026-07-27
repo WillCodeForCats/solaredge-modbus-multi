@@ -202,20 +202,6 @@ class SolarEdgeModbusMultiHub:
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
 
-        if not self.is_connected:
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                "check_configuration",
-                is_fixable=True,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="check_configuration",
-                data={"entry_id": self._entry_id},
-            )
-            raise HubInitFailed(
-                f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
-            )
-
         if self.option_storage_control:
             _LOGGER.warning(
                 (
@@ -387,21 +373,6 @@ class SolarEdgeModbusMultiHub:
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
             return True
-
-        if not self.is_connected:
-            self.online = False
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                "check_configuration",
-                is_fixable=True,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="check_configuration",
-                data={"entry_id": self._entry_id},
-            )
-            raise DataUpdateFailed(
-                f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
-            )
 
         if not self.online:
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
@@ -704,14 +675,6 @@ class SolarEdgeModbusMultiHub:
 
         _LOGGER.debug(f"coordinator timeout is {this_timeout}")
         return this_timeout
-
-    @property
-    def is_connected(self) -> bool:
-        """Check modbus client connection status."""
-        if self._client is None:
-            return False
-
-        return self._client.connected
 
 
 class SolarEdgeInverter:
