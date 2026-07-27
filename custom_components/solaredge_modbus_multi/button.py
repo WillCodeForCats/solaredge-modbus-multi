@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from pymodbus.client.mixin import ModbusClientMixin
+from modbus_connection.encode import encode_uint16
 
 from .const import DOMAIN
 
@@ -117,9 +117,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
 
         await self._platform.write_registers(
             address=61696,
-            payload=ModbusClientMixin.convert_to_registers(
-                1, data_type=ModbusClientMixin.DATATYPE.UINT16, word_order="little"
-            ),
+            payload=encode_uint16(1),
         )
         await self.async_update()
 
@@ -147,8 +145,6 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
 
         await self._platform.write_registers(
             address=61697,
-            payload=ModbusClientMixin.convert_to_registers(
-                1, data_type=ModbusClientMixin.DATATYPE.UINT16, word_order="little"
-            ),
+            payload=encode_uint16(1),
         )
         await self.async_update()
