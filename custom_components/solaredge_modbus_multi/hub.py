@@ -247,7 +247,6 @@ class SolarEdgeModbusMultiHub:
                 self.inverters.append(new_inverter)
 
             except (ModbusReadError, TimeoutError) as e:
-                await self.disconnect()
                 raise HubInitFailed(f"{e}")
 
             except DeviceInvalid as e:
@@ -290,7 +289,6 @@ class SolarEdgeModbusMultiHub:
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
                     except (ModbusReadError, TimeoutError) as e:
-                        await self.disconnect()
                         raise HubInitFailed(f"{e}")
 
                     except DeviceInvalid as e:
@@ -326,7 +324,6 @@ class SolarEdgeModbusMultiHub:
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
                     except (ModbusReadError, TimeoutError) as e:
-                        await self.disconnect()
                         raise HubInitFailed(f"{e}")
 
                     except DeviceInvalid as e:
@@ -352,23 +349,18 @@ class SolarEdgeModbusMultiHub:
                 battery.set_last_update(timestamp)
 
         except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
-            await self.disconnect()
             raise HubInitFailed(f"Read error: {e}")
 
         except DeviceInvalid as e:
-            await self.disconnect()
             raise HubInitFailed(f"Invalid device: {e}")
 
         except ConnectionException as e:
-            await self.disconnect()
             raise HubInitFailed(f"Connection failed: {e}")
 
         except ModbusIOException as e:
-            await self.disconnect()
             raise HubInitFailed(f"Modbus error: {e}")
 
         except TimeoutError as e:
-            await self.disconnect()
             raise HubInitFailed(f"Timeout error: {e}")
 
         self.initalized = True
@@ -382,7 +374,6 @@ class SolarEdgeModbusMultiHub:
                     await self._async_init_solaredge()
 
             except (ConnectionException, ModbusIOException, TimeoutError) as e:
-                await self.disconnect()
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -395,8 +386,6 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"Setup failed: {e}")
 
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-
-            await self.disconnect()
 
             return True
 
@@ -432,23 +421,18 @@ class SolarEdgeModbusMultiHub:
                     await evse.read_modbus_data()
 
         except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
-            await self.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}")
 
         except DeviceInvalid as e:
-            await self.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}")
 
         except ConnectionException as e:
-            await self.disconnect()
             raise DataUpdateFailed(f"Connection failed: {e}")
 
         except ModbusIOException as e:
-            await self.disconnect()
             raise DataUpdateFailed(f"Modbus error: {e}")
 
         except TimeoutError as e:
-            await self.disconnect(clear_client=True)
             self._timeout_counter += 1
 
             _LOGGER.debug(
@@ -467,8 +451,6 @@ class SolarEdgeModbusMultiHub:
             )
             self._timeout_counter = 0
 
-        await self.disconnect()
-
         timestamp = dt.now()
         for inverter in self.inverters:
             inverter.set_last_update(timestamp)
@@ -478,22 +460,6 @@ class SolarEdgeModbusMultiHub:
             battery.set_last_update(timestamp)
 
         return True
-
-    async def disconnect(self, clear_client: bool = False) -> None:
-        """Disconnect from inverter."""
-
-        async with self._connect_lock:
-            if self._client is not None:
-                _LOGGER.debug(
-                    (
-                        f"Disconnecting from {self._host}:{self._port} "
-                        f"(clear_client={clear_client})."
-                    )
-                )
-                self._client.close()
-
-                if clear_client:
-                    self._client = None
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
         """Read modbus registers from inverter."""
@@ -592,15 +558,11 @@ class SolarEdgeModbusMultiHub:
             _LOGGER.debug(f"Finished with write {address}.")
 
         except ModbusIOException as e:
-            await self.disconnect()
-
             raise HomeAssistantError(
                 f"Error sending command to inverter ID {self._wr_unit}: {e}."
             )
 
         except ConnectionException as e:
-            await self.disconnect()
-
             _LOGGER.error(f"Connection failed: {e}")
             raise HomeAssistantError(
                 f"Connection to inverter ID {self._wr_unit} failed."
@@ -608,7 +570,6 @@ class SolarEdgeModbusMultiHub:
 
         if result.isError():
             if type(result) is ModbusIOException:
-                await self.disconnect()
                 _LOGGER.error(
                     f"Write failed: No response from inverter ID {self._wr_unit}."
                 )
@@ -639,7 +600,6 @@ class SolarEdgeModbusMultiHub:
                         "Value invalid for device at ID {self._wr_unit}."
                     )
 
-            await self.disconnect()
             raise ModbusWriteError(result)
 
     @property
