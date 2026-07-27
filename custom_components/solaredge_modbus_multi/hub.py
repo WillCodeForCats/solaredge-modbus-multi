@@ -483,6 +483,7 @@ class SolarEdgeModbusMultiHub:
         """Write modbus registers to inverter."""
 
         try:
+            await self.connection.for_unit(unit).write_registers(address, payload)
 
             self.has_write = address
 
@@ -495,50 +496,32 @@ class SolarEdgeModbusMultiHub:
             self.has_write = None
             _LOGGER.debug(f"Finished with write {address}.")
 
-        except ModbusIOException as e:
-            raise HomeAssistantError(
-                f"Error sending command to inverter ID {self._wr_unit}: {e}."
-            )
-
-        except ConnectionException as e:
-            _LOGGER.error(f"Connection failed: {e}")
-            raise HomeAssistantError(
-                f"Connection to inverter ID {self._wr_unit} failed."
-            )
-
-        if result.isError():
-            if type(result) is ModbusIOException:
-                _LOGGER.error(
-                    f"Write failed: No response from inverter ID {self._wr_unit}."
-                )
+        except ModbusExceptionError as e:
+            if e.exception_code == ModbusExceptions.IllegalAddress:
+                _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
                 raise HomeAssistantError(
-                    "No response from inverter ID {self._wr_unit}."
+                    f"Address not supported at device at ID {unit}."
                 )
 
-            if type(result) is ExceptionResponse:
-                if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(
-                        f"Unit {self._wr_unit} Write IllegalAddress: {result}"
-                    )
-                    raise HomeAssistantError(
-                        "Address not supported at device at ID {self._wr_unit}."
-                    )
+            if e.exception_code == ModbusExceptions.IllegalFunction:
+                _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
+                raise HomeAssistantError(
+                    f"Function not supported by device at ID {unit}."
+                )
 
-                if result.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(
-                        f"Unit {self._wr_unit} Write IllegalFunction: {result}"
-                    )
-                    raise HomeAssistantError(
-                        "Function not supported by device at ID {self._wr_unit}."
-                    )
+            if e.exception_code == ModbusExceptions.IllegalValue:
+                _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
+                raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
 
-                if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalValue: {result}")
-                    raise HomeAssistantError(
-                        "Value invalid for device at ID {self._wr_unit}."
-                    )
+            raise ModbusWriteError(e)
 
-            raise ModbusWriteError(result)
+        except ModbusTimeoutError as e:
+            _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
+            raise HomeAssistantError(f"No response from inverter ID {unit}.") from e
+
+        except (ModbusConnectionError, ModbusProtocolError) as e:
+            _LOGGER.error(f"Connection failed: {e}")
+            raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
 
     @property
     def online(self):
