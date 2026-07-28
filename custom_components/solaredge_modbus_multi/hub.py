@@ -35,6 +35,7 @@ from .const import (
     DOMAIN,
     METER_REG_BASE,
     STATUS_VENDOR4_VERSION,
+    WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -184,7 +185,7 @@ class SolarEdgeModbusMultiHub:
         self.evses = []
         self.inverter_common = {}
         self.mmppt_common = {}
-        self.has_write = None
+        self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
         self._online = True
@@ -436,6 +437,17 @@ class SolarEdgeModbusMultiHub:
         for battery in self.batteries:
             battery.set_last_update(timestamp)
 
+        for unit, cycles_remaining in list(self._write_settle_cycles.items()):
+            _LOGGER.debug(
+                f"Request spaced unit {unit} has {cycles_remaining} until clearing."
+            )
+            if cycles_remaining <= 1:
+                _LOGGER.debug(f"Clearing unit {unit} request spacing.")
+                self.connection.for_unit(unit).set_message_spacing(0)
+                del self._write_settle_cycles[unit]
+            else:
+                self._write_settle_cycles[unit] = cycles_remaining - 1
+
         return True
 
     async def modbus_read_holding_registers(self, unit, address, rcount):
@@ -486,16 +498,18 @@ class SolarEdgeModbusMultiHub:
     async def modbus_write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
 
-        self.has_write = address
-
         try:
             await self.connection.for_unit(unit).write_registers(address, payload)
 
             if self.sleep_after_write > 0:
                 _LOGGER.debug(
-                    f"Sleep {self.sleep_after_write} seconds after write {address}."
+                    f"Spacing requests to unit {unit} for {self.sleep_after_write} "
+                    f"seconds after write to address {address}."
                 )
-                await asyncio.sleep(self.sleep_after_write)
+                self.connection.for_unit(unit).set_message_spacing(
+                    self.sleep_after_write
+                )
+                self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
             _LOGGER.debug(f"Finished with write {address}.")
 
@@ -525,9 +539,6 @@ class SolarEdgeModbusMultiHub:
         except (ModbusConnectionError, ModbusProtocolError) as e:
             _LOGGER.error(f"Connection failed: {e}")
             raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
-
-        finally:
-            self.has_write = None
 
     @property
     def online(self):

@@ -14,6 +14,10 @@ SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
 SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
 SETUP_MANUAL = "manual_list"
 
+# Number of read-only poll cycles to keep a unit's post-write message
+# spacing active before clearing it back to 0.
+WRITE_SETTLE_CYCLES: Final = 2
+
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
