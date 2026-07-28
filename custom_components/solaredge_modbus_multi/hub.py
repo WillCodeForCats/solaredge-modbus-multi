@@ -636,6 +636,8 @@ class SolarEdgeModbusMultiHub:
         self._wr_address = address
         self._wr_payload = payload
 
+        self.has_write = address
+
         try:
             await self.connect()
 
@@ -654,15 +656,12 @@ class SolarEdgeModbusMultiHub:
                     slave=self._wr_unit,
                 )
 
-            self.has_write = address
-
             if self.sleep_after_write > 0:
                 _LOGGER.debug(
                     f"Sleep {self.sleep_after_write} seconds after write {address}."
                 )
                 await asyncio.sleep(self.sleep_after_write)
 
-            self.has_write = None
             _LOGGER.debug(f"Finished with write {address}.")
 
         except ModbusIOException as e:
@@ -679,6 +678,9 @@ class SolarEdgeModbusMultiHub:
             raise HomeAssistantError(
                 f"Connection to inverter ID {self._wr_unit} failed."
             )
+
+        finally:
+            self.has_write = None
 
         if result.isError():
             if type(result) is ModbusIOException:
