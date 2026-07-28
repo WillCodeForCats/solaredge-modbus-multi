@@ -44,7 +44,8 @@ CONFIG_SCHEMA = vol.Schema(
                         vol.Optional("limit"): vol.Coerce(int),
                     }
                 ),
-            }
+            },
+            extra=vol.ALLOW_EXTRA,
         )
     },
     extra=vol.ALLOW_EXTRA,
