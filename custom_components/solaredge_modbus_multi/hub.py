@@ -486,10 +486,10 @@ class SolarEdgeModbusMultiHub:
     async def modbus_write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
 
+        self.has_write = address
+
         try:
             await self.connection.for_unit(unit).write_registers(address, payload)
-
-            self.has_write = address
 
             if self.sleep_after_write > 0:
                 _LOGGER.debug(
@@ -497,7 +497,6 @@ class SolarEdgeModbusMultiHub:
                 )
                 await asyncio.sleep(self.sleep_after_write)
 
-            self.has_write = None
             _LOGGER.debug(f"Finished with write {address}.")
 
         except ModbusExceptionError as e:
@@ -526,6 +525,9 @@ class SolarEdgeModbusMultiHub:
         except (ModbusConnectionError, ModbusProtocolError) as e:
             _LOGGER.error(f"Connection failed: {e}")
             raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
+
+        finally:
+            self.has_write = None
 
     @property
     def online(self):
