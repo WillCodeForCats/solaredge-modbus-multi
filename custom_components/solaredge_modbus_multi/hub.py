@@ -359,11 +359,6 @@ class SolarEdgeModbusMultiHub:
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
 
-        try:
-            await self.connection.connect()
-        except (ModbusConnectionError, ModbusProtocolError) as e:
-            raise ModbusIOError(e)
-
         if not self.initalized:
             try:
                 async with asyncio.timeout(self.coordinator_timeout):
@@ -407,7 +402,7 @@ class SolarEdgeModbusMultiHub:
         except DeviceInvalid as e:
             raise DataUpdateFailed(f"Invalid device: {e}")
 
-        except ModbusIOError as e:
+        except (ModbusIOError, ModbusConnectionError, ModbusProtocolError) as e:
             raise DataUpdateFailed(f"Connection failed: {e}")
 
         except TimeoutError as e:
