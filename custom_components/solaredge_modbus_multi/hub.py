@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import datetime
 import importlib.metadata
 import inspect
 import logging
@@ -16,7 +15,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.util import dt
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.client.mixin import ModbusClientMixin
 from pymodbus.exceptions import ConnectionException, ModbusIOException
@@ -380,14 +378,6 @@ class SolarEdgeModbusMultiHub:
             for evse in self.evses:
                 await evse.read_modbus_data()
 
-            timestamp = dt.now()
-            for inverter in self.inverters:
-                inverter.set_last_update(timestamp)
-            for meter in self.meters:
-                meter.set_last_update(timestamp)
-            for battery in self.batteries:
-                battery.set_last_update(timestamp)
-
         except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
             await self.disconnect()
             raise HubInitFailed(f"Read error: {e}")
@@ -509,14 +499,6 @@ class SolarEdgeModbusMultiHub:
 
         if not self.keep_modbus_open:
             await self.disconnect()
-
-        timestamp = dt.now()
-        for inverter in self.inverters:
-            inverter.set_last_update(timestamp)
-        for meter in self.meters:
-            meter.set_last_update(timestamp)
-        for battery in self.batteries:
-            battery.set_last_update(timestamp)
 
         return True
 
@@ -878,7 +860,6 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
         self._grid_status = None
-        self._last_update_timestamp = None
         self._use_status_vendor4 = False
 
     async def init_device(self) -> None:
@@ -1940,9 +1921,6 @@ class SolarEdgeInverter:
         """Write inverter register."""
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
-    def set_last_update(self, timestamp) -> None:
-        self._last_update_timestamp = timestamp
-
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -1974,10 +1952,6 @@ class SolarEdgeInverter:
             return False
 
         return True
-
-    @property
-    def last_update(self) -> datetime.datetime | None:
-        return self._last_update_timestamp
 
     @property
     def use_status_vendor4(self) -> bool:
@@ -2037,7 +2011,6 @@ class SolarEdgeMeter:
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
         self._via_device = None
-        self._last_update_timestamp = None
 
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
@@ -2336,9 +2309,6 @@ class SolarEdgeMeter:
                 f"Meter {self.meter_id} ident incorrect or not installed."
             )
 
-    def set_last_update(self, timestamp) -> None:
-        self._last_update_timestamp = timestamp
-
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -2366,10 +2336,6 @@ class SolarEdgeMeter:
     def via_device(self, device: str) -> None:
         self._via_device = (DOMAIN, device)
 
-    @property
-    def last_update(self) -> datetime.datetime | None:
-        return self._last_update_timestamp
-
 
 class SolarEdgeBattery:
     """Defines a SolarEdge battery."""
@@ -2386,7 +2352,6 @@ class SolarEdgeBattery:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self._via_device = None
-        self._last_update_timestamp = None
 
         try:
             self.start_address = BATTERY_REG_BASE[self.battery_id]
@@ -2639,9 +2604,6 @@ class SolarEdgeBattery:
                 f"{name} {display_value} {type(value)}"
             )
 
-    def set_last_update(self, timestamp) -> None:
-        self._last_update_timestamp = timestamp
-
     @property
     def online(self) -> bool:
         """Device is online."""
@@ -2679,10 +2641,6 @@ class SolarEdgeBattery:
     @property
     def battery_energy_reset_cycles(self) -> int:
         return self.hub.battery_energy_reset_cycles
-
-    @property
-    def last_update(self) -> datetime.datetime | None:
-        return self._last_update_timestamp
 
 
 class SolarEdgeEVSE:
