@@ -9,6 +9,6 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
   "loggers": ["custom_components.solaredge_modbus_multi"],
-  "version": "3.3.2"
   "requirements": ["modbus-connection[pymodbus]>=4.0.0a1", "awesomeversion>=25.5.0"],
+  "version": "4.0.0-pre.0"
 }
