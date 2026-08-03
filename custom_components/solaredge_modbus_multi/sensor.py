@@ -2594,4 +2594,4 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
 
     @property
     def native_value(self) -> datetime.datetime | None:
-        return self._platform.last_update
+        return self.coordinator.last_update_success_time

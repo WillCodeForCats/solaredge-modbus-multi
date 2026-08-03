@@ -13,7 +13,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (
+    TimestampDataUpdateCoordinator,
+    UpdateFailed,
+)
 from modbus_connection import ModbusTcpParams
 from modbus_connection.pymodbus import ModbusConnection
 
@@ -263,7 +266,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     return True
 
 
-class SolarEdgeCoordinator(DataUpdateCoordinator):
+class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
     def __init__(
         self, hass: HomeAssistant, hub: SolarEdgeModbusMultiHub, scan_interval: int
     ):
