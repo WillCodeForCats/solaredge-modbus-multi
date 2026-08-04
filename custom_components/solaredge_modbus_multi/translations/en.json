@@ -126,6 +126,10 @@
         }
       }
     },
+    "setup_inverter_id_failed": {
+      "title": "Invalid Inverter Device ID",
+      "description": "Inverter Device ID {device_id} at {host} is not responding or is not a valid SolarEdge inverter. It has been skipped. If the device was replaced or its ID changed, update the Inverter Device ID List in the hub configuration. Otherwise check the device and Modbus/TCP connection."
+    },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout",
       "description": "The inverter did not respond while reading data for Global Dynamic Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
