@@ -18,7 +18,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 from modbus_connection import ModbusTcpParams
-from modbus_connection.pymodbus import ModbusConnection
+from modbus_connection.tmodbus import ModbusConnection
 
 from .const import DOMAIN, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
