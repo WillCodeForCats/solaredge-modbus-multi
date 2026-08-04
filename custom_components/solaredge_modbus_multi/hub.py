@@ -281,6 +281,12 @@ class SolarEdgeModbusMultiHub:
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
+                ir.async_delete_issue(
+                    self._hass,
+                    DOMAIN,
+                    self._setup_inverter_id_failed_issue(inverter_unit_id),
+                )
+
             except (ModbusReadError, TimeoutError) as e:
                 await self.disconnect()
                 raise HubInitFailed(f"{e}")
