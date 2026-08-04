@@ -286,9 +286,23 @@ class SolarEdgeModbusMultiHub:
                 raise HubInitFailed(f"{e}")
 
             except DeviceInvalid as e:
-                # Inverters are mandatory
+                # Inverters are mandatory, but if the Device ID is invalid or not responding
+                # skip it and warn the user instead of failing the entire hub setup
                 _LOGGER.error(f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}")
-                raise HubInitFailed(f"{e}")
+                ir.async_create_issue(
+                    self._hass,
+                    DOMAIN,
+                    self._setup_inverter_id_failed_issue(inverter_unit_id),
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.ERROR,
+                    translation_key="setup_inverter_id_failed",
+                    translation_placeholders={
+                        "device_id": str(inverter_unit_id),
+                        "host": self.hub_host,
+                    },
+                    data={"entry_id": self._entry_id},
+                )
+                continue
 
             except DeviceIsEVSE as e:
                 _LOGGER.debug(
@@ -699,6 +713,9 @@ class SolarEdgeModbusMultiHub:
 
             await self.disconnect()
             raise ModbusWriteError(result)
+
+    def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
+        return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
 
     @staticmethod
     def _safe_version_tuple(version_str: str) -> tuple[int, ...]:
