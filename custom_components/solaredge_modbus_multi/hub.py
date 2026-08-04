@@ -388,6 +388,14 @@ class SolarEdgeModbusMultiHub:
                         _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
                         pass
 
+        if not self.inverters:
+            # fail the hub setup if there are no inverters
+            await self.disconnect()
+            raise HubInitFailed(
+                f"No usable inverters found at {self.hub_host} for configured "
+                "Device ID(s). Check the repair issue(s) for details."
+            )
+
         try:
             for inverter in self.inverters:
                 await inverter.read_modbus_data()
