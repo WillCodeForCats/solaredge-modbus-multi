@@ -90,10 +90,6 @@ class SolarEdgeSelectBase(CoordinatorEntity, SelectEntity):
     def config_entry_name(self):
         return self._config_entry.data["name"]
 
-    @property
-    def available(self) -> bool:
-        return super().available and self._platform.online
-
     @callback
     def _handle_coordinator_update(self) -> None:
         self.async_write_ha_state()

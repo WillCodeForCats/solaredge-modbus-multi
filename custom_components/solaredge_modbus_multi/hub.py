@@ -186,7 +186,6 @@ class SolarEdgeModbusMultiHub:
         self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
-        self._online = True
         self._timeout_counter = 0
 
         self.connection = connection
@@ -370,11 +369,6 @@ class SolarEdgeModbusMultiHub:
 
             return True
 
-        if not self.online:
-            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-
-        self.online = True
-
         try:
             async with asyncio.timeout(self.coordinator_timeout):
                 for inverter in self.inverters:
@@ -516,17 +510,6 @@ class SolarEdgeModbusMultiHub:
         except (ModbusConnectionError, ModbusProtocolError) as e:
             _LOGGER.error(f"Connection failed: {e}")
             raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
-
-    @property
-    def online(self):
-        return self._online
-
-    @online.setter
-    def online(self, value: bool) -> None:
-        if value is True:
-            self._online = True
-        else:
-            self._online = False
 
     @property
     def initalized(self):
@@ -1578,11 +1561,6 @@ class SolarEdgeInverter:
         await self.hub.modbus_write_registers(self.inverter_unit_id, address, payload)
 
     @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
-
-    @property
     def fw_version(self) -> str | None:
         if "C_Version" in self.decoded_common:
             return self.decoded_common["C_Version"]
@@ -1624,11 +1602,6 @@ class SolarEdgeMMPPTUnit:
         self.hub = hub
         self.unit = unit
         self.mmppt_key = f"mmppt_{self.unit}"
-
-    @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online and self.inverter.is_mmppt and self.inverter.online
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1925,11 +1898,6 @@ class SolarEdgeMeter:
             )
 
     @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
-
-    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
@@ -2183,11 +2151,6 @@ class SolarEdgeBattery:
             )
 
     @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
-
-    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
@@ -2348,11 +2311,6 @@ class SolarEdgeEVSE:
 
         except ModbusIOError:
             raise ModbusReadError(f"No response from EVSE ID {self.evse_unit_id}")
-
-    @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
 
     @property
     def fw_version(self) -> str | None:
