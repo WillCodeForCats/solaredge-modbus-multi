@@ -39,7 +39,6 @@ from .const import (
     ConfDefaultStr,
     ConfName,
     ModbusExceptions,
-    RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
@@ -173,9 +172,6 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
-        self._retry_limit = self._yaml_config.get("retry", {}).get(
-            "limit", RetrySettings.Limit
-        )
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
         self.meters = []
@@ -186,7 +182,6 @@ class SolarEdgeModbusMultiHub:
         self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
-        self._timeout_counter = 0
 
         self.connection = connection
 
@@ -386,27 +381,14 @@ class SolarEdgeModbusMultiHub:
         except DeviceInvalid as e:
             raise DataUpdateFailed(f"Invalid device: {e}")
 
-        except (ModbusIOError, ModbusConnectionError, ModbusProtocolError) as e:
-            raise DataUpdateFailed(f"Connection failed: {e}")
-
-        except TimeoutError as e:
-            self._timeout_counter += 1
-
-            _LOGGER.debug(
-                f"Refresh timeout {self._timeout_counter} limit {self._retry_limit}"
-            )
-
-            if self._timeout_counter >= self._retry_limit:
-                self._timeout_counter = 0
-                raise TimeoutError
-
-            raise DataUpdateFailed(f"Timeout error: {e}")
-
-        if self._timeout_counter > 0:
-            _LOGGER.debug(
-                f"Timeout count {self._timeout_counter} limit {self._retry_limit}"
-            )
-            self._timeout_counter = 0
+        except (
+            ModbusIOError,
+            ModbusConnectionError,
+            ModbusProtocolError,
+            TimeoutError,
+        ) as e:
+            reason = f"{type(e).__name__}: {e}" if str(e) else type(e).__name__
+            raise DataUpdateFailed(reason)
 
         for unit, cycles_remaining in list(self._write_settle_cycles.items()):
             _LOGGER.debug(
