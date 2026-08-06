@@ -34,6 +34,10 @@
       "scan_complete": {
         "title": "Scan voltooid"
       },
+      "features_info": {
+        "title": "Batterijen en besturingen zijn nog niet ingeschakeld",
+        "description": "Standaard zijn alleen door SolarEdge officieel gedocumenteerde functies ingeschakeld: omvormers, Synergy-omvormers en meters.\n\nBatterijbewaking en alle lees-/schrijfbesturingsfuncties (batterijbesturing, locatielimietbesturing) zijn gebaseerd op documentatie die SolarEdge niet publiceert. Deze zijn standaard uitgeschakeld en moeten na het toevoegen van deze hub apart worden ingeschakeld via de configuratieopties van de integratie."
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-configuratie",
         "data": {

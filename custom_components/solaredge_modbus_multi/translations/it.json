@@ -34,6 +34,10 @@
       "scan_complete": {
         "title": "Scansione completata"
       },
+      "features_info": {
+        "title": "Batterie e controlli non sono ancora abilitati",
+        "description": "Per impostazione predefinita, sono abilitate solo le funzionalità ufficialmente documentate da SolarEdge: inverter, inverter Synergy e contatori.\n\nIl monitoraggio della batteria e tutte le funzionalità di controllo in lettura/scrittura (controllo della batteria, controllo del limite del sito) si basano su documentazione non pubblicata da SolarEdge. Queste funzionalità sono disabilitate per impostazione predefinita e devono essere attivate separatamente dalle opzioni di configurazione dell'integrazione dopo l'aggiunta di questo hub."
+      },
       "reconfigure": {
         "title": "Configurazione Modbus SolarEdge",
         "data": {

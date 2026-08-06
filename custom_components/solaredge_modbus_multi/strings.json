@@ -34,6 +34,10 @@
       "scan_complete": {
         "title": "Scan Complete"
       },
+      "features_info": {
+        "title": "Batteries and Controls Are Not Enabled Yet",
+        "description": "By default, only officially documented SolarEdge features are enabled: inverters, synergy inverters, and meters.\n\nBattery monitoring and all read/write control features (battery control, site limit control) are based on documentation that SolarEdge does not publish. These are disabled by default and must be turned on separately from the integration's Configure options after this hub is added."
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus Configuration",
         "data": {
