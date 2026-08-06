@@ -19,3 +19,9 @@ class InverterCommon(Component):
     C_Device_address = integer(40068, signed=False)
 
 
+class MmpptCommon(Component):
+    """MMPPT common block is only read once at setup."""
+
+    mmppt_DID = integer(40121, signed=False)
+    mmppt_Length = integer(40122, signed=False)
+    mmppt_Units = integer(40129, signed=False)
