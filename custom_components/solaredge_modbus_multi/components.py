@@ -32,3 +32,16 @@ class MmpptCommon(Component):
     mmppt_DID = integer(40121, signed=False)
     mmppt_Length = integer(40122, signed=False)
     mmppt_Units = integer(40129, signed=False)
+
+
+class MeterInfo(Component):
+    """Meter info block is only read once at setup."""
+
+    C_SunSpec_DID = integer(40121, signed=False)
+    C_SunSpec_Length = integer(40122, signed=False)
+    C_Manufacturer = string(40123, 16)
+    C_Model = string(40139, 16)
+    C_Option = string(40155, 8)
+    C_Version = string(40163, 8)
+    C_SerialNumber = string(40171, 16)
+    C_Device_address = integer(40187, signed=False)
