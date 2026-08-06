@@ -632,17 +632,9 @@ class SolarEdgeInverter:
 
             self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
-        except ModbusProtocolError:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise DeviceInvalid(
-                f"Modbus protocol error on inverter ID {self.inverter_unit_id}"
-            )
-
-        except ModbusTimeoutError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
-
-        except ModbusConnectionError as e:
-            raise DeviceInvalid(
-                f"Connection error inverter ID {self.inverter_unit_id}: {e}"
+                f"Error reading inverter ID {self.inverter_unit_id} at InverterCommon: {e}"
             )
 
         except ModbusExceptionError:
