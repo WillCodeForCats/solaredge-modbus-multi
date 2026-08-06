@@ -36,7 +36,7 @@
       },
       "features_info": {
         "title": "Batterijen en besturingen zijn nog niet ingeschakeld",
-        "description": "Standaard zijn alleen door SolarEdge officieel gedocumenteerde functies ingeschakeld: omvormers, Synergy-omvormers en meters.\n\nBatterijbewaking en alle lees-/schrijfbesturingsfuncties (batterijbesturing, locatielimietbesturing) zijn gebaseerd op documentatie die SolarEdge niet publiceert. Deze zijn standaard uitgeschakeld en moeten na het toevoegen van deze hub apart worden ingeschakeld via de configuratieopties van de integratie."
+        "description": "Standaard zijn alleen door SolarEdge officieel gedocumenteerde functies ingeschakeld: omvormers, Synergy-omvormers en meters.\n\nBatterijbewaking en alle lees-/schrijfbesturingsfuncties (batterijbesturing, locatielimietbesturing) zijn gebaseerd op documentatie die SolarEdge niet publiceert. Deze zijn standaard uitgeschakeld en moeten na het toevoegen van deze hub apart worden ingeschakeld via de configuratieopties van de integratie.\n\nNiet alle omvormers ondersteunen dit via Modbus. Mogelijk moet u contact opnemen met SolarEdge-support om toegang tot batterij- en besturingsfuncties op uw installatie te laten activeren."
       },
       "reconfigure": {
         "title": "SolarEdge Modbus-configuratie",
