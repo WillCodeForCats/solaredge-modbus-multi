@@ -614,6 +614,9 @@ class SolarEdgeInverter:
             inverter_common = InverterCommon(
                 self.hub.connection.for_unit(self.inverter_unit_id)
             )
+            _LOGGER.debug(
+                f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
+            )
             await inverter_common.async_update()
 
             self.decoded_common = component_to_dict(inverter_common)
