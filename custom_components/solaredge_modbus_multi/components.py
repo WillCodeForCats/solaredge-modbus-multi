@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from modbus_connection.model import Component, integer, string, uint32
+
+
+def component_to_dict(component: Component) -> dict[str, Any]:
+    """Build a dict of field name to decoded value from a Component's declared fields."""
+    return {name: getattr(component, name) for name in component.declared_fields}
 
 
 class InverterCommon(Component):
