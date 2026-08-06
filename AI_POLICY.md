@@ -1,3 +1,7 @@
+<!-- markdownlint-disable MD013 -->
+<!-- This file mirrors the canonical Open Home Foundation AI Policy text
+     verbatim; line-length wrapping is disabled to avoid reformatting it. -->
+
 # Open Home Foundation - AI Policy
 
 We support using AI (i.e., LLMs) as tools when contributing to Open Home Foundation projects. However, you are responsible for any contributions you submit, and we are responsible for any contributions we merge and release. We hold a high bar for all contributions to our projects.
