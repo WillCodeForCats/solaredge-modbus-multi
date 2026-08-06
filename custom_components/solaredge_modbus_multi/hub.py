@@ -27,6 +27,7 @@ from modbus_connection.exceptions import (
     ModbusTimeoutError,
 )
 
+from .components import InverterCommon, component_to_dict
 from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
@@ -610,60 +611,12 @@ class SolarEdgeInverter:
         """Set up data about the device from modbus."""
 
         try:
-            inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40000, rcount=69
+            inverter_common = InverterCommon(
+                self.hub.connection.for_unit(self.inverter_unit_id)
             )
+            await inverter_common.async_update()
 
-            self.decoded_common = dict(
-                [
-                    (
-                        "C_SunSpec_ID",
-                        decode_uint32(inverter_data.registers[0:2]),
-                    )
-                ]
-            )
-
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "C_Device_address",
-            ]
-            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
-            self.decoded_common.update(
-                dict(
-                    zip(
-                        uint16_fields,
-                        uint16_data,
-                    )
-                )
-            )
-
-            self.decoded_common.update(
-                dict(
-                    [
-                        (
-                            "C_Manufacturer",  # string(32)
-                            int_list_to_string(inverter_data.registers[4:20]),
-                        ),
-                        (
-                            "C_Model",  # string(32)
-                            int_list_to_string(inverter_data.registers[20:36]),
-                        ),
-                        (
-                            "C_Option",  # string(16)
-                            int_list_to_string(inverter_data.registers[36:44]),
-                        ),
-                        (
-                            "C_Version",  # string(16)
-                            int_list_to_string(inverter_data.registers[44:52]),
-                        ),
-                        (
-                            "C_SerialNumber",  # string(32)
-                            int_list_to_string(inverter_data.registers[52:68]),
-                        ),
-                    ]
-                )
-            )
+            self.decoded_common = component_to_dict(inverter_common)
 
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
@@ -676,23 +629,33 @@ class SolarEdgeInverter:
 
             self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
-        except ModbusIOError:
+        except ModbusProtocolError:
+            raise DeviceInvalid(
+                f"Modbus protocol error on inverter ID {self.inverter_unit_id}"
+            )
+
+        except ModbusTimeoutError:
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
-        except ModbusIllegalAddress:
+        except ModbusConnectionError as e:
+            raise DeviceInvalid(
+                f"Connection error inverter ID {self.inverter_unit_id}: {e}"
+            )
+
+        except ModbusExceptionError:
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
             )
 
-        if DETECT_EVSE_REGEX.match(self.decoded_common["C_Model"]):
-            raise DeviceIsEVSE(f"Model {self.decoded_common['C_Model']}")
+        if DETECT_EVSE_REGEX.match(inverter_common.C_Model):
+            raise DeviceIsEVSE(f"Model {inverter_common.C_Model}")
 
         if (
-            self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
-            or self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or self.decoded_common["C_SunSpec_ID"] != 0x53756E53
-            or self.decoded_common["C_SunSpec_DID"] != 0x0001
-            or self.decoded_common["C_SunSpec_Length"] != 65
+            inverter_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
+            or inverter_common.C_SunSpec_DID == SunSpecNotImpl.UINT16
+            or inverter_common.C_SunSpec_ID != 0x53756E53
+            or inverter_common.C_SunSpec_DID != 0x0001
+            or inverter_common.C_SunSpec_Length != 65
         ):
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
@@ -752,16 +715,16 @@ class SolarEdgeInverter:
 
         self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
 
-        self.manufacturer = self.decoded_common["C_Manufacturer"]
-        self.model = self.decoded_common["C_Model"]
-        self.option = self.decoded_common["C_Option"]
-        self.serial = self.decoded_common["C_SerialNumber"]
-        self.device_address = self.decoded_common["C_Device_address"]
+        self.manufacturer = inverter_common.C_Manufacturer
+        self.model = inverter_common.C_Model
+        self.option = inverter_common.C_Option
+        self.serial = inverter_common.C_SerialNumber
+        self.device_address = inverter_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
         try:
-            this_ver = AwesomeVersion(self.decoded_common["C_Version"])
+            this_ver = AwesomeVersion(inverter_common.C_Version)
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
                 STATUS_VENDOR4_VERSION
             )
