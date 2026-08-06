@@ -27,7 +27,7 @@ from modbus_connection.exceptions import (
     ModbusTimeoutError,
 )
 
-from .components import InverterCommon, MmpptCommon, component_to_dict
+from .components import InverterCommon, MeterInfo, MmpptCommon, component_to_dict
 from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
@@ -1581,62 +1581,27 @@ class SolarEdgeMeter:
         if self.mmppt_common is not None:
             if self.mmppt_common["mmppt_Units"] == 2:
                 self.start_address = self.start_address + 50
-
             elif self.mmppt_common["mmppt_Units"] == 3:
                 self.start_address = self.start_address + 70
-
             else:
                 raise DeviceInvalid(
                     f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
                 )
 
+        self.base_offset = self.start_address - METER_REG_BASE[1]
+
     async def init_device(self) -> None:
         try:
-            meter_info = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id,
-                address=self.start_address,
-                rcount=67,
+            meter_info = MeterInfo(
+                self.hub.connection.for_unit(self.inverter_unit_id),
+                base_offset=self.base_offset,
             )
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "C_Device_address",
-            ]
-            uint16_data = meter_info.registers[0:2] + [meter_info.registers[66]]
+            _LOGGER.debug(
+                f"Reading component MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+            )
+            await meter_info.async_update()
 
-            self.decoded_common = dict(
-                zip(
-                    uint16_fields,
-                    uint16_data,
-                )
-            )
-
-            self.decoded_common.update(
-                dict(
-                    [
-                        (
-                            "C_Manufacturer",  # string(32)
-                            int_list_to_string(meter_info.registers[2:18]),
-                        ),
-                        (
-                            "C_Model",  # string(32)
-                            int_list_to_string(meter_info.registers[18:34]),
-                        ),
-                        (
-                            "C_Option",  # string(16)
-                            int_list_to_string(meter_info.registers[34:42]),
-                        ),
-                        (
-                            "C_Version",  # string(16)
-                            int_list_to_string(meter_info.registers[42:50]),
-                        ),
-                        (
-                            "C_SerialNumber",  # string(32)
-                            int_list_to_string(meter_info.registers[50:66]),
-                        ),
-                    ]
-                )
-            )
+            self.decoded_common = component_to_dict(meter_info)
 
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
@@ -1648,26 +1613,28 @@ class SolarEdgeMeter:
                 )
 
             if (
-                self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-                or self.decoded_common["C_SunSpec_DID"] != 0x0001
-                or self.decoded_common["C_SunSpec_Length"] != 65
+                meter_info.C_SunSpec_DID == SunSpecNotImpl.UINT16
+                or meter_info.C_SunSpec_DID != 0x0001
+                or meter_info.C_SunSpec_Length != 65
             ):
                 raise DeviceInvalid(
-                    f"Meter {self.meter_id} ident incorrect or not installed."
+                    f"Meter I{self.inverter_unit_id}M{self.meter_id} ident incorrect or not installed."
                 )
 
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            raise DeviceInvalid(
+                f"Error reading MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
+            )
 
-        except ModbusIllegalAddress:
-            raise DeviceInvalid(f"Meter {self.meter_id}: unsupported address")
+        except ModbusExceptionError:
+            raise DeviceInvalid(f"Meter I{self.inverter_unit_id}M{self.meter_id}: unsupported address")
 
-        self.manufacturer = self.decoded_common["C_Manufacturer"]
-        self.model = self.decoded_common["C_Model"]
-        self.option = self.decoded_common["C_Option"]
-        self.fw_version = self.decoded_common["C_Version"]
-        self.serial = self.decoded_common["C_SerialNumber"]
-        self.device_address = self.decoded_common["C_Device_address"]
+        self.manufacturer = meter_info.C_Manufacturer
+        self.model = meter_info.C_Model
+        self.option = meter_info.C_Option
+        self.fw_version = meter_info.C_Version
+        self.serial = meter_info.C_SerialNumber
+        self.device_address = meter_info.C_Device_address
         self.name = (
             f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
