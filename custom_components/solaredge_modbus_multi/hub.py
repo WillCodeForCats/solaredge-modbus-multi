@@ -27,7 +27,7 @@ from modbus_connection.exceptions import (
     ModbusTimeoutError,
 )
 
-from .components import InverterCommon, component_to_dict
+from .components import InverterCommon, MmpptCommon, component_to_dict
 from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
@@ -664,27 +664,18 @@ class SolarEdgeInverter:
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
             )
 
-        try:
-            mmppt_common = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40121, rcount=9
-            )
+        is_multi_mppt = False
 
-            self.decoded_mmppt = dict(
-                [
-                    (
-                        "mmppt_DID",
-                        mmppt_common.registers[0],
-                    ),
-                    (
-                        "mmppt_Length",
-                        mmppt_common.registers[1],
-                    ),
-                    (
-                        "mmppt_Units",
-                        mmppt_common.registers[8],
-                    ),
-                ]
+        try:
+            mmppt_common = MmpptCommon(
+                self.hub.connection.for_unit(self.inverter_unit_id)
             )
+            _LOGGER.debug(
+                f"Reading component MmpptCommon(for_unit({self.inverter_unit_id}))"
+            )
+            await mmppt_common.async_update()
+
+            self.decoded_mmppt = component_to_dict(mmppt_common)
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
@@ -696,23 +687,24 @@ class SolarEdgeInverter:
                 )
 
             if (
-                self.decoded_mmppt["mmppt_DID"] == SunSpecNotImpl.UINT16
-                or self.decoded_mmppt["mmppt_Units"] == SunSpecNotImpl.UINT16
-                or self.decoded_mmppt["mmppt_DID"] not in [160]
-                or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
+                mmppt_common.mmppt_DID == SunSpecNotImpl.UINT16
+                or mmppt_common.mmppt_Units == SunSpecNotImpl.UINT16
+                or mmppt_common.mmppt_DID not in [160]
+                or mmppt_common.mmppt_Units not in [2, 3]
             ):
                 _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
                 self.decoded_mmppt = None
 
             else:
                 _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
+                is_multi_mppt = True
 
-        except ModbusIOError:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
+                f"Error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
             )
 
-        except ModbusIllegalAddress:
+        except ModbusExceptionError:
             _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
             self.decoded_mmppt = None
 
@@ -736,8 +728,8 @@ class SolarEdgeInverter:
                 f"Error checking inverter version: {e}. Please report this issue."
             )
 
-        if self.decoded_mmppt is not None:
-            for unit_index in range(self.decoded_mmppt["mmppt_Units"]):
+        if is_multi_mppt:
+            for unit_index in range(mmppt_common.mmppt_Units):
                 self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
                 _LOGGER.debug(f"I{self.inverter_unit_id} MMPPT Unit {unit_index}")
 
