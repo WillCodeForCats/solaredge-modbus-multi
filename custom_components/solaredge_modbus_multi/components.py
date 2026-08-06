@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from modbus_connection.model import Component, string, integer, uint32
+from modbus_connection.model import Component, integer, string, uint32
 
 
 class InverterCommon(Component):
