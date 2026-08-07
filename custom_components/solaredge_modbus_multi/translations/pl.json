@@ -34,6 +34,10 @@
       "scan_complete": {
         "title": "Skanowanie zakończone"
       },
+      "features_info": {
+        "title": "Baterie i sterowanie nie są jeszcze włączone",
+        "description": "Domyślnie włączone są tylko funkcje oficjalnie udokumentowane przez SolarEdge: falowniki, falowniki Synergy oraz liczniki.\n\nMonitorowanie baterii oraz wszystkie funkcje sterowania odczytu/zapisu (sterowanie baterią, sterowanie limitem instalacji) opierają się na dokumentacji, której SolarEdge nie publikuje. Są one domyślnie wyłączone i należy je włączyć osobno w opcjach konfiguracji integracji po dodaniu tego huba.\n\nNie wszystkie falowniki obsługują to przez Modbus. Może być konieczny kontakt z pomocą techniczną SolarEdge w celu odblokowania dostępu do baterii i funkcji sterowania w Twojej instalacji."
+      },
       "reconfigure": {
         "title": "Konfiguracja SolarEdge Modbus",
         "data": {
