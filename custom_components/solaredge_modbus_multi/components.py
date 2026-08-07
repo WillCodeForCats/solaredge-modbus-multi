@@ -6,6 +6,8 @@ from typing import Any
 
 from modbus_connection.model import Component, float32, integer, string, uint32
 
+_ASCII_CTRL_CHARS = dict.fromkeys(range(32))
+
 
 def component_to_dict(component: Component) -> dict[str, Any]:
     """Build a dict of field name to decoded value from a Component's declared fields."""
@@ -49,9 +51,37 @@ class MeterInfo(Component):
 
 class BatteryInfo(Component):
     """Battery info block is only read once at setup."""
-    B_Manufacturer = string(57600, 16)
-    B_Model = string(57616, 16)
+
+    _B_Manufacturer = string(57600, 16)
+    _B_Model = string(57616, 16)
     B_Version = string(57632, 16)
-    B_SerialNumber = string(57648, 16)
+    _B_SerialNumber = string(57648, 16)
     B_Device_Address = integer(57664, signed=False)
     B_RatedEnergy = float32(57666, unit="Wh", word_order="little")
+
+    @property
+    def B_Manufacturer(self) -> str | None:
+        manufacturer = self._B_Manufacturer
+        if manufacturer is None:
+            return None
+        serial = self._B_SerialNumber
+        if serial is not None:
+            manufacturer = manufacturer.removesuffix(serial)
+        return manufacturer.translate(_ASCII_CTRL_CHARS)
+
+    @property
+    def B_Model(self) -> str | None:
+        model = self._B_Model
+        if model is None:
+            return None
+        serial = self._B_SerialNumber
+        if serial is not None:
+            model = model.removesuffix(serial)
+        return model.translate(_ASCII_CTRL_CHARS)
+
+    @property
+    def B_SerialNumber(self) -> str | None:
+        serial = self._B_SerialNumber
+        if serial is None:
+            return None
+        return serial.translate(_ASCII_CTRL_CHARS)
