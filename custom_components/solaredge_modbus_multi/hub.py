@@ -27,7 +27,13 @@ from modbus_connection.exceptions import (
     ModbusTimeoutError,
 )
 
-from .components import InverterCommon, MeterInfo, MmpptCommon, component_to_dict
+from .components import (
+    BatteryInfo,
+    InverterCommon,
+    MeterInfo,
+    MmpptCommon,
+    component_to_dict,
+)
 from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
@@ -1842,42 +1848,20 @@ class SolarEdgeBattery:
         except KeyError:
             raise DeviceInvalid(f"Invalid battery_id {self.battery_id}")
 
+        self.base_offset = self.start_address - BATTERY_REG_BASE[1]
+
     async def init_device(self) -> None:
         try:
-            battery_info = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=self.start_address, rcount=68
+            battery_info = BatteryInfo(
+                self.hub.connection.for_unit(self.inverter_unit_id),
+                base_offset=self.base_offset,
             )
+            _LOGGER.debug(
+                f"Reading component BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+            )
+            await battery_info.async_update()
 
-            self.decoded_common = dict(
-                [
-                    (
-                        "B_Manufacturer",  # string(32)
-                        int_list_to_string(battery_info.registers[0:16]),
-                    ),
-                    (
-                        "B_Model",  # string(32)
-                        int_list_to_string(battery_info.registers[16:32]),
-                    ),
-                    (
-                        "B_Version",  # string(32)
-                        int_list_to_string(battery_info.registers[32:48]),
-                    ),
-                    (
-                        "B_SerialNumber",  # string(32)
-                        int_list_to_string(battery_info.registers[48:64]),
-                    ),
-                    (
-                        "B_Device_Address",
-                        battery_info.registers[64],
-                    ),
-                    (
-                        "B_RatedEnergy",
-                        decode_float32(
-                            battery_info.registers[66:68], word_order="little"
-                        ),
-                    ),
-                ]
-            )
+            self.decoded_common = component_to_dict(battery_info)
 
             for name, value in iter(self.decoded_common.items()):
                 if isinstance(value, float):
@@ -1891,44 +1875,28 @@ class SolarEdgeBattery:
                     ),
                 )
 
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            raise DeviceInvalid(
+                f"Error reading BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
+            )
 
-        except ModbusIllegalAddress:
-            raise DeviceInvalid(f"Battery {self.battery_id} unsupported address")
-
-        self.decoded_common["B_Manufacturer"] = self.decoded_common[
-            "B_Manufacturer"
-        ].removesuffix(self.decoded_common["B_SerialNumber"])
-        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].removesuffix(
-            self.decoded_common["B_SerialNumber"]
-        )
-
-        # Remove ASCII control characters from descriptive strings
-        ascii_ctrl_chars = dict.fromkeys(range(32))
-        self.decoded_common["B_Manufacturer"] = self.decoded_common[
-            "B_Manufacturer"
-        ].translate(ascii_ctrl_chars)
-        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].translate(
-            ascii_ctrl_chars
-        )
-        self.decoded_common["B_SerialNumber"] = self.decoded_common[
-            "B_SerialNumber"
-        ].translate(ascii_ctrl_chars)
+        except ModbusExceptionError:
+            raise DeviceInvalid(
+                f"Battery I{self.inverter_unit_id}B{self.battery_id}: unsupported address"
+            )
 
         if (
-            float_to_hex(self.decoded_common["B_RatedEnergy"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self.decoded_common["B_RatedEnergy"] <= 0
+            float_to_hex(battery_info.B_RatedEnergy) == hex(SunSpecNotImpl.FLOAT32)
+            or battery_info.B_RatedEnergy <= 0
         ):
             raise DeviceInvalid(f"Battery {self.battery_id} not usable (rating <=0)")
 
-        self.manufacturer = self.decoded_common["B_Manufacturer"]
-        self.model = self.decoded_common["B_Model"]
+        self.manufacturer = battery_info.B_Manufacturer
+        self.model = battery_info.B_Model
         self.option = ""
-        self.fw_version = self.decoded_common["B_Version"]
-        self.serial = self.decoded_common["B_SerialNumber"]
-        self.device_address = self.decoded_common["B_Device_Address"]
+        self.fw_version = battery_info.B_Version
+        self.serial = battery_info.B_SerialNumber
+        self.device_address = battery_info.B_Device_Address
         self.name = (
             f"{self.hub.hub_id.capitalize()} "
             f"I{self.inverter_unit_id} B{self.battery_id}"
