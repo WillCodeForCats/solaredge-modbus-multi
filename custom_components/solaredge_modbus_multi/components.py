@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from modbus_connection.model import Component, integer, string, uint32
+from modbus_connection.model import Component, float32, integer, string, uint32
 
 
 def component_to_dict(component: Component) -> dict[str, Any]:
@@ -45,3 +45,13 @@ class MeterInfo(Component):
     C_Version = string(40163, 8)
     C_SerialNumber = string(40171, 16)
     C_Device_address = integer(40187, signed=False)
+
+
+class BatteryInfo(Component):
+    """Battery info block is only read once at setup."""
+    B_Manufacturer = string(57600, 16)
+    B_Model = string(57616, 16)
+    B_Version = string(57632, 16)
+    B_SerialNumber = string(57648, 16)
+    B_Device_Address = integer(57664, signed=False)
+    B_RatedEnergy = float32(57666, unit="Wh", word_order="little")
