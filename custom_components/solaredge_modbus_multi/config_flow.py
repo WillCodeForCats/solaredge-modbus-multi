@@ -75,6 +75,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._scan_task = None
         self._scan_user_input = None
         self._scan_task_result = None
+        self._pending_entry = None
 
     @staticmethod
     @callback
@@ -240,10 +241,12 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if self._scan_user_input is None:
                 raise AbortFlow("No scan data available")
 
-            return self.async_create_entry(
-                title=self._scan_user_input[CONF_NAME],
-                data=self._scan_user_input,
-            )
+            self._pending_entry = {
+                "title": self._scan_user_input[CONF_NAME],
+                "data": self._scan_user_input,
+            }
+
+            return await self.async_step_features_info()
 
         except Exception as e:
             raise AbortFlow(f"Scan failed: {e}")
@@ -316,9 +319,12 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                         self._abort_if_unique_id_configured()
 
-                        return self.async_create_entry(
-                            title=user_input[CONF_NAME], data=user_input
-                        )
+                        self._pending_entry = {
+                            "title": user_input[CONF_NAME],
+                            "data": user_input,
+                        }
+
+                        return await self.async_step_features_info()
 
                 finally:
                     await scanner.disconnect()
@@ -348,6 +354,21 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 },
             ),
             errors=errors,
+        )
+
+    async def async_step_features_info(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Inform the user that batteries and controls are opt-in after setup."""
+        if user_input is not None:
+            entry = self._pending_entry
+            self._pending_entry = None
+
+            return self.async_create_entry(title=entry["title"], data=entry["data"])
+
+        return self.async_show_form(
+            step_id="features_info",
+            data_schema=vol.Schema({}),
         )
 
     async def async_step_reconfigure(

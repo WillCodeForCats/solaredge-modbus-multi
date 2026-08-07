@@ -34,6 +34,10 @@
       "scan_complete": {
         "title": "Scan abgeschlossen"
       },
+      "features_info": {
+        "title": "Batterien und Steuerungen sind noch nicht aktiviert",
+        "description": "Standardmäßig sind nur offiziell von SolarEdge dokumentierte Funktionen aktiviert: Wechselrichter, Synergy-Wechselrichter und Zähler.\n\nDie Batterieüberwachung und alle Lese-/Schreibsteuerungsfunktionen (Batteriesteuerung, Standortlimitsteuerung) basieren auf Dokumentation, die SolarEdge nicht veröffentlicht. Diese sind standardmäßig deaktiviert und müssen nach dem Hinzufügen dieses Hubs separat über die Konfigurationsoptionen der Integration aktiviert werden.\n\nNicht alle Wechselrichter unterstützen diese Funktionen über Modbus. Sie müssen sich möglicherweise an den SolarEdge-Support wenden, um den Zugriff auf Batterie- und Steuerungsfunktionen für Ihre Anlage freischalten zu lassen."
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-Konfiguration",
         "data": {
