@@ -1627,7 +1627,9 @@ class SolarEdgeMeter:
             )
 
         except ModbusExceptionError:
-            raise DeviceInvalid(f"Meter I{self.inverter_unit_id}M{self.meter_id}: unsupported address")
+            raise DeviceInvalid(
+                f"Meter I{self.inverter_unit_id}M{self.meter_id}: unsupported address"
+            )
 
         self.manufacturer = meter_info.C_Manufacturer
         self.model = meter_info.C_Model
