@@ -728,6 +728,8 @@ class SolarEdgeInverter:
                 f"Error checking inverter version: {e}. Please report this issue."
             )
 
+        self.inverter_common.restrict_fields(["C_Version"])
+
         if is_multi_mppt:
             for unit_index in range(mmppt_common.mmppt_Units):
                 self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
@@ -737,13 +739,7 @@ class SolarEdgeInverter:
         """Read and update dynamic modbus registers."""
 
         try:
-            inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40044, rcount=8
-            )
-
-            self.decoded_common["C_Version"] = int_list_to_string(
-                inverter_data.registers[0:8]
-            )
+            await self.inverter_common.async_update()
 
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
