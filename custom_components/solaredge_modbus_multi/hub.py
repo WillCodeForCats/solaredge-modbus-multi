@@ -602,6 +602,7 @@ class SolarEdgeInverter:
         self.inverter_unit_id = device_id
         self.hub = hub
         self.mmppt_units = []
+        self.inverter_common = None
         self.decoded_common = {}
         self.decoded_model = {}
         self.decoded_mmppt = {}
@@ -618,15 +619,15 @@ class SolarEdgeInverter:
         """Set up data about the device from modbus."""
 
         try:
-            inverter_common = InverterCommon(
+            self.inverter_common = InverterCommon(
                 self.hub.connection.for_unit(self.inverter_unit_id)
             )
             _LOGGER.debug(
                 f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
             )
-            await inverter_common.async_update()
+            await self.inverter_common.async_update()
 
-            self.decoded_common = component_to_dict(inverter_common)
+            self.decoded_common = component_to_dict(self.inverter_common)
 
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
@@ -649,15 +650,15 @@ class SolarEdgeInverter:
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
             )
 
-        if DETECT_EVSE_REGEX.match(inverter_common.C_Model):
-            raise DeviceIsEVSE(f"Model {inverter_common.C_Model}")
+        if DETECT_EVSE_REGEX.match(self.inverter_common.C_Model):
+            raise DeviceIsEVSE(f"Model {self.inverter_common.C_Model}")
 
         if (
-            inverter_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
-            or inverter_common.C_SunSpec_DID == SunSpecNotImpl.UINT16
-            or inverter_common.C_SunSpec_ID != 0x53756E53
-            or inverter_common.C_SunSpec_DID != 0x0001
-            or inverter_common.C_SunSpec_Length != 65
+            self.inverter_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
+            or self.inverter_common.C_SunSpec_DID == SunSpecNotImpl.UINT16
+            or self.inverter_common.C_SunSpec_ID != 0x53756E53
+            or self.inverter_common.C_SunSpec_DID != 0x0001
+            or self.inverter_common.C_SunSpec_Length != 65
         ):
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
@@ -709,16 +710,16 @@ class SolarEdgeInverter:
 
         self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
 
-        self.manufacturer = inverter_common.C_Manufacturer
-        self.model = inverter_common.C_Model
-        self.option = inverter_common.C_Option
-        self.serial = inverter_common.C_SerialNumber
-        self.device_address = inverter_common.C_Device_address
+        self.manufacturer = self.inverter_common.C_Manufacturer
+        self.model = self.inverter_common.C_Model
+        self.option = self.inverter_common.C_Option
+        self.serial = self.inverter_common.C_SerialNumber
+        self.device_address = self.inverter_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
         try:
-            this_ver = AwesomeVersion(inverter_common.C_Version)
+            this_ver = AwesomeVersion(self.inverter_common.C_Version)
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
                 STATUS_VENDOR4_VERSION
             )
