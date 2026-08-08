@@ -1502,10 +1502,7 @@ class SolarEdgeInverter:
 
     @property
     def fw_version(self) -> str | None:
-        if "C_Version" in self.decoded_common:
-            return self.decoded_common["C_Version"]
-
-        return None
+        return getattr(self.inverter_common, "C_Version", None)
 
     @property
     def device_info(self) -> DeviceInfo:
