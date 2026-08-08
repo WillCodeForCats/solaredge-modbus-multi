@@ -36,6 +36,13 @@ class MmpptCommon(Component):
     mmppt_Units = integer(40129, signed=False)
 
 
+class EvseCommon(InverterCommon):
+    """
+    EVSE common block is only read once at setup.
+    SolarEdge evse devices present as an inverter, reuse InverterCommon.
+    """
+
+
 class MeterInfo(Component):
     """Meter info block is only read once at setup."""
 
