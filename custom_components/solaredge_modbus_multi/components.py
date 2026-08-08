@@ -39,7 +39,7 @@ class MmpptCommon(Component):
 class EvseCommon(InverterCommon):
     """
     EVSE common block is only read once at setup.
-    SolarEdge evse devices present as an inverter, reuse InverterCommon.
+    SolarEdge EVSE devices present as an inverter, reuse InverterCommon.
     """
 
 
