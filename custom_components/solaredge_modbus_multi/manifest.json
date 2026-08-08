@@ -13,5 +13,5 @@
     "modbus-connection[tmodbus]>=4.0.0",
     "awesomeversion>=25.5.0"
   ],
-  "version": "4.0.0-pre.4"
+  "version": "4.0.0-pre.5"
 }
