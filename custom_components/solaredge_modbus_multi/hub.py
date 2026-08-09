@@ -396,6 +396,8 @@ class SolarEdgeModbusMultiHub:
 
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
+            await self.connection.disconnect()
+
             return True
 
         try:
@@ -410,15 +412,20 @@ class SolarEdgeModbusMultiHub:
                     await evse.read_modbus_data()
 
         except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
+            await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}")
 
         except DeviceInvalid as e:
+            await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}")
 
         except (ModbusIOError, ModbusConnectionError, ModbusProtocolError) as e:
+            await self.connection.disconnect()
             raise DataUpdateFailed(f"Connection failed: {e}")
 
         except TimeoutError as e:
+            await self.connection.disconnect()
+
             self._modbus_timeouts_count += 1
 
             _LOGGER.debug(
@@ -427,10 +434,10 @@ class SolarEdgeModbusMultiHub:
 
             if self._modbus_timeouts_count >= self._modbus_timeouts_limit:
                 _LOGGER.warning(
-                    f"Modbus connection was reset after {self._modbus_timeouts_limit} timeouts."
+                    f"Modbus connection has timed out "
+                    f"{self._modbus_timeouts_limit} times in a row."
                 )
                 self._modbus_timeouts_count = 0
-                await self.connection.disconnect()
 
             raise DataUpdateFailed(f"Timeout error: {e}")
 
@@ -450,6 +457,8 @@ class SolarEdgeModbusMultiHub:
                 del self._write_settle_cycles[unit]
             else:
                 self._write_settle_cycles[unit] = cycles_remaining - 1
+
+        await self.connection.disconnect()
 
         return True
 
