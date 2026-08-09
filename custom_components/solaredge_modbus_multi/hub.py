@@ -137,6 +137,27 @@ class ModbusReadResult:
         self.registers = registers
 
 
+async def async_update_with_retry(component) -> None:
+    """Call component.async_update(), retrying transient connection/timeout errors.
+
+    modbus-connection has no built-in per-request retry, unlike pymodbus's
+    `retries` option, so this method mimics that behavior.
+    """
+    for attempt in range(1, RetrySettings.RequestRetries + 1):
+        try:
+            await component.async_update()
+            return
+
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            if attempt >= RetrySettings.RequestRetries:
+                raise
+
+            _LOGGER.debug(
+                f"{type(component).__name__}.async_update() attempt {attempt} "
+                f"of {RetrySettings.RequestRetries} failed: {e}"
+            )
+
+
 class SolarEdgeModbusMultiHub:
     def __init__(
         self, hass: HomeAssistant, entry_id: str, entry_data, entry_options, connection
@@ -440,28 +461,45 @@ class SolarEdgeModbusMultiHub:
             f"address={address} count={rcount}"
         )
 
-        try:
-            registers = await self.connection.for_unit(unit).read_holding_registers(
-                address, rcount
-            )
+        for attempt in range(1, RetrySettings.RequestRetries + 1):
+            try:
+                registers = await self.connection.for_unit(
+                    unit
+                ).read_holding_registers(address, rcount)
+                break
 
-        except ModbusExceptionError as e:
-            if e.exception_code == ModbusExceptions.IllegalAddress:
-                _LOGGER.debug(f"unit={unit} Read IllegalAddress: {e}")
-                raise ModbusIllegalAddress(e)
+            except ModbusExceptionError as e:
+                if e.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(f"unit={unit} Read IllegalAddress: {e}")
+                    raise ModbusIllegalAddress(e)
 
-            if e.exception_code == ModbusExceptions.IllegalFunction:
-                _LOGGER.debug(f"unit={unit} Read IllegalFunction: {e}")
-                raise ModbusIllegalFunction(e)
+                if e.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"unit={unit} Read IllegalFunction: {e}")
+                    raise ModbusIllegalFunction(e)
 
-            if e.exception_code == ModbusExceptions.IllegalValue:
-                _LOGGER.debug(f"unit={unit} Read IllegalValue: {e}")
-                raise ModbusIllegalValue(e)
+                if e.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"unit={unit} Read IllegalValue: {e}")
+                    raise ModbusIllegalValue(e)
 
-            raise ModbusReadError(e)
+                raise ModbusReadError(e)
 
-        except (ModbusConnectionError, ModbusProtocolError) as e:
-            raise ModbusIOError(e)
+            except ModbusTimeoutError:
+                if attempt >= RetrySettings.RequestRetries:
+                    raise
+
+                _LOGGER.debug(
+                    f"unit={unit}: read timeout, attempt {attempt} "
+                    f"of {RetrySettings.RequestRetries}"
+                )
+
+            except (ModbusConnectionError, ModbusProtocolError) as e:
+                if attempt >= RetrySettings.RequestRetries:
+                    raise ModbusIOError(e)
+
+                _LOGGER.debug(
+                    f"unit={unit}: read error, attempt {attempt} "
+                    f"of {RetrySettings.RequestRetries}: {e}"
+                )
 
         _LOGGER.debug(
             f"unit={unit}: Registers received={len(registers)} "
@@ -480,47 +518,61 @@ class SolarEdgeModbusMultiHub:
     async def modbus_write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
 
-        try:
-            await self.connection.for_unit(unit).write_registers(address, payload)
+        for attempt in range(1, RetrySettings.RequestRetries + 1):
+            try:
+                await self.connection.for_unit(unit).write_registers(address, payload)
+                break
 
-            if self.sleep_after_write > 0:
+            except ModbusExceptionError as e:
+                if e.exception_code == ModbusExceptions.IllegalAddress:
+                    _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
+                    raise HomeAssistantError(
+                        f"Address not supported at device at ID {unit}."
+                    )
+
+                if e.exception_code == ModbusExceptions.IllegalFunction:
+                    _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
+                    raise HomeAssistantError(
+                        f"Function not supported by device at ID {unit}."
+                    )
+
+                if e.exception_code == ModbusExceptions.IllegalValue:
+                    _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
+                    raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
+
+                raise ModbusWriteError(e)
+
+            except ModbusTimeoutError as e:
+                if attempt >= RetrySettings.RequestRetries:
+                    _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
+                    raise HomeAssistantError(
+                        f"No response from inverter ID {unit}."
+                    ) from e
+
                 _LOGGER.debug(
-                    f"Spacing requests to unit {unit} for {self.sleep_after_write} "
-                    f"seconds after write to address {address}."
-                )
-                self.connection.for_unit(unit).set_message_spacing(
-                    self.sleep_after_write
-                )
-                self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
-
-            _LOGGER.debug(f"Finished with write {address}.")
-
-        except ModbusExceptionError as e:
-            if e.exception_code == ModbusExceptions.IllegalAddress:
-                _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
-                raise HomeAssistantError(
-                    f"Address not supported at device at ID {unit}."
+                    f"unit={unit}: write timeout, attempt {attempt} "
+                    f"of {RetrySettings.RequestRetries}"
                 )
 
-            if e.exception_code == ModbusExceptions.IllegalFunction:
-                _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
-                raise HomeAssistantError(
-                    f"Function not supported by device at ID {unit}."
+            except (ModbusConnectionError, ModbusProtocolError) as e:
+                if attempt >= RetrySettings.RequestRetries:
+                    _LOGGER.error(f"Connection failed: {e}")
+                    raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
+
+                _LOGGER.debug(
+                    f"unit={unit}: write error, attempt {attempt} "
+                    f"of {RetrySettings.RequestRetries}: {e}"
                 )
 
-            if e.exception_code == ModbusExceptions.IllegalValue:
-                _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
-                raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
+        if self.sleep_after_write > 0:
+            _LOGGER.debug(
+                f"Spacing requests to unit {unit} for {self.sleep_after_write} "
+                f"seconds after write to address {address}."
+            )
+            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
+            self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
-            raise ModbusWriteError(e)
-
-        except ModbusTimeoutError as e:
-            _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
-            raise HomeAssistantError(f"No response from inverter ID {unit}.") from e
-
-        except (ModbusConnectionError, ModbusProtocolError) as e:
-            _LOGGER.error(f"Connection failed: {e}")
-            raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
+        _LOGGER.debug(f"Finished with write {address}.")
 
     @property
     def initalized(self):
@@ -646,7 +698,7 @@ class SolarEdgeInverter:
             _LOGGER.debug(
                 f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
             )
-            await self.inverter_common.async_update()
+            await async_update_with_retry(self.inverter_common)
 
             self.decoded_common = component_to_dict(self.inverter_common)
 
@@ -694,7 +746,7 @@ class SolarEdgeInverter:
             _LOGGER.debug(
                 f"Reading component MmpptCommon(for_unit({self.inverter_unit_id}))"
             )
-            await mmppt_common.async_update()
+            await async_update_with_retry(mmppt_common)
 
             self.decoded_mmppt = component_to_dict(mmppt_common)
 
@@ -760,7 +812,7 @@ class SolarEdgeInverter:
         """Read and update dynamic modbus registers."""
 
         try:
-            await self.inverter_common.async_update()
+            await async_update_with_retry(self.inverter_common)
 
             inverter_data = await self.hub.modbus_read_holding_registers(
                 unit=self.inverter_unit_id, address=40069, rcount=40
@@ -1621,7 +1673,7 @@ class SolarEdgeMeter:
             _LOGGER.debug(
                 f"Reading component MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await meter_info.async_update()
+            await async_update_with_retry(meter_info)
 
             self.decoded_common = component_to_dict(meter_info)
 
@@ -1875,7 +1927,7 @@ class SolarEdgeBattery:
             _LOGGER.debug(
                 f"Reading component BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await battery_info.async_update()
+            await async_update_with_retry(battery_info)
 
             self.decoded_common = component_to_dict(battery_info)
 
@@ -2087,7 +2139,7 @@ class SolarEdgeEVSE:
             _LOGGER.debug(
                 f"Reading component EvseCommon(for_unit({self.evse_unit_id}))"
             )
-            await evse_common.async_update()
+            await async_update_with_retry(evse_common)
 
             self.decoded_common = component_to_dict(evse_common)
 

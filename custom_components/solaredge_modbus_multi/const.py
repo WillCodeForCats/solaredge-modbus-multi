@@ -73,6 +73,7 @@ class RetrySettings(IntEnum):
     Limit = 6  # number of attempts before failing
     ModbusTimeouts = 3  # modbus timeouts before calling disconnect
     RequestTimeout = 3  # timeout for a single modbus request, in seconds
+    RequestRetries = 3  # max attempts for a single modbus request
 
 
 class SolarEdgeTimeouts(IntEnum):
