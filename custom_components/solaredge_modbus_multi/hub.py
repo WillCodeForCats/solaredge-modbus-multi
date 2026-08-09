@@ -406,7 +406,7 @@ class SolarEdgeModbusMultiHub:
 
             if self._modbus_timeouts_count >= self._modbus_timeouts_limit:
                 self._modbus_timeouts_count = 0
-                self.connection.disconnect()
+                await self.connection.disconnect()
 
             raise DataUpdateFailed(f"Timeout error: {e}")
 
