@@ -71,6 +71,7 @@ class RetrySettings(IntEnum):
     Time = 900  # first attempt in milliseconds
     Ratio = 3  # time multiplier between each attempt
     Limit = 5  # number of attempts before failing
+    ModbusTimeouts = 3  # modbus timeouts before calling disconnect
 
 
 class SolarEdgeTimeouts(IntEnum):

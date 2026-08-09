@@ -45,6 +45,7 @@ CONFIG_SCHEMA = vol.Schema(
                         vol.Optional("time"): vol.Coerce(int),
                         vol.Optional("ratio"): vol.Coerce(int),
                         vol.Optional("limit"): vol.Coerce(int),
+                        vol.Optional("modbus_timeouts"): vol.Coerce(int),
                     }
                 ),
             },

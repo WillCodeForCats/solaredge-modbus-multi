@@ -181,8 +181,8 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
-        self._retry_limit = self._yaml_config.get("retry", {}).get(
-            "limit", RetrySettings.Limit
+        self._modbus_timeouts_limit = self._yaml_config.get("retry", {}).get(
+            "modbus_timeouts", RetrySettings.ModbusTimeouts
         )
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
@@ -194,7 +194,7 @@ class SolarEdgeModbusMultiHub:
         self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
-        self._timeout_counter = 0
+        self._modbus_timeouts_count = 0
 
         self.connection = connection
 
@@ -398,23 +398,23 @@ class SolarEdgeModbusMultiHub:
             raise DataUpdateFailed(f"Connection failed: {e}")
 
         except TimeoutError as e:
-            self._timeout_counter += 1
+            self._modbus_timeouts_count += 1
 
             _LOGGER.debug(
-                f"Refresh timeout {self._timeout_counter} limit {self._retry_limit}"
+                f"Refresh timeout {self._modbus_timeouts_count} limit {self._modbus_timeouts_limit}"
             )
 
-            if self._timeout_counter >= self._retry_limit:
-                self._timeout_counter = 0
-                raise TimeoutError
+            if self._modbus_timeouts_count >= self._modbus_timeouts_limit:
+                self._modbus_timeouts_count = 0
+                self.connection.disconnect()
 
             raise DataUpdateFailed(f"Timeout error: {e}")
 
-        if self._timeout_counter > 0:
+        if self._modbus_timeouts_count > 0:
             _LOGGER.debug(
-                f"Timeout count {self._timeout_counter} limit {self._retry_limit}"
+                f"Modbus timeout count {self._modbus_timeouts_count} limit {self._modbus_timeouts_limit}"
             )
-            self._timeout_counter = 0
+            self._modbus_timeouts_count = 0
 
         for unit, cycles_remaining in list(self._write_settle_cycles.items()):
             _LOGGER.debug(
