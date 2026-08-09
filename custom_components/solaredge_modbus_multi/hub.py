@@ -405,8 +405,8 @@ class SolarEdgeModbusMultiHub:
             )
 
             if self._modbus_timeouts_count >= self._modbus_timeouts_limit:
-                _LOGGER.debug(
-                    f"Exceeded modbus timeouts limit {self._modbus_timeouts_limit}, forcing disconnect."
+                _LOGGER.warning(
+                    f"Modbus connection was reset after {self._modbus_timeouts_limit} timeouts."
                 )
                 self._modbus_timeouts_count = 0
                 await self.connection.disconnect()
