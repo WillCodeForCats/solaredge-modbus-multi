@@ -68,9 +68,9 @@ class ModbusExceptions:
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
 
-    Time = 900  # first attempt in milliseconds
-    Ratio = 3  # time multiplier between each attempt
-    Limit = 5  # number of attempts before failing
+    Time = 1000  # first attempt in milliseconds
+    Ratio = 2  # time multiplier between each attempt
+    Limit = 6  # number of attempts before failing
     ModbusTimeouts = 3  # modbus timeouts before calling disconnect
 
 
