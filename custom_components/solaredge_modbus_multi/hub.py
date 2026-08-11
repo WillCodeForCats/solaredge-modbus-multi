@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.metadata
 import logging
 
 from awesomeversion import AwesomeVersion
@@ -56,6 +57,7 @@ from .const import (
 from .helpers import float_to_hex, int_list_to_string
 
 _LOGGER = logging.getLogger(__name__)
+pymodbus_version = importlib.metadata.version("pymodbus")
 
 
 class SolarEdgeException(Exception):
@@ -221,6 +223,8 @@ class SolarEdgeModbusMultiHub:
 
         self.connection = connection
 
+        self._pymodbus_version = pymodbus_version
+
         _LOGGER.debug(
             (
                 f"{DOMAIN} configuration: "
@@ -235,6 +239,8 @@ class SolarEdgeModbusMultiHub:
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
             ),
         )
+
+        _LOGGER.debug(f"pymodbus version {self.pymodbus_version}")
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
@@ -657,6 +663,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def sleep_after_write(self) -> int:
         return self._sleep_after_write
+
+    @property
+    def pymodbus_version(self) -> str:
+        return self._pymodbus_version
 
     @property
     def coordinator_timeout(self) -> int:
