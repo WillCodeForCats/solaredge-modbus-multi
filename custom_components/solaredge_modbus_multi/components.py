@@ -95,6 +95,15 @@ class MmpptCommon(Component):
     mmppt_Units = integer(40129, signed=False)
 
 
+class MmpptUnit(Component):
+    """MMPPT units are read every polling cycle."""
+
+    mmppt_DCA_SF = integer(40123, signed=True)
+    mmppt_DCV_SF = integer(40124, signed=True)
+    mmppt_DCW_SF = integer(40125, signed=True)
+    mmppt_DCWH_SF = integer(40126, signed=True)
+
+
 class EvseCommon(InverterCommon):
     """
     EVSE common block is only read once at setup.
