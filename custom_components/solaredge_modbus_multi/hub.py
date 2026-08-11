@@ -757,49 +757,6 @@ class SolarEdgeInverter:
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
             )
 
-        is_multi_mppt = False
-
-        try:
-            _LOGGER.debug(
-                f"Reading component MmpptCommon(for_unit({self.inverter_unit_id}))"
-            )
-            await async_update_with_retry(self.mmppt_common)
-
-            self.decoded_mmppt = component_to_dict(self.mmppt_common)
-
-            for name, value in iter(self.decoded_mmppt.items()):
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id} MMPPT: "
-                        f"{name} {hex(value) if isinstance(value, int) else value} "
-                        f"{type(value)}"
-                    ),
-                )
-
-            if (
-                self.mmppt_common.mmppt_DID == SunSpecNotImpl.UINT16
-                or self.mmppt_common.mmppt_Units == SunSpecNotImpl.UINT16
-                or self.mmppt_common.mmppt_DID not in [160]
-                or self.mmppt_common.mmppt_Units not in [2, 3]
-            ):
-                _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
-                self.decoded_mmppt = None
-
-            else:
-                _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
-                is_multi_mppt = True
-
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise ModbusReadError(
-                f"Error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
-            )
-
-        except ModbusExceptionError:
-            _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
-            self.decoded_mmppt = None
-
-        self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
-
         self.manufacturer = self.inverter_common.C_Manufacturer
         self.model = self.inverter_common.C_Model
         self.option = self.inverter_common.C_Option
@@ -821,6 +778,60 @@ class SolarEdgeInverter:
 
         self.inverter_common.restrict_fields(["C_Version"])
         self.inverter_data.restrict_status_vendor4(self._use_status_vendor4)
+
+        is_multi_mppt = False
+
+        if self.use_mmppt_units:
+            try:
+                _LOGGER.debug(
+                    f"Reading component MmpptCommon(for_unit({self.inverter_unit_id}))"
+                )
+                await async_update_with_retry(self.mmppt_common)
+
+                self.decoded_mmppt = component_to_dict(self.mmppt_common)
+
+                for name, value in iter(self.decoded_mmppt.items()):
+                    _LOGGER.debug(
+                        (
+                            f"I{self.inverter_unit_id} MMPPT: "
+                            f"{name} {hex(value) if isinstance(value, int) else value} "
+                            f"{type(value)}"
+                        ),
+                    )
+
+                if (
+                    self.mmppt_common.mmppt_DID == SunSpecNotImpl.UINT16
+                    or self.mmppt_common.mmppt_Units == SunSpecNotImpl.UINT16
+                    or self.mmppt_common.mmppt_DID not in [160]
+                    or self.mmppt_common.mmppt_Units not in [2, 3]
+                ):
+                    _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
+                    self.decoded_mmppt = None
+
+                else:
+                    _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
+                    is_multi_mppt = True
+
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+            ) as e:
+                raise ModbusReadError(
+                    f"Error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
+                )
+
+            except ModbusExceptionError:
+                _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
+                self.decoded_mmppt = None
+        else:
+            _LOGGER.debug(
+                f"I{self.inverter_unit_id} is NOT Multiple MPPT "
+                "(firmware does not support MMPPT units)"
+            )
+            self.decoded_mmppt = None
+
+        self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
 
         if is_multi_mppt:
             for unit_index in range(self.mmppt_common.mmppt_Units):
@@ -856,7 +867,7 @@ class SolarEdgeInverter:
             )
 
         """ Multiple MPPT Extension """
-        if self.decoded_mmppt is not None:
+        if self.use_mmppt_units and self.decoded_mmppt is not None:
             if self.decoded_mmppt["mmppt_Units"] == 2:
                 mmppt_registers = 48
                 mmppt_unit_ids = [0, 1]
