@@ -28,6 +28,65 @@ class InverterCommon(Component):
     C_Device_address = integer(40068, signed=False)
 
 
+class InverterData(Component):
+    """Inverter data is read every polling cycle."""
+
+    C_SunSpec_DID = integer(40069, signed=False)
+    C_SunSpec_Length = integer(40070, signed=False)
+    AC_Current = integer(40071, signed=False)
+    AC_Current_A = integer(40072, signed=False, unit="A")
+    AC_Current_B = integer(40073, signed=False, unit="A")
+    AC_Current_C = integer(40074, signed=False, unit="A")
+    AC_Current_SF = integer(40075, signed=True)
+    AC_Voltage_AB = integer(40076, signed=False, unit="V")
+    AC_Voltage_BC = integer(40077, signed=False, unit="V")
+    AC_Voltage_CA = integer(40078, signed=False, unit="V")
+    AC_Voltage_AN = integer(40079, signed=False, unit="V")
+    AC_Voltage_BN = integer(40080, signed=False, unit="V")
+    AC_Voltage_CN = integer(40081, signed=False, unit="V")
+    AC_Voltage_SF = integer(40082, signed=True)
+    AC_Power = integer(40083, signed=True, unit="W")
+    AC_Power_SF = integer(40084, signed=True)
+    AC_Frequency = integer(40085, signed=False, unit="Hz")
+    AC_Frequency_SF = integer(40086, signed=True)
+    AC_VA = integer(40087, signed=True, unit="VA")
+    AC_VA_SF = integer(40088, signed=True)
+    AC_var = integer(40089, signed=True, unit="var")
+    AC_var_SF = integer(40090, signed=True)
+    AC_PF = integer(40091, signed=True)
+    AC_PF_SF = integer(40092, signed=True)
+    AC_Energy_WH = uint32(40093)
+    AC_Energy_WH_SF = integer(40095, signed=False)
+    I_DC_Current = integer(40096, signed=False)
+    I_DC_Current_SF = integer(40097, signed=True)
+    I_DC_Voltage = integer(40098, signed=False)
+    I_DC_Voltage_SF = integer(40099, signed=True)
+    I_DC_Power = integer(40100, signed=True)
+    I_DC_Power_SF = integer(40101, signed=True)
+    I_Temp_Cab = integer(40102, signed=True)  # unsupported on SolarEdge
+    I_Temp_Sink = integer(40103, signed=True)
+    I_Temp_Trns = integer(40104, signed=True)  # unsupported on SolarEdge
+    I_Temp_Other = integer(40105, signed=True)  # unsupported on SolarEdge
+    I_Temp_SF = integer(40106, signed=True)
+    I_Status = integer(40107, signed=False)
+    I_Status_Vendor = integer(40108, signed=False)
+    I_Grid_Status = integer(40113, signed=False)  # previously uint32 little endian
+    I_Status_Vendor4 = uint32(40119)
+
+    def restrict_status_vendor4(self, use_status_vendor4: bool) -> None:
+        """Remove I_Status_Vendor4 on firmware that doesn't support it.
+
+        modbus-connection only offers a keep-list with restrict_fields(), so
+        excluding one means passing everything we still want back in.
+        """
+        if use_status_vendor4:
+            return
+
+        self.restrict_fields(
+            [name for name in self.declared_fields if name != "I_Status_Vendor4"]
+        )
+
+
 class MmpptCommon(Component):
     """MMPPT common block is only read once at setup."""
 
