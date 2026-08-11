@@ -31,6 +31,7 @@ from .components import (
     BatteryInfo,
     EvseCommon,
     InverterCommon,
+    InverterData,
     MeterInfo,
     MmpptCommon,
     component_to_dict,
@@ -686,7 +687,6 @@ class SolarEdgeInverter:
         self.inverter_unit_id = device_id
         self.hub = hub
         self.mmppt_units = []
-        self.inverter_common = None
         self.decoded_common = {}
         self.decoded_model = {}
         self.decoded_mmppt = {}
@@ -699,13 +699,20 @@ class SolarEdgeInverter:
         self._grid_status = None
         self._use_status_vendor4 = False
 
+        self.inverter_common = InverterCommon(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.inverter_data = InverterData(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.mmppt_common = MmpptCommon(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
 
         try:
-            self.inverter_common = InverterCommon(
-                self.hub.connection.for_unit(self.inverter_unit_id)
-            )
             _LOGGER.debug(
                 f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
             )
