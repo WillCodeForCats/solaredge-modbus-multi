@@ -18,6 +18,9 @@ SETUP_MANUAL = "manual_list"
 # spacing active before clearing it back to 0.
 WRITE_SETTLE_CYCLES: Final = 2
 
+# raise a startup exception if tmodbus version is less than this
+TMODBUS_REQUIRED_VERSION = "0.5.0"
+
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
