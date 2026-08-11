@@ -472,9 +472,9 @@ class SolarEdgeModbusMultiHub:
 
         for attempt in range(1, RetrySettings.RequestRetries + 1):
             try:
-                registers = await self.connection.for_unit(
-                    unit
-                ).read_holding_registers(address, rcount)
+                registers = await self.connection.for_unit(unit).read_holding_registers(
+                    address, rcount
+                )
                 break
 
             except ModbusExceptionError as e:
@@ -566,7 +566,9 @@ class SolarEdgeModbusMultiHub:
             except (ModbusConnectionError, ModbusProtocolError) as e:
                 if attempt >= RetrySettings.RequestRetries:
                     _LOGGER.error(f"Connection failed: {e}")
-                    raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
+                    raise HomeAssistantError(
+                        f"Connection to inverter ID {unit} failed."
+                    )
 
                 _LOGGER.debug(
                     f"unit={unit}: write error, attempt {attempt} "
