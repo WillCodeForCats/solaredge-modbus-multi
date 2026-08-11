@@ -42,6 +42,7 @@ DETECT_EVSE_REGEX = re.compile(
 )
 
 STATUS_VENDOR4_VERSION = "3.20.0"  # solaredge firmware version
+MMPPT_UNITS_VERSION = "4.13.0"  # solaredge firmware version
 INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 
 

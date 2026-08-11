@@ -41,6 +41,7 @@ from .const import (
     DETECT_EVSE_REGEX,
     DOMAIN,
     METER_REG_BASE,
+    MMPPT_UNITS_VERSION,
     STATUS_VENDOR4_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
@@ -698,6 +699,7 @@ class SolarEdgeInverter:
         self.site_limit_control = None
         self._grid_status = None
         self._use_status_vendor4 = False
+        self._use_mmppt_units = False
 
         self.inverter_common = InverterCommon(
             self.hub.connection.for_unit(self.inverter_unit_id)
@@ -811,6 +813,7 @@ class SolarEdgeInverter:
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
                 STATUS_VENDOR4_VERSION
             )
+            self._use_mmppt_units = this_ver >= AwesomeVersion(MMPPT_UNITS_VERSION)
         except (AwesomeVersionCompareException, AwesomeVersionStrategyException) as e:
             _LOGGER.error(
                 f"Error checking inverter version: {e}. Please report this issue."
@@ -1516,6 +1519,10 @@ class SolarEdgeInverter:
     @property
     def use_status_vendor4(self) -> bool:
         return self._use_status_vendor4
+
+    @property
+    def use_mmppt_units(self) -> bool:
+        return self._use_mmppt_units
 
 
 class SolarEdgeMMPPTUnit:
