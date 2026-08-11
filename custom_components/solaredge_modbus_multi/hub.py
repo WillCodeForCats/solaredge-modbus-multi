@@ -758,15 +758,12 @@ class SolarEdgeInverter:
         is_multi_mppt = False
 
         try:
-            mmppt_common = MmpptCommon(
-                self.hub.connection.for_unit(self.inverter_unit_id)
-            )
             _LOGGER.debug(
                 f"Reading component MmpptCommon(for_unit({self.inverter_unit_id}))"
             )
-            await async_update_with_retry(mmppt_common)
+            await async_update_with_retry(self.mmppt_common)
 
-            self.decoded_mmppt = component_to_dict(mmppt_common)
+            self.decoded_mmppt = component_to_dict(self.mmppt_common)
 
             for name, value in iter(self.decoded_mmppt.items()):
                 _LOGGER.debug(
@@ -778,10 +775,10 @@ class SolarEdgeInverter:
                 )
 
             if (
-                mmppt_common.mmppt_DID == SunSpecNotImpl.UINT16
-                or mmppt_common.mmppt_Units == SunSpecNotImpl.UINT16
-                or mmppt_common.mmppt_DID not in [160]
-                or mmppt_common.mmppt_Units not in [2, 3]
+                self.mmppt_common.mmppt_DID == SunSpecNotImpl.UINT16
+                or self.mmppt_common.mmppt_Units == SunSpecNotImpl.UINT16
+                or self.mmppt_common.mmppt_DID not in [160]
+                or self.mmppt_common.mmppt_Units not in [2, 3]
             ):
                 _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
                 self.decoded_mmppt = None
@@ -822,7 +819,7 @@ class SolarEdgeInverter:
         self.inverter_common.restrict_fields(["C_Version"])
 
         if is_multi_mppt:
-            for unit_index in range(mmppt_common.mmppt_Units):
+            for unit_index in range(self.mmppt_common.mmppt_Units):
                 self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
                 _LOGGER.debug(f"I{self.inverter_unit_id} MMPPT Unit {unit_index}")
 
