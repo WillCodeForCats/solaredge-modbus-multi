@@ -817,6 +817,7 @@ class SolarEdgeInverter:
             )
 
         self.inverter_common.restrict_fields(["C_Version"])
+        self.inverter_data.restrict_status_vendor4(self._use_status_vendor4)
 
         if is_multi_mppt:
             for unit_index in range(self.mmppt_common.mmppt_Units):
@@ -827,124 +828,28 @@ class SolarEdgeInverter:
         """Read and update dynamic modbus registers."""
 
         try:
+            _LOGGER.debug(
+                f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
+            )
             await async_update_with_retry(self.inverter_common)
 
-            inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40069, rcount=40
+            _LOGGER.debug(
+                f"Reading component InverterData(for_unit({self.inverter_unit_id}))"
             )
+            await async_update_with_retry(self.inverter_data)
 
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "AC_Current",
-                "AC_Current_A",
-                "AC_Current_B",
-                "AC_Current_C",
-                "AC_Voltage_AB",
-                "AC_Voltage_BC",
-                "AC_Voltage_CA",
-                "AC_Voltage_AN",
-                "AC_Voltage_BN",
-                "AC_Voltage_CN",
-                "AC_Frequency",
-                "AC_Energy_WH_SF",
-                "I_DC_Current",
-                "I_DC_Voltage",
-                "I_Status",
-                "I_Status_Vendor",
-            ]
-            uint16_data = (
-                inverter_data.registers[0:6]
-                + inverter_data.registers[7:13]
-                + [inverter_data.registers[16]]
-                + inverter_data.registers[26:28]
-                + [inverter_data.registers[29]]
-                + inverter_data.registers[38:40]
-            )
-            self.decoded_model = dict(
-                zip(
-                    uint16_fields,
-                    uint16_data,
-                    strict=True,
-                )
-            )
-
-            int16_fields = [
-                "AC_Current_SF",
-                "AC_Voltage_SF",
-                "AC_Power",
-                "AC_Power_SF",
-                "AC_Frequency_SF",
-                "AC_VA",
-                "AC_VA_SF",
-                "AC_var",
-                "AC_var_SF",
-                "AC_PF",
-                "AC_PF_SF",
-                "I_DC_Current_SF",
-                "I_DC_Voltage_SF",
-                "I_DC_Power",
-                "I_DC_Power_SF",
-                "I_Temp_Cab",
-                "I_Temp_Sink",
-                "I_Temp_Trns",
-                "I_Temp_Other",
-                "I_Temp_SF",
-            ]
-            int16_data = (
-                [inverter_data.registers[6]]
-                + inverter_data.registers[13:16]
-                + inverter_data.registers[17:24]
-                + [inverter_data.registers[28]]
-                + inverter_data.registers[30:38]
-            )
-
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        int16_fields,
-                        [decode_int16([r]) for r in int16_data],
-                        strict=True,
-                    )
-                )
-            )
-
-            self.decoded_model.update(
-                dict(
-                    [
-                        (
-                            "AC_Energy_WH",
-                            decode_uint32(inverter_data.registers[24:26]),
-                        ),
-                    ]
-                )
-            )
-
-            if self.use_status_vendor4:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40119, rcount=2
-                )
-                self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "I_Status_Vendor4",
-                                decode_uint32(inverter_data.registers[0:2]),
-                            ),
-                        ]
-                    )
-                )
+            self.decoded_model = component_to_dict(self.inverter_data)
 
             if (
-                self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-                or self.decoded_model["C_SunSpec_DID"] not in [101, 102, 103]
-                or self.decoded_model["C_SunSpec_Length"] != 50
+                self.inverter_data.C_SunSpec_DID == SunSpecNotImpl.UINT16
+                or self.inverter_data.C_SunSpec_DID not in [101, 102, 103]
+                or self.inverter_data.C_SunSpec_Length != 50
             ):
                 raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
-        except ModbusIOError:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
+                f"Error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
             )
 
         """ Multiple MPPT Extension """
