@@ -247,14 +247,12 @@ class SolarEdgeModbusMultiHub:
         """Detect devices and load initial modbus data from inverters."""
 
         tmodbus_version_tuple = self._safe_version_tuple(self.tmodbus_version)
-        required_version_tuple = self._safe_version_tuple(
-            self.tmodbus_required_version
-        )
+        required_version_tuple = self._safe_version_tuple(self.tmodbus_required_version)
 
         if tmodbus_version_tuple < required_version_tuple:
             raise HubInitFailed(
                 f"tmodbus version must be at least {self.tmodbus_required_version}, "
-                f"but {self.tmodbus_version} is installed. Please remove other custom "
+                f"but {self.tmodbus_version} is installed. Please remove or upgrade other custom "
                 "integrations that depend on an older version of tmodbus and restart."
             )
 
