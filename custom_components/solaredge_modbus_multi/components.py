@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from modbus_connection.model import Component, float32, integer, string, uint32
+from modbus_connection.model import Component, float32, integer, string, uint32, uint64
 
 _ASCII_CTRL_CHARS = dict.fromkeys(range(32))
 
@@ -160,3 +160,41 @@ class BatteryInfo(Component):
         if serial is None:
             return None
         return serial.translate(_ASCII_CTRL_CHARS)
+
+
+class BatteryData(Component):
+    """Battery data is read every polling cycle."""
+
+    B_MaxChargePower = float32(57668, unit="W", word_order="little")
+    B_MaxDischargePower = float32(57670, unit="W", word_order="little")
+    B_MaxChargePeakPower = float32(57672, unit="W", word_order="little")
+    B_MaxDischargePeakPower = float32(57674, unit="W", word_order="little")
+    B_Temp_Average = float32(57708, word_order="little")
+    B_Temp_Max = float32(57710, word_order="little")
+    B_DC_Voltage = float32(57712, unit="V", word_order="little")
+    B_DC_Current = float32(57714, unit="A", word_order="little")
+    B_DC_Power = float32(57716, unit="W", word_order="little")
+    B_Export_Energy_WH = uint64(57718, unit="Wh", word_order="little")
+    B_Import_Energy_WH = uint64(57722, unit="Wh", word_order="little")
+    B_Energy_Max = float32(57726, unit="Wh", word_order="little")
+    B_Energy_Available = float32(57728, unit="Wh", word_order="little")
+    B_SOH = float32(57730, word_order="little")
+    B_SOE = float32(57732, word_order="little")
+    B_Status = uint32(57734, word_order="little")
+    B_Status_Vendor = uint32(57736, word_order="little")
+    B_Event_Log1 = integer(57738, signed=False)
+    B_Event_Log2 = integer(57739, signed=False)
+    B_Event_Log3 = integer(57740, signed=False)
+    B_Event_Log4 = integer(57741, signed=False)
+    B_Event_Log5 = integer(57742, signed=False)
+    B_Event_Log6 = integer(57743, signed=False)
+    B_Event_Log7 = integer(57744, signed=False)
+    B_Event_Log8 = integer(57745, signed=False)
+    B_Event_Log_Vendor1 = integer(57746, signed=False)
+    B_Event_Log_Vendor2 = integer(57747, signed=False)
+    B_Event_Log_Vendor3 = integer(57748, signed=False)
+    B_Event_Log_Vendor4 = integer(57749, signed=False)
+    B_Event_Log_Vendor5 = integer(57750, signed=False)
+    B_Event_Log_Vendor6 = integer(57751, signed=False)
+    B_Event_Log_Vendor7 = integer(57752, signed=False)
+    B_Event_Log_Vendor8 = integer(57753, signed=False)
