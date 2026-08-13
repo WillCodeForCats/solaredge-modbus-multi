@@ -1890,18 +1890,19 @@ class SolarEdgeBattery:
 
         self.base_offset = self.start_address - BATTERY_REG_BASE[1]
 
+        self.battery_info = BatteryInfo(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
+
     async def init_device(self) -> None:
         try:
-            battery_info = BatteryInfo(
-                self.hub.connection.for_unit(self.inverter_unit_id),
-                base_offset=self.base_offset,
-            )
             _LOGGER.debug(
                 f"Reading component BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await async_update_with_retry(battery_info)
+            await async_update_with_retry(self.battery_info)
 
-            self.decoded_common = component_to_dict(battery_info)
+            self.decoded_common = component_to_dict(self.battery_info)
 
             for name, value in iter(self.decoded_common.items()):
                 if isinstance(value, float):
@@ -1926,17 +1927,17 @@ class SolarEdgeBattery:
             )
 
         if (
-            float_to_hex(battery_info.B_RatedEnergy) == hex(SunSpecNotImpl.FLOAT32)
-            or battery_info.B_RatedEnergy <= 0
+            float_to_hex(self.battery_info.B_RatedEnergy) == hex(SunSpecNotImpl.FLOAT32)
+            or self.battery_info.B_RatedEnergy <= 0
         ):
             raise DeviceInvalid(f"Battery {self.battery_id} not usable (rating <=0)")
 
-        self.manufacturer = battery_info.B_Manufacturer
-        self.model = battery_info.B_Model
+        self.manufacturer = self.battery_info.B_Manufacturer
+        self.model = self.battery_info.B_Model
         self.option = ""
-        self.fw_version = battery_info.B_Version
-        self.serial = battery_info.B_SerialNumber
-        self.device_address = battery_info.B_Device_Address
+        self.fw_version = self.battery_info.B_Version
+        self.serial = self.battery_info.B_SerialNumber
+        self.device_address = self.battery_info.B_Device_Address
         self.name = (
             f"{self.hub.hub_id.capitalize()} "
             f"I{self.inverter_unit_id} B{self.battery_id}"
