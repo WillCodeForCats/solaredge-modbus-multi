@@ -29,6 +29,7 @@ from modbus_connection.exceptions import (
 )
 
 from .components import (
+    BatteryData,
     BatteryInfo,
     EvseCommon,
     InverterCommon,
@@ -1894,6 +1895,10 @@ class SolarEdgeBattery:
             self.hub.connection.for_unit(self.inverter_unit_id),
             base_offset=self.base_offset,
         )
+        self.battery_data = BatteryData(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
 
     async def init_device(self) -> None:
         try:
@@ -1949,104 +1954,16 @@ class SolarEdgeBattery:
 
     async def read_modbus_data(self) -> None:
         try:
-            battery_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id,
-                address=self.start_address + 68,
-                rcount=86,
+            _LOGGER.debug(
+                f"Reading component BatteryData(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
+            await async_update_with_retry(self.battery_data)
 
-            float32_fields = [
-                "B_MaxChargePower",
-                "B_MaxDischargePower",
-                "B_MaxChargePeakPower",
-                "B_MaxDischargePeakPower",
-                "B_Temp_Average",
-                "B_Temp_Max",
-                "B_DC_Voltage",
-                "B_DC_Current",
-                "B_DC_Power",
-                "B_Energy_Max",
-                "B_Energy_Available",
-                "B_SOH",
-                "B_SOE",
-            ]
-            float32_data = (
-                battery_data.registers[0:8]
-                + battery_data.registers[40:50]
-                + battery_data.registers[58:66]
-            )
-            self.decoded_model = dict(
-                zip(
-                    float32_fields,
-                    [
-                        decode_float32(float32_data[i : i + 2], word_order="little")
-                        for i in range(0, len(float32_data), 2)
-                    ],
-                )
-            )
+            self.decoded_model = component_to_dict(self.battery_data)
 
-            uint64_fields = [
-                "B_Export_Energy_WH",
-                "B_Import_Energy_WH",
-            ]
-            uint64_data = battery_data.registers[50:58]
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint64_fields,
-                        [
-                            decode_uint64(uint64_data[i : i + 4], word_order="little")
-                            for i in range(0, len(uint64_data), 4)
-                        ],
-                    )
-                )
-            )
-
-            uint32_fields = ["B_Status", "B_Status_Vendor"]
-            uint32_data = battery_data.registers[66:70]
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint32_fields,
-                        [
-                            decode_uint32(uint32_data[i : i + 2], word_order="little")
-                            for i in range(0, len(uint32_data), 2)
-                        ],
-                    )
-                )
-            )
-
-            uint16_fields = [
-                "B_Event_Log1",
-                "B_Event_Log2",
-                "B_Event_Log3",
-                "B_Event_Log4",
-                "B_Event_Log5",
-                "B_Event_Log6",
-                "B_Event_Log7",
-                "B_Event_Log8",
-                "B_Event_Log_Vendor1",
-                "B_Event_Log_Vendor2",
-                "B_Event_Log_Vendor3",
-                "B_Event_Log_Vendor4",
-                "B_Event_Log_Vendor5",
-                "B_Event_Log_Vendor6",
-                "B_Event_Log_Vendor7",
-                "B_Event_Log_Vendor8",
-            ]
-            uint16_data = battery_data.registers[70:86]
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint16_fields,
-                        uint16_data,
-                    )
-                )
-            )
-
-        except ModbusIOError:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
+                f"Error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
             )
 
         for name, value in iter(self.decoded_model.items()):
