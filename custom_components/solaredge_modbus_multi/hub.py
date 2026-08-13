@@ -1878,18 +1878,15 @@ class SolarEdgeBattery:
         self.hub = hub
         self.decoded_common = {}
         self.decoded_model = {}
-        self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self._via_device = None
 
         try:
-            self.start_address = BATTERY_REG_BASE[self.battery_id]
+            self.base_offset = BATTERY_REG_BASE[self.battery_id] - BATTERY_REG_BASE[1]
         except KeyError:
             raise DeviceInvalid(f"Invalid battery_id {self.battery_id}")
-
-        self.base_offset = self.start_address - BATTERY_REG_BASE[1]
 
         self.battery_info = BatteryInfo(
             self.hub.connection.for_unit(self.inverter_unit_id),
