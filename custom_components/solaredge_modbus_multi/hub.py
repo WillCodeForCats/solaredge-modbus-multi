@@ -37,6 +37,7 @@ from .components import (
     MeterData,
     MeterInfo,
     MmpptCommon,
+    MmpptData,
     component_to_dict,
 )
 from .const import (
@@ -745,6 +746,7 @@ class SolarEdgeInverter:
         self.mmppt_common = MmpptCommon(
             self.hub.connection.for_unit(self.inverter_unit_id)
         )
+        self.mmppt_data = MmpptData(self.hub.connection.for_unit(self.inverter_unit_id))
         self.global_power_control_data = GlobalDynamicPowerControl(
             self.hub.connection.for_unit(self.inverter_unit_id)
         )
@@ -906,137 +908,33 @@ class SolarEdgeInverter:
 
         """ Multiple MPPT Extension """
         if self.use_mmppt_units and self.decoded_mmppt is not None:
-            if self.decoded_mmppt["mmppt_Units"] == 2:
-                mmppt_registers = 48
-                mmppt_unit_ids = [0, 1]
-
-            elif self.decoded_mmppt["mmppt_Units"] == 3:
-                mmppt_registers = 68
-                mmppt_unit_ids = [0, 1, 2]
-
-            else:
-                self.decoded_mmppt = None
-                raise DeviceInvalid(
-                    f"Inverter {self.inverter_unit_id} MMPPT must be 2 or 3 units"
-                )
-
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40123, rcount=mmppt_registers
+                _LOGGER.debug(
+                    f"Reading component MmpptData(for_unit({self.inverter_unit_id}))"
                 )
+                await async_update_with_retry(self.mmppt_data)
 
-                if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
-                    int16_fields = [
-                        "mmppt_DCA_SF",
-                        "mmppt_DCV_SF",
-                        "mmppt_DCW_SF",
-                        "mmppt_DCWH_SF",
-                        "mmppt_TmsPer",
-                    ]
-                    int16_data = inverter_data.registers[0:4] + [
-                        inverter_data.registers[7]
-                    ]
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                int16_fields,
-                                [decode_int16([r]) for r in int16_data],
-                                strict=True,
-                            )
-                        )
-                    )
+                self.decoded_model.update(component_to_dict(self.mmppt_data))
 
+                for unit_index, mmppt_unit_data in enumerate(self.mmppt_data.units):
                     self.decoded_model.update(
                         dict(
                             [
                                 (
-                                    "mmppt_Events",
-                                    decode_uint32(inverter_data.registers[4:6]),
-                                ),
+                                    f"mmppt_{unit_index}",
+                                    component_to_dict(mmppt_unit_data),
+                                )
                             ]
                         )
                     )
 
-                    for mmppt_unit_id in mmppt_unit_ids:
-                        unit_offset = mmppt_unit_id * 20
-
-                        mmppt_unit_data = dict(
-                            [
-                                (
-                                    "IDStr",  # string(16)
-                                    int_list_to_string(
-                                        inverter_data.registers[
-                                            9 + unit_offset : 17 + unit_offset
-                                        ]
-                                    ),
-                                ),
-                                (
-                                    "Tmp",
-                                    decode_int16(
-                                        [inverter_data.registers[24 + unit_offset]]
-                                    ),
-                                ),
-                            ]
-                        )
-
-                        uint16_fields = [
-                            "ID",
-                            "DCA",
-                            "DCV",
-                            "DCW",
-                            "DCSt",
-                        ]
-                        uint16_data = (
-                            [inverter_data.registers[8 + unit_offset]]
-                            + [inverter_data.registers[17 + unit_offset]]
-                            + [inverter_data.registers[18 + unit_offset]]
-                            + [inverter_data.registers[19 + unit_offset]]
-                            + [inverter_data.registers[25 + unit_offset]]
-                        )
-                        mmppt_unit_data.update(
-                            dict(
-                                zip(
-                                    uint16_fields,
-                                    uint16_data,
-                                    strict=True,
-                                )
-                            )
-                        )
-
-                        uint32_fields = [
-                            "DCWH",
-                            "Tms",
-                            "DCEvt",
-                        ]
-                        uint32_data = (
-                            inverter_data.registers[20 + unit_offset : 22 + unit_offset]
-                            + inverter_data.registers[
-                                22 + unit_offset : 24 + unit_offset
-                            ]
-                            + inverter_data.registers[
-                                26 + unit_offset : 28 + unit_offset
-                            ]
-                        )
-                        mmppt_unit_data.update(
-                            dict(
-                                zip(
-                                    uint32_fields,
-                                    [
-                                        decode_uint32(uint32_data[i : i + 2])
-                                        for i in range(0, len(uint32_data), 2)
-                                    ],
-                                    strict=True,
-                                )
-                            )
-                        )
-
-                        self.decoded_model.update(
-                            dict([(f"mmppt_{mmppt_unit_id}", mmppt_unit_data)])
-                        )
-
-            except ModbusIOError:
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+            ) as e:
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    f"Error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
                 )
 
         """ Global Dynamic Power Control and Status """
