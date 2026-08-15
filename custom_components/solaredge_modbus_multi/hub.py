@@ -1914,6 +1914,9 @@ class SolarEdgeEVSE:
         """Read and update dynamic modbus registers."""
 
         try:
+            _LOGGER.debug(
+                f"Reading component EvseCommon(for_unit({self.evse_unit_id}))"
+            )
             await async_update_with_retry(self.evse_common)
 
             for name, value in iter(self.decoded_model.items()):
