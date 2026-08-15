@@ -19,7 +19,6 @@ from modbus_connection.decode import (
     decode_int16,
     decode_int32,
     decode_uint32,
-    decode_uint64,
 )
 from modbus_connection.exceptions import (
     ModbusConnectionError,
