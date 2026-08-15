@@ -58,7 +58,7 @@ from .const import (
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, int_list_to_string
+from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 tmodbus_version = importlib.metadata.version("tmodbus")
