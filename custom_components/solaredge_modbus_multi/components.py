@@ -33,7 +33,7 @@ class InverterData(Component):
 
     C_SunSpec_DID = integer(40069, signed=False)
     C_SunSpec_Length = integer(40070, signed=False)
-    AC_Current = integer(40071, signed=False)
+    AC_Current = integer(40071, signed=False, unit="A")
     AC_Current_A = integer(40072, signed=False, unit="A")
     AC_Current_B = integer(40073, signed=False, unit="A")
     AC_Current_C = integer(40074, signed=False, unit="A")
@@ -53,20 +53,20 @@ class InverterData(Component):
     AC_VA_SF = integer(40088, signed=True)
     AC_var = integer(40089, signed=True, unit="var")
     AC_var_SF = integer(40090, signed=True)
-    AC_PF = integer(40091, signed=True)
+    AC_PF = integer(40091, signed=True, unit="%")
     AC_PF_SF = integer(40092, signed=True)
-    AC_Energy_WH = uint32(40093)
+    AC_Energy_WH = uint32(40093, unit="Wh")
     AC_Energy_WH_SF = integer(40095, signed=False)
-    I_DC_Current = integer(40096, signed=False)
+    I_DC_Current = integer(40096, signed=False, unit="A")
     I_DC_Current_SF = integer(40097, signed=True)
-    I_DC_Voltage = integer(40098, signed=False)
+    I_DC_Voltage = integer(40098, signed=False, unit="V")
     I_DC_Voltage_SF = integer(40099, signed=True)
-    I_DC_Power = integer(40100, signed=True)
+    I_DC_Power = integer(40100, signed=True, unit="W")
     I_DC_Power_SF = integer(40101, signed=True)
-    I_Temp_Cab = integer(40102, signed=True)  # unsupported on SolarEdge
-    I_Temp_Sink = integer(40103, signed=True)
-    I_Temp_Trns = integer(40104, signed=True)  # unsupported on SolarEdge
-    I_Temp_Other = integer(40105, signed=True)  # unsupported on SolarEdge
+    I_Temp_Cab = integer(40102, signed=True, unit="C")  # unsupported on SolarEdge
+    I_Temp_Sink = integer(40103, signed=True, unit="C")
+    I_Temp_Trns = integer(40104, signed=True, unit="C")  # unsupported on SolarEdge
+    I_Temp_Other = integer(40105, signed=True, unit="C")  # unsupported on SolarEdge
     I_Temp_SF = integer(40106, signed=True)
     I_Status = integer(40107, signed=False)
     I_Status_Vendor = integer(40108, signed=False)
