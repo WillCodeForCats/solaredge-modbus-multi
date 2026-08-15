@@ -2017,17 +2017,18 @@ class SolarEdgeEVSE:
         self.decoded_model = {}
         self.has_parent = False
 
+        self.evse_common = EvseCommon(self.hub.connection.for_unit(self.evse_unit_id))
+
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
 
         try:
-            evse_common = EvseCommon(self.hub.connection.for_unit(self.evse_unit_id))
             _LOGGER.debug(
                 f"Reading component EvseCommon(for_unit({self.evse_unit_id}))"
             )
-            await async_update_with_retry(evse_common)
+            await async_update_with_retry(self.evse_common)
 
-            self.decoded_common = component_to_dict(evse_common)
+            self.decoded_common = component_to_dict(self.evse_common)
 
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
@@ -2047,33 +2048,29 @@ class SolarEdgeEVSE:
             raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
 
         if (
-            evse_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
-            or evse_common.C_SunSpec_DID == SunSpecNotImpl.UINT16
-            or evse_common.C_SunSpec_ID != 0x53756E53
-            or evse_common.C_SunSpec_DID != 0x0001
-            or evse_common.C_SunSpec_Length != 65
+            self.evse_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
+            or self.evse_common.C_SunSpec_DID == SunSpecNotImpl.UINT16
+            or self.evse_common.C_SunSpec_ID != 0x53756E53
+            or self.evse_common.C_SunSpec_DID != 0x0001
+            or self.evse_common.C_SunSpec_Length != 65
         ):
             raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
 
-        self.manufacturer = evse_common.C_Manufacturer
-        self.model = evse_common.C_Model
-        self.option = evse_common.C_Option
-        self.serial = evse_common.C_SerialNumber
-        self.device_address = evse_common.C_Device_address
+        self.manufacturer = self.evse_common.C_Manufacturer
+        self.model = self.evse_common.C_Model
+        self.option = self.evse_common.C_Option
+        self.serial = self.evse_common.C_SerialNumber
+        self.device_address = self.evse_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} E{self.evse_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
+
+        self.evse_common.restrict_fields(["C_Version"])
 
     async def read_modbus_data(self) -> None:
         """Read and update dynamic modbus registers."""
 
         try:
-            evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=40044, rcount=16
-            )
-
-            self.decoded_common["C_Version"] = int_list_to_string(
-                evse_data.registers[0:8]
-            )
+            await async_update_with_retry(self.evse_common)
 
             for name, value in iter(self.decoded_model.items()):
                 if isinstance(value, float):
@@ -2084,18 +2081,17 @@ class SolarEdgeEVSE:
                     f"E{self.evse_unit_id}: {name} {display_value} {type(value)}"
                 )
 
-        except ModbusIllegalAddress:
+        except ModbusExceptionError:
             _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
 
-        except ModbusIOError:
-            raise ModbusReadError(f"No response from EVSE ID {self.evse_unit_id}")
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            raise ModbusReadError(
+                f"Error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            )
 
     @property
     def fw_version(self) -> str | None:
-        if "C_Version" in self.decoded_common:
-            return self.decoded_common["C_Version"]
-
-        return None
+        return getattr(self.evse_common, "C_Version", None)
 
     @property
     def device_info(self) -> DeviceInfo:
