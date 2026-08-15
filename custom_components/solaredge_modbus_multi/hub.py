@@ -1089,206 +1089,204 @@ class SolarEdgeInverter:
             self.advanced_power_control is True or self.advanced_power_control is None
         ):
             try:
-                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = await self.hub.modbus_read_holding_registers(
-                        unit=self.inverter_unit_id, address=61696, rcount=86
-                    )
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=61696, rcount=86
+                )
 
-                    int32_fields = [
-                        "PwrFrqDeratingConfig",
-                        "ReactivePwrConfig",
-                        "ActivePwrGrad",
-                        "AdvPwrCtrlEn",
-                        "FrtEn",
-                    ]
-                    int32_data = (
-                        inverter_data.registers[2:6]
-                        + inverter_data.registers[8:10]
-                        + inverter_data.registers[66:70]
-                    )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                int32_fields,
-                                [
-                                    decode_int32(
-                                        int32_data[i : i + 2], word_order="little"
-                                    )
-                                    for i in range(0, len(int32_data), 2)
-                                ],
-                                strict=True,
-                            )
-                        )
-                    )
-
-                    float32_fields = [
-                        "FixedCosPhiPhase",
-                        "FixedReactPwr",
-                        "ReactCosPhiVsPX_0",
-                        "ReactCosPhiVsPX_1",
-                        "ReactCosPhiVsPX_2",
-                        "ReactCosPhiVsPX_3",
-                        "ReactCosPhiVsPX_4",
-                        "ReactCosPhiVsPX_5",
-                        "ReactCosPhiVsPY_0",
-                        "ReactCosPhiVsPY_1",
-                        "ReactCosPhiVsPY_2",
-                        "ReactCosPhiVsPY_3",
-                        "ReactCosPhiVsPY_4",
-                        "ReactCosPhiVsPY_5",
-                        "ReactQVsVgX_0",
-                        "ReactQVsVgX_1",
-                        "ReactQVsVgX_2",
-                        "ReactQVsVgX_3",
-                        "ReactQVsVgX_4",
-                        "ReactQVsVgX_5",
-                        "ReactQVsVgY_0",
-                        "ReactQVsVgY_1",
-                        "ReactQVsVgY_2",
-                        "ReactQVsVgY_3",
-                        "ReactQVsVgY_4",
-                        "ReactQVsVgY_5",
-                        "FRT_KFactor",
-                        "PowerReduce",
-                        "MaxWakeupFreq",
-                        "MinWakeupFreq",
-                        "MaxWakeupVg",
-                        "MinWakeupVg",
-                        "Vnom",
-                        "Inom",
-                        "PwrVsFreqX_0",
-                        "PwrVsFreqX_1",
-                    ]
-                    float32_data = (
-                        inverter_data.registers[10:66] + inverter_data.registers[70:86]
-                    )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                float32_fields,
-                                [
-                                    decode_float32(
-                                        float32_data[i : i + 2], word_order="little"
-                                    )
-                                    for i in range(0, len(float32_data), 2)
-                                ],
-                                strict=True,
-                            )
-                        )
-                    )
-
-                    self.decoded_model.update(
-                        dict(
+                int32_fields = [
+                    "PwrFrqDeratingConfig",
+                    "ReactivePwrConfig",
+                    "ActivePwrGrad",
+                    "AdvPwrCtrlEn",
+                    "FrtEn",
+                ]
+                int32_data = (
+                    inverter_data.registers[2:6]
+                    + inverter_data.registers[8:10]
+                    + inverter_data.registers[66:70]
+                )
+                self.decoded_model.update(
+                    dict(
+                        zip(
+                            int32_fields,
                             [
-                                (
-                                    "CommitPwrCtlSettings",
-                                    decode_int16([inverter_data.registers[0]]),
-                                ),
-                                (
-                                    "RestorePwrCtlDefaults",
-                                    decode_int16([inverter_data.registers[1]]),
-                                ),
-                                (
-                                    "ReactPwrIterTime",
-                                    decode_uint32(
-                                        inverter_data.registers[6:8],
-                                        word_order="little",
-                                    ),
-                                ),
-                            ]
+                                decode_int32(
+                                    int32_data[i : i + 2], word_order="little"
+                                )
+                                for i in range(0, len(int32_data), 2)
+                            ],
+                            strict=True,
                         )
                     )
+                )
 
-                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = await self.hub.modbus_read_holding_registers(
-                        unit=self.inverter_unit_id, address=61782, rcount=84
-                    )
-
-                    float32_fields = [
-                        "PwrVsFreqY_0",
-                        "PwrVsFreqY_1",
-                        "ResetFreq",
-                        "MaxFreq",
-                        "ReactQVsPX_0",
-                        "ReactQVsPX_1",
-                        "ReactQVsPX_2",
-                        "ReactQVsPX_3",
-                        "ReactQVsPX_4",
-                        "ReactQVsPX_5",
-                        "ReactQVsPY_0",
-                        "ReactQVsPY_1",
-                        "ReactQVsPY_2",
-                        "ReactQVsPY_3",
-                        "ReactQVsPY_4",
-                        "ReactQVsPY_5",
-                        "ReactCosPhiVsPVgLockInMax",
-                        "ReactCosPhiVsPVgLockInMin",
-                        "ReactCosPhiVsPVgLockOutMax",
-                        "ReactCosPhiVsPVgLockOutMin",
-                        "ReactQVsVgPLockInMax",
-                        "ReactQVsVgPLockInMin",
-                        "ReactQVsVgPLockOutMax",
-                        "ReactQVsVgPLockOutMin",
-                        "MaxCurrent",
-                        "PwrVsVgX_0",
-                        "PwrVsVgX_1",
-                        "PwrVsVgX_2",
-                        "PwrVsVgX_3",
-                        "PwrVsVgX_4",
-                        "PwrVsVgX_5",
-                        "PwrVsVgY_0",
-                        "PwrVsVgY_1",
-                        "PwrVsVgY_2",
-                        "PwrVsVgY_3",
-                        "PwrVsVgY_4",
-                        "PwrVsVgY_5",
-                        "DisconnectAtZeroPwrLim",
-                    ]
-                    float32_data = (
-                        inverter_data.registers[0:32]
-                        + inverter_data.registers[36:52]
-                        + inverter_data.registers[56:84]
-                    )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                float32_fields,
-                                [
-                                    decode_float32(
-                                        float32_data[i : i + 2], word_order="little"
-                                    )
-                                    for i in range(0, len(float32_data), 2)
-                                ],
-                                strict=True,
-                            )
+                float32_fields = [
+                    "FixedCosPhiPhase",
+                    "FixedReactPwr",
+                    "ReactCosPhiVsPX_0",
+                    "ReactCosPhiVsPX_1",
+                    "ReactCosPhiVsPX_2",
+                    "ReactCosPhiVsPX_3",
+                    "ReactCosPhiVsPX_4",
+                    "ReactCosPhiVsPX_5",
+                    "ReactCosPhiVsPY_0",
+                    "ReactCosPhiVsPY_1",
+                    "ReactCosPhiVsPY_2",
+                    "ReactCosPhiVsPY_3",
+                    "ReactCosPhiVsPY_4",
+                    "ReactCosPhiVsPY_5",
+                    "ReactQVsVgX_0",
+                    "ReactQVsVgX_1",
+                    "ReactQVsVgX_2",
+                    "ReactQVsVgX_3",
+                    "ReactQVsVgX_4",
+                    "ReactQVsVgX_5",
+                    "ReactQVsVgY_0",
+                    "ReactQVsVgY_1",
+                    "ReactQVsVgY_2",
+                    "ReactQVsVgY_3",
+                    "ReactQVsVgY_4",
+                    "ReactQVsVgY_5",
+                    "FRT_KFactor",
+                    "PowerReduce",
+                    "MaxWakeupFreq",
+                    "MinWakeupFreq",
+                    "MaxWakeupVg",
+                    "MinWakeupVg",
+                    "Vnom",
+                    "Inom",
+                    "PwrVsFreqX_0",
+                    "PwrVsFreqX_1",
+                ]
+                float32_data = (
+                    inverter_data.registers[10:66] + inverter_data.registers[70:86]
+                )
+                self.decoded_model.update(
+                    dict(
+                        zip(
+                            float32_fields,
+                            [
+                                decode_float32(
+                                    float32_data[i : i + 2], word_order="little"
+                                )
+                                for i in range(0, len(float32_data), 2)
+                            ],
+                            strict=True,
                         )
                     )
+                )
 
-                    uint32_fields = [
-                        "PwrFrqDeratingResetTime",
-                        "PwrFrqDeratingGradTime",
-                        "ReactQVsVgType",
-                        "PwrSoftStartTime",
-                    ]
-                    uint32_data = (
-                        inverter_data.registers[32:36] + inverter_data.registers[52:56]
+                self.decoded_model.update(
+                    dict(
+                        [
+                            (
+                                "CommitPwrCtlSettings",
+                                decode_int16([inverter_data.registers[0]]),
+                            ),
+                            (
+                                "RestorePwrCtlDefaults",
+                                decode_int16([inverter_data.registers[1]]),
+                            ),
+                            (
+                                "ReactPwrIterTime",
+                                decode_uint32(
+                                    inverter_data.registers[6:8],
+                                    word_order="little",
+                                ),
+                            ),
+                        ]
                     )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                uint32_fields,
-                                [
-                                    decode_float32(
-                                        uint32_data[i : i + 2], word_order="little"
-                                    )
-                                    for i in range(0, len(uint32_data), 2)
-                                ],
-                                strict=True,
-                            )
+                )
+
+                inverter_data = await self.hub.modbus_read_holding_registers(
+                    unit=self.inverter_unit_id, address=61782, rcount=84
+                )
+
+                float32_fields = [
+                    "PwrVsFreqY_0",
+                    "PwrVsFreqY_1",
+                    "ResetFreq",
+                    "MaxFreq",
+                    "ReactQVsPX_0",
+                    "ReactQVsPX_1",
+                    "ReactQVsPX_2",
+                    "ReactQVsPX_3",
+                    "ReactQVsPX_4",
+                    "ReactQVsPX_5",
+                    "ReactQVsPY_0",
+                    "ReactQVsPY_1",
+                    "ReactQVsPY_2",
+                    "ReactQVsPY_3",
+                    "ReactQVsPY_4",
+                    "ReactQVsPY_5",
+                    "ReactCosPhiVsPVgLockInMax",
+                    "ReactCosPhiVsPVgLockInMin",
+                    "ReactCosPhiVsPVgLockOutMax",
+                    "ReactCosPhiVsPVgLockOutMin",
+                    "ReactQVsVgPLockInMax",
+                    "ReactQVsVgPLockInMin",
+                    "ReactQVsVgPLockOutMax",
+                    "ReactQVsVgPLockOutMin",
+                    "MaxCurrent",
+                    "PwrVsVgX_0",
+                    "PwrVsVgX_1",
+                    "PwrVsVgX_2",
+                    "PwrVsVgX_3",
+                    "PwrVsVgX_4",
+                    "PwrVsVgX_5",
+                    "PwrVsVgY_0",
+                    "PwrVsVgY_1",
+                    "PwrVsVgY_2",
+                    "PwrVsVgY_3",
+                    "PwrVsVgY_4",
+                    "PwrVsVgY_5",
+                    "DisconnectAtZeroPwrLim",
+                ]
+                float32_data = (
+                    inverter_data.registers[0:32]
+                    + inverter_data.registers[36:52]
+                    + inverter_data.registers[56:84]
+                )
+                self.decoded_model.update(
+                    dict(
+                        zip(
+                            float32_fields,
+                            [
+                                decode_float32(
+                                    float32_data[i : i + 2], word_order="little"
+                                )
+                                for i in range(0, len(float32_data), 2)
+                            ],
+                            strict=True,
                         )
                     )
+                )
 
-                    self.advanced_power_control = True
+                uint32_fields = [
+                    "PwrFrqDeratingResetTime",
+                    "PwrFrqDeratingGradTime",
+                    "ReactQVsVgType",
+                    "PwrSoftStartTime",
+                ]
+                uint32_data = (
+                    inverter_data.registers[32:36] + inverter_data.registers[52:56]
+                )
+                self.decoded_model.update(
+                    dict(
+                        zip(
+                            uint32_fields,
+                            [
+                                decode_float32(
+                                    uint32_data[i : i + 2], word_order="little"
+                                )
+                                for i in range(0, len(uint32_data), 2)
+                            ],
+                            strict=True,
+                        )
+                    )
+                )
+
+                self.advanced_power_control = True
 
             except ModbusIllegalAddress:
                 self.advanced_power_control = False
