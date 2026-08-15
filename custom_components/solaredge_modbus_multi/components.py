@@ -207,6 +207,17 @@ class AdvancedPowerControl(Component):
     DisconnectAtZeroPwrLim = float32(61864, word_order="little", writable=True)
 
 
+class SiteLimitControl(Component):
+    """Power Control Options: Site Limit Control, read every polling cycle."""
+
+    register_ranges = ((57344, 57347), (57362, 57363))
+
+    E_Lim_Ctl_Mode = integer(57344, signed=False, writable=True)
+    E_Lim_Ctl = integer(57345, signed=False, writable=True)
+    E_Site_Limit = float32(57346, unit="W", word_order="little", writable=True)
+    Ext_Prod_Max = float32(57362, unit="W", word_order="little", writable=True)
+
+
 class MmpptCommon(Component):
     """MMPPT common block is only read once at setup."""
 
