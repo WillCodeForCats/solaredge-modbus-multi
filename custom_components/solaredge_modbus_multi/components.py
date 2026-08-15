@@ -7,6 +7,7 @@ from typing import Any
 from modbus_connection.model import (
     Component,
     float32,
+    int32,
     integer,
     repeating_group,
     string,
@@ -101,6 +102,109 @@ class GlobalDynamicPowerControl(Component):
     I_RRCR = integer(61440, signed=False)
     I_Power_Limit = integer(61441, signed=False, unit="%", writable=True)
     I_CosPhi = float32(61442, word_order="little", writable=True)
+
+
+class AdvancedPowerControl(Component):
+    """Advanced Power Control Power Control Block is read every polling cycle."""
+
+    CommitPwrCtlSettings = integer(61696, signed=True, writable=True)
+    RestorePwrCtlDefaults = integer(61697, signed=True, writable=True)
+    PwrFrqDeratingConfig = int32(61698, word_order="little", writable=True)
+    ReactivePwrConfig = int32(61700, word_order="little", writable=True)
+    ReactPwrIterTime = uint32(61702, unit="ms", word_order="little", writable=True)
+    ActivePwrGrad = int32(61704, word_order="little", writable=True)
+    FixedCosPhiPhase = float32(61706, word_order="little", writable=True)
+    FixedReactPwr = float32(61708, unit="VAR", word_order="little", writable=True)
+    ReactCosPhiVsPX_0 = float32(61710, word_order="little", writable=True)
+    ReactCosPhiVsPX_1 = float32(61712, word_order="little", writable=True)
+    ReactCosPhiVsPX_2 = float32(61714, word_order="little", writable=True)
+    ReactCosPhiVsPX_3 = float32(61716, word_order="little", writable=True)
+    ReactCosPhiVsPX_4 = float32(61718, word_order="little", writable=True)
+    ReactCosPhiVsPX_5 = float32(61720, word_order="little", writable=True)
+    ReactCosPhiVsPY_0 = float32(61722, word_order="little", writable=True)
+    ReactCosPhiVsPY_1 = float32(61724, word_order="little", writable=True)
+    ReactCosPhiVsPY_2 = float32(61726, word_order="little", writable=True)
+    ReactCosPhiVsPY_3 = float32(61728, word_order="little", writable=True)
+    ReactCosPhiVsPY_4 = float32(61730, word_order="little", writable=True)
+    ReactCosPhiVsPY_5 = float32(61732, word_order="little", writable=True)
+    ReactQVsVgX_0 = float32(61734, unit="%", word_order="little", writable=True)
+    ReactQVsVgX_1 = float32(61736, unit="%", word_order="little", writable=True)
+    ReactQVsVgX_2 = float32(61738, unit="%", word_order="little", writable=True)
+    ReactQVsVgX_3 = float32(61740, unit="%", word_order="little", writable=True)
+    ReactQVsVgX_4 = float32(61742, unit="%", word_order="little", writable=True)
+    ReactQVsVgX_5 = float32(61744, unit="%", word_order="little", writable=True)
+    ReactQVsVgY_0 = float32(61746, unit="%", word_order="little", writable=True)
+    ReactQVsVgY_1 = float32(61748, unit="%", word_order="little", writable=True)
+    ReactQVsVgY_2 = float32(61750, unit="%", word_order="little", writable=True)
+    ReactQVsVgY_3 = float32(61752, unit="%", word_order="little", writable=True)
+    ReactQVsVgY_4 = float32(61754, unit="%", word_order="little", writable=True)
+    ReactQVsVgY_5 = float32(61756, unit="%", word_order="little", writable=True)
+    FRT_KFactor = float32(61758, word_order="little", writable=True)
+    PowerReduce = float32(61760, word_order="little", writable=True)
+    AdvPwrCtrlEn = int32(61762, word_order="little", writable=True)
+    FrtEn = int32(61764, word_order="little", writable=True)
+    MaxWakeupFreq = float32(61766, unit="Hz", word_order="little", writable=True)
+    MinWakeupFreq = float32(61768, unit="Hz", word_order="little", writable=True)
+    MaxWakeupVg = float32(61770, unit="V", word_order="little", writable=True)
+    MinWakeupVg = float32(61772, unit="V", word_order="little", writable=True)
+    Vnom = float32(61774, unit="V", word_order="little", writable=True)
+    Inom = float32(61776, unit="A", word_order="little", writable=True)
+    PwrVsFreqX_0 = float32(61778, unit="Hz", word_order="little", writable=True)
+    PwrVsFreqX_1 = float32(61780, unit="Hz", word_order="little", writable=True)
+    PwrVsFreqY_0 = float32(61782, word_order="little", writable=True)
+    PwrVsFreqY_1 = float32(61784, word_order="little", writable=True)
+    ResetFreq = float32(61786, unit="Hz", word_order="little", writable=True)
+    MaxFreq = float32(61788, unit="Hz", word_order="little", writable=True)
+    ReactQVsPX_0 = float32(61790, unit="%", word_order="little", writable=True)
+    ReactQVsPX_1 = float32(61792, unit="%", word_order="little", writable=True)
+    ReactQVsPX_2 = float32(61794, unit="%", word_order="little", writable=True)
+    ReactQVsPX_3 = float32(61796, unit="%", word_order="little", writable=True)
+    ReactQVsPX_4 = float32(61798, unit="%", word_order="little", writable=True)
+    ReactQVsPX_5 = float32(61800, unit="%", word_order="little", writable=True)
+    ReactQVsPY_0 = float32(61802, unit="%", word_order="little", writable=True)
+    ReactQVsPY_1 = float32(61804, unit="%", word_order="little", writable=True)
+    ReactQVsPY_2 = float32(61806, unit="%", word_order="little", writable=True)
+    ReactQVsPY_3 = float32(61808, unit="%", word_order="little", writable=True)
+    ReactQVsPY_4 = float32(61810, unit="%", word_order="little", writable=True)
+    ReactQVsPY_5 = float32(61812, unit="%", word_order="little", writable=True)
+    PwrFrqDeratingResetTime = uint32(
+        61814, unit="ms", word_order="little", writable=True
+    )
+    PwrFrqDeratingGradTime = uint32(
+        61816, unit="ms", word_order="little", writable=True
+    )
+    ReactCosPhiVsPVgLockInMax = float32(
+        61818, unit="V", word_order="little", writable=True
+    )
+    ReactCosPhiVsPVgLockInMin = float32(
+        61820, unit="V", word_order="little", writable=True
+    )
+    ReactCosPhiVsPVgLockOutMax = float32(
+        61822, unit="V", word_order="little", writable=True
+    )
+    ReactCosPhiVsPVgLockOutMin = float32(
+        61824, unit="V", word_order="little", writable=True
+    )
+    ReactQVsVgPLockInMax = float32(61826, unit="V", word_order="little", writable=True)
+    ReactQVsVgPLockInMin = float32(61828, unit="V", word_order="little", writable=True)
+    ReactQVsVgPLockOutMax = float32(61830, unit="V", word_order="little", writable=True)
+    ReactQVsVgPLockOutMin = float32(61832, unit="V", word_order="little", writable=True)
+    ReactQVsVgType = uint32(61834, word_order="little", writable=True)
+    PwrSoftStartTime = uint32(61836, unit="ms", word_order="little", writable=True)
+    MaxCurrent = float32(61838, unit="A", word_order="little", writable=True)
+    PwrVsVgX_0 = float32(61840, unit="V", word_order="little", writable=True)
+    PwrVsVgX_1 = float32(61842, unit="V", word_order="little", writable=True)
+    PwrVsVgX_2 = float32(61844, unit="V", word_order="little", writable=True)
+    PwrVsVgX_3 = float32(61846, unit="V", word_order="little", writable=True)
+    PwrVsVgX_4 = float32(61848, unit="V", word_order="little", writable=True)
+    PwrVsVgX_5 = float32(61850, unit="V", word_order="little", writable=True)
+    PwrVsVgY_0 = float32(61852, word_order="little", writable=True)
+    PwrVsVgY_1 = float32(61854, word_order="little", writable=True)
+    PwrVsVgY_2 = float32(61856, word_order="little", writable=True)
+    PwrVsVgY_3 = float32(61858, word_order="little", writable=True)
+    PwrVsVgY_4 = float32(61860, word_order="little", writable=True)
+    PwrVsVgY_5 = float32(61862, word_order="little", writable=True)
+    DisconnectAtZeroPwrLim = float32(61864, word_order="little", writable=True)
 
 
 class MmpptCommon(Component):
