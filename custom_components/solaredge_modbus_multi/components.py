@@ -218,6 +218,20 @@ class SiteLimitControl(Component):
     Ext_Prod_Max = float32(57362, unit="W", word_order="little", writable=True)
 
 
+class StorageControl(Component):
+    """Power Control Options: Storage Control, read every polling cycle."""
+
+    control_mode = integer(57348, signed=False, writable=True)
+    ac_charge_policy = integer(57349, signed=False, writable=True)
+    ac_charge_limit = float32(57350, word_order="little", writable=True)
+    backup_reserve = float32(57352, unit="%", word_order="little", writable=True)
+    default_mode = integer(57354, signed=False, writable=True)
+    command_timeout = uint32(57355, unit="s", word_order="little", writable=True)
+    command_mode = integer(57357, signed=False, writable=True)
+    charge_limit = float32(57358, unit="W", word_order="little", writable=True)
+    discharge_limit = float32(57360, unit="W", word_order="little", writable=True)
+
+
 class MmpptCommon(Component):
     """MMPPT common block is only read once at setup."""
 
