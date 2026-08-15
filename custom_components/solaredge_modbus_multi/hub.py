@@ -1400,38 +1400,6 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-        """ Grid On/Off Status """
-        if self._grid_status is not False:
-            try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40113, rcount=2
-                )
-
-                self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "I_Grid_Status",
-                                decode_uint32(
-                                    inverter_data.registers[0:2], word_order="little"
-                                ),
-                            ),
-                        ]
-                    )
-                )
-                self._grid_status = True
-
-            except ModbusIllegalAddress:
-                self._grid_status = False
-                _LOGGER.debug(f"I{self.inverter_unit_id}: Grid On/Off NOT available")
-
-            except (TimeoutError, ModbusIOError) as e:
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: A modbus I/O exception occurred "
-                    "while reading data for Grid On/Off Status. This entity "
-                    f"will be unavailable: {e}"
-                )
-
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
                 display_value = float_to_hex(value)
