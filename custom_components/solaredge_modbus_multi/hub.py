@@ -33,6 +33,7 @@ from .components import (
     EvseCommon,
     InverterCommon,
     InverterData,
+    MeterData,
     MeterInfo,
     MmpptCommon,
     component_to_dict,
@@ -1640,6 +1641,10 @@ class SolarEdgeMeter:
             self.hub.connection.for_unit(self.inverter_unit_id),
             base_offset=self.base_offset,
         )
+        self.meter_data = MeterData(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
 
     async def init_device(self) -> None:
         try:
@@ -1694,137 +1699,16 @@ class SolarEdgeMeter:
 
     async def read_modbus_data(self) -> None:
         try:
-            meter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id,
-                address=self.start_address + 67,
-                rcount=107,
+            _LOGGER.debug(
+                f"Reading component MeterData(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
+            await async_update_with_retry(self.meter_data)
 
-            self.decoded_model = dict(
-                [
-                    (
-                        "C_SunSpec_DID",
-                        meter_data.registers[0],
-                    ),
-                    (
-                        "C_SunSpec_Length",
-                        meter_data.registers[1],
-                    ),
-                ]
-            )
+            self.decoded_model = component_to_dict(self.meter_data)
 
-            int16_fields = [
-                "AC_Current",
-                "AC_Current_A",
-                "AC_Current_B",
-                "AC_Current_C",
-                "AC_Current_SF",
-                "AC_Voltage_LN",
-                "AC_Voltage_AN",
-                "AC_Voltage_BN",
-                "AC_Voltage_CN",
-                "AC_Voltage_LL",
-                "AC_Voltage_AB",
-                "AC_Voltage_BC",
-                "AC_Voltage_CA",
-                "AC_Voltage_SF",
-                "AC_Frequency",
-                "AC_Frequency_SF",
-                "AC_Power",
-                "AC_Power_A",
-                "AC_Power_B",
-                "AC_Power_C",
-                "AC_Power_SF",
-                "AC_VA",
-                "AC_VA_A",
-                "AC_VA_B",
-                "AC_VA_C",
-                "AC_VA_SF",
-                "AC_var",
-                "AC_var_A",
-                "AC_var_B",
-                "AC_var_C",
-                "AC_var_SF",
-                "AC_PF",
-                "AC_PF_A",
-                "AC_PF_B",
-                "AC_PF_C",
-                "AC_PF_SF",
-                "AC_Energy_WH_SF",
-                "M_VAh_SF",
-                "M_varh_SF",
-            ]
-            int16_data = (
-                meter_data.registers[2:38]
-                + [meter_data.registers[54]]
-                + [meter_data.registers[71]]
-                + [meter_data.registers[104]]
-            )
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        int16_fields,
-                        [decode_int16([r]) for r in int16_data],
-                    )
-                )
-            )
-
-            uint32_fields = [
-                "AC_Energy_WH_Exported",
-                "AC_Energy_WH_Exported_A",
-                "AC_Energy_WH_Exported_B",
-                "AC_Energy_WH_Exported_C",
-                "AC_Energy_WH_Imported",
-                "AC_Energy_WH_Imported_A",
-                "AC_Energy_WH_Imported_B",
-                "AC_Energy_WH_Imported_C",
-                "M_VAh_Exported",
-                "M_VAh_Exported_A",
-                "M_VAh_Exported_B",
-                "M_VAh_Exported_C",
-                "M_VAh_Imported",
-                "M_VAh_Imported_A",
-                "M_VAh_Imported_B",
-                "M_VAh_Imported_C",
-                "M_varh_Import_Q1",
-                "M_varh_Import_Q1_A",
-                "M_varh_Import_Q1_B",
-                "M_varh_Import_Q1_C",
-                "M_varh_Import_Q2",
-                "M_varh_Import_Q2_A",
-                "M_varh_Import_Q2_B",
-                "M_varh_Import_Q2_C",
-                "M_varh_Export_Q3",
-                "M_varh_Export_Q3_A",
-                "M_varh_Export_Q3_B",
-                "M_varh_Export_Q3_C",
-                "M_varh_Export_Q4",
-                "M_varh_Export_Q4_A",
-                "M_varh_Export_Q4_B",
-                "M_varh_Export_Q4_C",
-                "M_Events",
-            ]
-            uint32_data = (
-                meter_data.registers[38:54]
-                + meter_data.registers[55:70]
-                + meter_data.registers[71:104]
-                + meter_data.registers[105:107]
-            )
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint32_fields,
-                        [
-                            decode_uint32(uint32_data[i : i + 2])
-                            for i in range(0, len(uint32_data), 2)
-                        ],
-                    )
-                )
-            )
-
-        except ModbusIOError:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
+                f"Error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
             )
 
         for name, value in iter(self.decoded_model.items()):
@@ -1837,9 +1721,9 @@ class SolarEdgeMeter:
             )
 
         if (
-            self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or self.decoded_model["C_SunSpec_DID"] not in [201, 202, 203, 204]
-            or self.decoded_model["C_SunSpec_Length"] != 105
+            self.meter_data.C_SunSpec_DID == SunSpecNotImpl.UINT16
+            or self.meter_data.C_SunSpec_DID not in [201, 202, 203, 204]
+            or self.meter_data.C_SunSpec_Length != 105
         ):
             raise DeviceInvalid(
                 f"Meter {self.meter_id} ident incorrect or not installed."
