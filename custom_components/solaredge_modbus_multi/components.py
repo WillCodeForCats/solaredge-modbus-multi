@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from modbus_connection.model import Component, float32, integer, string, uint32, uint64
+from modbus_connection.model import (
+    Component,
+    float32,
+    integer,
+    repeating_group,
+    string,
+    uint32,
+    uint64,
+)
 
 _ASCII_CTRL_CHARS = dict.fromkeys(range(32))
 
@@ -104,12 +112,32 @@ class MmpptCommon(Component):
 
 
 class MmpptUnit(Component):
-    """MMPPT units are read every polling cycle."""
+    """Sub-component of MmpptData.units; modbus-connection builds
+    one instance per unit (2 or 3, per mmppt_Units) itself, each shifted by
+    stride * unit_index
+    """
+
+    ID = integer(40131, signed=False)
+    IDStr = string(40132, 16)
+    DCA = integer(40140, signed=False, unit="A")
+    DCV = integer(40141, signed=False, unit="V")
+    DCW = integer(40142, signed=False, unit="W")
+    DCWH = uint32(40143, unit="Wh")
+    Tms = uint32(40145)
+    Tmp = integer(40147, signed=True, unit="C")
+    DCSt = integer(40148, signed=False)
+    DCEvt = uint32(40149)
+
+
+class MmpptData(Component):
+    """MMPPT scale factors, events, and every unit; read every polling cycle."""
 
     mmppt_DCA_SF = integer(40123, signed=True)
     mmppt_DCV_SF = integer(40124, signed=True)
     mmppt_DCW_SF = integer(40125, signed=True)
     mmppt_DCWH_SF = integer(40126, signed=True)
+    mmppt_Events = uint32(40127)
+    units = repeating_group(integer(40129, signed=False), MmpptUnit, stride=20)
 
 
 class EvseCommon(InverterCommon):
