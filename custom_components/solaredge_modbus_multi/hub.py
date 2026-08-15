@@ -1110,9 +1110,7 @@ class SolarEdgeInverter:
                         zip(
                             int32_fields,
                             [
-                                decode_int32(
-                                    int32_data[i : i + 2], word_order="little"
-                                )
+                                decode_int32(int32_data[i : i + 2], word_order="little")
                                 for i in range(0, len(int32_data), 2)
                             ],
                             strict=True,
