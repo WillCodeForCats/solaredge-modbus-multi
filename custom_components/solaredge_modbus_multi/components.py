@@ -87,6 +87,14 @@ class InverterData(Component):
         )
 
 
+class GlobalDynamicPowerControl(Component):
+    """Global Dynamic Power Control and Status"""
+
+    I_RRCR = integer(61440, signed=False)
+    I_Power_Limit = integer(61441, signed=False, unit="%", writable=True)
+    I_CosPhi = float32(61442, word_order="little", writable=True)
+
+
 class MmpptCommon(Component):
     """MMPPT common block is only read once at setup."""
 
