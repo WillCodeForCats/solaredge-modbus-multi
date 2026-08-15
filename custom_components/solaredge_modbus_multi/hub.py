@@ -1044,17 +1044,16 @@ class SolarEdgeInverter:
             self.global_power_control is True or self.global_power_control is None
         ):
             try:
-                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    _LOGGER.debug(
-                        f"Reading component GlobalDynamicPowerControl(for_unit({self.inverter_unit_id}))"
-                    )
-                    await async_update_with_retry(self.global_power_control_data)
+                _LOGGER.debug(
+                    f"Reading component GlobalDynamicPowerControl(for_unit({self.inverter_unit_id}))"
+                )
+                await async_update_with_retry(self.global_power_control_data)
 
-                    self.decoded_model.update(
-                        component_to_dict(self.global_power_control_data)
-                    )
+                self.decoded_model.update(
+                    component_to_dict(self.global_power_control_data)
+                )
 
-                    self.global_power_control = True
+                self.global_power_control = True
 
             except ModbusExceptionError:
                 self.global_power_control = False
