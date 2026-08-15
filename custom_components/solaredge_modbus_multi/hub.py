@@ -733,7 +733,6 @@ class SolarEdgeInverter:
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
-        self._grid_status = None
         self._use_status_vendor4 = False
         self._use_mmppt_units = False
 
