@@ -1636,18 +1636,19 @@ class SolarEdgeMeter:
 
         self.base_offset = self.start_address - METER_REG_BASE[1]
 
+        self.meter_info = MeterInfo(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
+
     async def init_device(self) -> None:
         try:
-            meter_info = MeterInfo(
-                self.hub.connection.for_unit(self.inverter_unit_id),
-                base_offset=self.base_offset,
-            )
             _LOGGER.debug(
                 f"Reading component MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await async_update_with_retry(meter_info)
+            await async_update_with_retry(self.meter_info)
 
-            self.decoded_common = component_to_dict(meter_info)
+            self.decoded_common = component_to_dict(self.meter_info)
 
             for name, value in iter(self.decoded_common.items()):
                 _LOGGER.debug(
@@ -1659,9 +1660,9 @@ class SolarEdgeMeter:
                 )
 
             if (
-                meter_info.C_SunSpec_DID == SunSpecNotImpl.UINT16
-                or meter_info.C_SunSpec_DID != 0x0001
-                or meter_info.C_SunSpec_Length != 65
+                self.meter_info.C_SunSpec_DID == SunSpecNotImpl.UINT16
+                or self.meter_info.C_SunSpec_DID != 0x0001
+                or self.meter_info.C_SunSpec_Length != 65
             ):
                 raise DeviceInvalid(
                     f"Meter I{self.inverter_unit_id}M{self.meter_id} ident incorrect or not installed."
@@ -1677,12 +1678,12 @@ class SolarEdgeMeter:
                 f"Meter I{self.inverter_unit_id}M{self.meter_id}: unsupported address"
             )
 
-        self.manufacturer = meter_info.C_Manufacturer
-        self.model = meter_info.C_Model
-        self.option = meter_info.C_Option
-        self.fw_version = meter_info.C_Version
-        self.serial = meter_info.C_SerialNumber
-        self.device_address = meter_info.C_Device_address
+        self.manufacturer = self.meter_info.C_Manufacturer
+        self.model = self.meter_info.C_Model
+        self.option = self.meter_info.C_Option
+        self.fw_version = self.meter_info.C_Version
+        self.serial = self.meter_info.C_SerialNumber
+        self.device_address = self.meter_info.C_Device_address
         self.name = (
             f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
