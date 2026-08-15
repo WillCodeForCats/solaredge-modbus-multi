@@ -19,19 +19,6 @@ def float_to_hex(f: float) -> str:
         raise ValueError(f"Error converting {f} to hex: {e}")
 
 
-def int_list_to_string(int_list: list[int]) -> str:
-    """Convert a list of 16-bit unsigned integers into a string. Each int is 2 bytes.
-
-    This method exists because pymodbus ModbusClientMixin.convert_from_registers with
-    data_type=DATATYPE.STRING needs errors="ignore" added to handle SolarEdge strings.
-
-    Ref: https://github.com/pymodbus-dev/pymodbus/blob/
-    7fc8d3e02d9d9011c25c80149eb88318e7f50d0e/pymodbus/client/mixin.py#L719
-    """
-    byte_data = b"".join(i.to_bytes(2, "big") for i in int_list)
-    return byte_data.decode("utf-8", errors="ignore").replace("\x00", "").rstrip()
-
-
 def update_accum(self, accum_value: int) -> None:
     if self.last is None:
         self.last = 0
