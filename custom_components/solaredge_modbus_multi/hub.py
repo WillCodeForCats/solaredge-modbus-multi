@@ -156,13 +156,13 @@ async def async_update_with_retry(component) -> None:
             return
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            if attempt >= RetrySettings.RequestRetries:
-                raise
-
             _LOGGER.debug(
                 f"{type(component).__name__}.async_update() attempt {attempt} "
                 f"of {RetrySettings.RequestRetries} failed: {e}"
             )
+
+            if attempt >= RetrySettings.RequestRetries:
+                raise
 
 
 class SolarEdgeModbusMultiHub:
