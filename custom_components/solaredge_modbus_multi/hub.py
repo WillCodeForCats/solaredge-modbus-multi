@@ -31,6 +31,7 @@ from .components import (
     BatteryData,
     BatteryInfo,
     EvseCommon,
+    GlobalDynamicPowerControl,
     InverterCommon,
     InverterData,
     MeterData,
@@ -745,6 +746,9 @@ class SolarEdgeInverter:
         self.mmppt_common = MmpptCommon(
             self.hub.connection.for_unit(self.inverter_unit_id)
         )
+        self.global_power_control_data = GlobalDynamicPowerControl(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1042,41 +1046,29 @@ class SolarEdgeInverter:
         ):
             try:
                 async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = await self.hub.modbus_read_holding_registers(
-                        unit=self.inverter_unit_id, address=61440, rcount=4
+                    _LOGGER.debug(
+                        f"Reading component GlobalDynamicPowerControl(for_unit({self.inverter_unit_id}))"
                     )
+                    await async_update_with_retry(self.global_power_control_data)
 
                     self.decoded_model.update(
-                        dict(
-                            [
-                                (
-                                    "I_RRCR",
-                                    inverter_data.registers[0],
-                                ),
-                                (
-                                    "I_Power_Limit",
-                                    inverter_data.registers[1],
-                                ),
-                                (
-                                    "I_CosPhi",
-                                    decode_float32(
-                                        inverter_data.registers[2:4],
-                                        word_order="little",
-                                    ),
-                                ),
-                            ]
-                        )
+                        component_to_dict(self.global_power_control_data)
                     )
 
                     self.global_power_control = True
 
-            except ModbusIllegalAddress:
+            except ModbusExceptionError:
                 self.global_power_control = False
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: global power control NOT available"
                 )
 
-            except (TimeoutError, ModbusIOError):
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+                TimeoutError,
+            ):
                 self.global_power_control = False
                 ir.async_create_issue(
                     self.hub._hass,
