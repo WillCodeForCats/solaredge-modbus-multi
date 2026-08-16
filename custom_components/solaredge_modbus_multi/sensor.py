@@ -1723,7 +1723,7 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
 
 
 class MeterVAhIE(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.ENERGY
+    # No device_class: ENERGY only allows Wh-based units, not VAh.
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_VOLT_AMPERE_HOUR
 
@@ -1801,7 +1801,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
 
 
 class MetervarhIE(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.ENERGY
+    # No device_class: ENERGY only allows Wh-based units, not varh.
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_VOLT_AMPERE_REACTIVE_HOUR
 
