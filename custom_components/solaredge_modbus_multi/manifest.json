@@ -10,7 +10,7 @@
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
   "loggers": ["custom_components.solaredge_modbus_multi", "tmodbus"],
   "requirements": [
-    "modbus-connection[tmodbus]>=4.4.0",
+    "modbus-connection[tmodbus]>=4.8.0",
     "tmodbus>=0.5.0",
     "awesomeversion>=25.5.0"
   ],
