@@ -37,6 +37,7 @@ from .components import (
     MeterInfo,
     MmpptCommon,
     MmpptData,
+    SiteLimitControl,
     component_to_dict,
 )
 from .const import (
@@ -752,6 +753,9 @@ class SolarEdgeInverter:
         self.advanced_power_control_data = AdvancedPowerControl(
             self.hub.connection.for_unit(self.inverter_unit_id)
         )
+        self.site_limit_control_data = SiteLimitControl(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1033,76 +1037,36 @@ class SolarEdgeInverter:
             self.hub.option_site_limit_control is True
             and self.site_limit_control is not False
         ):
-            """Site Limit and Mode"""
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57344, rcount=4
+                _LOGGER.debug(
+                    "Reading component "
+                    f"SiteLimitControl(for_unit({self.inverter_unit_id}))"
                 )
+                await async_update_with_retry(self.site_limit_control_data)
 
                 self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "E_Lim_Ctl_Mode",
-                                inverter_data.registers[0],
-                            ),
-                            (
-                                "E_Lim_Ctl",
-                                inverter_data.registers[1],
-                            ),
-                            (
-                                "E_Site_Limit",
-                                decode_float32(
-                                    inverter_data.registers[2:4], word_order="little"
-                                ),
-                            ),
-                        ]
-                    )
+                    component_to_dict(self.site_limit_control_data)
                 )
 
                 self.site_limit_control = True
 
-            except ModbusIllegalAddress:
+            except ModbusExceptionError:
+                # Assumes Ext_Prod_Max fails together with the rest of this
+                # block rather than independently; if a device turns out to
+                # reject it alone, revisit with per-field handling.
                 self.site_limit_control = False
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: site limit control NOT available"
                 )
 
-            except ModbusIOError:
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+            ) as e:
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
-
-            """ External Production Max Power """
-            try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57362, rcount=2
-                )
-
-                self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "Ext_Prod_Max",
-                                decode_float32(
-                                    inverter_data.registers[0:2], word_order="little"
-                                ),
-                            ),
-                        ]
-                    )
-                )
-
-            except ModbusIllegalAddress:
-                try:
-                    del self.decoded_model["Ext_Prod_Max"]
-                except KeyError:
-                    pass
-
-                _LOGGER.debug(f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available")
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    f"Error reading inverter ID {self.inverter_unit_id} "
+                    f"at SiteLimitControl: {e}"
                 )
 
         for name, value in iter(self.decoded_model.items()):
