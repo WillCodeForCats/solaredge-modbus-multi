@@ -38,6 +38,7 @@ from .components import (
     MmpptCommon,
     MmpptData,
     SiteLimitControl,
+    StorageControl,
     component_to_dict,
 )
 from .const import (
@@ -756,6 +757,9 @@ class SolarEdgeInverter:
         self.site_limit_control_data = SiteLimitControl(
             self.hub.connection.for_unit(self.inverter_unit_id)
         )
+        self.storage_control_data = StorageControl(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1090,64 +1094,14 @@ class SolarEdgeInverter:
                         self.has_battery = True
 
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57348, rcount=14
+                _LOGGER.debug(
+                    "Reading component "
+                    f"StorageControl(for_unit({self.inverter_unit_id}))"
                 )
+                await async_update_with_retry(self.storage_control_data)
 
-                uint16_fields = [
-                    "control_mode",
-                    "ac_charge_policy",
-                    "default_mode",
-                    "command_mode",
-                ]
-                uint16_data = (
-                    inverter_data.registers[0:2]
-                    + [inverter_data.registers[6]]
-                    + [inverter_data.registers[9]]
-                )
-                self.decoded_storage_control = dict(
-                    zip(
-                        uint16_fields,
-                        uint16_data,
-                        strict=True,
-                    )
-                )
-
-                float32_fields = [
-                    "ac_charge_limit",
-                    "backup_reserve",
-                    "charge_limit",
-                    "discharge_limit",
-                ]
-                float32_data = (
-                    inverter_data.registers[2:6] + inverter_data.registers[10:14]
-                )
-                self.decoded_storage_control.update(
-                    dict(
-                        zip(
-                            float32_fields,
-                            [
-                                decode_float32(
-                                    float32_data[i : i + 2], word_order="little"
-                                )
-                                for i in range(0, len(float32_data), 2)
-                            ],
-                            strict=True,
-                        )
-                    )
-                )
-
-                self.decoded_storage_control.update(
-                    dict(
-                        [
-                            (
-                                "command_timeout",
-                                decode_uint32(
-                                    inverter_data.registers[7:9], word_order="little"
-                                ),
-                            ),
-                        ]
-                    )
+                self.decoded_storage_control = component_to_dict(
+                    self.storage_control_data
                 )
 
                 for name, value in iter(self.decoded_storage_control.items()):
@@ -1160,15 +1114,20 @@ class SolarEdgeInverter:
                         f"{name} {display_value} {type(value)}"
                     )
 
-            except ModbusIllegalAddress:
+            except ModbusExceptionError:
                 self.decoded_storage_control = False
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: storage control NOT available"
                 )
 
-            except ModbusIOError:
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+            ) as e:
                 raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+                    f"Error reading inverter ID {self.inverter_unit_id} "
+                    f"at StorageControl: {e}"
                 )
 
     async def write_registers(self, address, payload) -> None:
