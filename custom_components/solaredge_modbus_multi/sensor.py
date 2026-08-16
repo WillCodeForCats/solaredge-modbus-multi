@@ -91,6 +91,21 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
+        entities.append(
+            InverterExtraTemperature(
+                inverter, config_entry, coordinator, "Cab", "Cabinet"
+            )
+        )
+        entities.append(
+            InverterExtraTemperature(
+                inverter, config_entry, coordinator, "Trns", "Transformer"
+            )
+        )
+        entities.append(
+            InverterExtraTemperature(
+                inverter, config_entry, coordinator, "Other", "Other"
+            )
+        )
 
         if hub.option_detect_extras and inverter.global_power_control:
             entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
@@ -1279,6 +1294,70 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 
     @property
     def suggested_display_precision(self):
+        return abs(self._platform.decoded_model["I_Temp_SF"])
+
+
+class InverterExtraTemperature(SolarEdgeSensorBase):
+    """Cabinet, transformer, or other temperature for a SolarEdge inverter.
+
+    Most inverter models implement only the heat sink temperature, so
+    these sensors are disabled by default and report None when the
+    register is not implemented.
+    """
+
+    device_class = SensorDeviceClass.TEMPERATURE
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    entity_category = EntityCategory.DIAGNOSTIC
+    entity_registry_enabled_default = False
+
+    def __init__(self, platform, config_entry, coordinator, sensor: str, label: str):
+        super().__init__(platform, config_entry, coordinator)
+
+        self._model_key = f"I_Temp_{sensor}"
+        self._uid_key = sensor.lower()
+        self._label = label
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_temp_{self._uid_key}"
+
+    @property
+    def name(self) -> str:
+        return f"Temperature {self._label}"
+
+    @property
+    def native_value(self):
+        try:
+            value = self._platform.decoded_model[self._model_key]
+
+            # INT16 registers are decoded signed, so the SunSpec
+            # not-implemented sentinel arrives as -32768 while
+            # SunSpecNotImpl.INT16 is 0x8000 (+32768). Mask to 16 bits so both
+            # representations are recognised; otherwise an unimplemented
+            # register is scaled and reported as -327.68 degrees.
+            if (
+                value == 0x0
+                or (value & 0xFFFF) == SunSpecNotImpl.INT16
+                or self._platform.decoded_model["I_Temp_SF"] == SunSpecNotImpl.INT16
+                or self._platform.decoded_model["I_Temp_SF"] not in SUNSPEC_SF_RANGE
+            ):
+                return None
+
+            else:
+                return self.scale_factor(
+                    value,
+                    self._platform.decoded_model["I_Temp_SF"],
+                )
+
+        except (TypeError, KeyError):
+            return None
+
+    @property
+    def suggested_display_precision(self):
+        if self._platform.decoded_model["I_Temp_SF"] not in SUNSPEC_SF_RANGE:
+            return 1
+
         return abs(self._platform.decoded_model["I_Temp_SF"])
 
 
