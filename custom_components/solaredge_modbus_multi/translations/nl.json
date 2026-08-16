@@ -131,6 +131,10 @@
         }
       }
     },
+    "setup_inverter_id_failed": {
+      "title": "Ongeldige omvormer-apparaat-ID",
+      "description": "Omvormer-apparaat-ID {device_id} op {host} reageert niet of is geen geldige SolarEdge-omvormer. Deze is overgeslagen. Als het apparaat is vervangen of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Controleer anders het apparaat en de Modbus/TCP-verbinding."
+    },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Time -out",
       "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor Global Dynamic Power Controls."

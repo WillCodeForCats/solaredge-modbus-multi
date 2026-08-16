@@ -281,14 +281,34 @@ class SolarEdgeModbusMultiHub:
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
+                ir.async_delete_issue(
+                    self._hass,
+                    DOMAIN,
+                    self._setup_inverter_id_failed_issue(inverter_unit_id),
+                )
+
             except (ModbusReadError, TimeoutError) as e:
                 await self.disconnect()
                 raise HubInitFailed(f"{e}")
 
             except DeviceInvalid as e:
-                # Inverters are mandatory
+                # Inverters are mandatory, but if the Device ID is invalid or not responding
+                # skip it and warn the user instead of failing the entire hub setup
                 _LOGGER.error(f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}")
-                raise HubInitFailed(f"{e}")
+                ir.async_create_issue(
+                    self._hass,
+                    DOMAIN,
+                    self._setup_inverter_id_failed_issue(inverter_unit_id),
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.ERROR,
+                    translation_key="setup_inverter_id_failed",
+                    translation_placeholders={
+                        "device_id": str(inverter_unit_id),
+                        "host": self.hub_host,
+                    },
+                    data={"entry_id": self._entry_id},
+                )
+                continue
 
             except DeviceIsEVSE as e:
                 _LOGGER.debug(
@@ -367,6 +387,14 @@ class SolarEdgeModbusMultiHub:
                     except DeviceInvalid as e:
                         _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
                         pass
+
+        if not self.inverters:
+            # fail the hub setup if there are no inverters
+            await self.disconnect()
+            raise HubInitFailed(
+                f"No usable inverters found at {self.hub_host} for configured "
+                "Device ID(s). Check the repair issue(s) for details."
+            )
 
         try:
             for inverter in self.inverters:
@@ -700,6 +728,9 @@ class SolarEdgeModbusMultiHub:
             await self.disconnect()
             raise ModbusWriteError(result)
 
+    def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
+        return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
+
     @staticmethod
     def _safe_version_tuple(version_str: str) -> tuple[int, ...]:
         try:
@@ -963,8 +994,8 @@ class SolarEdgeInverter:
 
             self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
+        except (ModbusIOError, ModbusIOException):
+            raise DeviceInvalid(f"No response from Device ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
             raise DeviceInvalid(

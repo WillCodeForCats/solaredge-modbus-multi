@@ -131,6 +131,10 @@
         }
       }
     },
+    "setup_inverter_id_failed": {
+      "title": "Ugyldig omformer-enhets-ID",
+      "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."
+    },
     "detect_timeout_gpc": {
       "title": "Global dynamisk kraftkontroll timeout",
       "description": "Omformeren svarte ikke mens du leste data for global dynamisk kraftkontroll."

@@ -131,6 +131,10 @@
         }
       }
     },
+    "setup_inverter_id_failed": {
+      "title": "ID d'appareil onduleur invalide",
+      "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
+    },
     "detect_timeout_gpc": {
       "title": "Tempsion mondial de contrôle de la puissance dynamique",
       "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance dynamique globaux."
