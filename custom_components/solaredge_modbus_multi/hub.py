@@ -91,30 +91,6 @@ class ModbusReadError(SolarEdgeException):
     pass
 
 
-class ModbusIllegalFunction(SolarEdgeException):
-    """Raised when a modbus address is invalid"""
-
-    pass
-
-
-class ModbusIllegalAddress(SolarEdgeException):
-    """Raised when a modbus address is invalid"""
-
-    pass
-
-
-class ModbusIllegalValue(SolarEdgeException):
-    """Raised when a modbus address is invalid"""
-
-    pass
-
-
-class ModbusIOError(SolarEdgeException):
-    """Raised when a modbus IO error occurs"""
-
-    pass
-
-
 class ModbusWriteError(SolarEdgeException):
     """Raised when a modbus write fails (generic)"""
 
@@ -370,14 +346,11 @@ class SolarEdgeModbusMultiHub:
             for evse in self.evses:
                 await evse.read_modbus_data()
 
-        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
+        except ModbusReadError as e:
             raise HubInitFailed(f"Read error: {e}")
 
         except DeviceInvalid as e:
             raise HubInitFailed(f"Invalid device: {e}")
-
-        except ModbusIOError as e:
-            raise HubInitFailed(f"Connection failed: {e}")
 
         except TimeoutError as e:
             raise HubInitFailed(f"Timeout error: {e}")
@@ -392,7 +365,7 @@ class SolarEdgeModbusMultiHub:
                 async with asyncio.timeout(self.coordinator_timeout):
                     await self._async_init_solaredge()
 
-            except (ModbusIOError, TimeoutError) as e:
+            except TimeoutError as e:
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -421,7 +394,7 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
+        except ModbusReadError as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}")
 
@@ -429,7 +402,7 @@ class SolarEdgeModbusMultiHub:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}")
 
-        except (ModbusIOError, ModbusConnectionError, ModbusProtocolError) as e:
+        except (ModbusConnectionError, ModbusProtocolError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Connection failed: {e}")
 
