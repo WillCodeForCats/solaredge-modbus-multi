@@ -994,8 +994,8 @@ class SolarEdgeInverter:
 
             self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
+        except (ModbusIOError, ModbusIOException):
+            raise DeviceInvalid(f"No response from Device ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
             raise DeviceInvalid(
