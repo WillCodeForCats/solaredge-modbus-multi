@@ -130,6 +130,10 @@
         }
       }
     },
+    "setup_inverter_id_failed": {
+      "title": "ID dispositivo inverter non valido",
+      "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo del potere dinamico globale",
       "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza dinamica globali."

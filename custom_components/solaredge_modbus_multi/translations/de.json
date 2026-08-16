@@ -130,6 +130,10 @@
         }
       }
     },
+    "setup_inverter_id_failed": {
+      "title": "Ungültige Wechselrichter-Geräte-ID",
+      "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
+    },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout",
       "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für globale dynamische Leistungssteuerung."

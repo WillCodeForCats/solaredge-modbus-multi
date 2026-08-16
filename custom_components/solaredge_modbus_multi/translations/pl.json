@@ -130,6 +130,10 @@
         }
       }
     },
+    "setup_inverter_id_failed": {
+      "title": "Nieprawidłowy identyfikator falownika",
+      "description": "Identyfikator falownika {device_id} na {host} nie odpowiada lub nie jest prawidłowym falownikiem SolarEdge. Został pominięty. Jeśli urządzenie zostało wymienione lub jego identyfikator się zmienił, zaktualizuj listę identyfikatorów falowników w konfiguracji huba. W przeciwnym razie sprawdź urządzenie i połączenie Modbus/TCP."
+    },
     "detect_timeout_gpc": {
       "title": "Globalny limit dynamicznej kontroli mocy",
       "description": "Falownik nie zareagował podczas czytania danych dla globalnej dynamicznej kontroli mocy."
