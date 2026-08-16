@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfigurace Modbus SolarEdge",
+        "menu_options": {
+          "scan_fast": "Rychlé vyhledávání střídačů",
+          "scan_full": "Úplné vyhledávání střídačů",
+          "manual_list": "Ruční nastavení"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Prohledat prvních 32 ID zařízení Modbus (1-32)",
+          "scan_full": "Prohledat všechna ID zařízení Modbus (1-247)",
+          "manual_list": "Ručně zadat seznam ID zařízení střídačů"
+        }
+      },
+      "manual": {
+        "title": "Ruční konfigurace Modbus",
+        "data": {
+          "name": "Předpona senzoru",
+          "host": "IP adresa střídače",
+          "port": "Port Modbus/TCP",
+          "device_list": "Seznam ID zařízení střídačů"
+        }
+      },
+      "scan_ask_host": {
+        "title": "Vyhledat střídače SolarEdge",
+        "data": {
+          "name": "Předpona senzoru",
+          "host": "IP adresa střídače",
+          "port": "Port Modbus/TCP"
+        }
+      },
+      "scan_complete": {
+        "title": "Vyhledávání dokončeno"
+      },
+      "features_info": {
+        "title": "Baterie a ovládací prvky zatím nejsou povoleny",
+        "description": "Ve výchozím nastavení jsou povoleny pouze oficiálně zdokumentované funkce SolarEdge: střídače, střídače Synergy a měřiče.\n\nMonitorování baterií a všechny funkce ovládání pro čtení/zápis (ovládání baterie, ovládání limitu lokality) jsou založeny na dokumentaci, kterou SolarEdge nezveřejňuje. Tyto funkce jsou ve výchozím nastavení zakázány a je nutné je zapnout samostatně v možnostech konfigurace integrace po přidání tohoto hubu.\n\nNe všechny střídače tyto funkce podporují přes Modbus. Možná budete muset kontaktovat podporu SolarEdge, aby vám na vaší instalaci zpřístupnili přístup k baterii a ovládacím prvkům."
+      },
+      "reconfigure": {
+        "title": "Konfigurace Modbus SolarEdge",
+        "data": {
+          "host": "IP adresa střídače",
+          "port": "Port Modbus/TCP",
+          "device_list": "Seznam ID zařízení střídačů"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Zařízení je již nakonfigurováno!",
+      "invalid_device_id": "ID zařízení musí být mezi 1 a 247.",
+      "invalid_inverter_count": "Musí být mezi 1 a 32 střídači.",
+      "invalid_host": "Neplatná IP adresa.",
+      "invalid_tcp_port": "Platný rozsah portů je 1 až 65535.",
+      "invalid_range_format": "Položka vypadá jako rozsah, ale je povolen pouze jeden znak '-' na rozsah.",
+      "invalid_range_lte": "Počáteční ID rozsahu musí být menší nebo rovno koncovému ID.",
+      "empty_device_id": "Seznam ID obsahuje prázdnou nebo nedefinovanou hodnotu.",
+      "scan_failed": "Vyhledání střídačů se nezdařilo. Zkontrolujte připojení a zkuste to znovu."
+    },
+    "abort": {
+      "already_configured": "Hostitel a port jsou již nakonfigurovány v jiném hubu.",
+      "reconfigure_successful": "Rekonfigurace byla úspěšná"
+    },
+    "progress": {
+      "scanning_for_inverters": "Vyhledávání střídačů SolarEdge..."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Možnosti Modbus SolarEdge",
+        "data": {
+          "scan_interval": "Frekvence dotazování (sekundy)",
+          "keep_modbus_open": "Udržovat připojení Modbus otevřené",
+          "detect_meters": "Automatická detekce měřičů",
+          "detect_batteries": "Automatická detekce baterií",
+          "detect_extras": "Automatická detekce dalších entit",
+          "advanced_power_control": "Možnosti řízení výkonu",
+          "sleep_after_write": "Zpoždění příkazu střídače (sekundy)"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Možnosti řízení výkonu",
+        "data": {
+          "adv_storage_control": "Povolit řízení úložiště",
+          "adv_site_limit_control": "Povolit řízení limitu lokality"
+        },
+        "description": "Varování: Tyto možnosti mohou porušit smlouvy s dodavatelem energie, změnit vaše vyúčtování, mohou vyžadovat speciální vybavení a přepsat nastavení provedené společností SolarEdge nebo vaším instalatérem. Používejte na vlastní riziko! Nastavitelné parametry v registrech Modbus jsou určeny pro dlouhodobé ukládání. Časté změny mohou poškodit paměť flash."
+      },
+      "battery_options": {
+        "title": "Možnosti baterie",
+        "data": {
+          "allow_battery_energy_reset": "Povolit reset energie baterie",
+          "battery_energy_reset_cycles": "Aktualizační cykly pro reset energie baterie",
+          "battery_rating_adjust": "Úprava kapacity baterie (procenta)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Platný interval je 1 až 86400 sekund.",
+      "invalid_sleep_interval": "Platný interval je 0 až 60 sekund.",
+      "invalid_percent": "Platný rozsah je 0 až 100 procent."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Zkontrolovat konfiguraci Modbus",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Zkontrolovat konfiguraci Modbus",
+            "description": "Při pokusu o otevření připojení Modbus/TCP došlo k chybě.\n\nPotvrďte prosím svou konfiguraci.",
+            "data": {
+              "host": "IP adresa střídače",
+              "port": "Port Modbus/TCP",
+              "device_list": "Seznam ID zařízení střídačů"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "ID zařízení musí být mezi 1 a 247.",
+          "invalid_inverter_count": "Musí být mezi 1 a 32 střídači.",
+          "invalid_host": "Neplatná IP adresa.",
+          "invalid_tcp_port": "Platný rozsah portů je 1 až 65535.",
+          "invalid_range_format": "Položka vypadá jako rozsah, ale je povolen pouze jeden znak '-' na rozsah.",
+          "invalid_range_lte": "Počáteční ID rozsahu musí být menší nebo rovno koncovému ID.",
+          "empty_device_id": "Seznam ID obsahuje prázdnou nebo nedefinovanou hodnotu.",
+          "already_configured": "Hostitel a port jsou již nakonfigurovány v jiném hubu."
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Neplatné ID zařízení střídače",
+      "description": "ID zařízení střídače {device_id} na {host} neodpovídá nebo se nejedná o platný střídač SolarEdge. Bylo přeskočeno. Pokud bylo zařízení vyměněno nebo se změnilo jeho ID, aktualizujte seznam ID zařízení střídačů v konfiguraci hubu. V opačném případě zkontrolujte zařízení a připojení Modbus/TCP."
+    },
+    "detect_timeout_gpc": {
+      "title": "Časový limit globálního dynamického řízení výkonu",
+      "description": "Střídač neodpověděl při čtení dat pro globální dynamické řízení výkonu. Tyto entity budou nedostupné. Pokud má střídač problémy se čtením těchto senzorů, zakažte možnost Automatická detekce dalších entit."
+    },
+    "detect_timeout_apc": {
+      "title": "Časový limit pokročilého řízení výkonu",
+      "description": "Střídač neodpověděl při čtení dat pro pokročilé řízení výkonu. Tyto entity budou nedostupné. Pokud má střídač problémy se čtením těchto senzorů, zakažte možnost Automatická detekce dalších entit."
+    }
+  }
+}

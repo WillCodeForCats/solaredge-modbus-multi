@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuração Modbus SolarEdge",
+        "menu_options": {
+          "scan_fast": "Procura Rápida de Inversores",
+          "scan_full": "Procura Completa de Inversores",
+          "manual_list": "Configuração Manual"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Procura os primeiros 32 IDs de dispositivo Modbus (1-32)",
+          "scan_full": "Procura todos os IDs de dispositivo Modbus (1-247)",
+          "manual_list": "Introduza manualmente uma lista de IDs de dispositivo dos inversores"
+        }
+      },
+      "manual": {
+        "title": "Configuração Manual do Modbus",
+        "data": {
+          "name": "Prefixo do Sensor",
+          "host": "Endereço IP do Inversor",
+          "port": "Porta Modbus/TCP",
+          "device_list": "Lista de IDs de Dispositivo dos Inversores"
+        }
+      },
+      "scan_ask_host": {
+        "title": "Procurar Inversores SolarEdge",
+        "data": {
+          "name": "Prefixo do Sensor",
+          "host": "Endereço IP do Inversor",
+          "port": "Porta Modbus/TCP"
+        }
+      },
+      "scan_complete": {
+        "title": "Procura Concluída"
+      },
+      "features_info": {
+        "title": "Baterias e Controlos Ainda Não Estão Ativados",
+        "description": "Por predefinição, apenas as funcionalidades oficialmente documentadas da SolarEdge estão ativadas: inversores, inversores Synergy e contadores.\n\nA monitorização da bateria e todas as funcionalidades de controlo de leitura/escrita (controlo da bateria, controlo do limite do local) baseiam-se em documentação que a SolarEdge não publica. Estas funcionalidades estão desativadas por predefinição e têm de ser ativadas separadamente nas opções de configuração da integração depois de este hub ser adicionado.\n\nNem todos os inversores suportam estas funcionalidades via Modbus. Poderá ser necessário contactar o suporte da SolarEdge para disponibilizar o acesso à bateria e aos controlos na sua instalação."
+      },
+      "reconfigure": {
+        "title": "Configuração Modbus SolarEdge",
+        "data": {
+          "host": "Endereço IP do Inversor",
+          "port": "Porta Modbus/TCP",
+          "device_list": "Lista de IDs de Dispositivo dos Inversores"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "O dispositivo já está configurado!",
+      "invalid_device_id": "O ID do dispositivo deve estar entre 1 e 247.",
+      "invalid_inverter_count": "Deve haver entre 1 e 32 inversores.",
+      "invalid_host": "Endereço IP inválido.",
+      "invalid_tcp_port": "O intervalo de portas válido é de 1 a 65535.",
+      "invalid_range_format": "A entrada parece um intervalo, mas só é permitido um '-' por intervalo.",
+      "invalid_range_lte": "O ID inicial de um intervalo deve ser menor ou igual ao ID final.",
+      "empty_device_id": "A lista de IDs contém um valor vazio ou indefinido.",
+      "scan_failed": "Não foi possível procurar inversores. Verifique a sua ligação e tente novamente."
+    },
+    "abort": {
+      "already_configured": "O host e a porta já estão configurados noutro hub.",
+      "reconfigure_successful": "A reconfiguração foi concluída com êxito"
+    },
+    "progress": {
+      "scanning_for_inverters": "A procurar inversores SolarEdge..."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções do Modbus SolarEdge",
+        "data": {
+          "scan_interval": "Frequência de Sondagem (segundos)",
+          "keep_modbus_open": "Manter a Ligação Modbus Aberta",
+          "detect_meters": "Deteção Automática de Contadores",
+          "detect_batteries": "Deteção Automática de Baterias",
+          "detect_extras": "Deteção Automática de Entidades Adicionais",
+          "advanced_power_control": "Opções de Controlo de Potência",
+          "sleep_after_write": "Atraso de Comando do Inversor (segundos)"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Opções de Controlo de Potência",
+        "data": {
+          "adv_storage_control": "Ativar Controlo de Armazenamento",
+          "adv_site_limit_control": "Ativar Controlo de Limite do Local"
+        },
+        "description": "Aviso: Estas opções podem violar acordos com o fornecedor de energia, alterar a sua fatura de eletricidade, exigir equipamento especial e substituir a configuração efetuada pela SolarEdge ou pelo seu instalador. Utilize por sua conta e risco! Os parâmetros ajustáveis nos registos Modbus destinam-se ao armazenamento de longo prazo. Alterações periódicas podem danificar a memória flash."
+      },
+      "battery_options": {
+        "title": "Opções de Bateria",
+        "data": {
+          "allow_battery_energy_reset": "Permitir a Reposição da Energia da Bateria",
+          "battery_energy_reset_cycles": "Ciclos de Atualização para Repor a Energia da Bateria",
+          "battery_rating_adjust": "Ajuste da Capacidade da Bateria (percentagem)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "O intervalo válido é de 1 a 86400 segundos.",
+      "invalid_sleep_interval": "O intervalo válido é de 0 a 60 segundos.",
+      "invalid_percent": "O intervalo válido é de 0 a 100 por cento."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Verificar a Configuração do Modbus",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Verificar a Configuração do Modbus",
+            "description": "Ocorreu um erro ao tentar abrir uma ligação Modbus/TCP.\n\nPor favor, confirme a sua configuração.",
+            "data": {
+              "host": "Endereço IP do Inversor",
+              "port": "Porta Modbus/TCP",
+              "device_list": "Lista de IDs de Dispositivo dos Inversores"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "O ID do dispositivo deve estar entre 1 e 247.",
+          "invalid_inverter_count": "Deve haver entre 1 e 32 inversores.",
+          "invalid_host": "Endereço IP inválido.",
+          "invalid_tcp_port": "O intervalo de portas válido é de 1 a 65535.",
+          "invalid_range_format": "A entrada parece um intervalo, mas só é permitido um '-' por intervalo.",
+          "invalid_range_lte": "O ID inicial de um intervalo deve ser menor ou igual ao ID final.",
+          "empty_device_id": "A lista de IDs contém um valor vazio ou indefinido.",
+          "already_configured": "O host e a porta já estão configurados noutro hub."
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "ID de Dispositivo do Inversor Inválido",
+      "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está a responder ou não é um inversor SolarEdge válido. Foi ignorado. Se o dispositivo foi substituído ou o seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a ligação Modbus/TCP."
+    },
+    "detect_timeout_gpc": {
+      "title": "Tempo Limite do Controlo Dinâmico de Potência Global",
+      "description": "O inversor não respondeu ao ler dados dos Controlos Dinâmicos de Potência Global. Estas entidades ficarão indisponíveis. Desative a opção Deteção Automática de Entidades Adicionais se o inversor tiver problemas a ler estes sensores."
+    },
+    "detect_timeout_apc": {
+      "title": "Tempo Limite do Controlo de Potência Avançado",
+      "description": "O inversor não respondeu ao ler dados dos Controlos de Potência Avançados. Estas entidades ficarão indisponíveis. Desative a opção Deteção Automática de Entidades Adicionais se o inversor tiver problemas a ler estes sensores."
+    }
+  }
+}
