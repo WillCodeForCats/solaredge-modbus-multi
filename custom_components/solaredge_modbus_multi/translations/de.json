@@ -143,5 +143,34 @@
       "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
       "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen."
     }
+  },
+  "entity": {
+    "sensor": {
+      "inverter_status": {
+        "state": {
+          "I_STATUS_OFF": "Aus",
+          "I_STATUS_SLEEPING": "Ruhezustand (automatische Abschaltung)",
+          "I_STATUS_STARTING": "Netzprüfung",
+          "I_STATUS_MPPT": "Erzeugung",
+          "I_STATUS_THROTTLED": "Erzeugung (abgeregelt)",
+          "I_STATUS_SHUTTING_DOWN": "Herunterfahren",
+          "I_STATUS_FAULT": "Störung",
+          "I_STATUS_STANDBY": "Wartung"
+        }
+      },
+      "battery_status": {
+        "state": {
+          "B_STATUS_OFF": "Aus",
+          "B_STATUS_STANDBY": "Bereitschaft",
+          "B_STATUS_INIT": "Initialisierung",
+          "B_STATUS_CHARGE": "Lädt",
+          "B_STATUS_DISCHARGE": "Entlädt",
+          "B_STATUS_FAULT": "Störung",
+          "B_STATUS_PRESERVE_CHARGE": "Ladung halten",
+          "B_STATUS_IDLE": "Leerlauf",
+          "B_STATUS_POWER_SAVING": "Energiesparmodus"
+        }
+      }
+    }
   }
 }
