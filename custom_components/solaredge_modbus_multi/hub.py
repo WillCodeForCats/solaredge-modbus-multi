@@ -358,7 +358,6 @@ class SolarEdgeModbusMultiHub:
 
         if not self.inverters:
             # fail the hub setup if there are no inverters
-            await self.disconnect()
             raise HubInitFailed(
                 f"No usable inverters found at {self.hub_host} for configured "
                 "Device ID(s). Check the repair issue(s) for details."
