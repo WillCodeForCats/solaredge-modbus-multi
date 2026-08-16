@@ -481,68 +481,6 @@ class SolarEdgeModbusMultiHub:
 
         return True
 
-    async def modbus_read_holding_registers(self, unit, address, rcount):
-        """Read modbus registers from inverter."""
-
-        _LOGGER.debug(
-            f"unit={unit}: modbus_read_holding_registers "
-            f"address={address} count={rcount}"
-        )
-
-        for attempt in range(1, RetrySettings.RequestRetries + 1):
-            try:
-                registers = await self.connection.for_unit(unit).read_holding_registers(
-                    address, rcount
-                )
-                break
-
-            except ModbusExceptionError as e:
-                if e.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(f"unit={unit} Read IllegalAddress: {e}")
-                    raise ModbusIllegalAddress(e)
-
-                if e.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(f"unit={unit} Read IllegalFunction: {e}")
-                    raise ModbusIllegalFunction(e)
-
-                if e.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"unit={unit} Read IllegalValue: {e}")
-                    raise ModbusIllegalValue(e)
-
-                raise ModbusReadError(e)
-
-            except ModbusTimeoutError:
-                if attempt >= RetrySettings.RequestRetries:
-                    raise
-
-                _LOGGER.debug(
-                    f"unit={unit}: read timeout, attempt {attempt} "
-                    f"of {RetrySettings.RequestRetries}"
-                )
-
-            except (ModbusConnectionError, ModbusProtocolError) as e:
-                if attempt >= RetrySettings.RequestRetries:
-                    raise ModbusIOError(e)
-
-                _LOGGER.debug(
-                    f"unit={unit}: read error, attempt {attempt} "
-                    f"of {RetrySettings.RequestRetries}: {e}"
-                )
-
-        _LOGGER.debug(
-            f"unit={unit}: Registers received={len(registers)} "
-            f"requested={rcount} address={address} "
-            f"result={registers}"
-        )
-
-        if len(registers) != rcount:
-            raise ModbusReadError(
-                f"unit={unit}: Registers received != requested : "
-                f"{len(registers)} != {rcount} at {address}"
-            )
-
-        return ModbusReadResult(registers)
-
     async def modbus_write_registers(self, unit: int, address: int, payload) -> None:
         """Write modbus registers to inverter."""
 
