@@ -453,7 +453,7 @@ class SolarEdgeModbusMultiHub:
 
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
-            if not self.keep_modbus_open:
+            if not self.keep_modbus_open and not self.has_write:
                 await self.disconnect()
 
             return True
@@ -525,7 +525,7 @@ class SolarEdgeModbusMultiHub:
             )
             self._timeout_counter = 0
 
-        if not self.keep_modbus_open:
+        if not self.keep_modbus_open and not self.has_write:
             await self.disconnect()
 
         return True

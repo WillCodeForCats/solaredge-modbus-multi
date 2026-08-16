@@ -34,6 +34,10 @@
       "scan_complete": {
         "title": "Skanning fullført"
       },
+      "features_info": {
+        "title": "Batterier og kontroller er ikke aktivert ennå",
+        "description": "Som standard er kun offisielt dokumenterte SolarEdge-funksjoner aktivert: vekselrettere, Synergy-vekselrettere og målere.\n\nBatteriovervåking og alle lese-/skrivekontrollfunksjoner (batterikontroll, stedsgrensekontroll) er basert på dokumentasjon som SolarEdge ikke publiserer. Disse er deaktivert som standard og må aktiveres separat fra integrasjonens konfigurasjonsalternativer etter at denne huben er lagt til.\n\nIkke alle vekselrettere støtter dette over Modbus. Du må kanskje kontakte SolarEdge-support for å få tilgang til batteri- og kontrollfunksjoner aktivert på anlegget ditt."
+      },
       "reconfigure": {
         "title": "SolarEdge Modbus-konfigurasjon",
         "data": {

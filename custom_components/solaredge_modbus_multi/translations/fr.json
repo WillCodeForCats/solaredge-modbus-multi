@@ -34,6 +34,10 @@
       "scan_complete": {
         "title": "Scan terminé"
       },
+      "features_info": {
+        "title": "Les batteries et les contrôles ne sont pas encore activés",
+        "description": "Par défaut, seules les fonctionnalités officiellement documentées par SolarEdge sont activées : onduleurs, onduleurs Synergy et compteurs.\n\nLa surveillance des batteries et toutes les fonctionnalités de contrôle en lecture/écriture (contrôle des batteries, contrôle de la limite du site) reposent sur une documentation que SolarEdge ne publie pas. Elles sont désactivées par défaut et doivent être activées séparément depuis les options de configuration de l'intégration après l'ajout de ce hub.\n\nTous les onduleurs ne prennent pas en charge ces fonctionnalités via Modbus. Vous devrez peut-être contacter le support SolarEdge pour faire activer l'accès aux batteries et aux contrôles sur votre installation."
+      },
       "reconfigure": {
         "title": "Configuration SolarEdge Modbus",
         "data": {
