@@ -14,10 +14,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
-from modbus_connection.decode import (
-    decode_float32,
-    decode_uint32,
-)
 from modbus_connection.exceptions import (
     ModbusConnectionError,
     ModbusExceptionError,
