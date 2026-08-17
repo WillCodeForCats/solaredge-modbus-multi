@@ -553,6 +553,53 @@ class SolarEdgeModbusMultiHub:
 
         _LOGGER.debug(f"Finished with write {address}.")
 
+    async def component_write(self, unit: int, component, field: str, value) -> None:
+        """Write a SolarEdge modbus Component.
+
+        SolarEdge inverters may not respond (timeout) on errors instead of
+        sending a modbus exception response.
+        """
+
+        try:
+            await async_write_with_retry(component, field, value)
+
+        except ModbusExceptionError as e:
+            if e.exception_code == ModbusExceptions.IllegalAddress:
+                _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
+                raise HomeAssistantError(
+                    f"Address not supported at device at ID {unit}."
+                )
+
+            if e.exception_code == ModbusExceptions.IllegalFunction:
+                _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
+                raise HomeAssistantError(
+                    f"Function not supported by device at ID {unit}."
+                )
+
+            if e.exception_code == ModbusExceptions.IllegalValue:
+                _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
+                raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
+
+            raise ModbusWriteError(e)
+
+        except ModbusTimeoutError as e:
+            _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
+            raise HomeAssistantError(f"No response from inverter ID {unit}.") from e
+
+        except (ModbusConnectionError, ModbusProtocolError) as e:
+            _LOGGER.error(f"Connection failed: {e}")
+            raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
+
+        if self.sleep_after_write > 0:
+            _LOGGER.debug(
+                f"Spacing requests to unit {unit} for {self.sleep_after_write} "
+                f"seconds after write to field {field}."
+            )
+            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
+            self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
+
+        _LOGGER.debug(f"Finished with write {field}.")
+
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
 
@@ -1084,6 +1131,10 @@ class SolarEdgeInverter:
     async def write_registers(self, address, payload) -> None:
         """Write inverter register."""
         await self.hub.modbus_write_registers(self.inverter_unit_id, address, payload)
+
+    async def write(self, component, field: str, value) -> None:
+        """Write a Component field."""
+        await self.hub.component_write(self.inverter_unit_id, component, field, value)
 
     @property
     def fw_version(self) -> str | None:
