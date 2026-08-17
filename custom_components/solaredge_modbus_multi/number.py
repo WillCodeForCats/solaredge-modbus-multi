@@ -15,7 +15,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from modbus_connection.encode import encode_float32, encode_uint16, encode_uint32
 
 from .const import DOMAIN, BatteryLimit, SunSpecNotImpl
 from .helpers import float_to_hex
@@ -174,9 +173,8 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=57350,
-            payload=encode_float32(float(value), word_order="little"),
+        await self._platform.write(
+            self._platform.storage_control_data, "ac_charge_limit", float(value)
         )
         await self.async_update()
 
@@ -224,9 +222,8 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=57352,
-            payload=encode_float32(int(value), word_order="little"),
+        await self._platform.write(
+            self._platform.storage_control_data, "backup_reserve", int(value)
         )
         await self.async_update()
 
@@ -275,9 +272,8 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=57355,
-            payload=encode_uint32(int(value), word_order="little"),
+        await self._platform.write(
+            self._platform.storage_control_data, "command_timeout", int(value)
         )
         await self.async_update()
 
@@ -326,9 +322,8 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=57358,
-            payload=encode_float32(int(value), word_order="little"),
+        await self._platform.write(
+            self._platform.storage_control_data, "charge_limit", int(value)
         )
         await self.async_update()
 
@@ -379,9 +374,8 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=57360,
-            payload=encode_float32(int(value), word_order="little"),
+        await self._platform.write(
+            self._platform.storage_control_data, "discharge_limit", int(value)
         )
         await self.async_update()
 
@@ -426,9 +420,8 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=57346,
-            payload=encode_float32(int(value), word_order="little"),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "E_Site_Limit", int(value)
         )
         await self.async_update()
 
@@ -475,9 +468,8 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=57362,
-            payload=encode_float32(int(value), word_order="little"),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "Ext_Prod_Max", int(value)
         )
         await self.async_update()
 
@@ -524,9 +516,8 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=61441,
-            payload=encode_uint16(int(value)),
+        await self._platform.write(
+            self._platform.global_power_control_data, "I_Power_Limit", int(value)
         )
         await self.async_update()
 
@@ -574,9 +565,8 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=61442,
-            payload=encode_float32(float(value), word_order="little"),
+        await self._platform.write(
+            self._platform.global_power_control_data, "I_CosPhi", float(value)
         )
         await self.async_update()
 
@@ -624,9 +614,8 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=61760,
-            payload=encode_float32(float(value), word_order="little"),
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "PowerReduce", float(value)
         )
         await self.async_update()
 
@@ -673,8 +662,7 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
 
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
-        await self._platform.write_registers(
-            address=61838,
-            payload=encode_float32(float(value), word_order="little"),
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "MaxCurrent", float(value)
         )
         await self.async_update()
