@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from modbus_connection.encode import encode_int32, encode_uint16
 
 from .const import (
     DOMAIN,
@@ -137,9 +136,8 @@ class StorageControlMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(
-            address=57348,
-            payload=encode_uint16(new_mode),
+        await self._platform.write(
+            self._platform.storage_control_data, "control_mode", new_mode
         )
         await self.async_update()
 
@@ -186,9 +184,8 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(
-            address=57349,
-            payload=encode_uint16(new_mode),
+        await self._platform.write(
+            self._platform.storage_control_data, "ac_charge_policy", new_mode
         )
         await self.async_update()
 
@@ -239,9 +236,8 @@ class StorageDefaultMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(
-            address=57354,
-            payload=encode_uint16(new_mode),
+        await self._platform.write(
+            self._platform.storage_control_data, "default_mode", new_mode
         )
         await self.async_update()
 
@@ -292,9 +288,8 @@ class StorageCommandMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(
-            address=57357,
-            payload=encode_uint16(new_mode),
+        await self._platform.write(
+            self._platform.storage_control_data, "command_mode", new_mode
         )
         await self.async_update()
 
@@ -350,9 +345,8 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
             set_bits = set_bits | (1 << int(new_mode))
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
-        await self._platform.write_registers(
-            address=57344,
-            payload=encode_uint16(set_bits),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
         await self.async_update()
 
@@ -389,9 +383,8 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(
-            address=57345,
-            payload=encode_uint16(new_mode),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "E_Lim_Ctl", new_mode
         )
         await self.async_update()
 
@@ -433,8 +426,7 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
         new_mode = get_key(self._options, option)
-        await self._platform.write_registers(
-            address=61700,
-            payload=encode_int32(new_mode, word_order="little"),
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "ReactivePwrConfig", new_mode
         )
         await self.async_update()
