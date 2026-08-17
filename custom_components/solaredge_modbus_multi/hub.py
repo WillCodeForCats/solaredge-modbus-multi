@@ -1128,10 +1128,6 @@ class SolarEdgeInverter:
                     f"at StorageControl: {e}"
                 )
 
-    async def write_registers(self, address, payload) -> None:
-        """Write inverter register."""
-        await self.hub.modbus_write_registers(self.inverter_unit_id, address, payload)
-
     async def write(self, component, field: str, value) -> None:
         """Write a Component field."""
         await self.hub.component_write(self.inverter_unit_id, component, field, value)
