@@ -20,7 +20,7 @@ from homeassistant.helpers.update_coordinator import (
 from modbus_connection import ModbusTcpParams
 from modbus_connection.tmodbus import ModbusConnection
 
-from .const import DOMAIN, ConfDefaultInt, ConfName, RetrySettings
+from .const import DOMAIN, MESSAGE_SPACING, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,6 +82,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     connection = ModbusConnection(
         ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT]),
         timeout=RetrySettings.RequestTimeout,
+        message_spacing=MESSAGE_SPACING,
     )
     entry.async_on_unload(connection.close)
 

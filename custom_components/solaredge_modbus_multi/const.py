@@ -48,6 +48,13 @@ MMPPT_UNITS_VERSION = "4.13.0"  # solaredge firmware version
 INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 
 
+# Minimum gap, in seconds, between every request on the connection.
+# modbus-connection only serializes/paces requests when this is non-zero
+# The idea is to help with the coordinator requesting a refresh with a write
+# at the same time. Set to 0 to disable.
+MESSAGE_SPACING = 0.1
+
+
 class ModbusExceptions:
     """An enumeration of the valid modbus exceptions."""
 
