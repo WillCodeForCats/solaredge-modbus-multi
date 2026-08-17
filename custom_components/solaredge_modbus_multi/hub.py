@@ -492,67 +492,6 @@ class SolarEdgeModbusMultiHub:
 
         return True
 
-    async def modbus_write_registers(self, unit: int, address: int, payload) -> None:
-        """Write modbus registers to inverter."""
-
-        for attempt in range(1, RetrySettings.RequestRetries + 1):
-            try:
-                await self.connection.for_unit(unit).write_registers(address, payload)
-                break
-
-            except ModbusExceptionError as e:
-                if e.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
-                    raise HomeAssistantError(
-                        f"Address not supported at device at ID {unit}."
-                    )
-
-                if e.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
-                    raise HomeAssistantError(
-                        f"Function not supported by device at ID {unit}."
-                    )
-
-                if e.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
-                    raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
-
-                raise ModbusWriteError(e)
-
-            except ModbusTimeoutError as e:
-                if attempt >= RetrySettings.RequestRetries:
-                    _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
-                    raise HomeAssistantError(
-                        f"No response from inverter ID {unit}."
-                    ) from e
-
-                _LOGGER.debug(
-                    f"unit={unit}: write timeout, attempt {attempt} "
-                    f"of {RetrySettings.RequestRetries}"
-                )
-
-            except (ModbusConnectionError, ModbusProtocolError) as e:
-                if attempt >= RetrySettings.RequestRetries:
-                    _LOGGER.error(f"Connection failed: {e}")
-                    raise HomeAssistantError(
-                        f"Connection to inverter ID {unit} failed."
-                    )
-
-                _LOGGER.debug(
-                    f"unit={unit}: write error, attempt {attempt} "
-                    f"of {RetrySettings.RequestRetries}: {e}"
-                )
-
-        if self.sleep_after_write > 0:
-            _LOGGER.debug(
-                f"Spacing requests to unit {unit} for {self.sleep_after_write} "
-                f"seconds after write to address {address}."
-            )
-            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
-            self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
-
-        _LOGGER.debug(f"Finished with write {address}.")
-
     async def component_write(self, unit: int, component, field: str, value) -> None:
         """Write a SolarEdge modbus Component.
 
