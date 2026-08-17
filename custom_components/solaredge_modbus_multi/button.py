@@ -10,7 +10,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from modbus_connection.encode import encode_uint16
 
 from .const import DOMAIN
 
@@ -111,9 +110,8 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
     async def async_press(self) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 1")
 
-        await self._platform.write_registers(
-            address=61696,
-            payload=encode_uint16(1),
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "CommitPwrCtlSettings", 1
         )
         await self.async_update()
 
@@ -139,8 +137,7 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
     async def async_press(self) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 1")
 
-        await self._platform.write_registers(
-            address=61697,
-            payload=encode_uint16(1),
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "RestorePwrCtlDefaults", 1
         )
         await self.async_update()
