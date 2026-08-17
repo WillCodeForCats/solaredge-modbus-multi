@@ -110,7 +110,7 @@ class DeviceInvalid(SolarEdgeException):
 
 
 async def async_update_with_retry(component) -> None:
-    """Call component.async_update(), retrying transient connection/timeout errors.
+    """Call component.async_update(), retrying connection/timeout errors.
 
     modbus-connection has no built-in per-request retry, unlike pymodbus's
     `retries` option, so this method mimics that behavior.
@@ -123,6 +123,26 @@ async def async_update_with_retry(component) -> None:
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             _LOGGER.debug(
                 f"{type(component).__name__}.async_update() attempt {attempt} "
+                f"of {RetrySettings.RequestRetries} failed: {e}"
+            )
+
+            if attempt >= RetrySettings.RequestRetries:
+                raise
+
+
+async def async_write_with_retry(component, field: str, value) -> None:
+    """Call component.write(field, value), retrying connection/timeout errors.
+
+    Like async_update_with_retry() but for writes.
+    """
+    for attempt in range(1, RetrySettings.RequestRetries + 1):
+        try:
+            await component.write(field, value)
+            return
+
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            _LOGGER.debug(
+                f"{type(component).__name__}.write({field!r}) attempt {attempt} "
                 f"of {RetrySettings.RequestRetries} failed: {e}"
             )
 
