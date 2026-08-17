@@ -11,7 +11,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from modbus_connection.encode import encode_int32, encode_uint16
 
 from .const import DOMAIN, SunSpecNotImpl
 
@@ -112,9 +111,8 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
 
-        await self._platform.write_registers(
-            address=57344,
-            payload=encode_uint16(set_bits),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
         await self.async_update()
 
@@ -125,9 +123,8 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
 
-        await self._platform.write_registers(
-            address=57344,
-            payload=encode_uint16(set_bits),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
         await self.async_update()
 
@@ -167,9 +164,8 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
 
-        await self._platform.write_registers(
-            address=57344,
-            payload=encode_uint16(set_bits),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
         await self.async_update()
 
@@ -180,9 +176,8 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
 
-        await self._platform.write_registers(
-            address=57344,
-            payload=encode_uint16(set_bits),
+        await self._platform.write(
+            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
         await self.async_update()
 
@@ -215,17 +210,15 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")
 
-        await self._platform.write_registers(
-            address=61762,
-            payload=encode_int32(0x1, word_order="little"),
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x1
         )
         await self.async_update()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x0")
 
-        await self._platform.write_registers(
-            address=61762,
-            payload=encode_int32(0x0, word_order="little"),
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x0
         )
         await self.async_update()
