@@ -31,7 +31,9 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         if hub.option_detect_extras and inverter.advanced_power_control:
-            entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
+            entities.append(
+                AdvPowerControlEnabled(inverter, config_entry, coordinator)
+            )
 
         entities.append(GridStatusOnOff(inverter, config_entry, coordinator))
 
@@ -108,7 +110,8 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
     @property
     def available(self) -> bool:
         return (
-            super().available and "I_Grid_Status" in self._platform.decoded_model.keys()
+            super().available
+            and "I_Grid_Status" in self._platform.decoded_model.keys()
         )
 
     @property

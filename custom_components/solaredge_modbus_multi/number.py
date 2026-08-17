@@ -37,25 +37,41 @@ async def async_setup_entry(
         """Dynamic Power Control"""
         if hub.option_detect_extras and inverter.global_power_control:
             entities.append(
-                SolarEdgeActivePowerLimitSet(inverter, config_entry, coordinator)
+                SolarEdgeActivePowerLimitSet(
+                    inverter, config_entry, coordinator
+                )
             )
-            entities.append(SolarEdgeCosPhiSet(inverter, config_entry, coordinator))
+            entities.append(
+                SolarEdgeCosPhiSet(inverter, config_entry, coordinator)
+            )
 
         """ Power Control Block """
         if hub.option_detect_extras and inverter.advanced_power_control:
-            entities.append(SolarEdgePowerReduce(inverter, config_entry, coordinator))
-            entities.append(SolarEdgeCurrentLimit(inverter, config_entry, coordinator))
+            entities.append(
+                SolarEdgePowerReduce(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolarEdgeCurrentLimit(inverter, config_entry, coordinator)
+            )
 
     """ Power Control Options: Storage Control """
     if hub.option_storage_control is True:
         for inverter in hub.inverters:
             if inverter.decoded_storage_control is False:
                 continue
-            entities.append(StorageACChargeLimit(inverter, config_entry, coordinator))
-            entities.append(StorageBackupReserve(inverter, config_entry, coordinator))
-            entities.append(StorageCommandTimeout(inverter, config_entry, coordinator))
+            entities.append(
+                StorageACChargeLimit(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                StorageBackupReserve(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                StorageCommandTimeout(inverter, config_entry, coordinator)
+            )
             if inverter.has_battery is True:
-                entities.append(StorageChargeLimit(inverter, config_entry, coordinator))
+                entities.append(
+                    StorageChargeLimit(inverter, config_entry, coordinator)
+                )
                 entities.append(
                     StorageDischargeLimit(inverter, config_entry, coordinator)
                 )
@@ -63,9 +79,13 @@ async def async_setup_entry(
     """ Power Control Options: Site Limit Control """
     if hub.option_site_limit_control is True:
         for inverter in hub.inverters:
-            entities.append(SolarEdgeSiteLimit(inverter, config_entry, coordinator))
             entities.append(
-                SolarEdgeExternalProductionMax(inverter, config_entry, coordinator)
+                SolarEdgeSiteLimit(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolarEdgeExternalProductionMax(
+                    inverter, config_entry, coordinator
+                )
             )
 
     if entities:
@@ -217,7 +237,8 @@ class StorageBackupReserve(SolarEdgeNumberBase):
                 )
                 == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_storage_control["backup_reserve"] < 0
-                or self._platform.decoded_storage_control["backup_reserve"] > 100
+                or self._platform.decoded_storage_control["backup_reserve"]
+                > 100
             ):
                 return False
 
@@ -268,7 +289,8 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
                 self._platform.decoded_storage_control is False
                 or self._platform.decoded_storage_control["command_timeout"]
                 == SunSpecNotImpl.UINT32
-                or self._platform.decoded_storage_control["command_timeout"] > 86400
+                or self._platform.decoded_storage_control["command_timeout"]
+                > 86400
             ):
                 return False
 
@@ -317,7 +339,9 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         try:
             if (
                 self._platform.decoded_storage_control is False
-                or float_to_hex(self._platform.decoded_storage_control["charge_limit"])
+                or float_to_hex(
+                    self._platform.decoded_storage_control["charge_limit"]
+                )
                 == hex(SunSpecNotImpl.FLOAT32)
                 or self._platform.decoded_storage_control["charge_limit"] < 0
             ):
@@ -427,15 +451,17 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     @property
     def available(self) -> bool:
         try:
-            if float_to_hex(self._platform.decoded_model["E_Site_Limit"]) == hex(
-                SunSpecNotImpl.FLOAT32
-            ):
+            if float_to_hex(
+                self._platform.decoded_model["E_Site_Limit"]
+            ) == hex(SunSpecNotImpl.FLOAT32):
                 return False
 
             return super().available and (
                 (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1
-                or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 1) & 1
-                or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2) & 1
+                or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 1)
+                & 1
+                or (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2)
+                & 1
             )
 
         except (TypeError, KeyError):
@@ -487,7 +513,8 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
             return (
                 super().available
-                and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
+                and (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10)
+                & 1
             )
 
         except (TypeError, KeyError):
@@ -539,7 +566,8 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     def available(self) -> bool:
         try:
             if (
-                self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
+                self._platform.decoded_model["I_Power_Limit"]
+                == SunSpecNotImpl.UINT16
                 or self._platform.decoded_model["I_Power_Limit"] > 100
                 or self._platform.decoded_model["I_Power_Limit"] < 0
             ):

@@ -187,7 +187,9 @@ class SolarEdgeDeviceScanner:
         self._writer = None
         self._reader = None
 
-    def device_is_inverter(self, request: list[int], response: list[int]) -> int:
+    def device_is_inverter(
+        self, request: list[int], response: list[int]
+    ) -> int:
         """Check if device response matches SolarEdge inverter signature.
 
         Args:
@@ -268,7 +270,9 @@ class SolarEdgeDeviceScanner:
                         )
 
                     _LOGGER.debug(f" Received ({len(response)} bytes)")
-                    _LOGGER.debug(f" {' '.join(format(x, '02x') for x in response)}")
+                    _LOGGER.debug(
+                        f" {' '.join(format(x, '02x') for x in response)}"
+                    )
 
                     return self.FOUND
 

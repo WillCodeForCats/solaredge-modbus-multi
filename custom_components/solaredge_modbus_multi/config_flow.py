@@ -9,8 +9,17 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+)
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
@@ -43,17 +52,23 @@ class ScanNoResponseError(HomeAssistantError):
     pass
 
 
-def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
+def generate_config_schema(
+    step_id: str, user_input: dict[str, Any]
+) -> vol.Schema:
     """Generate config flow or repair schema."""
     schema: dict[vol.Marker, Any] = {}
 
     if step_id == "user":
-        schema |= {vol.Required(CONF_NAME, default=user_input[CONF_NAME]): cv.string}
+        schema |= {
+            vol.Required(CONF_NAME, default=user_input[CONF_NAME]): cv.string
+        }
 
     if step_id in ["reconfigure", "confirm", "user"]:
         schema |= {
             vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-            vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
+            vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
+                int
+            ),
             vol.Required(
                 f"{ConfName.DEVICE_LIST}",
                 default=user_input[ConfName.DEVICE_LIST],
@@ -83,14 +98,18 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
 
-    async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
+    async def _async_update_progress_bar(
+        self, scanned: int, total: int
+    ) -> None:
         try:
             progress = scanned / total if total > 0 else 0
             self.async_update_progress(progress)
         except asyncio.CancelledError:
             pass
 
-    async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
+    async def _async_scan_devices(
+        self, user_input: dict[str, Any]
+    ) -> list[int]:
         """Scanner job for async_create_task"""
         scanner = SolarEdgeDeviceScanner(
             host=user_input[CONF_HOST],
@@ -180,7 +199,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif not 1 <= user_input[CONF_PORT] <= 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
             else:
-                new_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                new_unique_id = (
+                    f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                )
                 await self.async_set_unique_id(new_unique_id)
 
                 self._abort_if_unique_id_configured()
@@ -211,11 +232,15 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="scan_ask_host",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
+                    vol.Optional(
+                        CONF_NAME, default=user_input[CONF_NAME]
+                    ): cv.string,
+                    vol.Required(
+                        CONF_HOST, default=user_input[CONF_HOST]
+                    ): cv.string,
+                    vol.Required(
+                        CONF_PORT, default=user_input[CONF_PORT]
+                    ): vol.Coerce(int),
                 },
             ),
             errors=errors,
@@ -342,11 +367,15 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="manual",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
-                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
-                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
-                        int
-                    ),
+                    vol.Optional(
+                        CONF_NAME, default=user_input[CONF_NAME]
+                    ): cv.string,
+                    vol.Required(
+                        CONF_HOST, default=user_input[CONF_HOST]
+                    ): cv.string,
+                    vol.Required(
+                        CONF_PORT, default=user_input[CONF_PORT]
+                    ): vol.Coerce(int),
                     vol.Required(
                         f"{ConfName.DEVICE_LIST}",
                         default=user_input[ConfName.DEVICE_LIST],
@@ -364,7 +393,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             entry = self._pending_entry
             self._pending_entry = None
 
-            return self.async_create_entry(title=entry["title"], data=entry["data"])
+            return self.async_create_entry(
+                title=entry["title"], data=entry["data"]
+            )
 
         return self.async_show_form(
             step_id="features_info",
@@ -404,7 +435,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[ConfName.DEVICE_LIST] = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
-                    this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    this_unique_id = (
+                        f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                    )
 
                     if this_unique_id != config_entry.unique_id:
                         self._async_abort_entries_match(
@@ -430,7 +463,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             user_input = {
                 CONF_HOST: config_entry.data.get(CONF_HOST),
-                CONF_PORT: config_entry.data.get(CONF_PORT, ConfDefaultInt.PORT),
+                CONF_PORT: config_entry.data.get(
+                    CONF_PORT, ConfDefaultInt.PORT
+                ),
                 ConfName.DEVICE_LIST: reconfig_device_list,
             }
 
@@ -469,7 +504,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                         return await self.async_step_adv_pwr_ctl()
 
                     else:
-                        return self.async_create_entry(title="", data=user_input)
+                        return self.async_create_entry(
+                            title="", data=user_input
+                        )
 
         else:
             user_input = {
@@ -477,19 +514,22 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
-                    ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
+                    ConfName.KEEP_MODBUS_OPEN,
+                    bool(ConfDefaultFlag.KEEP_MODBUS_OPEN),
                 ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
                     ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
                 ConfName.DETECT_BATTERIES: self.config_entry.options.get(
-                    ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
+                    ConfName.DETECT_BATTERIES,
+                    bool(ConfDefaultFlag.DETECT_BATTERIES),
                 ),
                 ConfName.DETECT_EXTRAS: self.config_entry.options.get(
                     ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
                 ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
+                    ConfName.ADV_PWR_CONTROL,
+                    bool(ConfDefaultFlag.ADV_PWR_CONTROL),
                 ),
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
@@ -579,7 +619,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.BATTERY_ENERGY_RESET_CYCLES}",
-                        default=user_input[ConfName.BATTERY_ENERGY_RESET_CYCLES],
+                        default=user_input[
+                            ConfName.BATTERY_ENERGY_RESET_CYCLES
+                        ],
                     ): vol.Coerce(int),
                     vol.Optional(
                         f"{ConfName.BATTERY_RATING_ADJUST}",

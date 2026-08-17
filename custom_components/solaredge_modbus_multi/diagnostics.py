@@ -14,7 +14,12 @@ from .helpers import float_to_hex
 REDACT_CONFIG = {"unique_id", "host"}
 REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
 REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
-REDACT_BATTERY = {"identifiers", "B_SerialNumber", "serial_number", "via_device"}
+REDACT_BATTERY = {
+    "identifiers",
+    "B_SerialNumber",
+    "serial_number",
+    "via_device",
+}
 REDACT_EVSE = {"identifiers", "C_SerialNumber", "serial_number"}
 
 
@@ -44,7 +49,9 @@ async def async_get_config_entry_diagnostics(
 
     data: dict[str, Any] = {
         "pymodbus_version": hub.pymodbus_version,
-        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
+        "config_entry": async_redact_data(
+            config_entry.as_dict(), REDACT_CONFIG
+        ),
         "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
 
@@ -60,7 +67,9 @@ async def async_get_config_entry_diagnostics(
                 "is_mmppt": inverter.is_mmppt,
                 "mmppt": format_values(inverter.decoded_mmppt),
                 "has_battery": inverter.has_battery,
-                "storage_control": format_values(inverter.decoded_storage_control),
+                "storage_control": format_values(
+                    inverter.decoded_storage_control
+                ),
                 "use_status_vendor4": inverter.use_status_vendor4,
             }
         }

@@ -37,17 +37,27 @@ async def async_setup_entry(
     for inverter in hub.inverters:
         """Power Control Options: Storage Control"""
         if hub.option_storage_control and inverter.decoded_storage_control:
-            entities.append(StorageControlMode(inverter, config_entry, coordinator))
-            entities.append(StorageACChargePolicy(inverter, config_entry, coordinator))
-            entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
-            entities.append(StorageCommandMode(inverter, config_entry, coordinator))
+            entities.append(
+                StorageControlMode(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                StorageACChargePolicy(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                StorageDefaultMode(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                StorageCommandMode(inverter, config_entry, coordinator)
+            )
 
         """ Power Control Options: Site Limit Control """
         if hub.option_site_limit_control:
             entities.append(
                 SolaredgeLimitControlMode(inverter, config_entry, coordinator)
             )
-            entities.append(SolaredgeLimitControl(inverter, config_entry, coordinator))
+            entities.append(
+                SolaredgeLimitControl(inverter, config_entry, coordinator)
+            )
 
         """ Power Control Block """
         if hub.option_detect_extras and inverter.advanced_power_control:
@@ -136,7 +146,9 @@ class StorageControlMode(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["control_mode"]]
+        return self._options[
+            self._platform.decoded_storage_control["control_mode"]
+        ]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -189,7 +201,9 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["ac_charge_policy"]]
+        return self._options[
+            self._platform.decoded_storage_control["ac_charge_policy"]
+        ]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -246,7 +260,9 @@ class StorageDefaultMode(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["default_mode"]]
+        return self._options[
+            self._platform.decoded_storage_control["default_mode"]
+        ]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -303,7 +319,9 @@ class StorageCommandMode(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["command_mode"]]
+        return self._options[
+            self._platform.decoded_storage_control["command_mode"]
+        ]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -328,7 +346,10 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
     @property
     def available(self) -> bool:
         try:
-            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
+            if (
+                self._platform.decoded_model["E_Lim_Ctl_Mode"]
+                == SunSpecNotImpl.UINT16
+            ):
                 return None
 
             return super().available
@@ -390,7 +411,10 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
     @property
     def available(self) -> bool:
         try:
-            if self._platform.decoded_model["E_Lim_Ctl"] == SunSpecNotImpl.UINT16:
+            if (
+                self._platform.decoded_model["E_Lim_Ctl"]
+                == SunSpecNotImpl.UINT16
+            ):
                 return False
 
             return super().available

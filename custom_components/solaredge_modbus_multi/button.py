@@ -28,15 +28,21 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
-        entities.append(SolarEdgeRefreshButton(inverter, config_entry, coordinator))
+        entities.append(
+            SolarEdgeRefreshButton(inverter, config_entry, coordinator)
+        )
 
         """ Power Control Block """
         if hub.option_detect_extras and inverter.advanced_power_control:
             entities.append(
-                SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
+                SolarEdgeCommitControlSettings(
+                    inverter, config_entry, coordinator
+                )
             )
             entities.append(
-                SolarEdgeDefaultControlSettings(inverter, config_entry, coordinator)
+                SolarEdgeDefaultControlSettings(
+                    inverter, config_entry, coordinator
+                )
             )
 
     if entities:
@@ -118,7 +124,9 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
         await self._platform.write_registers(
             address=61696,
             payload=ModbusClientMixin.convert_to_registers(
-                1, data_type=ModbusClientMixin.DATATYPE.UINT16, word_order="little"
+                1,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
             ),
         )
         await self.async_update()
@@ -148,7 +156,9 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
         await self._platform.write_registers(
             address=61697,
             payload=ModbusClientMixin.convert_to_registers(
-                1, data_type=ModbusClientMixin.DATATYPE.UINT16, word_order="little"
+                1,
+                data_type=ModbusClientMixin.DATATYPE.UINT16,
+                word_order="little",
             ),
         )
         await self.async_update()
