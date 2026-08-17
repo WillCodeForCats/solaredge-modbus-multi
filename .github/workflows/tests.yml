@@ -1,0 +1,23 @@
+---
+name: Tests
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+permissions: read-all
+jobs:
+  pytest:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Install test dependencies
+        run: pip install -r requirements-test.txt
+      - name: Run tests
+        run: pytest tests/ -v
