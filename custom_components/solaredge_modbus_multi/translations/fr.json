@@ -20,7 +20,11 @@
           "name": "Prefix du capteur",
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
-          "device_list": "Liste des ID des appareils de l'onduleur"
+          "device_list": "Liste des ID des appareils de l'onduleur",
+          "bypass_device_check": "Ignorer la validation des ID d'appareil"
+        },
+        "data_description": {
+          "bypass_device_check": "Ajoutez la liste des ID d'appareil sans vérifier que chaque ID répond en tant qu'onduleur SolarEdge. Utilisez cette option uniquement si la vérification échoue pour un appareil que vous savez correct, comme un appareil hors ligne pendant la configuration."
         }
       },
       "scan_ask_host": {

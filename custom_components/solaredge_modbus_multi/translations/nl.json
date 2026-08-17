@@ -20,7 +20,11 @@
           "name": "Sensor prefix",
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
-          "device_list": "Omvormerapparaat-ID-lijst"
+          "device_list": "Omvormerapparaat-ID-lijst",
+          "bypass_device_check": "ID-controle overslaan"
+        },
+        "data_description": {
+          "bypass_device_check": "Voeg de apparaat-ID-lijst toe zonder verbinding te maken om te controleren of elke ID reageert als een SolarEdge-omvormer. Gebruik dit alleen als de controle mislukt voor een apparaat waarvan u weet dat het correct is, bijvoorbeeld een apparaat dat offline is tijdens de installatie."
         }
       },
       "scan_ask_host": {

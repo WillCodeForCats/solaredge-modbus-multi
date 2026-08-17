@@ -20,7 +20,11 @@
           "name": "Sensorvoorvoegsel",
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",
-          "device_list": "Inverter-enhetsliste"
+          "device_list": "Inverter-enhetsliste",
+          "bypass_device_check": "Hopp over validering av enhets-ID"
+        },
+        "data_description": {
+          "bypass_device_check": "Legg til enhets-ID-listen uten å koble til for å sjekke at hver ID svarer som en SolarEdge-vekselretter. Bruk dette bare hvis kontrollen mislykkes for en enhet du vet er riktig, for eksempel en som er frakoblet under oppsettet."
         }
       },
       "scan_ask_host": {
