@@ -1,4 +1,10 @@
-"""SolarEdge components for modbus-connection device modelling."""
+"""SolarEdge components for modbus-connection device modelling.
+
+We're intentionally not using the SunSpec discovery and generation from modbus-connection
+because SolarEdge inverters are only partially SunSpec: all of the writable controls
+and battery components are not SunSpec. Rather than mixing the two, every class is
+a Component for the sake of uniformity.
+"""
 
 from __future__ import annotations
 
