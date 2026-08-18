@@ -4,7 +4,7 @@ import asyncio
 import importlib.metadata
 import logging
 
-from awesomeversion import AwesomeVersion
+from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
     AwesomeVersionCompareException,
     AwesomeVersionStrategyException,
@@ -148,6 +148,12 @@ async def async_write_with_retry(component, field: str, value) -> None:
 
             if attempt >= RetrySettings.RequestRetries:
                 raise
+
+
+def _parse_se_version(version_str: str) -> AwesomeVersion:
+    """Strip zero-padding from SolarEdge firmware version strings."""
+    stripped = ".".join(str(int(p)) for p in version_str.split("."))
+    return AwesomeVersion(stripped, ensure_strategy=AwesomeVersionStrategy.SIMPLVER)
 
 
 class SolarEdgeModbusMultiHub:
@@ -753,15 +759,26 @@ class SolarEdgeInverter:
         self.uid_base = f"{self.model}_{self.serial}"
 
         try:
-            this_ver = AwesomeVersion(self.inverter_common.C_Version)
+            this_ver = _parse_se_version(self.inverter_common.C_Version)
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
-                STATUS_VENDOR4_VERSION
+                STATUS_VENDOR4_VERSION,
+                ensure_strategy=AwesomeVersionStrategy.SIMPLVER,
             )
-            self._use_mmppt_units = this_ver >= AwesomeVersion(MMPPT_UNITS_VERSION)
-        except (AwesomeVersionCompareException, AwesomeVersionStrategyException) as e:
-            _LOGGER.error(
-                f"Error checking inverter version: {e}. Please report this issue."
+            self._use_mmppt_units = this_ver >= AwesomeVersion(
+                MMPPT_UNITS_VERSION,
+                ensure_strategy=AwesomeVersionStrategy.SIMPLVER,
             )
+        except (
+            AwesomeVersionCompareException,
+            AwesomeVersionStrategyException,
+            ValueError,
+        ) as e:
+            _LOGGER.warning(
+                f"Could not parse inverter version "
+                f"{self.inverter_common.C_Version!r}: {e}"
+            )
+            self._use_status_vendor4 = False
+            self._use_mmppt_units = False
 
         self.inverter_common.restrict_fields(["C_Version"])
         self.inverter_data.restrict_status_vendor4(self._use_status_vendor4)

@@ -112,7 +112,7 @@ class GlobalDynamicPowerControl(Component):
 
 class AdvancedPowerControl(Component):
     """Advanced Power Control Power Control Block is read every polling cycle."""
-    
+
     max_span = 120
 
     CommitPwrCtlSettings = integer(61696, signed=True, writable=True)
