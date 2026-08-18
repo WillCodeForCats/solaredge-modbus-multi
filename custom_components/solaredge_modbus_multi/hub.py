@@ -153,7 +153,7 @@ async def async_write_with_retry(component, field: str, value) -> None:
 def _parse_se_version(version_str: str) -> AwesomeVersion:
     """Strip zero-padding from SolarEdge firmware version strings."""
     stripped = ".".join(str(int(p)) for p in version_str.split("."))
-    return AwesomeVersion(stripped, ensure_strategy=AwesomeVersionStrategy.SIMPLVER)
+    return AwesomeVersion(stripped, ensure_strategy=AwesomeVersionStrategy.SIMPLEVER)
 
 
 class SolarEdgeModbusMultiHub:
@@ -762,11 +762,11 @@ class SolarEdgeInverter:
             this_ver = _parse_se_version(self.inverter_common.C_Version)
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
                 STATUS_VENDOR4_VERSION,
-                ensure_strategy=AwesomeVersionStrategy.SIMPLVER,
+                ensure_strategy=AwesomeVersionStrategy.SIMPLEVER,
             )
             self._use_mmppt_units = this_ver >= AwesomeVersion(
                 MMPPT_UNITS_VERSION,
-                ensure_strategy=AwesomeVersionStrategy.SIMPLVER,
+                ensure_strategy=AwesomeVersionStrategy.SIMPLEVER,
             )
         except (
             AwesomeVersionCompareException,
