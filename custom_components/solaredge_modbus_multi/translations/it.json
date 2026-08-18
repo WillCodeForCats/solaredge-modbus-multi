@@ -20,7 +20,11 @@
           "name": "Prefisso sensore",
           "host": "Indirizzo IP dell'inverter",
           "port": "Porta Modbus/TCP",
-          "device_list": "Elenco ID dispositivi inverter"
+          "device_list": "Elenco ID dispositivi inverter",
+          "bypass_device_check": "Salta la convalida dell'ID dispositivo"
+        },
+        "data_description": {
+          "bypass_device_check": "Aggiungi l'elenco degli ID dispositivo senza verificare che ciascun ID risponda come inverter SolarEdge. Usa questa opzione solo se il controllo fallisce per un dispositivo che sai essere corretto, ad esempio uno offline durante la configurazione."
         }
       },
       "scan_ask_host": {

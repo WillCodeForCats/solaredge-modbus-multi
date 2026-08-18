@@ -20,7 +20,11 @@
           "name": "Prefix sensora",
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
-          "device_list": "Lista identyfikatorów urządzeń falownika"
+          "device_list": "Lista identyfikatorów urządzeń falownika",
+          "bypass_device_check": "Pomiń weryfikację ID urządzenia"
+        },
+        "data_description": {
+          "bypass_device_check": "Dodaj listę identyfikatorów urządzeń bez łączenia się w celu sprawdzenia, czy każdy identyfikator odpowiada jako falownik SolarEdge. Użyj tej opcji tylko wtedy, gdy weryfikacja nie powiedzie się dla urządzenia, o którym wiesz, że jest poprawne, np. takiego, które jest offline podczas konfiguracji."
         }
       },
       "scan_ask_host": {
