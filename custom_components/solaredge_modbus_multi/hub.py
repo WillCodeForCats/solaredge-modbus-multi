@@ -315,6 +315,7 @@ class SolarEdgeModbusMultiHub:
                 self.evses.append(new_evse)
 
                 # Skip meter and battery detection if DeviceIsEVSE
+                new_evse.evse_common.restrict_fields(["C_Version"])
                 continue
 
             if self._detect_meters:
@@ -381,6 +382,8 @@ class SolarEdgeModbusMultiHub:
                     except DeviceInvalid as e:
                         _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
                         pass
+
+            new_inverter.inverter_common.restrict_fields(["C_Version"])
 
         if not self.inverters:
             # fail the hub setup if there are no inverters
@@ -780,7 +783,6 @@ class SolarEdgeInverter:
             self._use_status_vendor4 = False
             self._use_mmppt_units = False
 
-        self.inverter_common.restrict_fields(["C_Version"])
         self.inverter_data.restrict_status_vendor4(self._use_status_vendor4)
 
         is_multi_mppt = False
@@ -1498,8 +1500,6 @@ class SolarEdgeEVSE:
         self.device_address = self.evse_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} E{self.evse_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
-
-        self.evse_common.restrict_fields(["C_Version"])
 
     async def read_modbus_data(self) -> None:
         """Read and update dynamic modbus registers."""
