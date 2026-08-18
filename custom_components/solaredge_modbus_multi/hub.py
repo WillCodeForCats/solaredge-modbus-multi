@@ -485,7 +485,7 @@ class SolarEdgeModbusMultiHub:
 
         for unit, cycles_remaining in list(self._write_settle_cycles.items()):
             _LOGGER.debug(
-                f"Request spaced unit {unit} has {cycles_remaining} until clearing."
+                f"Request spaced unit {unit} has {cycles_remaining} cycles until clearing."
             )
             if cycles_remaining <= 1:
                 _LOGGER.debug(f"Clearing unit {unit} request spacing.")
@@ -504,6 +504,14 @@ class SolarEdgeModbusMultiHub:
         SolarEdge inverters may not respond (timeout) on errors instead of
         sending a modbus exception response.
         """
+
+        if self.sleep_after_write > 0:
+            _LOGGER.debug(
+                f"Spacing requests to unit {unit} for {self.sleep_after_write} "
+                f"seconds after write to field {field}."
+            )
+            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
+            self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
         try:
             await async_write_with_retry(component, field, value)
@@ -534,14 +542,6 @@ class SolarEdgeModbusMultiHub:
         except (ModbusConnectionError, ModbusProtocolError) as e:
             _LOGGER.error(f"Connection failed: {e}")
             raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
-
-        if self.sleep_after_write > 0:
-            _LOGGER.debug(
-                f"Spacing requests to unit {unit} for {self.sleep_after_write} "
-                f"seconds after write to field {field}."
-            )
-            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
-            self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
         _LOGGER.debug(f"Finished with write {field}.")
 
