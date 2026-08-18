@@ -238,7 +238,9 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write_registers(
             address=61762,
             payload=ModbusClientMixin.convert_to_registers(
-                0x1, data_type=ModbusClientMixin.DATATYPE.INT32, word_order="little"
+                0x1,
+                data_type=ModbusClientMixin.DATATYPE.INT32,
+                word_order="little",
             ),
         )
         await self.async_update()
@@ -249,7 +251,9 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write_registers(
             address=61762,
             payload=ModbusClientMixin.convert_to_registers(
-                0x0, data_type=ModbusClientMixin.DATATYPE.INT32, word_order="little"
+                0x0,
+                data_type=ModbusClientMixin.DATATYPE.INT32,
+                word_order="little",
             ),
         )
         await self.async_update()
