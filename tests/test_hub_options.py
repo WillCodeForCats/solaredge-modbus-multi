@@ -1,6 +1,7 @@
 """Tests for SolarEdgeModbusMultiHub options."""
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from modbus_connection.mock import MockModbusConnection
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
@@ -23,6 +24,7 @@ def _make_hub(hass, entry_data=None, entry_options=None):
         "test_entry_id",
         entry_data if entry_data is not None else ENTRY_DATA,
         entry_options if entry_options is not None else {},
+        MockModbusConnection(),
     )
 
 
@@ -55,7 +57,6 @@ async def test_options_default_to_bool(hass):
     for attr in (
         "_detect_meters",
         "_detect_batteries",
-        "_keep_modbus_open",
     ):
         assert isinstance(getattr(hub, attr), bool)
 
