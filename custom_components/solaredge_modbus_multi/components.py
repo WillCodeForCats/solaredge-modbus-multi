@@ -255,7 +255,7 @@ class MmpptUnit(Component):
     """
 
     ID = integer(40131, signed=False)
-    IDStr = string(40132, 16)
+    IDStr = string(40132, 8)
     DCA = integer(40140, signed=False, unit="A")
     DCV = integer(40141, signed=False, unit="V")
     DCW = integer(40142, signed=False, unit="W")
