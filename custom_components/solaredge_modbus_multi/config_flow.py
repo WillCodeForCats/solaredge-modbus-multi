@@ -9,8 +9,17 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+)
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
@@ -477,19 +486,22 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
-                    ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
+                    ConfName.KEEP_MODBUS_OPEN,
+                    bool(ConfDefaultFlag.KEEP_MODBUS_OPEN),
                 ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
                     ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
                 ConfName.DETECT_BATTERIES: self.config_entry.options.get(
-                    ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
+                    ConfName.DETECT_BATTERIES,
+                    bool(ConfDefaultFlag.DETECT_BATTERIES),
                 ),
                 ConfName.DETECT_EXTRAS: self.config_entry.options.get(
                     ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
                 ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
+                    ConfName.ADV_PWR_CONTROL,
+                    bool(ConfDefaultFlag.ADV_PWR_CONTROL),
                 ),
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE

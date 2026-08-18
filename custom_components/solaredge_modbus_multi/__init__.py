@@ -8,7 +8,12 @@ from datetime import timedelta
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+    Platform,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
@@ -235,7 +240,10 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
 class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
     def __init__(
-        self, hass: HomeAssistant, hub: SolarEdgeModbusMultiHub, scan_interval: int
+        self,
+        hass: HomeAssistant,
+        hub: SolarEdgeModbusMultiHub,
+        scan_interval: int,
     ):
         super().__init__(
             hass,

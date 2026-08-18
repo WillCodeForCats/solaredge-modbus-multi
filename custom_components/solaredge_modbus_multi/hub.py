@@ -152,7 +152,8 @@ class SolarEdgeModbusMultiHub:
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
         )
         self._adv_storage_control = entry_options.get(
-            ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
+            ConfName.ADV_STORAGE_CONTROL,
+            bool(ConfDefaultFlag.ADV_STORAGE_CONTROL),
         )
         self._adv_site_limit_control = entry_options.get(
             ConfName.ADV_SITE_LIMIT_CONTROL,
@@ -406,7 +407,11 @@ class SolarEdgeModbusMultiHub:
             for evse in self.evses:
                 await evse.read_modbus_data()
 
-        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
+        except (
+            ModbusReadError,
+            ModbusIllegalFunction,
+            ModbusIllegalValue,
+        ) as e:
             await self.disconnect()
             raise HubInitFailed(f"Read error: {e}")
 
@@ -489,7 +494,11 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
+        except (
+            ModbusReadError,
+            ModbusIllegalFunction,
+            ModbusIllegalValue,
+        ) as e:
             await self.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}")
 
@@ -593,11 +602,15 @@ class SolarEdgeModbusMultiHub:
 
         if "device_id" in sig.parameters:
             result = await self._client.read_holding_registers(
-                address=self._rr_address, count=self._rr_count, device_id=self._rr_unit
+                address=self._rr_address,
+                count=self._rr_count,
+                device_id=self._rr_unit,
             )
         else:
             result = await self._client.read_holding_registers(
-                address=self._rr_address, count=self._rr_count, slave=self._rr_unit
+                address=self._rr_address,
+                count=self._rr_count,
+                slave=self._rr_unit,
             )
 
         _LOGGER.debug(f"unit={self._rr_unit}: result is error: {result.isError()} ")
@@ -1092,7 +1105,10 @@ class SolarEdgeInverter:
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
                 STATUS_VENDOR4_VERSION
             )
-        except (AwesomeVersionCompareException, AwesomeVersionStrategyException) as e:
+        except (
+            AwesomeVersionCompareException,
+            AwesomeVersionStrategyException,
+        ) as e:
             _LOGGER.error(
                 f"Error checking inverter version: {e}. Please report this issue."
             )
@@ -1265,7 +1281,9 @@ class SolarEdgeInverter:
 
             try:
                 inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40123, rcount=mmppt_registers
+                    unit=self.inverter_unit_id,
+                    address=40123,
+                    rcount=mmppt_registers,
                 )
 
                 if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
@@ -1993,7 +2011,10 @@ class SolarEdgeMMPPTUnit:
     """Defines a SolarEdge inverter MMPPT unit."""
 
     def __init__(
-        self, inverter: SolarEdgeInverter, hub: SolarEdgeModbusMultiHub, unit: int
+        self,
+        inverter: SolarEdgeInverter,
+        hub: SolarEdgeModbusMultiHub,
+        unit: int,
     ) -> None:
         self.inverter = inverter
         self.hub = hub
@@ -2392,7 +2413,9 @@ class SolarEdgeBattery:
     async def init_device(self) -> None:
         try:
             battery_info = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=self.start_address, rcount=68
+                unit=self.inverter_unit_id,
+                address=self.start_address,
+                rcount=68,
             )
 
             self.decoded_common = dict(
