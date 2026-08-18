@@ -32,5 +32,8 @@ jobs:
           VALIDATE_PYTHON_ISORT: false
           VALIDATE_SPELL_CODESPELL: false
           VALIDATE_BIOME_FORMAT: false
+          LINTER_RULES_PATH: .
+          PYTHON_RUFF_CONFIG_FILE: pyproject.toml
+          PYTHON_RUFF_FORMAT_CONFIG_FILE: pyproject.toml
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
