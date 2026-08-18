@@ -51,9 +51,7 @@ def update_accum(self, accum_value: int) -> None:
 def host_valid(host):
     """Return True if hostname or IP address is valid."""
     try:
-        if ipaddress.ip_address(host).version == (4 or 6):
-            return True
-
+        return ipaddress.ip_address(host).version in (4, 6)
     except ValueError:
         return DOMAIN_REGEX.match(host)
 
