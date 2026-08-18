@@ -25,6 +25,7 @@ from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
+    BYPASS_DEVICE_CHECK,
     DEFAULT_NAME,
     DOMAIN,
     SETUP_MANUAL,
@@ -276,6 +277,33 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_HOST] = "invalid_host"
             elif not 1 <= user_input[CONF_PORT] <= 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
+            elif user_input[BYPASS_DEVICE_CHECK]:
+                try:
+                    device_list = device_list_from_string(
+                        user_input[ConfName.DEVICE_LIST]
+                    )
+                except HomeAssistantError as e:
+                    errors[ConfName.DEVICE_LIST] = f"{e}"
+                else:
+                    if not 1 <= len(device_list) <= 32:
+                        errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                    else:
+                        user_input[ConfName.DEVICE_LIST] = device_list
+
+                        new_unique_id = (
+                            f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                        )
+                        await self.async_set_unique_id(new_unique_id)
+
+                        self._abort_if_unique_id_configured()
+
+                        del user_input[BYPASS_DEVICE_CHECK]
+                        self._pending_entry = {
+                            "title": user_input[CONF_NAME],
+                            "data": user_input,
+                        }
+
+                        return await self.async_step_features_info()
             else:
                 scanner = SolarEdgeDeviceScanner(
                     host=user_input[CONF_HOST],
@@ -328,6 +356,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                         self._abort_if_unique_id_configured()
 
+                        del user_input[BYPASS_DEVICE_CHECK]
                         self._pending_entry = {
                             "title": user_input[CONF_NAME],
                             "data": user_input,
@@ -345,6 +374,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_HOST: "",
                 CONF_PORT: ConfDefaultInt.PORT,
                 ConfName.DEVICE_LIST: ConfDefaultStr.DEVICE_LIST,
+                BYPASS_DEVICE_CHECK: False,
             }
 
         return self.async_show_form(
@@ -360,6 +390,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         f"{ConfName.DEVICE_LIST}",
                         default=user_input[ConfName.DEVICE_LIST],
                     ): cv.string,
+                    vol.Optional(
+                        BYPASS_DEVICE_CHECK,
+                        default=user_input.get(BYPASS_DEVICE_CHECK, False),
+                    ): cv.boolean,
                 },
             ),
             errors=errors,
