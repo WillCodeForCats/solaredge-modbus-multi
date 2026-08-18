@@ -13,6 +13,7 @@ SETUP_TYPE = "setup_type"
 SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
 SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
 SETUP_MANUAL = "manual_list"
+BYPASS_DEVICE_CHECK = "bypass_device_check"
 
 # Number of read-only poll cycles to keep a unit's post-write message
 # spacing active before clearing it back to 0.

@@ -20,7 +20,11 @@
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
-          "device_list": "Liste der Wechselrichter-Geräte-IDs"
+          "device_list": "Liste der Wechselrichter-Geräte-IDs",
+          "bypass_device_check": "Geräte-ID-Prüfung überspringen"
+        },
+        "data_description": {
+          "bypass_device_check": "Fügen Sie die Geräte-ID-Liste hinzu, ohne zu prüfen, ob jede ID als SolarEdge-Wechselrichter antwortet. Verwenden Sie dies nur, wenn die Prüfung für ein Gerät fehlschlägt, von dem Sie wissen, dass es korrekt ist, z. B. eines, das während der Einrichtung offline ist."
         }
       },
       "scan_ask_host": {

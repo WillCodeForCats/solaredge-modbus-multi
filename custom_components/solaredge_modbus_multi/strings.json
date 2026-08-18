@@ -20,7 +20,11 @@
           "name": "Sensor Prefix",
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
-          "device_list": "Inverter Device ID List"
+          "device_list": "Inverter Device ID List",
+          "bypass_device_check": "Skip Device ID validation"
+        },
+        "data_description": {
+          "bypass_device_check": "Add the Device ID list without connecting to check that each ID responds as a SolarEdge inverter. Use this only if the check fails for a device you know is correct, such as one that is offline during setup."
         }
       },
       "scan_ask_host": {
