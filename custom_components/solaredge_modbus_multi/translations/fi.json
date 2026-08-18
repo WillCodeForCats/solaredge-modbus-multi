@@ -20,7 +20,11 @@
           "name": "Anturin etuliite",
           "host": "Vaihtosuuntaajan IP-osoite",
           "port": "Modbus/TCP-portti",
-          "device_list": "Vaihtosuuntaajien laitetunnusluettelo"
+          "device_list": "Vaihtosuuntaajien laitetunnusluettelo",
+          "bypass_device_check": "Ohita laitetunnuksen tarkistus"
+        },
+        "data_description": {
+          "bypass_device_check": "Lisää laitetunnusluettelo muodostamatta yhteyttä sen tarkistamiseksi, että jokainen tunnus vastaa SolarEdge-vaihtosuuntaajana. Käytä tätä vain, jos tarkistus epäonnistuu laitteelle, jonka tiedät olevan oikea, kuten sellaiselle, joka on offline-tilassa asennuksen aikana."
         }
       },
       "scan_ask_host": {

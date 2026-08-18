@@ -20,7 +20,11 @@
           "name": "Sensorpræfiks",
           "host": "Inverterens IP-adresse",
           "port": "Modbus/TCP-port",
-          "device_list": "Liste over inverterens enheds-ID'er"
+          "device_list": "Liste over inverterens enheds-ID'er",
+          "bypass_device_check": "Spring validering af enheds-ID over"
+        },
+        "data_description": {
+          "bypass_device_check": "Tilføj enheds-ID-listen uden at oprette forbindelse for at kontrollere, at hvert ID svarer som en SolarEdge-inverter. Brug kun dette, hvis kontrollen mislykkes for en enhed, du ved er korrekt, f.eks. en, der er offline under opsætningen."
         }
       },
       "scan_ask_host": {

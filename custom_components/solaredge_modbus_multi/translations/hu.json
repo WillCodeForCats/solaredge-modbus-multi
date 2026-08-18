@@ -20,7 +20,11 @@
           "name": "Érzékelő Előtag",
           "host": "Inverter IP-címe",
           "port": "Modbus/TCP Port",
-          "device_list": "Inverter Eszközazonosító-lista"
+          "device_list": "Inverter Eszközazonosító-lista",
+          "bypass_device_check": "Eszközazonosító-ellenőrzés kihagyása"
+        },
+        "data_description": {
+          "bypass_device_check": "Adja hozzá az eszközazonosító-listát kapcsolódás nélkül, anélkül, hogy ellenőrizné, hogy az egyes azonosítók SolarEdge inverterként válaszolnak-e. Csak akkor használja, ha az ellenőrzés meghiúsul egy olyan eszköznél, amelyről tudja, hogy helyes, például amely a beállítás során nincs csatlakoztatva."
         }
       },
       "scan_ask_host": {

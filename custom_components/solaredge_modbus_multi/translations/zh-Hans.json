@@ -20,7 +20,11 @@
           "name": "传感器前缀",
           "host": "逆变器 IP 地址",
           "port": "Modbus/TCP 端口",
-          "device_list": "逆变器设备 ID 列表"
+          "device_list": "逆变器设备 ID 列表",
+          "bypass_device_check": "跳过设备 ID 验证"
+        },
+        "data_description": {
+          "bypass_device_check": "添加设备 ID 列表而不连接检查每个 ID 是否作为 SolarEdge 逆变器响应。仅当您确定某个设备的 ID 正确但检查失败时才使用此选项，例如该设备在设置期间处于离线状态。"
         }
       },
       "scan_ask_host": {

@@ -20,7 +20,11 @@
           "name": "Prefix Senzor",
           "host": "Adresa IP a Invertorului",
           "port": "Port Modbus/TCP",
-          "device_list": "Lista de ID-uri de Dispozitiv ale Invertoarelor"
+          "device_list": "Lista de ID-uri de Dispozitiv ale Invertoarelor",
+          "bypass_device_check": "Omite validarea ID-ului dispozitivului"
+        },
+        "data_description": {
+          "bypass_device_check": "Adăugați lista de ID-uri de dispozitiv fără a vă conecta pentru a verifica dacă fiecare ID răspunde ca invertor SolarEdge. Utilizați această opțiune numai dacă verificarea eșuează pentru un dispozitiv despre care știți că este corect, cum ar fi unul offline în timpul configurării."
         }
       },
       "scan_ask_host": {

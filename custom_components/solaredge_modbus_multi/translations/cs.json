@@ -20,7 +20,11 @@
           "name": "Předpona senzoru",
           "host": "IP adresa střídače",
           "port": "Port Modbus/TCP",
-          "device_list": "Seznam ID zařízení střídačů"
+          "device_list": "Seznam ID zařízení střídačů",
+          "bypass_device_check": "Přeskočit ověření ID zařízení"
+        },
+        "data_description": {
+          "bypass_device_check": "Přidejte seznam ID zařízení bez připojení ke kontrole, zda každé ID odpovídá jako střídač SolarEdge. Použijte to pouze v případě, že kontrola selže u zařízení, o kterém víte, že je správné, například u zařízení, které je při nastavení offline."
         }
       },
       "scan_ask_host": {

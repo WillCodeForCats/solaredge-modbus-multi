@@ -20,7 +20,11 @@
           "name": "Sensorprefix",
           "host": "Växelriktarens IP-adress",
           "port": "Modbus/TCP-port",
-          "device_list": "Lista över växelriktarnas enhets-ID"
+          "device_list": "Lista över växelriktarnas enhets-ID",
+          "bypass_device_check": "Hoppa över validering av enhets-ID"
+        },
+        "data_description": {
+          "bypass_device_check": "Lägg till enhets-ID-listan utan att ansluta för att kontrollera att varje ID svarar som en SolarEdge-växelriktare. Använd detta endast om kontrollen misslyckas för en enhet som du vet är korrekt, till exempel en som är offline under installationen."
         }
       },
       "scan_ask_host": {
