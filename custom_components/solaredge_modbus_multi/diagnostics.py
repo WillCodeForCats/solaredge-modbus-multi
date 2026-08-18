@@ -49,9 +49,7 @@ async def async_get_config_entry_diagnostics(
 
     data: dict[str, Any] = {
         "pymodbus_version": hub.pymodbus_version,
-        "config_entry": async_redact_data(
-            config_entry.as_dict(), REDACT_CONFIG
-        ),
+        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
         "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
 
@@ -67,9 +65,7 @@ async def async_get_config_entry_diagnostics(
                 "is_mmppt": inverter.is_mmppt,
                 "mmppt": format_values(inverter.decoded_mmppt),
                 "has_battery": inverter.has_battery,
-                "storage_control": format_values(
-                    inverter.decoded_storage_control
-                ),
+                "storage_control": format_values(inverter.decoded_storage_control),
                 "use_status_vendor4": inverter.use_status_vendor4,
             }
         }

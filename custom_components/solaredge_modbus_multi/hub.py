@@ -295,9 +295,7 @@ class SolarEdgeModbusMultiHub:
             except DeviceInvalid as e:
                 # Inverters are mandatory, but if the Device ID is invalid or not responding
                 # skip it and warn the user instead of failing the entire hub setup
-                _LOGGER.error(
-                    f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}"
-                )
+                _LOGGER.error(f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}")
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -330,9 +328,7 @@ class SolarEdgeModbusMultiHub:
                         _LOGGER.debug(
                             f"Looking for meter I{inverter_unit_id}M{meter_id}"
                         )
-                        new_meter = SolarEdgeMeter(
-                            inverter_unit_id, meter_id, self
-                        )
+                        new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
                         await new_meter.init_device()
 
                         for meter in self.meters:
@@ -617,23 +613,17 @@ class SolarEdgeModbusMultiHub:
                 slave=self._rr_unit,
             )
 
-        _LOGGER.debug(
-            f"unit={self._rr_unit}: result is error: {result.isError()} "
-        )
+        _LOGGER.debug(f"unit={self._rr_unit}: result is error: {result.isError()} ")
 
         if result.isError():
-            _LOGGER.debug(
-                f"unit={self._rr_unit}: error result: {type(result)} "
-            )
+            _LOGGER.debug(f"unit={self._rr_unit}: error result: {type(result)} ")
 
             if type(result) is ModbusIOException:
                 raise ModbusIOError(result)
 
             if type(result) is ExceptionResponse:
                 if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(
-                        f"unit={self._rr_unit} Read IllegalAddress: {result}"
-                    )
+                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalAddress: {result}")
                     raise ModbusIllegalAddress(result)
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
@@ -643,9 +633,7 @@ class SolarEdgeModbusMultiHub:
                     raise ModbusIllegalFunction(result)
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(
-                        f"unit={self._rr_unit} Read IllegalValue: {result}"
-                    )
+                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalValue: {result}")
                     raise ModbusIllegalValue(result)
 
             raise ModbusReadError(result)
@@ -745,9 +733,7 @@ class SolarEdgeModbusMultiHub:
                     )
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(
-                        f"Unit {self._wr_unit} Write IllegalValue: {result}"
-                    )
+                    _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalValue: {result}")
                     raise HomeAssistantError(
                         "Value invalid for device at ID {self._wr_unit}."
                     )
@@ -875,25 +861,17 @@ class SolarEdgeModbusMultiHub:
         if not self.initalized:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
-            this_timeout += (
-                SolarEdgeTimeouts.Device * 2
-            ) * 3  # max 3 per inverter
-            this_timeout += (
-                SolarEdgeTimeouts.Device * 2
-            ) * 2  # max 2 per inverter
+            this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
+            this_timeout += (SolarEdgeTimeouts.Device * 2) * 2  # max 2 per inverter
             if self.option_detect_extras:
-                this_timeout += (
-                    SolarEdgeTimeouts.Read * 3
-                ) * self.number_of_inverters
+                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_batteries
             if self.option_detect_extras:
-                this_timeout += (
-                    SolarEdgeTimeouts.Read * 3
-                ) * self.number_of_inverters
+                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         this_timeout = this_timeout / 1000
 
@@ -953,9 +931,7 @@ class SolarEdgeInverter:
                 "C_SunSpec_Length",
                 "C_Device_address",
             ]
-            uint16_data = inverter_data.registers[2:4] + [
-                inverter_data.registers[68]
-            ]
+            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
             self.decoded_common.update(
                 dict(
                     zip(
@@ -1029,14 +1005,10 @@ class SolarEdgeInverter:
                     ),
                 )
 
-            self.hub.inverter_common[self.inverter_unit_id] = (
-                self.decoded_common
-            )
+            self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
 
         except (ModbusIOError, ModbusIOException):
-            raise DeviceInvalid(
-                f"No response from Device ID {self.inverter_unit_id}"
-            )
+            raise DeviceInvalid(f"No response from Device ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
             raise DeviceInvalid(
@@ -1143,12 +1115,8 @@ class SolarEdgeInverter:
 
         if self.decoded_mmppt is not None:
             for unit_index in range(self.decoded_mmppt["mmppt_Units"]):
-                self.mmppt_units.append(
-                    SolarEdgeMMPPTUnit(self, self.hub, unit_index)
-                )
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id} MMPPT Unit {unit_index}"
-                )
+                self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
+                _LOGGER.debug(f"I{self.inverter_unit_id} MMPPT Unit {unit_index}")
 
     async def read_modbus_data(self) -> None:
         """Read and update dynamic modbus registers."""
@@ -1288,9 +1256,7 @@ class SolarEdgeInverter:
                 or self.decoded_model["C_SunSpec_DID"] not in [101, 102, 103]
                 or self.decoded_model["C_SunSpec_Length"] != 50
             ):
-                raise DeviceInvalid(
-                    f"Inverter {self.inverter_unit_id} not usable."
-                )
+                raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
         except ModbusIOError:
             raise ModbusReadError(
@@ -1368,8 +1334,7 @@ class SolarEdgeInverter:
                                     int_list_to_string(
                                         ModbusClientMixin.convert_from_registers(
                                             inverter_data.registers[
-                                                9 + unit_offset : 17
-                                                + unit_offset
+                                                9 + unit_offset : 17 + unit_offset
                                             ],
                                             data_type=ModbusClientMixin.DATATYPE.UINT16,
                                         )
@@ -1378,11 +1343,7 @@ class SolarEdgeInverter:
                                 (
                                     "Tmp",
                                     ModbusClientMixin.convert_from_registers(
-                                        [
-                                            inverter_data.registers[
-                                                24 + unit_offset
-                                            ]
-                                        ],
+                                        [inverter_data.registers[24 + unit_offset]],
                                         data_type=ModbusClientMixin.DATATYPE.INT16,
                                     ),
                                 ),
@@ -1422,9 +1383,7 @@ class SolarEdgeInverter:
                             "DCEvt",
                         ]
                         uint32_data = (
-                            inverter_data.registers[
-                                20 + unit_offset : 22 + unit_offset
-                            ]
+                            inverter_data.registers[20 + unit_offset : 22 + unit_offset]
                             + inverter_data.registers[
                                 22 + unit_offset : 24 + unit_offset
                             ]
@@ -1456,15 +1415,12 @@ class SolarEdgeInverter:
 
         """ Global Dynamic Power Control and Status """
         if self.hub.option_detect_extras is True and (
-            self.global_power_control is True
-            or self.global_power_control is None
+            self.global_power_control is True or self.global_power_control is None
         ):
             try:
                 async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = (
-                        await self.hub.modbus_read_holding_registers(
-                            unit=self.inverter_unit_id, address=61440, rcount=4
-                        )
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61440, rcount=4
                     )
 
                     self.decoded_model.update(
@@ -1533,15 +1489,12 @@ class SolarEdgeInverter:
         """ Advanced Power Control """
         """ Power Control Block """
         if self.hub.option_detect_extras is True and (
-            self.advanced_power_control is True
-            or self.advanced_power_control is None
+            self.advanced_power_control is True or self.advanced_power_control is None
         ):
             try:
                 async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = (
-                        await self.hub.modbus_read_holding_registers(
-                            unit=self.inverter_unit_id, address=61696, rcount=86
-                        )
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61696, rcount=86
                     )
 
                     int32_fields = [
@@ -1609,8 +1562,7 @@ class SolarEdgeInverter:
                         "PwrVsFreqX_1",
                     ]
                     float32_data = (
-                        inverter_data.registers[10:66]
-                        + inverter_data.registers[70:86]
+                        inverter_data.registers[10:66] + inverter_data.registers[70:86]
                     )
                     self.decoded_model.update(
                         dict(
@@ -1658,10 +1610,8 @@ class SolarEdgeInverter:
                     )
 
                 async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = (
-                        await self.hub.modbus_read_holding_registers(
-                            unit=self.inverter_unit_id, address=61782, rcount=84
-                        )
+                    inverter_data = await self.hub.modbus_read_holding_registers(
+                        unit=self.inverter_unit_id, address=61782, rcount=84
                     )
 
                     float32_fields = [
@@ -1730,8 +1680,7 @@ class SolarEdgeInverter:
                         "PwrSoftStartTime",
                     ]
                     uint32_data = (
-                        inverter_data.registers[32:36]
-                        + inverter_data.registers[52:56]
+                        inverter_data.registers[32:36] + inverter_data.registers[52:56]
                     )
                     self.decoded_model.update(
                         dict(
@@ -1861,9 +1810,7 @@ class SolarEdgeInverter:
                 except KeyError:
                     pass
 
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available"
-                )
+                _LOGGER.debug(f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available")
 
             except ModbusIOError:
                 raise ModbusReadError(
@@ -1895,9 +1842,7 @@ class SolarEdgeInverter:
 
             except ModbusIllegalAddress:
                 self._grid_status = False
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: Grid On/Off NOT available"
-                )
+                _LOGGER.debug(f"I{self.inverter_unit_id}: Grid On/Off NOT available")
 
             except ModbusIOException as e:
                 _LOGGER.debug(
@@ -1969,8 +1914,7 @@ class SolarEdgeInverter:
                     "discharge_limit",
                 ]
                 float32_data = (
-                    inverter_data.registers[2:6]
-                    + inverter_data.registers[10:14]
+                    inverter_data.registers[2:6] + inverter_data.registers[10:14]
                 )
                 self.decoded_storage_control.update(
                     dict(
@@ -2005,9 +1949,7 @@ class SolarEdgeInverter:
                     if isinstance(value, float):
                         display_value = float_to_hex(value)
                     else:
-                        display_value = (
-                            hex(value) if isinstance(value, int) else value
-                        )
+                        display_value = hex(value) if isinstance(value, int) else value
                     _LOGGER.debug(
                         f"I{self.inverter_unit_id}: "
                         f"{name} {display_value} {type(value)}"
@@ -2082,9 +2024,7 @@ class SolarEdgeMMPPTUnit:
     @property
     def online(self) -> bool:
         """Device is online."""
-        return (
-            self.hub.online and self.inverter.is_mmppt and self.inverter.online
-        )
+        return self.hub.online and self.inverter.is_mmppt and self.inverter.online
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -2240,9 +2180,7 @@ class SolarEdgeMeter:
                 )
 
         except ModbusIOError:
-            raise DeviceInvalid(
-                f"No response from inverter ID {self.inverter_unit_id}"
-            )
+            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
             raise DeviceInvalid(f"Meter {self.meter_id}: unsupported address")
@@ -2253,7 +2191,9 @@ class SolarEdgeMeter:
         self.fw_version = self.decoded_common["C_Version"]
         self.serial = self.decoded_common["C_SerialNumber"]
         self.device_address = self.decoded_common["C_Device_address"]
-        self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
+        self.name = (
+            f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
+        )
 
         inverter_model = self.inverter_common["C_Model"]
         inerter_serial = self.inverter_common["C_SerialNumber"]
@@ -2543,9 +2483,7 @@ class SolarEdgeBattery:
                 if isinstance(value, float):
                     display_value = float_to_hex(value)
                 else:
-                    display_value = (
-                        hex(value) if isinstance(value, int) else value
-                    )
+                    display_value = hex(value) if isinstance(value, int) else value
                 _LOGGER.debug(
                     (
                         f"I{self.inverter_unit_id}B{self.battery_id}: "
@@ -2554,30 +2492,26 @@ class SolarEdgeBattery:
                 )
 
         except ModbusIOError:
-            raise DeviceInvalid(
-                f"No response from inverter ID {self.inverter_unit_id}"
-            )
+            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
         except ModbusIllegalAddress:
-            raise DeviceInvalid(
-                f"Battery {self.battery_id} unsupported address"
-            )
+            raise DeviceInvalid(f"Battery {self.battery_id} unsupported address")
 
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
         ].removesuffix(self.decoded_common["B_SerialNumber"])
-        self.decoded_common["B_Model"] = self.decoded_common[
-            "B_Model"
-        ].removesuffix(self.decoded_common["B_SerialNumber"])
+        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].removesuffix(
+            self.decoded_common["B_SerialNumber"]
+        )
 
         # Remove ASCII control characters from descriptive strings
         ascii_ctrl_chars = dict.fromkeys(range(32))
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
             "B_Manufacturer"
         ].translate(ascii_ctrl_chars)
-        self.decoded_common["B_Model"] = self.decoded_common[
-            "B_Model"
-        ].translate(ascii_ctrl_chars)
+        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].translate(
+            ascii_ctrl_chars
+        )
         self.decoded_common["B_SerialNumber"] = self.decoded_common[
             "B_SerialNumber"
         ].translate(ascii_ctrl_chars)
@@ -2587,9 +2521,7 @@ class SolarEdgeBattery:
             == hex(SunSpecNotImpl.FLOAT32)
             or self.decoded_common["B_RatedEnergy"] <= 0
         ):
-            raise DeviceInvalid(
-                f"Battery {self.battery_id} not usable (rating <=0)"
-            )
+            raise DeviceInvalid(f"Battery {self.battery_id} not usable (rating <=0)")
 
         self.manufacturer = self.decoded_common["B_Manufacturer"]
         self.model = self.decoded_common["B_Model"]
@@ -2916,22 +2848,16 @@ class SolarEdgeEVSE:
                 if isinstance(value, float):
                     display_value = float_to_hex(value)
                 else:
-                    display_value = (
-                        hex(value) if isinstance(value, int) else value
-                    )
+                    display_value = hex(value) if isinstance(value, int) else value
                 _LOGGER.debug(
                     f"E{self.evse_unit_id}: {name} {display_value} {type(value)}"
                 )
 
         except ModbusIllegalAddress:
-            _LOGGER.error(
-                f"E{self.evse_unit_id}: EVSE register(s) NOT available"
-            )
+            _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
 
         except ModbusIOError:
-            raise ModbusReadError(
-                f"No response from EVSE ID {self.evse_unit_id}"
-            )
+            raise ModbusReadError(f"No response from EVSE ID {self.evse_unit_id}")
 
     @property
     def online(self) -> bool:

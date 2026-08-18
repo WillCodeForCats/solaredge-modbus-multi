@@ -104,9 +104,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     solaredge_hub = hass.data[DOMAIN][entry.entry_id]["hub"]
     await solaredge_hub.shutdown()
 
-    unload_ok = await hass.config_entries.async_unload_platforms(
-        entry, PLATFORMS
-    )
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
 
@@ -159,17 +157,13 @@ async def async_remove_config_entry_device(
 
     for device_id in this_device_ids:
         if device_id in known_devices:
-            _LOGGER.error(
-                f"Unable to remove entry: device {device_id} is in use"
-            )
+            _LOGGER.error(f"Unable to remove entry: device {device_id} is in use")
             return False
 
     return True
 
 
-async def async_migrate_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> bool:
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
     _LOGGER.debug(
         "Migrating from config version "
@@ -224,9 +218,7 @@ async def async_migrate_entry(
         # and the "leader" modbus unit id can't be known programmatically.
 
         old_unique_id = config_entry.unique_id
-        new_unique_id = (
-            f"{config_entry_data[CONF_HOST]}:{config_entry_data[CONF_PORT]}"
-        )
+        new_unique_id = f"{config_entry_data[CONF_HOST]}:{config_entry_data[CONF_PORT]}"
 
         _LOGGER.warning(
             "Migrating config entry unique ID from %s to %s",
@@ -314,9 +306,7 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
                 if not isinstance(ex, ex_type):
                     raise ex
                 if 0 < limit <= attempt:
-                    _LOGGER.debug(
-                        f"No more data refresh attempts (maximum {limit})"
-                    )
+                    _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
                     raise ex
 
                 _LOGGER.debug(f"Failed data refresh attempt {attempt}")
