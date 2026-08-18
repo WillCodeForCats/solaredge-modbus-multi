@@ -391,7 +391,12 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
         if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [201, 202, 203, 204]:
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
+            201,
+            202,
+            203,
+            204,
+        ]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.INT16
         else:
             raise RuntimeError(
@@ -473,7 +478,12 @@ class VoltageSensor(SolarEdgeSensorBase):
 
         if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [201, 202, 203, 204]:
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
+            201,
+            202,
+            203,
+            204,
+        ]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.INT16
         else:
             raise RuntimeError(
@@ -2120,8 +2130,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         ):
                             _LOGGER.warning(
                                 (
-                                    "Battery Export Energy went backwards: Current value "  # noqa: B950
-                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: B950
+                                    "Battery Export Energy went backwards: Current value "
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "
                                     f"is less than last value of {self._last}"
                                 )
                             )
@@ -2132,7 +2142,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                             _LOGGER.debug(
                                 (
                                     "B_Export_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: B950
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "
                                     f"< {self._last} cycle {self._count} of "
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
@@ -2209,8 +2219,8 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         ):
                             _LOGGER.warning(
                                 (
-                                    "Battery Import Energy went backwards: Current value "  # noqa: B950
-                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: B950
+                                    "Battery Import Energy went backwards: Current value "
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "
                                     f"is less than last value of {self._last}"
                                 )
                             )
@@ -2221,7 +2231,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                             _LOGGER.debug(
                                 (
                                     "B_Import_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: B950
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "
                                     f"< {self._last} cycle {self._count} of "
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
@@ -2520,7 +2530,12 @@ class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
 
         if self._platform.decoded_model["CommitPwrCtlSettings"] == 0x0:
             attrs["status"] = "SUCCESS"
-        if self._platform.decoded_model["CommitPwrCtlSettings"] in [0x1, 0x2, 0x3, 0x4]:
+        if self._platform.decoded_model["CommitPwrCtlSettings"] in [
+            0x1,
+            0x2,
+            0x3,
+            0x4,
+        ]:
             attrs["status"] = "INTERNAL_ERROR"
         if self._platform.decoded_model["CommitPwrCtlSettings"] == 0xFFFF:
             attrs["status"] = "UNKNOWN_ERROR"
