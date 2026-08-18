@@ -719,12 +719,12 @@ class SolarEdgeInverter:
                 _LOGGER.debug(
                     (
                         f"I{self.inverter_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
+                        f"{name} {hex(value) if isinstance(value, int) else value} "
                         f"{type(value)}"
                     ),
                 )
 
-            self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
+            self.hub.inverter_common[self.inverter_unit_id] = self.inverter_common
 
         except (ModbusConnectionError, ModbusProtocolError) as e:
             raise DeviceInvalid(
@@ -1245,8 +1245,8 @@ class SolarEdgeMeter:
             f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
 
-        inverter_model = self.inverter_common["C_Model"]
-        inerter_serial = self.inverter_common["C_SerialNumber"]
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
     async def read_modbus_data(self) -> None:
@@ -1381,8 +1381,8 @@ class SolarEdgeBattery:
             f"I{self.inverter_unit_id} B{self.battery_id}"
         )
 
-        inverter_model = self.inverter_common["C_Model"]
-        inerter_serial = self.inverter_common["C_SerialNumber"]
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
     async def read_modbus_data(self) -> None:
