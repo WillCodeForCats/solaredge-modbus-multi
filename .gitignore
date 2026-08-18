@@ -1,3 +1,4 @@
 .DS_Store
 solaredge-modbus-multi.bbprojectd
 /megalinter-reports
+*.pyc

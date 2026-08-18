@@ -1,2 +1,4 @@
 pytest>=8.0.0
 awesomeversion>=25.5.0
+pymodbus>=3.8.3
+pytest-homeassistant-custom-component>=0.13.0
