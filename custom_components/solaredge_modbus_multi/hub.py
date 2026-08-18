@@ -837,7 +837,9 @@ class SolarEdgeInverter:
             )
             self.decoded_mmppt = None
 
-        self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
+        self.hub.mmppt_common[self.inverter_unit_id] = (
+            self.mmppt_common if is_multi_mppt else None
+        )
 
         if is_multi_mppt:
             for unit_index in range(self.mmppt_common.mmppt_Units):
@@ -1178,13 +1180,13 @@ class SolarEdgeMeter:
             raise DeviceInvalid(f"Invalid meter_id {self.meter_id}")
 
         if self.mmppt_common is not None:
-            if self.mmppt_common["mmppt_Units"] == 2:
+            if self.mmppt_common.mmppt_Units == 2:
                 self.start_address = self.start_address + 50
-            elif self.mmppt_common["mmppt_Units"] == 3:
+            elif self.mmppt_common.mmppt_Units == 3:
                 self.start_address = self.start_address + 70
             else:
                 raise DeviceInvalid(
-                    f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
+                    f"Invalid mmppt_Units value {self.mmppt_common.mmppt_Units}"
                 )
 
         self.base_offset = self.start_address - METER_REG_BASE[1]
