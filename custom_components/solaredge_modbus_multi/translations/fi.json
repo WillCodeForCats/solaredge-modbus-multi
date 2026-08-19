@@ -1,0 +1,150 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolarEdge Modbus -asetukset",
+        "menu_options": {
+          "scan_fast": "Nopea haku vaihtosuuntaajille",
+          "scan_full": "Täydellinen haku vaihtosuuntaajille",
+          "manual_list": "Manuaalinen asennus"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Etsi ensimmäiset 32 Modbus-laitetunnusta (1-32)",
+          "scan_full": "Etsi kaikki Modbus-laitetunnukset (1-247)",
+          "manual_list": "Anna vaihtosuuntaajien laitetunnusluettelo manuaalisesti"
+        }
+      },
+      "manual": {
+        "title": "Manuaalinen Modbus-asetus",
+        "data": {
+          "name": "Anturin etuliite",
+          "host": "Vaihtosuuntaajan IP-osoite",
+          "port": "Modbus/TCP-portti",
+          "device_list": "Vaihtosuuntaajien laitetunnusluettelo",
+          "bypass_device_check": "Ohita laitetunnuksen tarkistus"
+        },
+        "data_description": {
+          "bypass_device_check": "Lisää laitetunnusluettelo muodostamatta yhteyttä sen tarkistamiseksi, että jokainen tunnus vastaa SolarEdge-vaihtosuuntaajana. Käytä tätä vain, jos tarkistus epäonnistuu laitteelle, jonka tiedät olevan oikea, kuten sellaiselle, joka on offline-tilassa asennuksen aikana."
+        }
+      },
+      "scan_ask_host": {
+        "title": "Etsi SolarEdge-vaihtosuuntaajia",
+        "data": {
+          "name": "Anturin etuliite",
+          "host": "Vaihtosuuntaajan IP-osoite",
+          "port": "Modbus/TCP-portti"
+        }
+      },
+      "scan_complete": {
+        "title": "Haku valmis"
+      },
+      "features_info": {
+        "title": "Akkuja ja ohjaustoimintoja ei ole vielä otettu käyttöön",
+        "description": "Oletusarvoisesti käytössä ovat vain viralliset SolarEdge-dokumentoidut ominaisuudet: vaihtosuuntaajat, Synergy-vaihtosuuntaajat ja mittarit.\n\nAkun valvonta ja kaikki luku-/kirjoitusohjaustoiminnot (akun ohjaus, kohteen rajan ohjaus) perustuvat dokumentaatioon, jota SolarEdge ei julkaise. Nämä ovat oletuksena pois käytöstä, ja ne on otettava käyttöön erikseen integraation asetuksista sen jälkeen, kun tämä keskitin on lisätty.\n\nKaikki vaihtosuuntaajat eivät tue näitä Modbusin kautta. Saatat joutua ottamaan yhteyttä SolarEdge-tukeen, jotta akku- ja ohjaustoimintojen käyttöoikeus avataan asennuksessasi."
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus -asetukset",
+        "data": {
+          "host": "Vaihtosuuntaajan IP-osoite",
+          "port": "Modbus/TCP-portti",
+          "device_list": "Vaihtosuuntaajien laitetunnusluettelo"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Laite on jo määritetty!",
+      "invalid_device_id": "Laitetunnuksen on oltava välillä 1–247.",
+      "invalid_inverter_count": "Vaihtosuuntaajia on oltava 1–32.",
+      "invalid_host": "Virheellinen IP-osoite.",
+      "invalid_tcp_port": "Kelvollinen porttialue on 1–65535.",
+      "invalid_range_format": "Merkintä näyttää alueelta, mutta vain yksi '-' on sallittu aluetta kohden.",
+      "invalid_range_lte": "Alueen alkutunnuksen on oltava pienempi tai yhtä suuri kuin lopputunnus.",
+      "empty_device_id": "Tunnusluettelo sisältää tyhjän tai määrittämättömän arvon.",
+      "scan_failed": "Vaihtosuuntaajien haku epäonnistui. Tarkista yhteytesi ja yritä uudelleen."
+    },
+    "abort": {
+      "already_configured": "Isäntä ja portti on jo määritetty toisessa keskittimessä.",
+      "reconfigure_successful": "Uudelleenmääritys onnistui"
+    },
+    "progress": {
+      "scanning_for_inverters": "Etsitään SolarEdge-vaihtosuuntaajia..."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SolarEdge Modbus -valinnat",
+        "data": {
+          "scan_interval": "Kyselytaajuus (sekuntia)",
+          "keep_modbus_open": "Pidä Modbus-yhteys avoinna",
+          "detect_meters": "Mittareiden automaattinen tunnistus",
+          "detect_batteries": "Akkujen automaattinen tunnistus",
+          "detect_extras": "Lisäentiteettien automaattinen tunnistus",
+          "advanced_power_control": "Tehonhallinnan valinnat",
+          "sleep_after_write": "Vaihtosuuntaajan komennon viive (sekuntia)"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Tehonhallinnan valinnat",
+        "data": {
+          "adv_storage_control": "Ota käyttöön varastoinnin ohjaus",
+          "adv_site_limit_control": "Ota käyttöön kohteen rajan ohjaus"
+        },
+        "description": "Varoitus: Nämä asetukset voivat rikkoa energiayhtiön sopimuksia, muuttaa laskutustasi, vaatia erikoislaitteita ja korvata SolarEdgen tai asentajasi tekemät asetukset. Käytä omalla vastuullasi! Modbus-rekisterien säädettävät parametrit on tarkoitettu pitkäaikaiseen tallennukseen. Toistuvat muutokset voivat vahingoittaa flash-muistia."
+      },
+      "battery_options": {
+        "title": "Akkuvalinnat",
+        "data": {
+          "allow_battery_energy_reset": "Salli akun energian nollaus",
+          "battery_energy_reset_cycles": "Päivityssyklit akun energian nollaamiseksi",
+          "battery_rating_adjust": "Akun kapasiteetin säätö (prosenttia)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Kelvollinen aikaväli on 1–86400 sekuntia.",
+      "invalid_sleep_interval": "Kelvollinen aikaväli on 0–60 sekuntia.",
+      "invalid_percent": "Kelvollinen alue on 0–100 prosenttia."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Tarkista Modbus-asetukset",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tarkista Modbus-asetukset",
+            "description": "Modbus/TCP-yhteyttä avattaessa tapahtui virhe.\n\nVahvista asetuksesi.",
+            "data": {
+              "host": "Vaihtosuuntaajan IP-osoite",
+              "port": "Modbus/TCP-portti",
+              "device_list": "Vaihtosuuntaajien laitetunnusluettelo"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "Laitetunnuksen on oltava välillä 1–247.",
+          "invalid_inverter_count": "Vaihtosuuntaajia on oltava 1–32.",
+          "invalid_host": "Virheellinen IP-osoite.",
+          "invalid_tcp_port": "Kelvollinen porttialue on 1–65535.",
+          "invalid_range_format": "Merkintä näyttää alueelta, mutta vain yksi '-' on sallittu aluetta kohden.",
+          "invalid_range_lte": "Alueen alkutunnuksen on oltava pienempi tai yhtä suuri kuin lopputunnus.",
+          "empty_device_id": "Tunnusluettelo sisältää tyhjän tai määrittämättömän arvon.",
+          "already_configured": "Isäntä ja portti on jo määritetty toisessa keskittimessä."
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Virheellinen vaihtosuuntaajan laitetunnus",
+      "description": "Vaihtosuuntaajan laitetunnus {device_id} osoitteessa {host} ei vastaa tai ei ole kelvollinen SolarEdge-vaihtosuuntaaja. Se on ohitettu. Jos laite vaihdettiin tai sen tunnus muuttui, päivitä vaihtosuuntaajien laitetunnusluettelo keskittimen asetuksissa. Muussa tapauksessa tarkista laite ja Modbus/TCP-yhteys."
+    },
+    "detect_timeout_gpc": {
+      "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu",
+      "description": "Vaihtosuuntaaja ei vastannut, kun luettiin globaalin dynaamisen tehonhallinnan tietoja. Nämä entiteetit eivät ole käytettävissä. Poista käytöstä Lisäentiteettien automaattinen tunnistus -asetus, jos vaihtosuuntaajalla on ongelmia näiden antureiden lukemisessa."
+    },
+    "detect_timeout_apc": {
+      "title": "Edistyneen tehonhallinnan aikakatkaisu",
+      "description": "Vaihtosuuntaaja ei vastannut, kun luettiin edistyneen tehonhallinnan tietoja. Nämä entiteetit eivät ole käytettävissä. Poista käytöstä Lisäentiteettien automaattinen tunnistus -asetus, jos vaihtosuuntaajalla on ongelmia näiden antureiden lukemisessa."
+    }
+  }
+}

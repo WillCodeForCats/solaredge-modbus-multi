@@ -118,8 +118,7 @@
             "data": {
               "host": "omvormer IP-adres",
               "port": "Modbus/TCP Port",
-              "device_id": "Omvormer Modbus-adres (apparaat-ID)",
-              "number_of_inverters": "Aantal aangesloten omvormers"
+              "device_list": "Omvormerapparaat-ID-lijst"
             }
           }
         },

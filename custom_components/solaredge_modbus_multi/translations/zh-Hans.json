@@ -1,0 +1,150 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolarEdge Modbus 配置",
+        "menu_options": {
+          "scan_fast": "快速扫描逆变器",
+          "scan_full": "完整扫描逆变器",
+          "manual_list": "手动设置"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "扫描前 32 个 Modbus 设备 ID (1-32)",
+          "scan_full": "扫描所有 Modbus 设备 ID (1-247)",
+          "manual_list": "手动输入逆变器设备 ID 列表"
+        }
+      },
+      "manual": {
+        "title": "手动 Modbus 配置",
+        "data": {
+          "name": "传感器前缀",
+          "host": "逆变器 IP 地址",
+          "port": "Modbus/TCP 端口",
+          "device_list": "逆变器设备 ID 列表",
+          "bypass_device_check": "跳过设备 ID 验证"
+        },
+        "data_description": {
+          "bypass_device_check": "添加设备 ID 列表而不连接检查每个 ID 是否作为 SolarEdge 逆变器响应。仅当您确定某个设备的 ID 正确但检查失败时才使用此选项，例如该设备在设置期间处于离线状态。"
+        }
+      },
+      "scan_ask_host": {
+        "title": "搜索 SolarEdge 逆变器",
+        "data": {
+          "name": "传感器前缀",
+          "host": "逆变器 IP 地址",
+          "port": "Modbus/TCP 端口"
+        }
+      },
+      "scan_complete": {
+        "title": "扫描完成"
+      },
+      "features_info": {
+        "title": "电池和控制功能尚未启用",
+        "description": "默认情况下，仅启用 SolarEdge 官方文档中记载的功能：逆变器、Synergy 逆变器和电表。\n\n电池监测以及所有读/写控制功能（电池控制、场地限值控制）均基于 SolarEdge 未公开的文档。这些功能默认处于禁用状态，添加此集线器后，需要在集成的“配置”选项中单独启用。\n\n并非所有逆变器都通过 Modbus 支持这些功能。您可能需要联系 SolarEdge 支持部门，为您的安装开放电池和控制功能的访问权限。"
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus 配置",
+        "data": {
+          "host": "逆变器 IP 地址",
+          "port": "Modbus/TCP 端口",
+          "device_list": "逆变器设备 ID 列表"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "设备已配置！",
+      "invalid_device_id": "设备 ID 必须介于 1 到 247 之间。",
+      "invalid_inverter_count": "逆变器数量必须介于 1 到 32 之间。",
+      "invalid_host": "IP 地址无效。",
+      "invalid_tcp_port": "有效端口范围为 1 到 65535。",
+      "invalid_range_format": "该条目看起来像一个范围，但每个范围只允许一个“-”。",
+      "invalid_range_lte": "范围的起始 ID 必须小于或等于结束 ID。",
+      "empty_device_id": "ID 列表包含空值或未定义的值。",
+      "scan_failed": "扫描逆变器失败。请检查您的连接并重试。"
+    },
+    "abort": {
+      "already_configured": "主机和端口已在另一个集线器中配置。",
+      "reconfigure_successful": "重新配置成功"
+    },
+    "progress": {
+      "scanning_for_inverters": "正在搜索 SolarEdge 逆变器..."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SolarEdge Modbus 选项",
+        "data": {
+          "scan_interval": "轮询频率（秒）",
+          "keep_modbus_open": "保持 Modbus 连接打开",
+          "detect_meters": "自动检测电表",
+          "detect_batteries": "自动检测电池",
+          "detect_extras": "自动检测其他实体",
+          "advanced_power_control": "功率控制选项",
+          "sleep_after_write": "逆变器命令延迟（秒）"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "功率控制选项",
+        "data": {
+          "adv_storage_control": "启用储能控制",
+          "adv_site_limit_control": "启用场地限值控制"
+        },
+        "description": "警告：这些选项可能违反供电协议、改变您的电费账单、可能需要特殊设备，并会覆盖 SolarEdge 或安装商所做的配置。使用风险自负！Modbus 寄存器中的可调参数用于长期存储。频繁更改可能损坏闪存。"
+      },
+      "battery_options": {
+        "title": "电池选项",
+        "data": {
+          "allow_battery_energy_reset": "允许重置电池能量",
+          "battery_energy_reset_cycles": "重置电池能量的更新周期数",
+          "battery_rating_adjust": "电池容量调整（百分比）"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "有效间隔为 1 到 86400 秒。",
+      "invalid_sleep_interval": "有效间隔为 0 到 60 秒。",
+      "invalid_percent": "有效范围为 0 到 100 百分比。"
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "检查 Modbus 配置",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "检查 Modbus 配置",
+            "description": "尝试打开 Modbus/TCP 连接时发生错误。\n\n请确认您的配置。",
+            "data": {
+              "host": "逆变器 IP 地址",
+              "port": "Modbus/TCP 端口",
+              "device_list": "逆变器设备 ID 列表"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "设备 ID 必须介于 1 到 247 之间。",
+          "invalid_inverter_count": "逆变器数量必须介于 1 到 32 之间。",
+          "invalid_host": "IP 地址无效。",
+          "invalid_tcp_port": "有效端口范围为 1 到 65535。",
+          "invalid_range_format": "该条目看起来像一个范围，但每个范围只允许一个“-”。",
+          "invalid_range_lte": "范围的起始 ID 必须小于或等于结束 ID。",
+          "empty_device_id": "ID 列表包含空值或未定义的值。",
+          "already_configured": "主机和端口已在另一个集线器中配置。"
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "逆变器设备 ID 无效",
+      "description": "{host} 上的逆变器设备 ID {device_id} 无响应，或不是有效的 SolarEdge 逆变器，已被跳过。如果设备已更换或其 ID 已更改，请在集线器配置中更新逆变器设备 ID 列表。否则，请检查设备和 Modbus/TCP 连接。"
+    },
+    "detect_timeout_gpc": {
+      "title": "全局动态功率控制超时",
+      "description": "逆变器在读取全局动态功率控制数据时未响应。这些实体将不可用。如果逆变器读取这些传感器时出现问题，请禁用“自动检测其他实体”选项。"
+    },
+    "detect_timeout_apc": {
+      "title": "高级功率控制超时",
+      "description": "逆变器在读取高级功率控制数据时未响应。这些实体将不可用。如果逆变器读取这些传感器时出现问题，请禁用“自动检测其他实体”选项。"
+    }
+  }
+}
