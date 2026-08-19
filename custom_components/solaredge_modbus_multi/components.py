@@ -112,7 +112,7 @@ class GlobalDynamicPowerControl(Component):
 
 class AdvancedPowerControl(Component):
     """Advanced Power Control Power Control Block is read every polling cycle."""
-    
+
     # Most of these are not used by the integration, but all of this can be read
     # in two blocks. If we limit it to only ones we use then there would be more
     # read requests, so we're choosing fewer, larger reads over more, smaller reads.
