@@ -955,7 +955,8 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         try:
             if (
                 self._platform.decoded_model[self._model_key] == SunSpecAccum.NA32
-                or self._platform.decoded_model[self._model_key] > SunSpecAccum.LIMIT32
+                or self._platform.decoded_model[self._model_key]
+                >= SunSpecAccum.LIMIT32
                 or self._platform.decoded_model["AC_Energy_WH_SF"]
                 not in SUNSPEC_SF_RANGE
             ):
@@ -1785,7 +1786,7 @@ class MeterVAhIE(SolarEdgeSensorBase):
         try:
             if (
                 self._platform.decoded_model[model_key] == SunSpecAccum.NA32
-                or self._platform.decoded_model[model_key] > SunSpecAccum.LIMIT32
+                or self._platform.decoded_model[model_key] >= SunSpecAccum.LIMIT32
                 or self._platform.decoded_model["M_VAh_SF"] == SunSpecNotImpl.INT16
                 or self._platform.decoded_model["M_VAh_SF"] not in SUNSPEC_SF_RANGE
             ):
@@ -1863,7 +1864,7 @@ class MetervarhIE(SolarEdgeSensorBase):
         try:
             if (
                 self._platform.decoded_model[model_key] == SunSpecAccum.NA32
-                or self._platform.decoded_model[model_key] > SunSpecAccum.LIMIT32
+                or self._platform.decoded_model[model_key] >= SunSpecAccum.LIMIT32
                 or self._platform.decoded_model["M_varh_SF"] == SunSpecNotImpl.INT16
                 or self._platform.decoded_model["M_varh_SF"] not in SUNSPEC_SF_RANGE
             ):
