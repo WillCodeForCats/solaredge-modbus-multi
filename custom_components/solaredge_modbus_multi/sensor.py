@@ -1339,6 +1339,7 @@ class SolarEdgeStatusSensor(SolarEdgeSensorBase):
 
 class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
     options = list(DEVICE_STATUS.values())
+    _attr_translation_key = "inverter_status"
 
     @property
     def native_value(self):
@@ -1374,6 +1375,7 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
 
 class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
     options = list(BATTERY_STATUS.values())
+    _attr_translation_key = "battery_status"
 
     @property
     def native_value(self):

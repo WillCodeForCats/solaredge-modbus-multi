@@ -147,5 +147,34 @@
       "title": "Timeout di controllo del potere avanzato",
       "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza avanzati."
     }
+  },
+  "entity": {
+    "sensor": {
+      "inverter_status": {
+        "state": {
+          "I_STATUS_OFF": "Spento",
+          "I_STATUS_SLEEPING": "Standby (spegnimento automatico)",
+          "I_STATUS_STARTING": "Monitoraggio della rete",
+          "I_STATUS_MPPT": "Produzione",
+          "I_STATUS_THROTTLED": "Produzione (limitata)",
+          "I_STATUS_SHUTTING_DOWN": "Arresto in corso",
+          "I_STATUS_FAULT": "Guasto",
+          "I_STATUS_STANDBY": "Manutenzione"
+        }
+      },
+      "battery_status": {
+        "state": {
+          "B_STATUS_OFF": "Spento",
+          "B_STATUS_STANDBY": "Standby",
+          "B_STATUS_INIT": "Inizializzazione",
+          "B_STATUS_CHARGE": "Carica",
+          "B_STATUS_DISCHARGE": "Scarica",
+          "B_STATUS_FAULT": "Guasto",
+          "B_STATUS_PRESERVE_CHARGE": "Mantenimento della carica",
+          "B_STATUS_IDLE": "Inattivo",
+          "B_STATUS_POWER_SAVING": "Risparmio energetico"
+        }
+      }
+    }
   }
 }

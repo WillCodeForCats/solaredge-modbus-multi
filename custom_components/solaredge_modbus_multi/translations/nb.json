@@ -147,5 +147,34 @@
       "title": "Avansert timeout for strømkontroll",
       "description": "Omformeren svarte ikke mens du leste data for avanserte strømkontroller."
     }
+  },
+  "entity": {
+    "sensor": {
+      "inverter_status": {
+        "state": {
+          "I_STATUS_OFF": "Av",
+          "I_STATUS_SLEEPING": "Hvilemodus (automatisk avslåing)",
+          "I_STATUS_STARTING": "Nettovervåking",
+          "I_STATUS_MPPT": "Produksjon",
+          "I_STATUS_THROTTLED": "Produksjon (begrenset)",
+          "I_STATUS_SHUTTING_DOWN": "Slår av",
+          "I_STATUS_FAULT": "Feil",
+          "I_STATUS_STANDBY": "Vedlikehold"
+        }
+      },
+      "battery_status": {
+        "state": {
+          "B_STATUS_OFF": "Av",
+          "B_STATUS_STANDBY": "Hvilemodus",
+          "B_STATUS_INIT": "Initialiserer",
+          "B_STATUS_CHARGE": "Lader",
+          "B_STATUS_DISCHARGE": "Utlader",
+          "B_STATUS_FAULT": "Feil",
+          "B_STATUS_PRESERVE_CHARGE": "Bevarer ladning",
+          "B_STATUS_IDLE": "Inaktiv",
+          "B_STATUS_POWER_SAVING": "Strømsparing"
+        }
+      }
+    }
   }
 }
