@@ -4,3 +4,8 @@ line-length = 88
 [tool.ruff.lint]
 extend-select = ["I"]
 ignore = ["E701"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
