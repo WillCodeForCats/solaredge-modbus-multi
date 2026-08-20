@@ -418,8 +418,6 @@ class SolarEdgeModbusMultiHub:
 
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
-            await self.connection.disconnect()
-
             return True
 
         try:
@@ -464,8 +462,6 @@ class SolarEdgeModbusMultiHub:
                 f"Coordinator timeout count {self._coordinator_timeouts_count} limit {self._coordinator_timeouts_limit}"
             )
             self._coordinator_timeouts_count = 0
-
-        await self.connection.disconnect()
 
         return True
 
