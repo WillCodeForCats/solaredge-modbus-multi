@@ -64,31 +64,21 @@ tmodbus_version = importlib.metadata.version("tmodbus")
 class SolarEdgeException(Exception):
     """Base class for other exceptions"""
 
-    pass
-
 
 class HubInitFailed(SolarEdgeException):
     """Raised when an error happens during init"""
-
-    pass
 
 
 class DeviceIsEVSE(SolarEdgeException):
     """Raised when an inverter device matches a EVSE model"""
 
-    pass
-
 
 class DataUpdateFailed(SolarEdgeException):
     """Raised when an update cycle fails"""
 
-    pass
-
 
 class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid"""
-
-    pass
 
 
 async def async_update_with_retry(component) -> None:
