@@ -73,12 +73,6 @@ class HubInitFailed(SolarEdgeException):
     pass
 
 
-class DeviceInitFailed(SolarEdgeException):
-    """Raised when a device can't be initialized"""
-
-    pass
-
-
 class DeviceIsEVSE(SolarEdgeException):
     """Raised when an inverter device matches a EVSE model"""
 
