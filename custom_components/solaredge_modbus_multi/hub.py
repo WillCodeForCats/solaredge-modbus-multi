@@ -494,6 +494,9 @@ class SolarEdgeModbusMultiHub:
         """Update a SolarEdge modbus Component and track write settle cycles.
 
         Reads always happen inside the coordinator refresh loop.
+
+        Future: if modbus-connection provides a way to get the unit id from the component,
+        do that instead of passing the unit separately. We need it to track settle cycles.
         """
 
         await async_update_with_retry(component)
@@ -517,6 +520,9 @@ class SolarEdgeModbusMultiHub:
 
         Writes are outside the refresh loop. SolarEdge inverters may not respond
         (timeout) on errors instead of sending a modbus exception response.
+
+        Future: if modbus-connection provides a way to get the unit id from the component,
+        do that instead of passing the unit separately. We need it for sleep after write.
         """
 
         if self.sleep_after_write > 0:
@@ -722,7 +728,7 @@ class SolarEdgeInverter:
             _LOGGER.debug(
                 f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
             )
-            await async_update_with_retry(self.inverter_common)
+            await self.hub.component_update(self.inverter_unit_id, self.inverter_common)
 
             self.decoded_common = component_to_dict(self.inverter_common)
 
@@ -803,7 +809,9 @@ class SolarEdgeInverter:
                 _LOGGER.debug(
                     f"Reading component MmpptCommon(for_unit({self.inverter_unit_id}))"
                 )
-                await async_update_with_retry(self.mmppt_common)
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.mmppt_common
+                )
 
                 self.decoded_mmppt = component_to_dict(self.mmppt_common)
 
@@ -864,12 +872,12 @@ class SolarEdgeInverter:
             _LOGGER.debug(
                 f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
             )
-            await async_update_with_retry(self.inverter_common)
+            await self.hub.component_update(self.inverter_unit_id, self.inverter_common)
 
             _LOGGER.debug(
                 f"Reading component InverterData(for_unit({self.inverter_unit_id}))"
             )
-            await async_update_with_retry(self.inverter_data)
+            await self.hub.component_update(self.inverter_unit_id, self.inverter_data)
 
             self.decoded_model = component_to_dict(self.inverter_data)
 
@@ -891,7 +899,7 @@ class SolarEdgeInverter:
                 _LOGGER.debug(
                     f"Reading component MmpptData(for_unit({self.inverter_unit_id}))"
                 )
-                await async_update_with_retry(self.mmppt_data)
+                await self.hub.component_update(self.inverter_unit_id, self.mmppt_data)
 
                 self.decoded_model.update(component_to_dict(self.mmppt_data))
 
@@ -924,7 +932,9 @@ class SolarEdgeInverter:
                 _LOGGER.debug(
                     f"Reading component GlobalDynamicPowerControl(for_unit({self.inverter_unit_id}))"
                 )
-                await async_update_with_retry(self.global_power_control_data)
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.global_power_control_data
+                )
 
                 self.decoded_model.update(
                     component_to_dict(self.global_power_control_data)
@@ -969,7 +979,9 @@ class SolarEdgeInverter:
                     "Reading component "
                     f"AdvancedPowerControl(for_unit({self.inverter_unit_id}))"
                 )
-                await async_update_with_retry(self.advanced_power_control_data)
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.advanced_power_control_data
+                )
 
                 self.decoded_model.update(
                     component_to_dict(self.advanced_power_control_data)
@@ -1015,7 +1027,9 @@ class SolarEdgeInverter:
                     "Reading component "
                     f"SiteLimitControl(for_unit({self.inverter_unit_id}))"
                 )
-                await async_update_with_retry(self.site_limit_control_data)
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.site_limit_control_data
+                )
 
                 self.decoded_model.update(
                     component_to_dict(self.site_limit_control_data)
@@ -1067,7 +1081,9 @@ class SolarEdgeInverter:
                     "Reading component "
                     f"StorageControl(for_unit({self.inverter_unit_id}))"
                 )
-                await async_update_with_retry(self.storage_control_data)
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.storage_control_data
+                )
 
                 self.decoded_storage_control = component_to_dict(
                     self.storage_control_data
@@ -1216,7 +1232,7 @@ class SolarEdgeMeter:
             _LOGGER.debug(
                 f"Reading component MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await async_update_with_retry(self.meter_info)
+            await self.hub.component_update(self.inverter_unit_id, self.meter_info)
 
             self.decoded_common = component_to_dict(self.meter_info)
 
@@ -1267,7 +1283,7 @@ class SolarEdgeMeter:
             _LOGGER.debug(
                 f"Reading component MeterData(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await async_update_with_retry(self.meter_data)
+            await self.hub.component_update(self.inverter_unit_id, self.meter_data)
 
             self.decoded_model = component_to_dict(self.meter_data)
 
@@ -1351,7 +1367,7 @@ class SolarEdgeBattery:
             _LOGGER.debug(
                 f"Reading component BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await async_update_with_retry(self.battery_info)
+            await self.hub.component_update(self.inverter_unit_id, self.battery_info)
 
             self.decoded_common = component_to_dict(self.battery_info)
 
@@ -1403,7 +1419,7 @@ class SolarEdgeBattery:
             _LOGGER.debug(
                 f"Reading component BatteryData(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await async_update_with_retry(self.battery_data)
+            await self.hub.component_update(self.inverter_unit_id, self.battery_data)
 
             self.decoded_model = component_to_dict(self.battery_data)
 
@@ -1476,7 +1492,7 @@ class SolarEdgeEVSE:
             _LOGGER.debug(
                 f"Reading component EvseCommon(for_unit({self.evse_unit_id}))"
             )
-            await async_update_with_retry(self.evse_common)
+            await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
             self.decoded_common = component_to_dict(self.evse_common)
 
@@ -1521,7 +1537,7 @@ class SolarEdgeEVSE:
             _LOGGER.debug(
                 f"Reading component EvseCommon(for_unit({self.evse_unit_id}))"
             )
-            await async_update_with_retry(self.evse_common)
+            await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
             for name, value in iter(self.decoded_model.items()):
                 if isinstance(value, float):
