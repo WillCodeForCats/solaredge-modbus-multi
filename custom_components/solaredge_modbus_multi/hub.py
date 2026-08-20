@@ -85,12 +85,6 @@ class DeviceIsEVSE(SolarEdgeException):
     pass
 
 
-class ModbusReadError(SolarEdgeException):
-    """Raised when a modbus read fails (generic)"""
-
-    pass
-
-
 class ModbusWriteError(SolarEdgeException):
     """Raised when a modbus write fails (generic)"""
 
@@ -283,7 +277,11 @@ class SolarEdgeModbusMultiHub:
                     self._setup_inverter_id_failed_issue(inverter_unit_id),
                 )
 
-            except (ModbusReadError, TimeoutError) as e:
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+            ) as e:
                 raise HubInitFailed(f"{e}")
 
             except DeviceInvalid as e:
@@ -340,7 +338,11 @@ class SolarEdgeModbusMultiHub:
                         self.meters.append(new_meter)
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
-                    except (ModbusReadError, TimeoutError) as e:
+                    except (
+                        ModbusConnectionError,
+                        ModbusProtocolError,
+                        ModbusTimeoutError,
+                    ) as e:
                         raise HubInitFailed(f"{e}")
 
                     except DeviceInvalid as e:
@@ -375,7 +377,11 @@ class SolarEdgeModbusMultiHub:
                         self.batteries.append(new_battery)
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
-                    except (ModbusReadError, TimeoutError) as e:
+                    except (
+                        ModbusConnectionError,
+                        ModbusProtocolError,
+                        ModbusTimeoutError,
+                    ) as e:
                         raise HubInitFailed(f"{e}")
 
                     except DeviceInvalid as e:
@@ -401,7 +407,7 @@ class SolarEdgeModbusMultiHub:
             for evse in self.evses:
                 await evse.read_modbus_data()
 
-        except ModbusReadError as e:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise HubInitFailed(f"Read error: {e}")
 
         except DeviceInvalid as e:
@@ -449,17 +455,13 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except ModbusReadError as e:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}")
 
         except DeviceInvalid as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}")
-
-        except (ModbusConnectionError, ModbusProtocolError) as e:
-            await self.connection.disconnect()
-            raise DataUpdateFailed(f"Connection failed: {e}")
 
         except TimeoutError as e:
             await self.connection.disconnect()
@@ -836,14 +838,20 @@ class SolarEdgeInverter:
                     _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
                     is_multi_mppt = True
 
-            except (
-                ModbusConnectionError,
-                ModbusProtocolError,
-                ModbusTimeoutError,
-            ) as e:
-                raise ModbusReadError(
-                    f"Error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
-                )
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
+                ) from e
+
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
+                ) from e
 
             except ModbusExceptionError:
                 _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
@@ -887,10 +895,20 @@ class SolarEdgeInverter:
             ):
                 raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise ModbusReadError(
-                f"Error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
-            )
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
+            ) from e
+
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
+            ) from e
+
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
+            ) from e
 
         """ Multiple MPPT Extension """
         if self.use_mmppt_units and self.decoded_mmppt is not None:
@@ -914,14 +932,20 @@ class SolarEdgeInverter:
                         )
                     )
 
-            except (
-                ModbusConnectionError,
-                ModbusProtocolError,
-                ModbusTimeoutError,
-            ) as e:
-                raise ModbusReadError(
-                    f"Error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
-                )
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
+                ) from e
+
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
+                ) from e
 
         """ Global Dynamic Power Control and Status """
         if self.hub.option_detect_extras is True and (
@@ -1045,15 +1069,23 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: site limit control NOT available"
                 )
 
-            except (
-                ModbusConnectionError,
-                ModbusProtocolError,
-                ModbusTimeoutError,
-            ) as e:
-                raise ModbusReadError(
-                    f"Error reading inverter ID {self.inverter_unit_id} "
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} "
                     f"at SiteLimitControl: {e}"
-                )
+                ) from e
+
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} "
+                    f"at SiteLimitControl: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} "
+                    f"at SiteLimitControl: {e}"
+                ) from e
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
@@ -1104,15 +1136,23 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: storage control NOT available"
                 )
 
-            except (
-                ModbusConnectionError,
-                ModbusProtocolError,
-                ModbusTimeoutError,
-            ) as e:
-                raise ModbusReadError(
-                    f"Error reading inverter ID {self.inverter_unit_id} "
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} "
                     f"at StorageControl: {e}"
-                )
+                ) from e
+
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} "
+                    f"at StorageControl: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} "
+                    f"at StorageControl: {e}"
+                ) from e
 
     async def write(self, component, field: str, value) -> None:
         """Write a Component field."""
@@ -1286,10 +1326,20 @@ class SolarEdgeMeter:
 
             self.decoded_model = component_to_dict(self.meter_data)
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise ModbusReadError(
-                f"Error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
-            )
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
+            ) from e
+
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
+            ) from e
+
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
+            ) from e
 
         for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
@@ -1422,10 +1472,20 @@ class SolarEdgeBattery:
 
             self.decoded_model = component_to_dict(self.battery_data)
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise ModbusReadError(
-                f"Error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
-            )
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
+            ) from e
+
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
+            ) from e
+
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
+            ) from e
 
         for name, value in iter(self.decoded_model.items()):
             if isinstance(value, float):
@@ -1550,10 +1610,20 @@ class SolarEdgeEVSE:
         except ModbusExceptionError:
             _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise ModbusReadError(
-                f"Error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
-            )
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            ) from e
+
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            ) from e
+
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            ) from e
 
     @property
     def fw_version(self) -> str | None:
