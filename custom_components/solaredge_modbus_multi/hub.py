@@ -486,26 +486,37 @@ class SolarEdgeModbusMultiHub:
             )
             self._modbus_timeouts_count = 0
 
-        for unit, cycles_remaining in list(self._write_settle_cycles.items()):
-            _LOGGER.debug(
-                f"Request spaced unit {unit} has {cycles_remaining} cycles until clearing."
-            )
-            if cycles_remaining <= 1:
-                _LOGGER.debug(f"Clearing unit {unit} request spacing.")
-                self.connection.for_unit(unit).set_message_spacing(0)
-                del self._write_settle_cycles[unit]
-            else:
-                self._write_settle_cycles[unit] = cycles_remaining - 1
-
         await self.connection.disconnect()
 
         return True
 
-    async def component_write(self, unit: int, component, field: str, value) -> None:
-        """Write a SolarEdge modbus Component.
+    async def component_update(self, unit: int, component) -> None:
+        """Update a SolarEdge modbus Component and track write settle cycles.
 
-        SolarEdge inverters may not respond (timeout) on errors instead of
-        sending a modbus exception response.
+        Reads always happen inside the coordinator refresh loop.
+        """
+
+        await async_update_with_retry(component)
+
+        cycles_remaining = self._write_settle_cycles.get(unit)
+        if cycles_remaining is None:
+            return
+
+        if cycles_remaining <= 1:
+            _LOGGER.debug(f"Clearing unit {unit} request spacing.")
+            self.connection.for_unit(unit).set_message_spacing(0)
+            del self._write_settle_cycles[unit]
+        else:
+            _LOGGER.debug(
+                f"Unit {unit} has {cycles_remaining - 1} refreshes until clearing."
+            )
+            self._write_settle_cycles[unit] = cycles_remaining - 1
+
+    async def component_write(self, unit: int, component, field: str, value) -> None:
+        """Write a SolarEdge modbus Component and set optional spacing.
+
+        Writes are outside the refresh loop. SolarEdge inverters may not respond
+        (timeout) on errors instead of sending a modbus exception response.
         """
 
         if self.sleep_after_write > 0:
