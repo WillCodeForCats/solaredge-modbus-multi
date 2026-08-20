@@ -79,14 +79,13 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
-                return False
-
-            return super().available
-
-        except KeyError:
-            return False
+        value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
+        return (
+            super().available
+            and self._platform.site_limit_control is not False
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+        )
 
     @property
     def unique_id(self) -> str:
@@ -102,11 +101,11 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 10) & 1
+        return (self._platform.site_limit_control_data.E_Lim_Ctl_Mode >> 10) & 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
+        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits | (1 << 10)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
@@ -118,7 +117,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
+        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits & ~(1 << 10)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
@@ -136,14 +135,13 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
-                return False
-
-            return super().available
-
-        except KeyError:
-            return False
+        value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
+        return (
+            super().available
+            and self._platform.site_limit_control is not False
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+        )
 
     @property
     def unique_id(self) -> str:
@@ -155,11 +153,11 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        return (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 11) & 1
+        return (self._platform.site_limit_control_data.E_Lim_Ctl_Mode >> 11) & 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
+        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits | (1 << 11)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
@@ -171,7 +169,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
+        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits & ~(1 << 11)
 
         _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
@@ -192,7 +190,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         return (
             super().available
             and self._platform.advanced_power_control
-            and "AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+            and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
 
     @property
@@ -205,7 +203,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     @property
     def is_on(self) -> bool:
-        return self._platform.decoded_model["AdvPwrCtrlEn"] == 0x1
+        return self._platform.advanced_power_control_data.AdvPwrCtrlEn == 0x1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 0x1")
