@@ -81,9 +81,9 @@ class RetrySettings(IntEnum):
     Time = 1000  # first attempt in milliseconds
     Ratio = 2  # time multiplier between each attempt
     Limit = 6  # number of attempts before failing
-    ModbusTimeouts = 3  # modbus timeouts before calling disconnect
-    RequestTimeout = 3  # timeout for a single modbus request, in seconds
+    RequestTimeout = 6  # timeout for a single modbus request, in seconds
     RequestRetries = 3  # max attempts for a single modbus request
+    CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
 
 
 class SolarEdgeTimeouts(IntEnum):
@@ -91,6 +91,7 @@ class SolarEdgeTimeouts(IntEnum):
 
     Inverter = 8400
     Device = 1200
+    Battery = 3200
     Init = 1200
     Read = 6000
 

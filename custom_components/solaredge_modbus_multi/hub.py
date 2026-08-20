@@ -200,9 +200,7 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
-        self._modbus_timeouts_limit = self._yaml_config.get("retry", {}).get(
-            "modbus_timeouts", RetrySettings.ModbusTimeouts
-        )
+
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
         self.meters = []
@@ -213,7 +211,8 @@ class SolarEdgeModbusMultiHub:
         self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
-        self._modbus_timeouts_count = 0
+        self._coordinator_timeouts_count = 0
+        self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
 
         self.connection = connection
 
@@ -465,26 +464,26 @@ class SolarEdgeModbusMultiHub:
         except TimeoutError as e:
             await self.connection.disconnect()
 
-            self._modbus_timeouts_count += 1
+            self._coordinator_timeouts_count += 1
 
             _LOGGER.debug(
-                f"Refresh timeout {self._modbus_timeouts_count} limit {self._modbus_timeouts_limit}"
+                f"Coordinator timeout {self._coordinator_timeouts_count} limit {self._coordinator_timeouts_limit}"
             )
 
-            if self._modbus_timeouts_count >= self._modbus_timeouts_limit:
+            if self._coordinator_timeouts_count >= self._coordinator_timeouts_limit:
                 _LOGGER.warning(
-                    f"Modbus connection has timed out "
-                    f"{self._modbus_timeouts_limit} times in a row."
+                    f"Coordinator has timed out "
+                    f"{self._coordinator_timeouts_limit} times in a row."
                 )
-                self._modbus_timeouts_count = 0
+                self._coordinator_timeouts_count = 0
 
             raise DataUpdateFailed(f"Timeout error: {e}")
 
-        if self._modbus_timeouts_count > 0:
+        if self._coordinator_timeouts_count > 0:
             _LOGGER.debug(
-                f"Modbus timeout count {self._modbus_timeouts_count} limit {self._modbus_timeouts_limit}"
+                f"Coordinator timeout count {self._coordinator_timeouts_count} limit {self._coordinator_timeouts_limit}"
             )
-            self._modbus_timeouts_count = 0
+            self._coordinator_timeouts_count = 0
 
         await self.connection.disconnect()
 
@@ -662,14 +661,14 @@ class SolarEdgeModbusMultiHub:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
-            this_timeout += (SolarEdgeTimeouts.Device * 2) * 2  # max 2 per inverter
+            this_timeout += (SolarEdgeTimeouts.Battery * 2) * 3  # max 3 per inverter
             if self.option_detect_extras:
                 this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
-            this_timeout += SolarEdgeTimeouts.Device * self.number_of_batteries
+            this_timeout += SolarEdgeTimeouts.Battery * self.number_of_batteries
             if self.option_detect_extras:
                 this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
