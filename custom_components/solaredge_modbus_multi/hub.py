@@ -85,12 +85,6 @@ class DeviceIsEVSE(SolarEdgeException):
     pass
 
 
-class ModbusWriteError(SolarEdgeException):
-    """Raised when a modbus write fails (generic)"""
-
-    pass
-
-
 class DataUpdateFailed(SolarEdgeException):
     """Raised when an update cycle fails"""
 
@@ -554,7 +548,10 @@ class SolarEdgeModbusMultiHub:
                 _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
                 raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
 
-            raise ModbusWriteError(e)
+            _LOGGER.debug(f"Unit {unit} Write rejected: {e}")
+            raise HomeAssistantError(
+                f"Write rejected by device at ID {unit}: {e}"
+            ) from e
 
         except ModbusTimeoutError as e:
             _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
