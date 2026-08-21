@@ -667,12 +667,13 @@ class SolarEdgeInverter:
         self.decoded_common = {}
         self.decoded_model = {}
         self.decoded_mmppt = {}
+        self.decoded_storage_control = {}
         self.has_parent = False
         self.has_battery = None
-        self.decoded_storage_control = None
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
+        self.storage_control = None
         self._use_status_vendor4 = False
         self._use_mmppt_units = False
 
@@ -925,9 +926,7 @@ class SolarEdgeInverter:
                 ) from e
 
         """ Global Dynamic Power Control and Status """
-        if self.hub.option_detect_extras is True and (
-            self.global_power_control is True or self.global_power_control is None
-        ):
+        if self.hub.option_detect_extras and self.global_power_control is not False:
             try:
                 _LOGGER.debug(
                     f"Reading component GlobalDynamicPowerControl(for_unit({self.inverter_unit_id}))"
@@ -935,12 +934,11 @@ class SolarEdgeInverter:
                 await self.hub.component_update(
                     self.inverter_unit_id, self.global_power_control_data
                 )
+                self.global_power_control = True
 
                 self.decoded_model.update(
                     component_to_dict(self.global_power_control_data)
                 )
-
-                self.global_power_control = True
 
             except ModbusExceptionError:
                 self.global_power_control = False
@@ -952,7 +950,6 @@ class SolarEdgeInverter:
                 ModbusConnectionError,
                 ModbusProtocolError,
                 ModbusTimeoutError,
-                TimeoutError,
             ):
                 self.global_power_control = False
                 ir.async_create_issue(
@@ -971,9 +968,7 @@ class SolarEdgeInverter:
                 )
 
         """ Advanced Power Control: Power Control Block """
-        if self.hub.option_detect_extras is True and (
-            self.advanced_power_control is True or self.advanced_power_control is None
-        ):
+        if self.hub.option_detect_extras and self.advanced_power_control is not False:
             try:
                 _LOGGER.debug(
                     "Reading component "
@@ -982,12 +977,11 @@ class SolarEdgeInverter:
                 await self.hub.component_update(
                     self.inverter_unit_id, self.advanced_power_control_data
                 )
+                self.advanced_power_control = True
 
                 self.decoded_model.update(
                     component_to_dict(self.advanced_power_control_data)
                 )
-
-                self.advanced_power_control = True
 
             except ModbusExceptionError:
                 self.advanced_power_control = False
@@ -999,7 +993,6 @@ class SolarEdgeInverter:
                 ModbusConnectionError,
                 ModbusProtocolError,
                 ModbusTimeoutError,
-                TimeoutError,
             ):
                 self.advanced_power_control = False
                 ir.async_create_issue(
@@ -1018,10 +1011,7 @@ class SolarEdgeInverter:
                 )
 
         """ Power Control Options: Site Limit Control """
-        if (
-            self.hub.option_site_limit_control is True
-            and self.site_limit_control is not False
-        ):
+        if self.hub.option_site_limit_control and self.site_limit_control is not False:
             try:
                 _LOGGER.debug(
                     "Reading component "
@@ -1030,17 +1020,15 @@ class SolarEdgeInverter:
                 await self.hub.component_update(
                     self.inverter_unit_id, self.site_limit_control_data
                 )
+                self.site_limit_control = True
 
                 self.decoded_model.update(
                     component_to_dict(self.site_limit_control_data)
                 )
 
-                self.site_limit_control = True
-
             except ModbusExceptionError:
-                # Assumes Ext_Prod_Max fails together with the rest of this
-                # block rather than independently; if a device turns out to
-                # reject it alone, revisit with per-field handling.
+                # Before v4.0.0 we were reading Ext_Prod_Max in its own detection block.
+                # revisit with own block or exclude Ext_Prod_Max and retry
                 self.site_limit_control = False
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: site limit control NOT available"
@@ -1074,10 +1062,7 @@ class SolarEdgeInverter:
             )
 
         """ Power Control Options: Storage Control """
-        if (
-            self.hub.option_storage_control is True
-            and self.decoded_storage_control is not False
-        ):
+        if self.hub.option_storage_control and self.storage_control is not False:
             if self.has_battery is None:
                 self.has_battery = False
                 for battery in self.hub.batteries:
@@ -1092,6 +1077,7 @@ class SolarEdgeInverter:
                 await self.hub.component_update(
                     self.inverter_unit_id, self.storage_control_data
                 )
+                self.storage_control = True
 
                 self.decoded_storage_control = component_to_dict(
                     self.storage_control_data
@@ -1108,7 +1094,7 @@ class SolarEdgeInverter:
                     )
 
             except ModbusExceptionError:
-                self.decoded_storage_control = False
+                self.storage_control = False
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: storage control NOT available"
                 )
@@ -1169,7 +1155,7 @@ class SolarEdgeInverter:
 
     @property
     def has_storage_control(self) -> bool | None:
-        return self.decoded_storage_control
+        return self.storage_control
 
     @property
     def has_global_power_control(self) -> bool | None:
