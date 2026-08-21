@@ -35,7 +35,7 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         """Power Control Options: Storage Control"""
-        if hub.option_storage_control and inverter.decoded_storage_control:
+        if hub.option_storage_control:
             entities.append(StorageControlMode(inverter, config_entry, coordinator))
             entities.append(StorageACChargePolicy(inverter, config_entry, coordinator))
             entities.append(StorageDefaultMode(inverter, config_entry, coordinator))
@@ -49,7 +49,7 @@ async def async_setup_entry(
             entities.append(SolaredgeLimitControl(inverter, config_entry, coordinator))
 
         """ Power Control Block """
-        if hub.option_detect_extras and inverter.advanced_power_control:
+        if hub.option_detect_extras:
             entities.append(
                 SolarEdgeReactivePowerMode(inverter, config_entry, coordinator)
             )
@@ -114,24 +114,17 @@ class StorageControlMode(SolarEdgeSelectBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if (
-                self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["control_mode"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["control_mode"]
-                not in self._options
-            ):
-                return False
-
-            return super().available
-
-        except KeyError:
-            return False
+        control_mode = self._platform.storage_control_data.control_mode
+        return (
+            super().available
+            and self._platform.has_storage_control
+            and control_mode != SunSpecNotImpl.UINT16
+            and control_mode in self._options
+        )
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["control_mode"]]
+        return self._options[self._platform.storage_control_data.control_mode]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -162,24 +155,17 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if (
-                self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["ac_charge_policy"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["ac_charge_policy"]
-                not in self._options
-            ):
-                return False
-
-            return super().available
-
-        except KeyError:
-            return False
+        ac_charge_policy = self._platform.storage_control_data.ac_charge_policy
+        return (
+            super().available
+            and self._platform.has_storage_control
+            and ac_charge_policy != SunSpecNotImpl.UINT16
+            and ac_charge_policy in self._options
+        )
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["ac_charge_policy"]]
+        return self._options[self._platform.storage_control_data.ac_charge_policy]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -210,28 +196,19 @@ class StorageDefaultMode(SolarEdgeSelectBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if (
-                self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["default_mode"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["default_mode"]
-                not in self._options
-            ):
-                return False
-
+        default_mode = self._platform.storage_control_data.default_mode
+        return (
+            super().available
+            and self._platform.has_storage_control
+            and default_mode != SunSpecNotImpl.UINT16
+            and default_mode in self._options
             # Available only in remote control mode
-            return (
-                super().available
-                and self._platform.decoded_storage_control["control_mode"] == 4
-            )
-
-        except KeyError:
-            return False
+            and self._platform.storage_control_data.control_mode == 4
+        )
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["default_mode"]]
+        return self._options[self._platform.storage_control_data.default_mode]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -262,28 +239,19 @@ class StorageCommandMode(SolarEdgeSelectBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if (
-                self._platform.decoded_storage_control is False
-                or self._platform.decoded_storage_control["command_mode"]
-                == SunSpecNotImpl.UINT16
-                or self._platform.decoded_storage_control["command_mode"]
-                not in self._options
-            ):
-                return False
-
+        command_mode = self._platform.storage_control_data.command_mode
+        return (
+            super().available
+            and self._platform.has_storage_control
+            and command_mode != SunSpecNotImpl.UINT16
+            and command_mode in self._options
             # Available only in remote control mode
-            return (
-                super().available
-                and self._platform.decoded_storage_control["control_mode"] == 4
-            )
-
-        except KeyError:
-            return False
+            and self._platform.storage_control_data.control_mode == 4
+        )
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_storage_control["command_mode"]]
+        return self._options[self._platform.storage_control_data.command_mode]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -302,14 +270,13 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if self._platform.decoded_model["E_Lim_Ctl_Mode"] == SunSpecNotImpl.UINT16:
-                return None
-
-            return super().available
-
-        except KeyError:
-            return False
+        value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
+        return (
+            super().available
+            and self._platform.has_site_limit_control
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+        )
 
     @property
     def unique_id(self) -> str:
@@ -321,20 +288,22 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        if (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 0) & 1:
+        value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
+
+        if (value >> 0) & 1:
             return self._options[0]
 
-        elif (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 1) & 1:
+        elif (value >> 1) & 1:
             return self._options[1]
 
-        elif (int(self._platform.decoded_model["E_Lim_Ctl_Mode"]) >> 2) & 1:
+        elif (value >> 2) & 1:
             return self._options[2]
 
         else:
             return self._options[None]
 
     async def async_select_option(self, option: str) -> None:
-        set_bits = int(self._platform.decoded_model["E_Lim_Ctl_Mode"])
+        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         new_mode = get_key(self._options, option)
 
         set_bits = set_bits & ~(1 << 0)
@@ -359,14 +328,13 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if self._platform.decoded_model["E_Lim_Ctl"] == SunSpecNotImpl.UINT16:
-                return False
-
-            return super().available
-
-        except KeyError:
-            return False
+        value = self._platform.site_limit_control_data.E_Lim_Ctl
+        return (
+            super().available
+            and self._platform.has_site_limit_control
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+        )
 
     @property
     def unique_id(self) -> str:
@@ -378,7 +346,7 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_model["E_Lim_Ctl"]]
+        return self._options[self._platform.site_limit_control_data.E_Lim_Ctl]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
@@ -397,19 +365,14 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if (
-                self._platform.decoded_model["ReactivePwrConfig"]
-                == SunSpecNotImpl.INT32
-                or self._platform.decoded_model["ReactivePwrConfig"]
-                not in self._options
-            ):
-                return False
-
-            return super().available
-
-        except KeyError:
-            return False
+        value = self._platform.advanced_power_control_data.ReactivePwrConfig
+        return (
+            super().available
+            and self._platform.has_advanced_power_control
+            and value is not None
+            and value != SunSpecNotImpl.INT32
+            and value in self._options
+        )
 
     @property
     def unique_id(self) -> str:
@@ -421,7 +384,9 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
 
     @property
     def current_option(self) -> str:
-        return self._options[self._platform.decoded_model["ReactivePwrConfig"]]
+        return self._options[
+            self._platform.advanced_power_control_data.ReactivePwrConfig
+        ]
 
     async def async_select_option(self, option: str) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {option}")
