@@ -1179,6 +1179,10 @@ class SolarEdgeInverter:
     def has_advanced_power_control(self) -> bool | None:
         return self.advanced_power_control
 
+    @property
+    def has_site_limit_control(self) -> bool | None:
+        return self.site_limit_control
+
 
 class SolarEdgeMMPPTUnit:
     """Defines a SolarEdge inverter MMPPT unit."""
