@@ -30,7 +30,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeRefreshButton(inverter, config_entry, coordinator))
 
         """ Power Control Block """
-        if hub.option_detect_extras and inverter.has_advanced_power_control:
+        if hub.option_detect_extras:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
@@ -107,6 +107,10 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
     def name(self) -> str:
         return "Commit Power Settings"
 
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.has_advanced_power_control
+
     async def async_press(self) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 1")
 
@@ -133,6 +137,10 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         return False
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._platform.has_advanced_power_control
 
     async def async_press(self) -> None:
         _LOGGER.debug(f"set {self.unique_id} to 1")
