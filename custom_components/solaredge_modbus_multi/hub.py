@@ -667,9 +667,9 @@ class SolarEdgeInverter:
         self.decoded_common = {}
         self.decoded_model = {}
         self.decoded_mmppt = {}
-        self.decoded_storage_control = None
         self.has_parent = False
         self.has_battery = None
+        self.decoded_storage_control = None
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
@@ -1166,6 +1166,18 @@ class SolarEdgeInverter:
     @property
     def use_mmppt_units(self) -> bool:
         return self._use_mmppt_units
+
+    @property
+    def has_storage_control(self) -> bool | None:
+        return self.decoded_storage_control
+
+    @property
+    def has_global_power_control(self) -> bool | None:
+        return self.global_power_control
+
+    @property
+    def has_advanced_power_control(self) -> bool | None:
+        return self.advanced_power_control
 
 
 class SolarEdgeMMPPTUnit:
