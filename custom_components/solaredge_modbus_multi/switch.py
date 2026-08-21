@@ -37,7 +37,7 @@ async def async_setup_entry(
                 SolarEdgeNegativeSiteLimit(inverter, config_entry, coordinator)
             )
 
-        if hub.option_detect_extras and inverter.advanced_power_control:
+        if hub.option_detect_extras and inverter.has_advanced_power_control:
             entities.append(SolarEdgeGridControl(inverter, config_entry, coordinator))
 
     if entities:
@@ -82,7 +82,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         return (
             super().available
-            and self._platform.site_limit_control is not False
+            and self._platform.has_site_limit_control
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
@@ -138,7 +138,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         return (
             super().available
-            and self._platform.site_limit_control is not False
+            and self._platform.has_site_limit_control
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
@@ -189,7 +189,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     def available(self) -> bool:
         return (
             super().available
-            and self._platform.advanced_power_control
+            and self._platform.has_advanced_power_control
             and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
 

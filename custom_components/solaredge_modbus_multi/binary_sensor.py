@@ -31,7 +31,7 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         entities.append(GridStatusOnOff(inverter, config_entry, coordinator))
-        if hub.option_detect_extras and inverter.advanced_power_control:
+        if hub.option_detect_extras and inverter.has_advanced_power_control:
             entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
 
     if entities:
