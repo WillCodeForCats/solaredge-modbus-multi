@@ -31,7 +31,7 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         entities.append(GridStatusOnOff(inverter, config_entry, coordinator))
-        if hub.option_detect_extras and inverter.has_advanced_power_control:
+        if hub.option_detect_extras:
             entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
 
     if entities:
@@ -77,6 +77,7 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
     def available(self) -> bool:
         return (
             super().available
+            and self._platform.has_advanced_power_control
             and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
 
