@@ -71,13 +71,6 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-def get_key(d, search):
-    for k, v in d.items():
-        if v == search:
-            return k
-    return None
-
-
 class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
     should_poll = False
     _attr_has_entity_name = True
