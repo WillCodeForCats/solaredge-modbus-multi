@@ -99,7 +99,7 @@ async def async_setup_entry(
             )
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
 
-        if hub.option_detect_extras and inverter.advanced_power_control:
+        if hub.option_detect_extras:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
@@ -2491,7 +2491,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
 class SolarEdgeAdvancedPowerControlBlock(SolarEdgeSensorBase):
     @property
     def available(self) -> bool:
-        return super().available and self._platform.advanced_power_control
+        return super().available and self._platform.has_advanced_power_control
 
 
 class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
@@ -2511,34 +2511,27 @@ class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
     @property
     def available(self) -> bool:
         return (
-            super().available and "CommitPwrCtlSettings" in self._platform.decoded_model
+            super().available
+            and self._platform.advanced_power_control_data.CommitPwrCtlSettings
+            is not None
         )
 
     @property
     def native_value(self):
-        return self._platform.decoded_model["CommitPwrCtlSettings"]
+        return self._platform.advanced_power_control_data.CommitPwrCtlSettings
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
+        value = self._platform.advanced_power_control_data.CommitPwrCtlSettings
+        attrs = {"hex_value": hex(value)}
 
-        attrs["hex_value"] = hex(self._platform.decoded_model["CommitPwrCtlSettings"])
-
-        if self._platform.decoded_model["CommitPwrCtlSettings"] == 0x0:
+        if value == 0x0:
             attrs["status"] = "SUCCESS"
-        if self._platform.decoded_model["CommitPwrCtlSettings"] in [
-            0x1,
-            0x2,
-            0x3,
-            0x4,
-        ]:
+        if value in [0x1, 0x2, 0x3, 0x4]:
             attrs["status"] = "INTERNAL_ERROR"
-        if self._platform.decoded_model["CommitPwrCtlSettings"] == 0xFFFF:
+        if value == 0xFFFF:
             attrs["status"] = "UNKNOWN_ERROR"
-        if (
-            self._platform.decoded_model["CommitPwrCtlSettings"] >= 0xF102
-            and self._platform.decoded_model["CommitPwrCtlSettings"] < 0xFFFF
-        ):
+        if 0xF102 <= value < 0xFFFF:
             attrs["status"] = "VALUE_ERROR"
 
         return attrs
@@ -2562,22 +2555,22 @@ class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
     def available(self) -> bool:
         return (
             super().available
-            and "RestorePwrCtlDefaults" in self._platform.decoded_model
+            and self._platform.advanced_power_control_data.RestorePwrCtlDefaults
+            is not None
         )
 
     @property
     def native_value(self):
-        return self._platform.decoded_model["RestorePwrCtlDefaults"]
+        return self._platform.advanced_power_control_data.RestorePwrCtlDefaults
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
+        value = self._platform.advanced_power_control_data.RestorePwrCtlDefaults
+        attrs = {"hex_value": hex(value)}
 
-        attrs["hex_value"] = hex(self._platform.decoded_model["RestorePwrCtlDefaults"])
-
-        if self._platform.decoded_model["RestorePwrCtlDefaults"] == 0x0:
+        if value == 0x0:
             attrs["status"] = "SUCCESS"
-        if self._platform.decoded_model["RestorePwrCtlDefaults"] == 0xFFFF:
+        if value == 0xFFFF:
             attrs["status"] = "ERROR"
 
         return attrs
