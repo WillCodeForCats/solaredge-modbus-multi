@@ -20,7 +20,7 @@ BYPASS_DEVICE_CHECK = "bypass_device_check"
 WRITE_SETTLE_CYCLES: Final = 2
 
 # raise a startup exception if tmodbus version is less than this
-TMODBUS_REQUIRED_VERSION = "0.5.0"
+TMODBUS_REQUIRED_VERSION = "0.6.1"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
