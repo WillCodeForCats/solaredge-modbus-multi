@@ -1390,32 +1390,24 @@ class StatusVendor(SolarEdgeSensorBase):
         return not self._platform.use_status_vendor4
 
     @property
+    def available(self) -> bool:
+        value = self._platform.inverter_data.I_Status_Vendor
+        return (
+            super().available and value is not None and value != SunSpecNotImpl.UINT16
+        )
+
+    @property
     def native_value(self):
-        try:
-            if self._platform.decoded_model["I_Status_Vendor"] == SunSpecNotImpl.UINT16:
-                return None
-
-            else:
-                return str(self._platform.decoded_model["I_Status_Vendor"])
-
-        except TypeError:
-            return None
+        return str(self._platform.inverter_data.I_Status_Vendor)
 
     @property
     def extra_state_attributes(self):
-        try:
-            if self._platform.decoded_model["I_Status_Vendor"] in VENDOR_STATUS:
-                return {
-                    "description": VENDOR_STATUS[
-                        self._platform.decoded_model["I_Status_Vendor"]
-                    ]
-                }
+        value = self._platform.inverter_data.I_Status_Vendor
 
-            else:
-                return None
+        if value in VENDOR_STATUS:
+            return {"description": VENDOR_STATUS[value]}
 
-        except KeyError:
-            return None
+        return None
 
 
 class StatusVendor4(SolarEdgeSensorBase):
@@ -1431,45 +1423,33 @@ class StatusVendor4(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
+        value = self._platform.inverter_data.I_Status_Vendor4
         return (
-            super().available
-            and "I_Status_Vendor4" in self._platform.decoded_model
-            and self._platform.decoded_model["I_Status_Vendor4"]
-            != SunSpecNotImpl.UINT32
+            super().available and value is not None and value != SunSpecNotImpl.UINT32
         )
 
     @property
     def native_value(self):
-        try:
-            value = self._platform.decoded_model["I_Status_Vendor4"]
-            controller = (value >> 24) & 0xFF
-            error = value & 0xFFFF
-            return f"{controller:X}x{error:X}"
-        except TypeError:
-            return None
+        value = self._platform.inverter_data.I_Status_Vendor4
+        controller = (value >> 24) & 0xFF
+        error = value & 0xFFFF
+        return f"{controller:X}x{error:X}"
 
     @property
     def extra_state_attributes(self):
-        try:
-            value = self._platform.decoded_model["I_Status_Vendor4"]
+        value = self._platform.inverter_data.I_Status_Vendor4
 
-            controller = (value >> 24) & 0xFF
-            error = value & 0xFFFF
-            attrs = {
-                "controller": hex(controller),
-                "error_code": hex(error),
-            }
+        controller = (value >> 24) & 0xFF
+        error = value & 0xFFFF
+        attrs = {
+            "controller": hex(controller),
+            "error_code": hex(error),
+        }
 
-            if controller in VENDOR4_STATUS and error in VENDOR4_STATUS[controller]:
-                attrs["description"] = VENDOR4_STATUS[controller][error]
+        if controller in VENDOR4_STATUS and error in VENDOR4_STATUS[controller]:
+            attrs["description"] = VENDOR4_STATUS[controller][error]
 
-            return attrs
-
-        except KeyError:
-            return None
-
-        except TypeError:
-            return None
+        return attrs
 
 
 class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
