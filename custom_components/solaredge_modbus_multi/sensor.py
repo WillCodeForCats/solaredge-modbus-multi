@@ -92,14 +92,12 @@ async def async_setup_entry(
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
 
-        if hub.option_detect_extras and inverter.global_power_control:
+        if hub.option_detect_extras:
             entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
             entities.append(
                 SolarEdgeActivePowerLimit(inverter, config_entry, coordinator)
             )
             entities.append(SolarEdgeCosPhi(inverter, config_entry, coordinator))
-
-        if hub.option_detect_extras:
             entities.append(
                 SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
             )
@@ -1504,7 +1502,7 @@ class StatusVendor4(SolarEdgeSensorBase):
 class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
     @property
     def available(self) -> bool:
-        return super().available and self._platform.global_power_control
+        return super().available and self._platform.has_global_power_control
 
 
 class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
@@ -1518,46 +1516,33 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._platform.global_power_control is True:
-            return True
-        else:
-            return False
+        return self._platform.has_global_power_control is True
+
+    @property
+    def available(self) -> bool:
+        value = self._platform.global_power_control_data.I_RRCR
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+            and value <= 0xF
+        )
 
     @property
     def native_value(self):
-        try:
-            if (
-                self._platform.decoded_model["I_RRCR"] == SunSpecNotImpl.UINT16
-                or self._platform.decoded_model["I_RRCR"] > 0xF
-            ):
-                return None
-
-            else:
-                return self._platform.decoded_model["I_RRCR"]
-
-        except TypeError:
-            return None
-
-        except KeyError:
-            return None
+        return self._platform.global_power_control_data.I_RRCR
 
     @property
     def extra_state_attributes(self):
-        try:
-            rrcr_inputs = []
+        value = self._platform.global_power_control_data.I_RRCR
+        rrcr_inputs = []
 
-            if int(str(self._platform.decoded_model["I_RRCR"])) == 0x0:
-                return {"inputs": str(rrcr_inputs)}
+        if value != 0x0:
+            for i in range(0, 4):
+                if value & (1 << i):
+                    rrcr_inputs.append(RRCR_STATUS[i])
 
-            else:
-                for i in range(0, 4):
-                    if int(str(self._platform.decoded_model["I_RRCR"])) & (1 << i):
-                        rrcr_inputs.append(RRCR_STATUS[i])
-
-                return {"inputs": str(rrcr_inputs)}
-
-        except KeyError:
-            return None
+        return {"inputs": str(rrcr_inputs)}
 
 
 class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
@@ -1578,23 +1563,21 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return self._platform.global_power_control
+        return self._platform.has_global_power_control is True
+
+    @property
+    def available(self) -> bool:
+        value = self._platform.global_power_control_data.I_Power_Limit
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+            and 0 <= value <= 100
+        )
 
     @property
     def native_value(self) -> int:
-        try:
-            if (
-                self._platform.decoded_model["I_Power_Limit"] == SunSpecNotImpl.UINT16
-                or self._platform.decoded_model["I_Power_Limit"] > 100
-                or self._platform.decoded_model["I_Power_Limit"] < 0
-            ):
-                return None
-
-            else:
-                return self._platform.decoded_model["I_Power_Limit"]
-
-        except KeyError:
-            return None
+        return self._platform.global_power_control_data.I_Power_Limit
 
 
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
@@ -1614,24 +1597,21 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return self._platform.global_power_control
+        return self._platform.has_global_power_control is True
+
+    @property
+    def available(self) -> bool:
+        value = self._platform.global_power_control_data.I_CosPhi
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and -1.0 <= value <= 1.0
+        )
 
     @property
     def native_value(self) -> float:
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["I_CosPhi"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["I_CosPhi"] > 1.0
-                or self._platform.decoded_model["I_CosPhi"] < -1.0
-            ):
-                return None
-
-            else:
-                return round(self._platform.decoded_model["I_CosPhi"], 1)
-
-        except KeyError:
-            return None
+        return round(self._platform.global_power_control_data.I_CosPhi, 1)
 
 
 class MeterEvents(SolarEdgeSensorBase):
