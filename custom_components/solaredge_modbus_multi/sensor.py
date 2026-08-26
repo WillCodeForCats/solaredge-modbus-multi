@@ -1356,33 +1356,26 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
     options = list(BATTERY_STATUS.values())
 
     @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Status
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.UINT32
+            and value in BATTERY_STATUS
+        )
+
+    @property
     def native_value(self):
-        try:
-            if self._platform.decoded_model["B_Status"] == SunSpecNotImpl.UINT32:
-                return None
-
-            return str(BATTERY_STATUS[self._platform.decoded_model["B_Status"]])
-
-        except TypeError:
-            return None
-
-        except KeyError:
-            return None
+        return str(BATTERY_STATUS[self._platform.battery_data.B_Status])
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
+        value = self._platform.battery_data.B_Status
+        attrs = {"status_value": value}
 
-        try:
-            if self._platform.decoded_model["B_Status"] in BATTERY_STATUS_TEXT:
-                attrs["status_text"] = BATTERY_STATUS_TEXT[
-                    self._platform.decoded_model["B_Status"]
-                ]
-
-            attrs["status_value"] = self._platform.decoded_model["B_Status"]
-
-        except KeyError:
-            pass
+        if value in BATTERY_STATUS_TEXT:
+            attrs["status_text"] = BATTERY_STATUS_TEXT[value]
 
         return attrs
 
