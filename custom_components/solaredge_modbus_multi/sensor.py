@@ -1947,26 +1947,20 @@ class SolarEdgeBatteryPower(DCPower):
     icon = "mdi:lightning-bolt"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_DC_Power
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and float_to_hex(value) != "0xff7fffff"
+            and float_to_hex(value) != "0x7f7fffff"
+            and self._platform.battery_data.B_Status != 0
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["B_DC_Power"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or float_to_hex(self._platform.decoded_model["B_DC_Power"])
-                == "0xff7fffff"
-                or float_to_hex(self._platform.decoded_model["B_DC_Power"])
-                == "0x7f7fffff"
-            ):
-                return None
-
-            elif self._platform.decoded_model["B_Status"] in [0]:
-                return None
-
-            else:
-                return self._platform.decoded_model["B_DC_Power"]
-
-        except TypeError:
-            return None
+        return self._platform.battery_data.B_DC_Power
 
 
 class SolarEdgeBatteryPowerInverted(SolarEdgeBatteryPower):
