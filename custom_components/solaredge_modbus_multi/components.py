@@ -23,7 +23,7 @@ from modbus_connection.model import (
     uint32,
     uint64,
 )
-from modbus_connection.model.sunspec import enum16, sunssf, uint16
+from modbus_connection.model.sunspec import SunSpecComponent, enum16, sunssf, uint16
 
 _ASCII_CTRL_CHARS = dict.fromkeys(range(32))
 
@@ -460,7 +460,7 @@ class BatteryData(Component):
     B_Event_Log_Vendor8 = integer(57753, signed=False)
 
 
-class DERStorageCapacity(Component):
+class DERStorageCapacity(SunSpecComponent):
     """DER Storage Capacity (SunSpec model 713), read every polling cycle.
     base_offset is supplied by modbus-connection SunSpec scan
     (modbus_connection.model.sunspec.scan) at setup.
