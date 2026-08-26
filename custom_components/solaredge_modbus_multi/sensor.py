@@ -1253,28 +1253,29 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
         return "Temperature"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.inverter_data.I_Temp_Sink
+        sf = self._platform.inverter_data.I_Temp_SF
+        return (
+            super().available
+            and value is not None
+            and value != 0x0
+            and value != SunSpecNotImpl.INT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                self._platform.decoded_model["I_Temp_Sink"] == 0x0
-                or self._platform.decoded_model["I_Temp_Sink"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["I_Temp_SF"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["I_Temp_SF"] not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model["I_Temp_Sink"],
-                    self._platform.decoded_model["I_Temp_SF"],
-                )
-
-        except TypeError:
-            return None
+        return self.scale_factor(
+            self._platform.inverter_data.I_Temp_Sink,
+            self._platform.inverter_data.I_Temp_SF,
+        )
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["I_Temp_SF"])
+        return abs(self._platform.inverter_data.I_Temp_SF)
 
 
 class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
