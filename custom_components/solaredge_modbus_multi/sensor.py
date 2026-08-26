@@ -337,22 +337,13 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
         except KeyError:
             pass
 
-        try:
-            if self._platform.decoded_mmppt is not None:
-                try:
-                    if self._platform.decoded_mmppt["mmppt_DID"] in SUNSPEC_DID:
-                        attrs["mmppt_device"] = SUNSPEC_DID[
-                            self._platform.decoded_mmppt["mmppt_DID"]
-                        ]
+        mmppt_common = getattr(self._platform, "mmppt_common", None)
+        if mmppt_common is not None:
+            if mmppt_common.mmppt_DID in SUNSPEC_DID:
+                attrs["mmppt_device"] = SUNSPEC_DID[mmppt_common.mmppt_DID]
 
-                except KeyError:
-                    pass
-
-                attrs["mmppt_did"] = self._platform.decoded_mmppt["mmppt_DID"]
-                attrs["mmppt_units"] = self._platform.decoded_mmppt["mmppt_Units"]
-
-        except AttributeError:
-            pass
+            attrs["mmppt_did"] = mmppt_common.mmppt_DID
+            attrs["mmppt_units"] = mmppt_common.mmppt_Units
 
         return attrs
 
@@ -1055,28 +1046,28 @@ class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCA"]
-            == SunSpecNotImpl.INT16
-            or self._platform.inverter.decoded_model["mmppt_DCA_SF"]
-            == SunSpecNotImpl.INT16
-            or self._platform.inverter.decoded_model["mmppt_DCA_SF"]
-            not in SUNSPEC_SF_RANGE
-        ):
-            return False
-
-        return super().available
+        mmppt_data = self._platform.inverter.mmppt_data
+        dca = mmppt_data.units[self._platform.unit].DCA
+        sf = mmppt_data.mmppt_DCA_SF
+        return (
+            super().available
+            and dca is not None
+            and dca != SunSpecNotImpl.UINT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
 
     @property
     def native_value(self):
+        mmppt_data = self._platform.inverter.mmppt_data
         return self.scale_factor(
-            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCA"],
-            self._platform.inverter.decoded_model["mmppt_DCA_SF"],
+            mmppt_data.units[self._platform.unit].DCA, mmppt_data.mmppt_DCA_SF
         )
 
     @property
     def suggested_display_precision(self) -> int:
-        return abs(self._platform.inverter.decoded_model["mmppt_DCA_SF"])
+        return abs(self._platform.inverter.mmppt_data.mmppt_DCA_SF)
 
 
 class DCVoltage(SolarEdgeSensorBase):
@@ -1139,28 +1130,28 @@ class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCV"]
-            == SunSpecNotImpl.INT16
-            or self._platform.inverter.decoded_model["mmppt_DCV_SF"]
-            == SunSpecNotImpl.INT16
-            or self._platform.inverter.decoded_model["mmppt_DCV_SF"]
-            not in SUNSPEC_SF_RANGE
-        ):
-            return False
-
-        return super().available
+        mmppt_data = self._platform.inverter.mmppt_data
+        dcv = mmppt_data.units[self._platform.unit].DCV
+        sf = mmppt_data.mmppt_DCV_SF
+        return (
+            super().available
+            and dcv is not None
+            and dcv != SunSpecNotImpl.UINT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
 
     @property
     def native_value(self):
+        mmppt_data = self._platform.inverter.mmppt_data
         return self.scale_factor(
-            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCV"],
-            self._platform.inverter.decoded_model["mmppt_DCV_SF"],
+            mmppt_data.units[self._platform.unit].DCV, mmppt_data.mmppt_DCV_SF
         )
 
     @property
     def suggested_display_precision(self) -> int:
-        return abs(self._platform.inverter.decoded_model["mmppt_DCV_SF"])
+        return abs(self._platform.inverter.mmppt_data.mmppt_DCV_SF)
 
 
 class DCPower(SolarEdgeSensorBase):
@@ -1221,28 +1212,28 @@ class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCW"]
-            == SunSpecNotImpl.INT16
-            or self._platform.inverter.decoded_model["mmppt_DCW_SF"]
-            == SunSpecNotImpl.INT16
-            or self._platform.inverter.decoded_model["mmppt_DCW_SF"]
-            not in SUNSPEC_SF_RANGE
-        ):
-            return False
-
-        return super().available
+        mmppt_data = self._platform.inverter.mmppt_data
+        dcw = mmppt_data.units[self._platform.unit].DCW
+        sf = mmppt_data.mmppt_DCW_SF
+        return (
+            super().available
+            and dcw is not None
+            and dcw != SunSpecNotImpl.UINT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
 
     @property
     def native_value(self):
+        mmppt_data = self._platform.inverter.mmppt_data
         return self.scale_factor(
-            self._platform.inverter.decoded_model[self._platform.mmppt_key]["DCW"],
-            self._platform.inverter.decoded_model["mmppt_DCW_SF"],
+            mmppt_data.units[self._platform.unit].DCW, mmppt_data.mmppt_DCW_SF
         )
 
     @property
     def suggested_display_precision(self) -> int:
-        return abs(self._platform.inverter.decoded_model["mmppt_DCW_SF"])
+        return abs(self._platform.inverter.mmppt_data.mmppt_DCW_SF)
 
 
 class HeatSinkTemperature(SolarEdgeSensorBase):
@@ -1305,17 +1296,12 @@ class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.inverter.decoded_model[self._platform.mmppt_key]["Tmp"]
-            == SunSpecNotImpl.INT16
-        ):
-            return False
-
-        return super().available
+        value = self._platform.inverter.mmppt_data.units[self._platform.unit].Tmp
+        return super().available and value is not None and value != SunSpecNotImpl.INT16
 
     @property
     def native_value(self):
-        return self._platform.inverter.decoded_model[self._platform.mmppt_key]["Tmp"]
+        return self._platform.inverter.mmppt_data.units[self._platform.unit].Tmp
 
 
 class SolarEdgeStatusSensor(SolarEdgeSensorBase):
@@ -1672,40 +1658,32 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if self._platform.decoded_model["mmppt_Events"] == SunSpecNotImpl.UINT32:
-                return False
-
-            return super().available
-
-        except KeyError:
-            return False
+        value = self._platform.mmppt_data.mmppt_Events
+        return (
+            super().available and value is not None and value != SunSpecNotImpl.UINT32
+        )
 
     @property
     def native_value(self) -> int:
-        return self._platform.decoded_model["mmppt_Events"]
+        return self._platform.mmppt_data.mmppt_Events
 
     @property
     def extra_state_attributes(self) -> str:
-        attrs = {}
+        value = self._platform.mmppt_data.mmppt_Events
         mmppt_events_active = []
 
-        if int(str(self._platform.decoded_model["mmppt_Events"])) == 0x0:
-            attrs["events"] = str(mmppt_events_active)
-        else:
+        if value != 0x0:
             for i in range(0, 31):
                 try:
-                    if int(str(self._platform.decoded_model["mmppt_Events"])) & (
-                        1 << i
-                    ):
+                    if value & (1 << i):
                         mmppt_events_active.append(MMPPT_EVENTS[i])
                 except KeyError:
                     pass
 
-        attrs["events"] = str(mmppt_events_active)
-        attrs["bits"] = f"{int(self._platform.decoded_model['mmppt_Events']):032b}"
-
-        return attrs
+        return {
+            "events": str(mmppt_events_active),
+            "bits": f"{value:032b}",
+        }
 
 
 class MeterVAhIE(SolarEdgeSensorBase):
