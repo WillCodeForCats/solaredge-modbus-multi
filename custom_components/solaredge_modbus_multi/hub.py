@@ -176,7 +176,6 @@ class SolarEdgeModbusMultiHub:
         )
 
         self._id = entry_data[CONF_NAME].lower()
-        self.suns_models = {}
         self.inverters = []
         self.meters = []
         self.batteries = []
@@ -300,11 +299,11 @@ class SolarEdgeModbusMultiHub:
                 _LOGGER.debug(
                     f"Scanning SunS models at {self.hub_host} ID {inverter_unit_id}"
                 )
-                self.suns_models = await suns_scan(
+                suns_models = await suns_scan(
                     self.connection.for_unit(inverter_unit_id), 40000
                 )
 
-                for model in self.suns_models.chain:
+                for model in suns_models.chain:
                     _LOGGER.debug(
                         f"I{inverter_unit_id}: found SunS model {model.model_id} "
                         f"(length {model.length})"
@@ -318,7 +317,7 @@ class SolarEdgeModbusMultiHub:
                 SunSpecError,
             ) as e:
                 _LOGGER.debug(f"I{inverter_unit_id}: SunS model scan failed: {e}")
-                self.suns_models = None
+                suns_models = None
 
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
