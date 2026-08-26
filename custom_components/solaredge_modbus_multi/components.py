@@ -4,6 +4,9 @@ We're intentionally not using the SunSpec discovery and generation from modbus-c
 because SolarEdge inverters are only partially SunSpec: all of the writable controls
 and battery components are not SunSpec. Rather than mixing the two, every class is
 a Component for the sake of uniformity.
+
+Exceptions:
+* DERStorageCapacity (SunSpec model 713): reported by user
 """
 
 from __future__ import annotations
@@ -20,6 +23,7 @@ from modbus_connection.model import (
     uint32,
     uint64,
 )
+from modbus_connection.model.sunspec import enum16, sunssf, uint16
 
 _ASCII_CTRL_CHARS = dict.fromkeys(range(32))
 
@@ -454,3 +458,22 @@ class BatteryData(Component):
     B_Event_Log_Vendor6 = integer(57751, signed=False)
     B_Event_Log_Vendor7 = integer(57752, signed=False)
     B_Event_Log_Vendor8 = integer(57753, signed=False)
+
+
+class DERStorageCapacity(Component):
+    """DER Storage Capacity (SunSpec model 713), read every polling cycle.
+    base_offset is supplied by modbus-connection SunSpec scan
+    (modbus_connection.model.sunspec.scan) at setup.
+
+    User reported when the inverter's grid profile enables IEEE 1547-2018 DER
+    support, not from SolarEdge documentation:
+    https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/1055
+    """
+
+    WHRtg = uint16(2, scale_register=7, unit="Wh")
+    WHAvail = uint16(3, scale_register=7, unit="Wh")
+    SoC = uint16(4, scale_register=8, unit="%")
+    SoH = uint16(5, scale_register=8, unit="%")
+    Sta = enum16(6)
+    WH_SF = sunssf(7)
+    Pct_SF = sunssf(8)
