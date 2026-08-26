@@ -1321,33 +1321,27 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
     options = list(DEVICE_STATUS.values())
 
     @property
+    def available(self) -> bool:
+        value = self._platform.inverter_data.I_Status
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+            and value in DEVICE_STATUS
+        )
+
+    @property
     def native_value(self):
-        try:
-            if self._platform.decoded_model["I_Status"] == SunSpecNotImpl.UINT16:
-                return None
-
-            return str(DEVICE_STATUS[self._platform.decoded_model["I_Status"]])
-
-        except TypeError:
-            return None
-
-        except KeyError:
-            return None
+        return str(DEVICE_STATUS[self._platform.inverter_data.I_Status])
 
     @property
     def extra_state_attributes(self):
+        value = self._platform.inverter_data.I_Status
         attrs = {}
 
-        try:
-            if self._platform.decoded_model["I_Status"] in DEVICE_STATUS_TEXT:
-                attrs["status_text"] = DEVICE_STATUS_TEXT[
-                    self._platform.decoded_model["I_Status"]
-                ]
-
-                attrs["status_value"] = self._platform.decoded_model["I_Status"]
-
-        except KeyError:
-            pass
+        if value in DEVICE_STATUS_TEXT:
+            attrs["status_text"] = DEVICE_STATUS_TEXT[value]
+            attrs["status_value"] = value
 
         return attrs
 
