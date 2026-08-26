@@ -1612,37 +1612,34 @@ class MeterEvents(SolarEdgeSensorBase):
         return "Meter Events"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.meter_data.M_Events
+        return (
+            super().available and value is not None and value != SunSpecNotImpl.UINT32
+        )
+
+    @property
     def native_value(self):
-        try:
-            if self._platform.decoded_model["M_Events"] == SunSpecNotImpl.UINT32:
-                return None
-
-            else:
-                return self._platform.decoded_model["M_Events"]
-
-        except TypeError:
-            return None
+        return self._platform.meter_data.M_Events
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
+        value = self._platform.meter_data.M_Events
         m_events_active = []
 
-        if int(str(self._platform.decoded_model["M_Events"])) == 0x0:
-            attrs["events"] = str(m_events_active)
-        else:
+        if value != 0x0:
             for i in range(2, 31):
                 try:
-                    if int(str(self._platform.decoded_model["M_Events"])) & (1 << i):
+                    if value & (1 << i):
                         m_events_active.append(METER_EVENTS[i])
 
                 except KeyError:
                     pass
 
-        attrs["bits"] = f"{int(self._platform.decoded_model['M_Events']):032b}"
-        attrs["events"] = str(m_events_active)
-
-        return attrs
+        return {
+            "bits": f"{value:032b}",
+            "events": str(m_events_active),
+        }
 
 
 class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
@@ -1730,38 +1727,40 @@ class MeterVAhIE(SolarEdgeSensorBase):
             return f"Apparent Energy {re.sub('_', ' ', self._phase)}"
 
     @property
+    def available(self) -> bool:
+        if self._phase is None:
+            raise NotImplementedError
+
+        value = getattr(self._platform.meter_data, f"M_VAh_{self._phase}")
+        sf = self._platform.meter_data.M_VAh_SF
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecAccum.NA32
+            and value <= SunSpecAccum.LIMIT32
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
+
+    @property
     def native_value(self):
         if self._phase is None:
             raise NotImplementedError
-        else:
-            model_key = f"M_VAh_{self._phase}"
+
+        value = self.scale_factor(
+            getattr(self._platform.meter_data, f"M_VAh_{self._phase}"),
+            self._platform.meter_data.M_VAh_SF,
+        )
 
         try:
-            if (
-                self._platform.decoded_model[model_key] == SunSpecAccum.NA32
-                or self._platform.decoded_model[model_key] > SunSpecAccum.LIMIT32
-                or self._platform.decoded_model["M_VAh_SF"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["M_VAh_SF"] not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                value = self.scale_factor(
-                    self._platform.decoded_model[model_key],
-                    self._platform.decoded_model["M_VAh_SF"],
-                )
-
-                try:
-                    return update_accum(self, value, value)
-                except Exception:
-                    return None
-
-        except TypeError:
+            return update_accum(self, value, value)
+        except Exception:
             return None
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["M_VAh_SF"])
+        return abs(self._platform.meter_data.M_VAh_SF)
 
 
 class MetervarhIE(SolarEdgeSensorBase):
@@ -1808,38 +1807,40 @@ class MetervarhIE(SolarEdgeSensorBase):
             return f"Reactive Energy {re.sub('_', ' ', self._phase)}"
 
     @property
+    def available(self) -> bool:
+        if self._phase is None:
+            raise NotImplementedError
+
+        value = getattr(self._platform.meter_data, f"M_varh_{self._phase}")
+        sf = self._platform.meter_data.M_varh_SF
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecAccum.NA32
+            and value <= SunSpecAccum.LIMIT32
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
+
+    @property
     def native_value(self):
         if self._phase is None:
             raise NotImplementedError
-        else:
-            model_key = f"M_varh_{self._phase}"
+
+        value = self.scale_factor(
+            getattr(self._platform.meter_data, f"M_varh_{self._phase}"),
+            self._platform.meter_data.M_varh_SF,
+        )
 
         try:
-            if (
-                self._platform.decoded_model[model_key] == SunSpecAccum.NA32
-                or self._platform.decoded_model[model_key] > SunSpecAccum.LIMIT32
-                or self._platform.decoded_model["M_varh_SF"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["M_varh_SF"] not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                value = self.scale_factor(
-                    self._platform.decoded_model[model_key],
-                    self._platform.decoded_model["M_varh_SF"],
-                )
-
-                try:
-                    return update_accum(self, value, value)
-                except Exception:
-                    return None
-
-        except TypeError:
+            return update_accum(self, value, value)
+        except Exception:
             return None
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["M_varh_SF"])
+        return abs(self._platform.meter_data.M_varh_SF)
 
 
 class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
