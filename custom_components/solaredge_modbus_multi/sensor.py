@@ -65,7 +65,7 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         entities.append(SolarEdgeLastUpdate(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeDevice(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeInverterDevice(inverter, config_entry, coordinator))
         entities.append(Version(inverter, config_entry, coordinator))
         entities.append(SolarEdgeInverterStatus(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
@@ -124,7 +124,7 @@ async def async_setup_entry(
 
     for meter in hub.meters:
         entities.append(SolarEdgeLastUpdate(meter, config_entry, coordinator))
-        entities.append(SolarEdgeDevice(meter, config_entry, coordinator))
+        entities.append(SolarEdgeMeterDevice(meter, config_entry, coordinator))
         entities.append(Version(meter, config_entry, coordinator))
         entities.append(MeterEvents(meter, config_entry, coordinator))
         entities.append(ACCurrentSensor(meter, config_entry, coordinator))
@@ -204,7 +204,7 @@ async def async_setup_entry(
 
     for battery in hub.batteries:
         entities.append(SolarEdgeLastUpdate(battery, config_entry, coordinator))
-        entities.append(SolarEdgeDevice(battery, config_entry, coordinator))
+        entities.append(SolarEdgeBatteryDevice(battery, config_entry, coordinator))
         entities.append(Version(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryAvgTemp(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryMaxTemp(battery, config_entry, coordinator))
@@ -295,24 +295,11 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
-
-        try:
-            if (
-                float_to_hex(self._platform.decoded_common["B_RatedEnergy"])
-                != hex(SunSpecNotImpl.FLOAT32)
-                and self._platform.decoded_common["B_RatedEnergy"] > 0
-            ):
-                attrs["batt_rated_energy"] = self._platform.decoded_common[
-                    "B_RatedEnergy"
-                ]
-
-        except KeyError:
-            pass
-
-        attrs["device_id"] = self._platform.device_address
-        attrs["manufacturer"] = self._platform.manufacturer
-        attrs["model"] = self._platform.model
+        attrs = {
+            "device_id": self._platform.device_address,
+            "manufacturer": self._platform.manufacturer,
+            "model": self._platform.model,
+        }
 
         if len(self._platform.option) > 0:
             attrs["option"] = self._platform.option
@@ -322,28 +309,58 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
 
         attrs["serial_number"] = self._platform.serial
 
-        try:
-            if self._platform.decoded_model["C_SunSpec_DID"] in SUNSPEC_DID:
-                attrs["sunspec_device"] = SUNSPEC_DID[
-                    self._platform.decoded_model["C_SunSpec_DID"]
-                ]
+        return attrs
 
-        except KeyError:
-            pass
 
-        try:
-            attrs["sunspec_did"] = self._platform.decoded_model["C_SunSpec_DID"]
+class SolarEdgeInverterDevice(SolarEdgeDevice):
+    @property
+    def extra_state_attributes(self):
+        attrs = super().extra_state_attributes
 
-        except KeyError:
-            pass
+        did = self._platform.inverter_data.C_SunSpec_DID
+        if did is not None:
+            attrs["sunspec_did"] = did
+            if did in SUNSPEC_DID:
+                attrs["sunspec_device"] = SUNSPEC_DID[did]
 
-        mmppt_common = getattr(self._platform, "mmppt_common", None)
-        if mmppt_common is not None:
+        if self._platform.is_mmppt:
+            mmppt_common = self._platform.mmppt_common
+
             if mmppt_common.mmppt_DID in SUNSPEC_DID:
                 attrs["mmppt_device"] = SUNSPEC_DID[mmppt_common.mmppt_DID]
 
             attrs["mmppt_did"] = mmppt_common.mmppt_DID
             attrs["mmppt_units"] = mmppt_common.mmppt_Units
+
+        return attrs
+
+
+class SolarEdgeMeterDevice(SolarEdgeDevice):
+    @property
+    def extra_state_attributes(self):
+        attrs = super().extra_state_attributes
+
+        did = self._platform.meter_data.C_SunSpec_DID
+        if did is not None:
+            attrs["sunspec_did"] = did
+            if did in SUNSPEC_DID:
+                attrs["sunspec_device"] = SUNSPEC_DID[did]
+
+        return attrs
+
+
+class SolarEdgeBatteryDevice(SolarEdgeDevice):
+    @property
+    def extra_state_attributes(self):
+        attrs = super().extra_state_attributes
+
+        rated_energy = self._platform.battery_info.B_RatedEnergy
+        if (
+            rated_energy is not None
+            and float_to_hex(rated_energy) != hex(SunSpecNotImpl.FLOAT32)
+            and rated_energy > 0
+        ):
+            attrs["batt_rated_energy"] = rated_energy
 
         return attrs
 
