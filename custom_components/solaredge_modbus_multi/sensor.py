@@ -2211,18 +2211,17 @@ class SolarEdgeBatteryMaxChargePower(SolarEdgeBatteryPowerBase):
 
     @property
     def available(self):
-        if (
-            float_to_hex(self._platform.decoded_model["B_MaxChargePower"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_MaxChargePower"] < 0
-        ):
-            return False
-
-        return super().available
+        value = self._platform.battery_data.B_MaxChargePower
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and value >= 0
+        )
 
     @property
     def native_value(self):
-        return self._platform.decoded_model["B_MaxChargePower"]
+        return self._platform.battery_data.B_MaxChargePower
 
 
 class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeBatteryPowerBase):
@@ -2236,18 +2235,17 @@ class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeBatteryPowerBase):
 
     @property
     def available(self):
-        if (
-            float_to_hex(self._platform.decoded_model["B_MaxChargePeakPower"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_MaxChargePeakPower"] < 0
-        ):
-            return False
-
-        return super().available
+        value = self._platform.battery_data.B_MaxChargePeakPower
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and value >= 0
+        )
 
     @property
     def native_value(self):
-        return self._platform.decoded_model["B_MaxChargePeakPower"]
+        return self._platform.battery_data.B_MaxChargePeakPower
 
 
 class SolarEdgeBatteryMaxDischargePower(SolarEdgeBatteryPowerBase):
@@ -2261,18 +2259,17 @@ class SolarEdgeBatteryMaxDischargePower(SolarEdgeBatteryPowerBase):
 
     @property
     def available(self):
-        if (
-            float_to_hex(self._platform.decoded_model["B_MaxDischargePower"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_MaxDischargePower"] < 0
-        ):
-            return False
-
-        return super().available
+        value = self._platform.battery_data.B_MaxDischargePower
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and value >= 0
+        )
 
     @property
     def native_value(self):
-        return self._platform.decoded_model["B_MaxDischargePower"]
+        return self._platform.battery_data.B_MaxDischargePower
 
 
 class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeBatteryPowerBase):
@@ -2286,18 +2283,17 @@ class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeBatteryPowerBase):
 
     @property
     def available(self):
-        if (
-            float_to_hex(self._platform.decoded_model["B_MaxDischargePeakPower"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_MaxDischargePeakPower"] < 0
-        ):
-            return False
-
-        return super().available
+        value = self._platform.battery_data.B_MaxDischargePeakPower
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and value >= 0
+        )
 
     @property
     def native_value(self):
-        return self._platform.decoded_model["B_MaxDischargePeakPower"]
+        return self._platform.battery_data.B_MaxDischargePeakPower
 
 
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
