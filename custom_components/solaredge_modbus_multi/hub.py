@@ -1421,7 +1421,11 @@ class SolarEdgeBattery:
             _LOGGER.debug(
                 f"Reading component BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            await self.hub.component_update(self.inverter_unit_id, self.battery_info)
+            async with asyncio.timeout(RetrySettings.RequestTimeout):
+                # only try once during init, otherwise this takes too long
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.battery_info
+                )
 
             self.decoded_common = component_to_dict(self.battery_info)
 
@@ -1436,6 +1440,11 @@ class SolarEdgeBattery:
                         f"{name} {display_value} {type(value)}"
                     ),
                 )
+
+        except TimeoutError:
+            raise DeviceInvalid(
+                f"Timeout BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+            )
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise DeviceInvalid(
