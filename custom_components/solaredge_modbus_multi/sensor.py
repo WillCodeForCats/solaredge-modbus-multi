@@ -2176,18 +2176,20 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
         return "Maximum Energy"
 
     @property
-    def native_value(self):
-        if (
-            float_to_hex(self._platform.decoded_model["B_Energy_Max"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_Energy_Max"] < 0
-            or self._platform.decoded_model["B_Energy_Max"]
-            > self._platform.decoded_common["B_RatedEnergy"]
-        ):
-            return None
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Energy_Max
+        rated_energy = self._platform.battery_info.B_RatedEnergy
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and rated_energy is not None
+            and 0 <= value <= rated_energy
+        )
 
-        else:
-            return self._platform.decoded_model["B_Energy_Max"]
+    @property
+    def native_value(self):
+        return self._platform.battery_data.B_Energy_Max
 
 
 class SolarEdgeBatteryPowerBase(SolarEdgeSensorBase):
