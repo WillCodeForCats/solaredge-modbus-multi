@@ -2316,18 +2316,20 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
         return "Available Energy"
 
     @property
-    def native_value(self):
-        if (
-            float_to_hex(self._platform.decoded_model["B_Energy_Available"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self._platform.decoded_model["B_Energy_Available"] < 0
-        ):
-            return None
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Energy_Available
+        rated_energy = self._platform.battery_info.B_RatedEnergy
 
-        if self._platform.decoded_model["B_Energy_Available"] > (
-            self._platform.decoded_common["B_RatedEnergy"]
-            * self._platform.battery_rating_adjust
+        if (
+            not super().available
+            or value is None
+            or float_to_hex(value) == hex(SunSpecNotImpl.FLOAT32)
+            or value < 0
+            or rated_energy is None
         ):
+            return False
+
+        if value > rated_energy * self._platform.battery_rating_adjust:
             if self._log_warning:
                 _LOGGER.warning(
                     f"I{self._platform.inverter_unit_id}B{self._platform.battery_id}: "
@@ -2336,10 +2338,13 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
                 )
                 self._log_warning = False
 
-            return None
+            return False
 
-        else:
-            return self._platform.decoded_model["B_Energy_Available"]
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.battery_data.B_Energy_Available
 
 
 class SolarEdgeBatterySOH(SolarEdgeSensorBase):
