@@ -1896,24 +1896,19 @@ class SolarEdgeBatteryVoltage(DCVoltage):
     suggested_display_precision = 2
 
     @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_DC_Voltage
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and BatteryLimit.Vmin <= value <= BatteryLimit.Vmax
+            and self._platform.battery_data.B_Status != 0
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["B_DC_Voltage"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["B_DC_Voltage"] < BatteryLimit.Vmin
-                or self._platform.decoded_model["B_DC_Voltage"] > BatteryLimit.Vmax
-            ):
-                return None
-
-            elif self._platform.decoded_model["B_Status"] in [0]:
-                return None
-
-            else:
-                return self._platform.decoded_model["B_DC_Voltage"]
-
-        except TypeError:
-            return None
+        return self._platform.battery_data.B_DC_Voltage
 
 
 class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
