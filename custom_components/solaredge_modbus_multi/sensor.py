@@ -998,32 +998,31 @@ class DCCurrent(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._platform.decoded_model["I_DC_Current"] == SunSpecNotImpl.UINT16
-            or self._platform.decoded_model["I_DC_Current_SF"] == SunSpecNotImpl.INT16
-            or self._platform.decoded_model["I_DC_Current_SF"] not in SUNSPEC_SF_RANGE
-        ):
-            return False
-
-        return super().available
+        value = self._platform.inverter_data.I_DC_Current
+        sf = self._platform.inverter_data.I_DC_Current_SF
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
 
     @property
     def native_value(self):
-        try:
-            return self.scale_factor(
-                self._platform.decoded_model["I_DC_Current"],
-                self._platform.decoded_model["I_DC_Current_SF"],
-            )
-
-        except TypeError:
-            return None
+        return self.scale_factor(
+            self._platform.inverter_data.I_DC_Current,
+            self._platform.inverter_data.I_DC_Current_SF,
+        )
 
     @property
     def suggested_display_precision(self) -> int:
-        if self._platform.decoded_model["I_DC_Current_SF"] not in SUNSPEC_SF_RANGE:
+        sf = self._platform.inverter_data.I_DC_Current_SF
+        if sf not in SUNSPEC_SF_RANGE:
             return 1
 
-        return abs(self._platform.decoded_model["I_DC_Current_SF"])
+        return abs(sf)
 
 
 class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
@@ -1086,29 +1085,28 @@ class DCVoltage(SolarEdgeSensorBase):
         return "DC Voltage"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.inverter_data.I_DC_Voltage
+        sf = self._platform.inverter_data.I_DC_Voltage_SF
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.UINT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                self._platform.decoded_model["I_DC_Voltage"] == SunSpecNotImpl.UINT16
-                or self._platform.decoded_model["I_DC_Voltage_SF"]
-                == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["I_DC_Voltage_SF"]
-                not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model["I_DC_Voltage"],
-                    self._platform.decoded_model["I_DC_Voltage_SF"],
-                )
-
-        except TypeError:
-            return None
+        return self.scale_factor(
+            self._platform.inverter_data.I_DC_Voltage,
+            self._platform.inverter_data.I_DC_Voltage_SF,
+        )
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["I_DC_Voltage_SF"])
+        return abs(self._platform.inverter_data.I_DC_Voltage_SF)
 
 
 class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
@@ -1171,27 +1169,28 @@ class DCPower(SolarEdgeSensorBase):
         return "DC Power"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.inverter_data.I_DC_Power
+        sf = self._platform.inverter_data.I_DC_Power_SF
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.INT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                self._platform.decoded_model["I_DC_Power"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["I_DC_Power_SF"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["I_DC_Power_SF"] not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model["I_DC_Power"],
-                    self._platform.decoded_model["I_DC_Power_SF"],
-                )
-
-        except TypeError:
-            return None
+        return self.scale_factor(
+            self._platform.inverter_data.I_DC_Power,
+            self._platform.inverter_data.I_DC_Power_SF,
+        )
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["I_DC_Power_SF"])
+        return abs(self._platform.inverter_data.I_DC_Power_SF)
 
 
 class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
