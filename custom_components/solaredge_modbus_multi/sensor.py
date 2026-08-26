@@ -1810,7 +1810,11 @@ class MetervarhIE(SolarEdgeSensorBase):
         return abs(self._platform.meter_data.M_varh_SF)
 
 
-class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
+class SolarEdgeBatteryAvgTemp(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.TEMPERATURE
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    entity_category = EntityCategory.DIAGNOSTIC
     suggested_display_precision = 1
 
     @property
@@ -1836,7 +1840,11 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
         return self._platform.battery_data.B_Temp_Average
 
 
-class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
+class SolarEdgeBatteryMaxTemp(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.TEMPERATURE
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    entity_category = EntityCategory.DIAGNOSTIC
     suggested_display_precision = 1
 
     @property
@@ -1866,8 +1874,19 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
         return self._platform.battery_data.B_Temp_Max
 
 
-class SolarEdgeBatteryVoltage(DCVoltage):
+class SolarEdgeBatteryVoltage(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.VOLTAGE
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfElectricPotential.VOLT
     suggested_display_precision = 2
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_dc_voltage"
+
+    @property
+    def name(self) -> str:
+        return "DC Voltage"
 
     @property
     def available(self) -> bool:
@@ -1916,9 +1935,20 @@ class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
         return self._platform.battery_data.B_DC_Current
 
 
-class SolarEdgeBatteryPower(DCPower):
+class SolarEdgeBatteryPower(SolarEdgeSensorBase):
+    device_class = SensorDeviceClass.POWER
+    state_class = SensorStateClass.MEASUREMENT
+    native_unit_of_measurement = UnitOfPower.WATT
     suggested_display_precision = 2
     icon = "mdi:lightning-bolt"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_dc_power"
+
+    @property
+    def name(self) -> str:
+        return "DC Power"
 
     @property
     def available(self) -> bool:
