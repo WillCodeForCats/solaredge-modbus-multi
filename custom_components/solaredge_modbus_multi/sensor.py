@@ -1928,26 +1928,18 @@ class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["B_DC_Current"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["B_DC_Current"] < BatteryLimit.Amin
-                or self._platform.decoded_model["B_DC_Current"] > BatteryLimit.Amax
-            ):
-                return False
-
-            if self._platform.decoded_model["B_Status"] in [0]:
-                return False
-
-            return super().available
-
-        except (TypeError, KeyError):
-            return False
+        value = self._platform.battery_data.B_DC_Current
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and BatteryLimit.Amin <= value <= BatteryLimit.Amax
+            and self._platform.battery_data.B_Status != 0
+        )
 
     @property
     def native_value(self):
-        return self._platform.decoded_model["B_DC_Current"]
+        return self._platform.battery_data.B_DC_Current
 
 
 class SolarEdgeBatteryPower(DCPower):
