@@ -889,7 +889,10 @@ class SolarEdgeInverter:
             ) from e
 
         """ Multiple MPPT Extension """
-        if self.use_mmppt_units and self.decoded_mmppt is not None:
+        if (
+            self.use_mmppt_units
+            and self.hub.mmppt_common[self.inverter_unit_id] is not None
+        ):
             try:
                 _LOGGER.debug(
                     f"Reading component MmpptData(for_unit({self.inverter_unit_id}))"
@@ -1140,10 +1143,7 @@ class SolarEdgeInverter:
 
     @property
     def is_mmppt(self) -> bool:
-        if self.decoded_mmppt is None:
-            return False
-
-        return True
+        return self.hub.mmppt_common[self.inverter_unit_id] is not None
 
     @property
     def use_status_vendor4(self) -> bool:
