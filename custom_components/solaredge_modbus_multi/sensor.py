@@ -2022,68 +2022,60 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
         return "Energy Export"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Export_Energy_WH
+        return (
+            super().available
+            and value is not None
+            and value != 0xFFFFFFFFFFFFFFFF
+            and not (value == 0x0 and not self._platform.allow_battery_energy_reset)
+        )
+
+    @property
     def native_value(self):
+        value = self._platform.battery_data.B_Export_Energy_WH
+
         try:
-            if self._platform.decoded_model[
-                "B_Export_Energy_WH"
-            ] == 0xFFFFFFFFFFFFFFFF or (
-                self._platform.decoded_model["B_Export_Energy_WH"] == 0x0
-                and not self._platform.allow_battery_energy_reset
-            ):
-                return None
+            if self._last is None:
+                self._last = 0
+
+            if value >= self._last:
+                self._last = value
+                self._log_once = False
+
+                if self._platform.allow_battery_energy_reset:
+                    self._count = 0
+
+                return value
 
             else:
-                try:
-                    if self._last is None:
-                        self._last = 0
+                if not self._platform.allow_battery_energy_reset and not self._log_once:
+                    _LOGGER.warning(
+                        (
+                            "Battery Export Energy went backwards: Current value "
+                            f"{value} is less than last value of {self._last}"
+                        )
+                    )
+                    self._log_once = True
 
-                    if self._platform.decoded_model["B_Export_Energy_WH"] >= self._last:
-                        self._last = self._platform.decoded_model["B_Export_Energy_WH"]
-                        self._log_once = False
+                if self._platform.allow_battery_energy_reset:
+                    self._count += 1
+                    _LOGGER.debug(
+                        (
+                            "B_Export_Energy went backwards: "
+                            f"{value} < {self._last} cycle {self._count} of "
+                            f"{self._platform.battery_energy_reset_cycles}"
+                        )
+                    )
 
-                        if self._platform.allow_battery_energy_reset:
-                            self._count = 0
+                    if self._count > self._platform.battery_energy_reset_cycles:
+                        _LOGGER.debug(f"B_Export_Energy reset at cycle {self._count}")
+                        self._last = None
+                        self._count = 0
 
-                        return self._platform.decoded_model["B_Export_Energy_WH"]
+                return None
 
-                    else:
-                        if (
-                            not self._platform.allow_battery_energy_reset
-                            and not self._log_once
-                        ):
-                            _LOGGER.warning(
-                                (
-                                    "Battery Export Energy went backwards: Current value "
-                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "
-                                    f"is less than last value of {self._last}"
-                                )
-                            )
-                            self._log_once = True
-
-                        if self._platform.allow_battery_energy_reset:
-                            self._count += 1
-                            _LOGGER.debug(
-                                (
-                                    "B_Export_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "
-                                    f"< {self._last} cycle {self._count} of "
-                                    f"{self._platform.battery_energy_reset_cycles}"
-                                )
-                            )
-
-                            if self._count > self._platform.battery_energy_reset_cycles:
-                                _LOGGER.debug(
-                                    f"B_Export_Energy reset at cycle {self._count}"
-                                )
-                                self._last = None
-                                self._count = 0
-
-                        return None
-
-                except OverflowError:
-                    return None
-
-        except TypeError:
+        except OverflowError:
             return None
 
 
@@ -2111,68 +2103,60 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
         return "Energy Import"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Import_Energy_WH
+        return (
+            super().available
+            and value is not None
+            and value != 0xFFFFFFFFFFFFFFFF
+            and not (value == 0x0 and not self._platform.allow_battery_energy_reset)
+        )
+
+    @property
     def native_value(self):
+        value = self._platform.battery_data.B_Import_Energy_WH
+
         try:
-            if self._platform.decoded_model[
-                "B_Import_Energy_WH"
-            ] == 0xFFFFFFFFFFFFFFFF or (
-                self._platform.decoded_model["B_Import_Energy_WH"] == 0x0
-                and not self._platform.allow_battery_energy_reset
-            ):
-                return None
+            if self._last is None:
+                self._last = 0
+
+            if value >= self._last:
+                self._last = value
+                self._log_once = False
+
+                if self._platform.allow_battery_energy_reset:
+                    self._count = 0
+
+                return value
 
             else:
-                try:
-                    if self._last is None:
-                        self._last = 0
+                if not self._platform.allow_battery_energy_reset and not self._log_once:
+                    _LOGGER.warning(
+                        (
+                            "Battery Import Energy went backwards: Current value "
+                            f"{value} is less than last value of {self._last}"
+                        )
+                    )
+                    self._log_once = True
 
-                    if self._platform.decoded_model["B_Import_Energy_WH"] >= self._last:
-                        self._last = self._platform.decoded_model["B_Import_Energy_WH"]
-                        self._log_once = False
+                if self._platform.allow_battery_energy_reset:
+                    self._count += 1
+                    _LOGGER.debug(
+                        (
+                            "B_Import_Energy went backwards: "
+                            f"{value} < {self._last} cycle {self._count} of "
+                            f"{self._platform.battery_energy_reset_cycles}"
+                        )
+                    )
 
-                        if self._platform.allow_battery_energy_reset:
-                            self._count = 0
+                    if self._count > self._platform.battery_energy_reset_cycles:
+                        _LOGGER.debug(f"B_Import_Energy reset at cycle {self._count}")
+                        self._last = None
+                        self._count = 0
 
-                        return self._platform.decoded_model["B_Import_Energy_WH"]
+                return None
 
-                    else:
-                        if (
-                            not self._platform.allow_battery_energy_reset
-                            and not self._log_once
-                        ):
-                            _LOGGER.warning(
-                                (
-                                    "Battery Import Energy went backwards: Current value "
-                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "
-                                    f"is less than last value of {self._last}"
-                                )
-                            )
-                            self._log_once = True
-
-                        if self._platform.allow_battery_energy_reset:
-                            self._count += 1
-                            _LOGGER.debug(
-                                (
-                                    "B_Import_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "
-                                    f"< {self._last} cycle {self._count} of "
-                                    f"{self._platform.battery_energy_reset_cycles}"
-                                )
-                            )
-
-                            if self._count > self._platform.battery_energy_reset_cycles:
-                                _LOGGER.debug(
-                                    f"B_Import_Energy reset at cycle {self._count}"
-                                )
-                                self._last = None
-                                self._count = 0
-
-                        return None
-
-                except OverflowError:
-                    return None
-
-        except TypeError:
+        except OverflowError:
             return None
 
 
