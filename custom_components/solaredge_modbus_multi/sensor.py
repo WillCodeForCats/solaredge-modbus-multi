@@ -1848,21 +1848,18 @@ class SolarEdgeBatteryAvgTemp(HeatSinkTemperature):
         return "Average Temperature"
 
     @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Temp_Average
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and BatteryLimit.Tmin <= value <= BatteryLimit.Tmax
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["B_Temp_Average"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["B_Temp_Average"] < BatteryLimit.Tmin
-                or self._platform.decoded_model["B_Temp_Average"] > BatteryLimit.Tmax
-            ):
-                return None
-
-            else:
-                return self._platform.decoded_model["B_Temp_Average"]
-
-        except TypeError:
-            return None
+        return self._platform.battery_data.B_Temp_Average
 
 
 class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
@@ -1881,21 +1878,18 @@ class SolarEdgeBatteryMaxTemp(HeatSinkTemperature):
         return False
 
     @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Temp_Max
+        return (
+            super().available
+            and value is not None
+            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
+            and BatteryLimit.Tmin <= value <= BatteryLimit.Tmax
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                float_to_hex(self._platform.decoded_model["B_Temp_Max"])
-                == hex(SunSpecNotImpl.FLOAT32)
-                or self._platform.decoded_model["B_Temp_Max"] < BatteryLimit.Tmin
-                or self._platform.decoded_model["B_Temp_Max"] > BatteryLimit.Tmax
-            ):
-                return None
-
-            else:
-                return self._platform.decoded_model["B_Temp_Max"]
-
-        except TypeError:
-            return None
+        return self._platform.battery_data.B_Temp_Max
 
 
 class SolarEdgeBatteryVoltage(DCVoltage):
