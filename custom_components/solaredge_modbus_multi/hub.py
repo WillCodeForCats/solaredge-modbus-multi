@@ -1196,11 +1196,11 @@ class SolarEdgeMMPPTUnit:
 
     @property
     def mmppt_id(self) -> str:
-        return self.inverter.decoded_model[self.mmppt_key]["ID"]
+        return self.inverter.mmppt_data.units[self.unit].ID
 
     @property
     def mmppt_idstr(self) -> str:
-        return self.inverter.decoded_model[self.mmppt_key]["IDStr"]
+        return self.inverter.mmppt_data.units[self.unit].IDStr
 
 
 class SolarEdgeMeter:
