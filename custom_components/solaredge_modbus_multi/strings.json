@@ -14,6 +14,13 @@
           "manual_list": "Manually enter a list of inverter Device IDs"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Discovered SolarEdge Inverter",
+        "description": "A SolarEdge Modbus/TCP gateway was found at {host}:{port}. Set it up now?",
+        "data": {
+          "name": "Sensor Prefix"
+        }
+      },
       "manual": {
         "title": "Manual Modbus Configuration",
         "data": {
