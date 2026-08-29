@@ -1333,7 +1333,7 @@ class SolarEdgeWriteCount(RestoreEntity, SolarEdgeSensorBase):
 
     Tracks writes for possible flash wear. This counts only writes we
     addressed to this specific unit ID. A leader inverter may propagate
-    settings to linked followers internally, but the intergation can't know that,
+    settings to linked followers internally, but the integration can't know that,
     so it isn't reflected in any other unit's write count. See discussion
     https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/727
     """
