@@ -443,6 +443,8 @@ class SolarEdgeModbusMultiHub:
                 await meter.read_modbus_data()
             for battery in self.batteries:
                 await battery.read_modbus_data()
+            for der_battery in self.der_batteries:
+                await der_battery.read_modbus_data()
             for evse in self.evses:
                 await evse.read_modbus_data()
 
@@ -491,6 +493,8 @@ class SolarEdgeModbusMultiHub:
                     await meter.read_modbus_data()
                 for battery in self.batteries:
                     await battery.read_modbus_data()
+                for der_battery in self.der_batteries:
+                    await der_battery.read_modbus_data()
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
