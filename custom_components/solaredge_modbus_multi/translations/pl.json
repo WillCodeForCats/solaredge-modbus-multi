@@ -14,6 +14,13 @@
           "manual_list": "Ręcznie wprowadź listę identyfikatorów urządzeń inwertera"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Wykryto falownik SolarEdge",
+        "description": "Znaleziono bramę SolarEdge Modbus/TCP pod adresem {host}:{port}. Skonfigurować teraz?",
+        "data": {
+          "name": "Prefix sensora"
+        }
+      },
       "manual": {
         "title": "Ręczna konfiguracja Modbus",
         "data": {
