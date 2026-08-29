@@ -23,6 +23,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .const import (
     BYPASS_DEVICE_CHECK,
@@ -86,6 +87,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._scan_user_input = None
         self._scan_task_result = None
         self._pending_entry = None
+        self._discovered = None
 
     @staticmethod
     @callback
@@ -142,6 +144,47 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_menu(
             step_id="user",
             menu_options=[SETUP_SCAN_FAST, SETUP_SCAN_FULL, SETUP_MANUAL],
+        )
+
+    async def async_step_zeroconf(
+        self, discovery_info: ZeroconfServiceInfo
+    ) -> ConfigFlowResult:
+        """Handle a SolarEdge Modbus/TCP gateway discovered via mDNS."""
+        host = discovery_info.host.lower()
+        port = discovery_info.port
+
+        await self.async_set_unique_id(f"{host}:{port}")
+        self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
+
+        self._discovered = {CONF_HOST: host, CONF_PORT: port}
+        self.context["title_placeholders"] = {"host": host}
+
+        return await self.async_step_zeroconf_confirm()
+
+    async def async_step_zeroconf_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm setup of a discovered SolarEdge Modbus/TCP gateway."""
+        if user_input is not None:
+            self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
+
+            return await self.async_step_scan_ask_host(
+                {
+                    CONF_NAME: user_input[CONF_NAME],
+                    CONF_HOST: self._discovered[CONF_HOST],
+                    CONF_PORT: self._discovered[CONF_PORT],
+                }
+            )
+
+        return self.async_show_form(
+            step_id="zeroconf_confirm",
+            data_schema=vol.Schema(
+                {vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string}
+            ),
+            description_placeholders={
+                CONF_HOST: self._discovered[CONF_HOST],
+                CONF_PORT: str(self._discovered[CONF_PORT]),
+            },
         )
 
     async def async_step_scan_fast(
