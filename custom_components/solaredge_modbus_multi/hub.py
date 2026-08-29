@@ -666,10 +666,6 @@ class SolarEdgeModbusMultiHub:
         return self._detect_extras
 
     @property
-    def option_detect_batteries(self) -> bool:
-        return self._detect_batteries
-
-    @property
     def allow_battery_energy_reset(self) -> bool:
         return self._allow_battery_energy_reset
 
