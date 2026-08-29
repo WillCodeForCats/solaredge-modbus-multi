@@ -906,6 +906,7 @@ class SolarEdgeInverter:
         self._grid_status = None
         self._use_status_vendor4 = False
         self.write_count = 0
+        self.write_count_listeners = set()
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1972,6 +1973,9 @@ class SolarEdgeInverter:
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
 
         self.write_count += 1
+        for listener in list(self.write_count_listeners):
+            listener()
+
     @property
     def online(self) -> bool:
         """Device is online."""
