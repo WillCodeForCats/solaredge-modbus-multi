@@ -710,9 +710,8 @@ class SolarEdgeModbusMultiHub:
             this_timeout += (SolarEdgeTimeouts.Battery * 2) * 3  # max 3 per inverter
             if self.option_detect_extras:
                 this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
-            if self.option_detect_batteries:
-                # DER Storage Capacity model-chain scan, once per inverter at setup
-                this_timeout += SolarEdgeTimeouts.Read * self.number_of_inverters
+            # SunS model-chain scan runs unconditionally, once per inverter at setup
+            this_timeout += SolarEdgeTimeouts.Read * self.number_of_inverters
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
