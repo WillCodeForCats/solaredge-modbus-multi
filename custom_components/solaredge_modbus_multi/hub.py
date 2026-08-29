@@ -1457,8 +1457,10 @@ class _DERStorageBatteryData:
     """Adapts DER Storage Capacity (SunSpec model 713) component to the
     BatteryData attributes that sensor.py expects.
 
-    Only SoC/SoH/energy are in model 713; every other BatteryData
-    field (temps, voltage, current, power, event logs, status) will be None.
+    Only SoC/SoH/energy/status are in model 713; every other BatteryData
+    field (temps, voltage, current, power, event logs) will be None.
+    Sta is not currently populated by SolarEdge devices, but is mapped so
+    the status sensor is ready if that changes.
     """
 
     _MAPPED = {
@@ -1466,6 +1468,7 @@ class _DERStorageBatteryData:
         "B_SOH": "SoH",
         "B_Energy_Available": "WHAvail",
         "B_Energy_Max": "WHRtg",
+        "B_Status": "Sta",
     }
 
     def __init__(self, der: DERStorageCapacity):

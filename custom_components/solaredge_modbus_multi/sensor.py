@@ -32,6 +32,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     BATTERY_STATUS,
     BATTERY_STATUS_TEXT,
+    DER_BATTERY_STATUS,
+    DER_BATTERY_STATUS_TEXT,
     DEVICE_STATUS,
     DEVICE_STATUS_TEXT,
     DOMAIN,
@@ -245,6 +247,9 @@ async def async_setup_entry(
         entities.append(SolarEdgeBatteryDevice(der_battery, config_entry, coordinator))
         entities.append(SolarEdgeBatterySOH(der_battery, config_entry, coordinator))
         entities.append(SolarEdgeBatterySOE(der_battery, config_entry, coordinator))
+        entities.append(
+            SolarEdgeDERBatteryStatus(der_battery, config_entry, coordinator)
+        )
 
     for evse in hub.evses:
         entities.append(Version(evse, config_entry, coordinator))
@@ -1393,6 +1398,39 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
 
         if value in BATTERY_STATUS_TEXT:
             attrs["status_text"] = BATTERY_STATUS_TEXT[value]
+
+        return attrs
+
+
+class SolarEdgeDERBatteryStatus(SolarEdgeStatusSensor):
+    """Status for DER Storage Capacity (SunSpec model 713).
+
+    This doesn't appear to be currently supported by SolarEdge devices;
+    this exists in case that changes in the future.
+    """
+
+    options = list(DER_BATTERY_STATUS.values())
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
+
+    @property
+    def available(self) -> bool:
+        value = self._platform.battery_data.B_Status
+        return super().available and value is not None and value in DER_BATTERY_STATUS
+
+    @property
+    def native_value(self):
+        return str(DER_BATTERY_STATUS[self._platform.battery_data.B_Status])
+
+    @property
+    def extra_state_attributes(self):
+        value = self._platform.battery_data.B_Status
+        attrs = {"status_value": value}
+
+        if value in DER_BATTERY_STATUS_TEXT:
+            attrs["status_text"] = DER_BATTERY_STATUS_TEXT[value]
 
         return attrs
 

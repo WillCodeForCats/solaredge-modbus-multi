@@ -344,6 +344,18 @@ BATTERY_STATUS_TEXT = {
     10: "Power Saving",
 }
 
+DER_BATTERY_STATUS = {
+    0: "OK",
+    1: "WARNING",
+    2: "ERROR",
+}
+
+DER_BATTERY_STATUS_TEXT = {
+    0: "No Error",
+    1: "Warning",
+    2: "Error",
+}
+
 RRCR_STATUS = {
     3: "L1",
     2: "L2",
