@@ -84,7 +84,7 @@ async def async_setup_entry(
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "BN"))
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "CN"))
         entities.append(ACPower(inverter, config_entry, coordinator))
-        entities.append(ACFrequency(inverter, config_entry, coordinator))
+        entities.append(ACFrequencyInverter(inverter, config_entry, coordinator))
         entities.append(ACVoltAmp(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpReactive(inverter, config_entry, coordinator))
         entities.append(ACPowerFactor(inverter, config_entry, coordinator))
@@ -141,7 +141,7 @@ async def async_setup_entry(
         entities.append(VoltageSensor(meter, config_entry, coordinator, "AB"))
         entities.append(VoltageSensor(meter, config_entry, coordinator, "BC"))
         entities.append(VoltageSensor(meter, config_entry, coordinator, "CA"))
-        entities.append(ACFrequency(meter, config_entry, coordinator))
+        entities.append(ACFrequencyMeter(meter, config_entry, coordinator))
         entities.append(ACPower(meter, config_entry, coordinator))
         entities.append(ACPower(meter, config_entry, coordinator, "A"))
         entities.append(ACPower(meter, config_entry, coordinator, "B"))
@@ -678,6 +678,8 @@ class ACPowerInverted(ACPower):
 
 
 class ACFrequency(SolarEdgeSensorBase):
+    """Base class for ACFrequencyInverter/ACFrequencyMeter"""
+
     device_class = SensorDeviceClass.FREQUENCY
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfFrequency.HERTZ
@@ -691,29 +693,41 @@ class ACFrequency(SolarEdgeSensorBase):
         return "AC Frequency"
 
     @property
+    def available(self) -> bool:
+        value = self._data.AC_Frequency
+        sf = self._data.AC_Frequency_SF
+        return (
+            super().available
+            and value is not None
+            and value != self._sunspec_not_impl
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
+
+    @property
     def native_value(self):
-        try:
-            if (
-                self._platform.decoded_model["AC_Frequency"] == SunSpecNotImpl.UINT16
-                or self._platform.decoded_model["AC_Frequency_SF"]
-                == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["AC_Frequency_SF"]
-                not in SUNSPEC_SF_RANGE
-            ):
-                return None
-
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model["AC_Frequency"],
-                    self._platform.decoded_model["AC_Frequency_SF"],
-                )
-
-        except TypeError:
-            return None
+        return self.scale_factor(self._data.AC_Frequency, self._data.AC_Frequency_SF)
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["AC_Frequency_SF"])
+        return abs(self._data.AC_Frequency_SF)
+
+
+class ACFrequencyInverter(ACFrequency):
+    _sunspec_not_impl = SunSpecNotImpl.UINT16
+
+    @property
+    def _data(self):
+        return self._platform.inverter_data
+
+
+class ACFrequencyMeter(ACFrequency):
+    _sunspec_not_impl = SunSpecNotImpl.INT16
+
+    @property
+    def _data(self):
+        return self._platform.meter_data
 
 
 class ACVoltAmp(SolarEdgeSensorBase):
