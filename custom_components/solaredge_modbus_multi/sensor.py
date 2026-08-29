@@ -13,6 +13,8 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
@@ -27,6 +29,7 @@ from homeassistant.const import __version__ as HA_VERSION
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -91,6 +94,7 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeWriteCount(inverter, config_entry, coordinator))
 
         if hub.option_detect_extras and inverter.global_power_control:
             entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
@@ -1322,6 +1326,60 @@ class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
     @property
     def native_value(self):
         return self._platform.inverter.decoded_model[self._platform.mmppt_key]["Tmp"]
+
+
+class SolarEdgeWriteCount(RestoreEntity, SolarEdgeSensorBase):
+    """Number of Modbus write commands sent to this inverter's unit ID.
+
+    Tracks writes for possible flash wear. This counts only writes we
+    addressed to this specific unit ID. A leader inverter may propagate
+    settings to linked followers internally, but the integration can't know that,
+    so it isn't reflected in any other unit's write count. See discussion
+    https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/727
+    """
+
+    entity_category = EntityCategory.DIAGNOSTIC
+    state_class = SensorStateClass.TOTAL_INCREASING
+    icon = "mdi:file-document-edit-outline"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_write_count"
+
+    @property
+    def name(self) -> str:
+        return "Write Count"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.write_count
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state is not None and last_state.state not in (
+            STATE_UNAVAILABLE,
+            STATE_UNKNOWN,
+        ):
+            try:
+                self._platform.write_count = int(last_state.state)
+            except ValueError:
+                pass
+
+        self._platform.write_count_listeners.add(self._write_count_updated)
+
+    async def async_will_remove_from_hass(self) -> None:
+        self._platform.write_count_listeners.discard(self._write_count_updated)
+        await super().async_will_remove_from_hass()
+
+    @callback
+    def _write_count_updated(self) -> None:
+        self.async_write_ha_state()
 
 
 class SolarEdgeStatusSensor(SolarEdgeSensorBase):
