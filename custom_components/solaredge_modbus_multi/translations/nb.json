@@ -14,6 +14,13 @@
           "manual_list": "Skriv inn en liste over vekselretter-enhets-IDer manuelt"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Oppdaget SolarEdge-vekselretter",
+        "description": "En SolarEdge Modbus/TCP-gateway ble funnet på {host}:{port}. Sette den opp nå?",
+        "data": {
+          "name": "Sensorprefiks"
+        }
+      },
       "manual": {
         "title": "Manuell Modbus-konfigurasjon",
         "data": {
