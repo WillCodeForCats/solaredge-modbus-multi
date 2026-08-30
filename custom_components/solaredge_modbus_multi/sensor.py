@@ -87,7 +87,7 @@ async def async_setup_entry(
         entities.append(ACFrequencyInverter(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpInverter(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpReactiveInverter(inverter, config_entry, coordinator))
-        entities.append(ACPowerFactor(inverter, config_entry, coordinator))
+        entities.append(ACPowerFactorInverter(inverter, config_entry, coordinator))
         entities.append(SolarEdgeACEnergy(inverter, config_entry, coordinator))
         entities.append(DCCurrent(inverter, config_entry, coordinator))
         entities.append(DCVoltage(inverter, config_entry, coordinator))
@@ -155,10 +155,10 @@ async def async_setup_entry(
         entities.append(ACVoltAmpReactiveMeter(meter, config_entry, coordinator, "A"))
         entities.append(ACVoltAmpReactiveMeter(meter, config_entry, coordinator, "B"))
         entities.append(ACVoltAmpReactiveMeter(meter, config_entry, coordinator, "C"))
-        entities.append(ACPowerFactor(meter, config_entry, coordinator))
-        entities.append(ACPowerFactor(meter, config_entry, coordinator, "A"))
-        entities.append(ACPowerFactor(meter, config_entry, coordinator, "B"))
-        entities.append(ACPowerFactor(meter, config_entry, coordinator, "C"))
+        entities.append(ACPowerFactorMeter(meter, config_entry, coordinator))
+        entities.append(ACPowerFactorMeter(meter, config_entry, coordinator, "A"))
+        entities.append(ACPowerFactorMeter(meter, config_entry, coordinator, "B"))
+        entities.append(ACPowerFactorMeter(meter, config_entry, coordinator, "C"))
         entities.append(SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported"))
         entities.append(
             SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported_A")
@@ -875,6 +875,8 @@ class ACVoltAmpReactiveMeter(ACVoltAmpReactive):
 
 
 class ACPowerFactor(SolarEdgeSensorBase):
+    """Base class for ACPowerFactorInverter/ACPowerFactorMeter."""
+
     device_class = SensorDeviceClass.POWER_FACTOR
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
@@ -903,32 +905,45 @@ class ACPowerFactor(SolarEdgeSensorBase):
         return False
 
     @property
-    def native_value(self):
+    def _model_key(self) -> str:
         if self._phase is None:
-            model_key = "AC_PF"
-        else:
-            model_key = f"AC_PF_{self._phase.upper()}"
+            return "AC_PF"
+        return f"AC_PF_{self._phase.upper()}"
 
-        try:
-            if (
-                self._platform.decoded_model[model_key] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["AC_PF_SF"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["AC_PF_SF"] not in SUNSPEC_SF_RANGE
-            ):
-                return None
+    @property
+    def available(self) -> bool:
+        value = getattr(self._data, self._model_key)
+        sf = self._data.AC_PF_SF
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.INT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
 
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model[model_key],
-                    self._platform.decoded_model["AC_PF_SF"],
-                )
-
-        except TypeError:
-            return None
+    @property
+    def native_value(self):
+        return self.scale_factor(
+            getattr(self._data, self._model_key), self._data.AC_PF_SF
+        )
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["AC_PF_SF"])
+        return abs(self._data.AC_PF_SF)
+
+
+class ACPowerFactorInverter(ACPowerFactor):
+    @property
+    def _data(self):
+        return self._platform.inverter_data
+
+
+class ACPowerFactorMeter(ACPowerFactor):
+    @property
+    def _data(self):
+        return self._platform.meter_data
 
 
 class SolarEdgeACEnergy(SolarEdgeSensorBase):
