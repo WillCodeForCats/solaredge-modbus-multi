@@ -106,7 +106,7 @@ async def async_setup_entry(
         entities.append(ACVoltAmpInverter(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpReactiveInverter(inverter, config_entry, coordinator))
         entities.append(ACPowerFactorInverter(inverter, config_entry, coordinator))
-        entities.append(SolarEdgeACEnergy(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeACEnergyInverter(inverter, config_entry, coordinator))
         entities.append(DCCurrent(inverter, config_entry, coordinator))
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
@@ -177,25 +177,29 @@ async def async_setup_entry(
         entities.append(ACPowerFactorMeter(meter, config_entry, coordinator, "A"))
         entities.append(ACPowerFactorMeter(meter, config_entry, coordinator, "B"))
         entities.append(ACPowerFactorMeter(meter, config_entry, coordinator, "C"))
-        entities.append(SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported"))
         entities.append(
-            SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported_A")
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Exported")
         )
         entities.append(
-            SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported_B")
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Exported_A")
         )
         entities.append(
-            SolarEdgeACEnergy(meter, config_entry, coordinator, "Exported_C")
-        )
-        entities.append(SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported"))
-        entities.append(
-            SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported_A")
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Exported_B")
         )
         entities.append(
-            SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported_B")
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Exported_C")
         )
         entities.append(
-            SolarEdgeACEnergy(meter, config_entry, coordinator, "Imported_C")
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Imported")
+        )
+        entities.append(
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Imported_A")
+        )
+        entities.append(
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Imported_B")
+        )
+        entities.append(
+            SolarEdgeACEnergyMeter(meter, config_entry, coordinator, "Imported_C")
         )
         entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported"))
         entities.append(MeterVAhIE(meter, config_entry, coordinator, "Exported_A"))
@@ -977,7 +981,10 @@ class ACPowerFactorMeter(ACPowerFactor):
 
 
 class SolarEdgeACEnergy(SolarEdgeSensorBase):
-    """SolarEdge sensor for AC Energy watt-hour meters."""
+    """SolarEdge sensor for AC Energy watt-hour meters.
+
+    Base class for SolarEdgeACEnergyInverter/SolarEdgeACEnergyMeter.
+    """
 
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
@@ -1032,10 +1039,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         ]:
             return True
 
-        if self._platform.decoded_model["C_SunSpec_DID"] in [
-            203,
-            204,
-        ] and self._phase in [
+        if self._data.C_SunSpec_DID in [203, 204] and self._phase in [
             "Exported_B",
             "Exported_C",
             "Imported_B",
@@ -1054,22 +1058,22 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
+        value = getattr(self._data, self._model_key)
+        sf = self._data.AC_Energy_WH_SF
+
         try:
             if (
-                self._platform.decoded_model[self._model_key] == SunSpecAccum.NA32
-                or self._platform.decoded_model[self._model_key] > SunSpecAccum.LIMIT32
-                or self._platform.decoded_model["AC_Energy_WH_SF"]
-                not in SUNSPEC_SF_RANGE
+                value is None
+                or value == SunSpecAccum.NA32
+                or value > SunSpecAccum.LIMIT32
+                or sf not in SUNSPEC_SF_RANGE
             ):
                 return False
 
             if self._last is None:
                 self._last = 0
 
-            self._value = self.scale_factor(
-                self._platform.decoded_model[self._model_key],
-                self._platform.decoded_model["AC_Energy_WH_SF"],
-            )
+            self._value = self.scale_factor(value, sf)
 
             if self._value < self._last:
                 if not self._log_once:
@@ -1080,9 +1084,6 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
                     self._log_once = True
 
                 return False
-
-        except KeyError:
-            return False
 
         except (ZeroDivisionError, OverflowError) as e:
             _LOGGER.debug(f"total_increasing {self._model_key} exception: {e}")
@@ -1095,6 +1096,18 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
     def native_value(self):
         self._last = self._value
         return self._value
+
+
+class SolarEdgeACEnergyInverter(SolarEdgeACEnergy):
+    @property
+    def _data(self):
+        return self._platform.inverter_data
+
+
+class SolarEdgeACEnergyMeter(SolarEdgeACEnergy):
+    @property
+    def _data(self):
+        return self._platform.meter_data
 
 
 class DCCurrent(SolarEdgeSensorBase):
