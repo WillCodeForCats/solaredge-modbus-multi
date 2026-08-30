@@ -73,10 +73,16 @@ async def async_setup_entry(
         entities.append(StatusVendor(inverter, config_entry, coordinator))
         if inverter.use_status_vendor4:
             entities.append(StatusVendor4(inverter, config_entry, coordinator))
-        entities.append(ACCurrentSensor(inverter, config_entry, coordinator))
-        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "A"))
-        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "B"))
-        entities.append(ACCurrentSensor(inverter, config_entry, coordinator, "C"))
+        entities.append(ACCurrentSensorInverter(inverter, config_entry, coordinator))
+        entities.append(
+            ACCurrentSensorInverter(inverter, config_entry, coordinator, "A")
+        )
+        entities.append(
+            ACCurrentSensorInverter(inverter, config_entry, coordinator, "B")
+        )
+        entities.append(
+            ACCurrentSensorInverter(inverter, config_entry, coordinator, "C")
+        )
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "AB"))
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "BC"))
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "CA"))
@@ -129,10 +135,10 @@ async def async_setup_entry(
         entities.append(SolarEdgeMeterDevice(meter, config_entry, coordinator))
         entities.append(Version(meter, config_entry, coordinator))
         entities.append(MeterEvents(meter, config_entry, coordinator))
-        entities.append(ACCurrentSensor(meter, config_entry, coordinator))
-        entities.append(ACCurrentSensor(meter, config_entry, coordinator, "A"))
-        entities.append(ACCurrentSensor(meter, config_entry, coordinator, "B"))
-        entities.append(ACCurrentSensor(meter, config_entry, coordinator, "C"))
+        entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator))
+        entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "A"))
+        entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "B"))
+        entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "C"))
         entities.append(VoltageSensor(meter, config_entry, coordinator, "LN"))
         entities.append(VoltageSensor(meter, config_entry, coordinator, "AN"))
         entities.append(VoltageSensor(meter, config_entry, coordinator, "BN"))
@@ -393,6 +399,8 @@ class Version(SolarEdgeSensorBase):
 
 
 class ACCurrentSensor(SolarEdgeSensorBase):
+    """Base class for ACCurrentSensorInverter/ACCurrentSensorMeter."""
+
     device_class = SensorDeviceClass.CURRENT
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
@@ -401,21 +409,6 @@ class ACCurrentSensor(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-        if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
-            self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            201,
-            202,
-            203,
-            204,
-        ]:
-            self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.INT16
-        else:
-            raise RuntimeError(
-                "ACCurrentSensor C_SunSpec_DID "
-                f"{self._platform.decoded_model['C_SunSpec_DID']}"
-            )
 
     @property
     def unique_id(self) -> str:
@@ -429,11 +422,7 @@ class ACCurrentSensor(SolarEdgeSensorBase):
         if self._phase is None:
             return True
 
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            103,
-            203,
-            204,
-        ] and self._phase in [
+        elif self._data.C_SunSpec_DID in [103, 203, 204] and self._phase in [
             "A",
             "B",
             "C",
@@ -451,32 +440,49 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             return f"AC Current {self._phase.upper()}"
 
     @property
-    def native_value(self):
+    def _model_key(self) -> str:
         if self._phase is None:
-            model_key = "AC_Current"
-        else:
-            model_key = f"AC_Current_{self._phase.upper()}"
+            return "AC_Current"
+        return f"AC_Current_{self._phase.upper()}"
 
-        try:
-            if (
-                self._platform.decoded_model[model_key] == self.SUNSPEC_NOT_IMPL
-                or self._platform.decoded_model["AC_Current_SF"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["AC_Current_SF"] not in SUNSPEC_SF_RANGE
-            ):
-                return None
+    @property
+    def available(self) -> bool:
+        value = getattr(self._data, self._model_key)
+        sf = self._data.AC_Current_SF
+        return (
+            super().available
+            and value is not None
+            and value != self._sunspec_not_impl
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
 
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model[model_key],
-                    self._platform.decoded_model["AC_Current_SF"],
-                )
-
-        except TypeError:
-            return None
+    @property
+    def native_value(self):
+        return self.scale_factor(
+            getattr(self._data, self._model_key), self._data.AC_Current_SF
+        )
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["AC_Current_SF"])
+        return abs(self._data.AC_Current_SF)
+
+
+class ACCurrentSensorInverter(ACCurrentSensor):
+    _sunspec_not_impl = SunSpecNotImpl.UINT16
+
+    @property
+    def _data(self):
+        return self._platform.inverter_data
+
+
+class ACCurrentSensorMeter(ACCurrentSensor):
+    _sunspec_not_impl = SunSpecNotImpl.INT16
+
+    @property
+    def _data(self):
+        return self._platform.meter_data
 
 
 class VoltageSensor(SolarEdgeSensorBase):
