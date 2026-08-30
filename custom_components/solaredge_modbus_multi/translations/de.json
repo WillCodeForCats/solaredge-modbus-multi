@@ -14,6 +14,13 @@
           "manual_list": "Manuelle Eingabe einer Liste von Wechselrichter-Geräte-IDs"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Entdeckter SolarEdge-Wechselrichter",
+        "description": "Ein SolarEdge Modbus/TCP-Gateway wurde unter {host}:{port} gefunden. Jetzt einrichten?",
+        "data": {
+          "name": "Sensorpräfix"
+        }
+      },
       "manual": {
         "title": "Manuelle Modbus-Konfiguration",
         "data": {

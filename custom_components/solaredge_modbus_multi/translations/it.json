@@ -14,6 +14,13 @@
           "manual_list": "Inserisci manualmente un elenco di ID dispositivo inverter"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Inverter SolarEdge rilevato",
+        "description": "È stato trovato un gateway SolarEdge Modbus/TCP a {host}:{port}. Configurarlo ora?",
+        "data": {
+          "name": "Prefisso sensore"
+        }
+      },
       "manual": {
         "title": "Configurazione Modbus manuale",
         "data": {

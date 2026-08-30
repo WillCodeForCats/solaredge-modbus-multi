@@ -14,6 +14,13 @@
           "manual_list": "Entrer manuellement une liste d'ID d'appareils onduleurs"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Onduleur SolarEdge détecté",
+        "description": "Une passerelle SolarEdge Modbus/TCP a été trouvée à {host}:{port}. La configurer maintenant ?",
+        "data": {
+          "name": "Prefix du capteur"
+        }
+      },
       "manual": {
         "title": "Configuration Modbus manuelle",
         "data": {
