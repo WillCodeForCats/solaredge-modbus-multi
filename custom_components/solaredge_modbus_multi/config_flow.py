@@ -152,6 +152,17 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a SolarEdge Modbus/TCP gateway discovered via mDNS."""
         host = discovery_info.host.lower()
         port = discovery_info.port
+        hostname = discovery_info.hostname.rstrip(".").lower()
+
+        # A manually configured entry may use the mDNS hostname instead of
+        # the resolved IP. unique_id is host:port, so that entry won't match
+        # even though it's the same device.
+        for entry in self._async_current_entries(include_ignore=False):
+            if (
+                entry.data.get(CONF_HOST, "").lower() in (host, hostname)
+                and entry.data.get(CONF_PORT) == port
+            ):
+                return self.async_abort(reason="already_configured")
 
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
