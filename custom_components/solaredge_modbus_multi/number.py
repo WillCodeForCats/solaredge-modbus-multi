@@ -453,7 +453,10 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     async def async_set_native_value(self, value: int) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write(
-            self._platform.global_power_control_data, "I_Power_Limit", int(value)
+            self._platform.global_power_control_data,
+            "I_Power_Limit",
+            int(value),
+            count_write=False,
         )
         await self.async_update()
 
@@ -497,7 +500,10 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
     async def async_set_native_value(self, value: float) -> None:
         _LOGGER.debug(f"set {self.unique_id} to {value}")
         await self._platform.write(
-            self._platform.global_power_control_data, "I_CosPhi", float(value)
+            self._platform.global_power_control_data,
+            "I_CosPhi",
+            float(value),
+            count_write=False,
         )
         await self.async_update()
 

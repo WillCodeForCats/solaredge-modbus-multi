@@ -745,6 +745,8 @@ class SolarEdgeInverter:
         self.storage_control = None
         self._use_status_vendor4 = False
         self._use_mmppt_units = False
+        self.write_count = 0
+        self.write_count_listeners = set()
 
         self.inverter_common = InverterCommon(
             self.hub.connection.for_unit(self.inverter_unit_id)
@@ -1189,9 +1191,22 @@ class SolarEdgeInverter:
                     f"at StorageControl: {e}"
                 ) from e
 
-    async def write(self, component, field: str, value) -> None:
-        """Write a Component field."""
+    async def write(
+        self, component, field: str, value, count_write: bool = True
+    ) -> None:
+        """Write a Component field.
+
+        count_write=False is for dynamic setpoints that don't count against
+        flash wear the write count sensor is meant to track.
+        """
         await self.hub.component_write(self.inverter_unit_id, component, field, value)
+
+        if not count_write:
+            return
+
+        self.write_count += 1
+        for listener in list(self.write_count_listeners):
+            listener()
 
     @property
     def fw_version(self) -> str | None:
