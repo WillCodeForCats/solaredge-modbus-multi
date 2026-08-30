@@ -563,6 +563,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
                 data_type=ModbusClientMixin.DATATYPE.UINT16,
                 word_order="little",
             ),
+            count_write=False,
         )
         await self.async_update()
 
@@ -617,6 +618,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
                 data_type=ModbusClientMixin.DATATYPE.FLOAT32,
                 word_order="little",
             ),
+            count_write=False,
         )
         await self.async_update()
 
