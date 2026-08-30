@@ -83,7 +83,7 @@ async def async_setup_entry(
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "AN"))
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "BN"))
         entities.append(VoltageSensor(inverter, config_entry, coordinator, "CN"))
-        entities.append(ACPower(inverter, config_entry, coordinator))
+        entities.append(ACPowerInverter(inverter, config_entry, coordinator))
         entities.append(ACFrequencyInverter(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpInverter(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpReactiveInverter(inverter, config_entry, coordinator))
@@ -142,10 +142,10 @@ async def async_setup_entry(
         entities.append(VoltageSensor(meter, config_entry, coordinator, "BC"))
         entities.append(VoltageSensor(meter, config_entry, coordinator, "CA"))
         entities.append(ACFrequencyMeter(meter, config_entry, coordinator))
-        entities.append(ACPower(meter, config_entry, coordinator))
-        entities.append(ACPower(meter, config_entry, coordinator, "A"))
-        entities.append(ACPower(meter, config_entry, coordinator, "B"))
-        entities.append(ACPower(meter, config_entry, coordinator, "C"))
+        entities.append(ACPowerMeter(meter, config_entry, coordinator))
+        entities.append(ACPowerMeter(meter, config_entry, coordinator, "A"))
+        entities.append(ACPowerMeter(meter, config_entry, coordinator, "B"))
+        entities.append(ACPowerMeter(meter, config_entry, coordinator, "C"))
         entities.append(ACPowerInverted(meter, config_entry, coordinator))
         entities.append(ACVoltAmpMeter(meter, config_entry, coordinator))
         entities.append(ACVoltAmpMeter(meter, config_entry, coordinator, "A"))
@@ -572,6 +572,8 @@ class VoltageSensor(SolarEdgeSensorBase):
 
 
 class ACPower(SolarEdgeSensorBase):
+    """Base class for ACPowerInverter/ACPowerMeter."""
+
     device_class = SensorDeviceClass.POWER
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfPower.WATT
@@ -594,10 +596,7 @@ class ACPower(SolarEdgeSensorBase):
         if self._phase is None:
             return True
 
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            203,
-            204,
-        ] and self._phase in [
+        elif self._data.C_SunSpec_DID in [203, 204] and self._phase in [
             "A",
             "B",
             "C",
@@ -615,34 +614,47 @@ class ACPower(SolarEdgeSensorBase):
             return f"AC Power {self._phase.upper()}"
 
     @property
-    def native_value(self):
+    def _model_key(self) -> str:
         if self._phase is None:
-            model_key = "AC_Power"
-        else:
-            model_key = f"AC_Power_{self._phase.upper()}"
+            return "AC_Power"
+        return f"AC_Power_{self._phase.upper()}"
 
-        try:
-            if (
-                self._platform.decoded_model[model_key] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["AC_Power_SF"] == SunSpecNotImpl.INT16
-            ):
-                return None
+    @property
+    def available(self) -> bool:
+        value = getattr(self._data, self._model_key)
+        sf = self._data.AC_Power_SF
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.INT16
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+        )
 
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model[model_key],
-                    self._platform.decoded_model["AC_Power_SF"],
-                )
-
-        except TypeError:
-            return None
+    @property
+    def native_value(self):
+        return self.scale_factor(
+            getattr(self._data, self._model_key), self._data.AC_Power_SF
+        )
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["AC_Power_SF"])
+        return abs(self._data.AC_Power_SF)
 
 
-class ACPowerInverted(ACPower):
+class ACPowerInverter(ACPower):
+    @property
+    def _data(self):
+        return self._platform.inverter_data
+
+
+class ACPowerMeter(ACPower):
+    @property
+    def _data(self):
+        return self._platform.meter_data
+
+
+class ACPowerInverted(ACPowerMeter):
     """Inverted AC power sensor for Home Assistant energy dashboard compatibility.
 
     This class exists solely due to a design decision by the Home Assistant team
