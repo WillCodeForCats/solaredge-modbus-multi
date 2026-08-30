@@ -1968,9 +1968,16 @@ class SolarEdgeInverter:
                     f"No response from inverter ID {self.inverter_unit_id}"
                 )
 
-    async def write_registers(self, address, payload) -> None:
-        """Write inverter register."""
+    async def write_registers(self, address, payload, count_write: bool = True) -> None:
+        """Write inverter register.
+
+        count_write=False is for dynamic setpoints that don't count against
+        flash wear the write count sensor is meant to track.
+        """
         await self.hub.write_registers(self.inverter_unit_id, address, payload)
+
+        if not count_write:
+            return
 
         self.write_count += 1
         for listener in list(self.write_count_listeners):
