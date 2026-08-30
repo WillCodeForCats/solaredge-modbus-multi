@@ -83,12 +83,24 @@ async def async_setup_entry(
         entities.append(
             ACCurrentSensorInverter(inverter, config_entry, coordinator, "C")
         )
-        entities.append(VoltageSensor(inverter, config_entry, coordinator, "AB"))
-        entities.append(VoltageSensor(inverter, config_entry, coordinator, "BC"))
-        entities.append(VoltageSensor(inverter, config_entry, coordinator, "CA"))
-        entities.append(VoltageSensor(inverter, config_entry, coordinator, "AN"))
-        entities.append(VoltageSensor(inverter, config_entry, coordinator, "BN"))
-        entities.append(VoltageSensor(inverter, config_entry, coordinator, "CN"))
+        entities.append(
+            VoltageSensorInverter(inverter, config_entry, coordinator, "AB")
+        )
+        entities.append(
+            VoltageSensorInverter(inverter, config_entry, coordinator, "BC")
+        )
+        entities.append(
+            VoltageSensorInverter(inverter, config_entry, coordinator, "CA")
+        )
+        entities.append(
+            VoltageSensorInverter(inverter, config_entry, coordinator, "AN")
+        )
+        entities.append(
+            VoltageSensorInverter(inverter, config_entry, coordinator, "BN")
+        )
+        entities.append(
+            VoltageSensorInverter(inverter, config_entry, coordinator, "CN")
+        )
         entities.append(ACPowerInverter(inverter, config_entry, coordinator))
         entities.append(ACFrequencyInverter(inverter, config_entry, coordinator))
         entities.append(ACVoltAmpInverter(inverter, config_entry, coordinator))
@@ -139,14 +151,14 @@ async def async_setup_entry(
         entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "A"))
         entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "B"))
         entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "C"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "LN"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "AN"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "BN"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "CN"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "LL"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "AB"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "BC"))
-        entities.append(VoltageSensor(meter, config_entry, coordinator, "CA"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "LN"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "AN"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "BN"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "CN"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "LL"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "AB"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "BC"))
+        entities.append(VoltageSensorMeter(meter, config_entry, coordinator, "CA"))
         entities.append(ACFrequencyMeter(meter, config_entry, coordinator))
         entities.append(ACPowerMeter(meter, config_entry, coordinator))
         entities.append(ACPowerMeter(meter, config_entry, coordinator, "A"))
@@ -486,6 +498,8 @@ class ACCurrentSensorMeter(ACCurrentSensor):
 
 
 class VoltageSensor(SolarEdgeSensorBase):
+    """Base class for VoltageSensorInverter/VoltageSensorMeter."""
+
     device_class = SensorDeviceClass.VOLTAGE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfElectricPotential.VOLT
@@ -494,21 +508,6 @@ class VoltageSensor(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-        if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
-            self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            201,
-            202,
-            203,
-            204,
-        ]:
-            self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.INT16
-        else:
-            raise RuntimeError(
-                "ACCurrentSensor C_SunSpec_DID "
-                f"{self._platform.decoded_model['C_SunSpec_DID']}"
-            )
 
     @property
     def unique_id(self) -> str:
@@ -525,11 +524,7 @@ class VoltageSensor(SolarEdgeSensorBase):
         elif self._phase in ["LN", "LL", "AB"]:
             return True
 
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [
-            103,
-            203,
-            204,
-        ] and self._phase in [
+        elif self._data.C_SunSpec_DID in [103, 203, 204] and self._phase in [
             "BC",
             "CA",
             "AN",
@@ -549,32 +544,49 @@ class VoltageSensor(SolarEdgeSensorBase):
             return f"AC Voltage {self._phase.upper()}"
 
     @property
-    def native_value(self):
+    def _model_key(self) -> str:
         if self._phase is None:
-            model_key = "AC_Voltage"
-        else:
-            model_key = f"AC_Voltage_{self._phase.upper()}"
+            return "AC_Voltage"
+        return f"AC_Voltage_{self._phase.upper()}"
 
-        try:
-            if (
-                self._platform.decoded_model[model_key] == self.SUNSPEC_NOT_IMPL
-                or self._platform.decoded_model["AC_Voltage_SF"] == SunSpecNotImpl.INT16
-                or self._platform.decoded_model["AC_Voltage_SF"] not in SUNSPEC_SF_RANGE
-            ):
-                return None
+    @property
+    def available(self) -> bool:
+        value = getattr(self._data, self._model_key)
+        sf = self._data.AC_Voltage_SF
+        return (
+            super().available
+            and value is not None
+            and value != self._sunspec_not_impl
+            and sf is not None
+            and sf != SunSpecNotImpl.INT16
+            and sf in SUNSPEC_SF_RANGE
+        )
 
-            else:
-                return self.scale_factor(
-                    self._platform.decoded_model[model_key],
-                    self._platform.decoded_model["AC_Voltage_SF"],
-                )
-
-        except TypeError:
-            return None
+    @property
+    def native_value(self):
+        return self.scale_factor(
+            getattr(self._data, self._model_key), self._data.AC_Voltage_SF
+        )
 
     @property
     def suggested_display_precision(self):
-        return abs(self._platform.decoded_model["AC_Voltage_SF"])
+        return abs(self._data.AC_Voltage_SF)
+
+
+class VoltageSensorInverter(VoltageSensor):
+    _sunspec_not_impl = SunSpecNotImpl.UINT16
+
+    @property
+    def _data(self):
+        return self._platform.inverter_data
+
+
+class VoltageSensorMeter(VoltageSensor):
+    _sunspec_not_impl = SunSpecNotImpl.INT16
+
+    @property
+    def _data(self):
+        return self._platform.meter_data
 
 
 class ACPower(SolarEdgeSensorBase):
