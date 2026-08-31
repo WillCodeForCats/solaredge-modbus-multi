@@ -67,7 +67,6 @@ async def async_get_config_entry_diagnostics(
                 "site_limit_control": inverter.site_limit_control,
                 "common": inverter.decoded_common,
                 "model": format_values(inverter.decoded_model),
-                "is_mmppt": inverter.is_mmppt,
                 "mmppt": format_values(inverter.decoded_mmppt),
                 "storage_control": format_values(inverter.decoded_storage_control),
                 "use_status_vendor4": inverter.use_status_vendor4,

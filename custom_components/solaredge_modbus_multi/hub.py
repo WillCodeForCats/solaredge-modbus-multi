@@ -881,7 +881,6 @@ class SolarEdgeInverter:
                     or self.mmppt_common.mmppt_Units not in [2, 3]
                 ):
                     _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
-                    self.decoded_mmppt = None
 
                 else:
                     _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
@@ -904,13 +903,11 @@ class SolarEdgeInverter:
 
             except ModbusExceptionError:
                 _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
-                self.decoded_mmppt = None
         else:
             _LOGGER.debug(
                 f"I{self.inverter_unit_id} is NOT Multiple MPPT "
                 "(firmware does not support MMPPT units)"
             )
-            self.decoded_mmppt = None
 
         self.hub.mmppt_common[self.inverter_unit_id] = (
             self.mmppt_common if is_multi_mppt else None
