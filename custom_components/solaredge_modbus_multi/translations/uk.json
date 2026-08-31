@@ -14,6 +14,13 @@
           "manual_list": "Вручну ввести список ID пристроїв інверторів"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Виявлено інвертор SolarEdge",
+        "description": "Шлюз SolarEdge Modbus/TCP знайдено за адресою {host}:{port}. Налаштувати його зараз?",
+        "data": {
+          "name": "Префікс датчика"
+        }
+      },
       "manual": {
         "title": "Ручне налаштування Modbus",
         "data": {

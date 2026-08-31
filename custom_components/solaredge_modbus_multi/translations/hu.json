@@ -14,6 +14,13 @@
           "manual_list": "Adja meg manuálisan az inverterek eszközazonosító-listáját"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Felfedezett SolarEdge Inverter",
+        "description": "SolarEdge Modbus/TCP átjáró található itt: {host}:{port}. Beállítja most?",
+        "data": {
+          "name": "Érzékelő Előtag"
+        }
+      },
       "manual": {
         "title": "Kézi Modbus Konfiguráció",
         "data": {

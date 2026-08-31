@@ -14,6 +14,13 @@
           "manual_list": "Introduceți manual o listă de ID-uri de dispozitiv ale invertoarelor"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Invertor SolarEdge Descoperit",
+        "description": "A fost găsit un gateway SolarEdge Modbus/TCP la {host}:{port}. Configurați-l acum?",
+        "data": {
+          "name": "Prefix Senzor"
+        }
+      },
       "manual": {
         "title": "Configurare Manuală Modbus",
         "data": {

@@ -14,6 +14,13 @@
           "manual_list": "Indtast manuelt en liste over inverterens enheds-ID'er"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Opdaget SolarEdge-inverter",
+        "description": "Der blev fundet en SolarEdge Modbus/TCP-gateway på {host}:{port}. Vil du konfigurere den nu?",
+        "data": {
+          "name": "Sensorpræfiks"
+        }
+      },
       "manual": {
         "title": "Manuel Modbus-konfiguration",
         "data": {

@@ -14,6 +14,13 @@
           "manual_list": "Ručně zadat seznam ID zařízení střídačů"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Objevený střídač SolarEdge",
+        "description": "Na adrese {host}:{port} byla nalezena brána SolarEdge Modbus/TCP. Nastavit ji nyní?",
+        "data": {
+          "name": "Předpona senzoru"
+        }
+      },
       "manual": {
         "title": "Ruční konfigurace Modbus",
         "data": {

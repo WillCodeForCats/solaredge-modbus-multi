@@ -14,6 +14,13 @@
           "manual_list": "Anna vaihtosuuntaajien laitetunnusluettelo manuaalisesti"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Havaittu SolarEdge-vaihtosuuntaaja",
+        "description": "SolarEdge Modbus/TCP-yhdyskäytävä löydettiin osoitteesta {host}:{port}. Otetaanko se käyttöön nyt?",
+        "data": {
+          "name": "Anturin etuliite"
+        }
+      },
       "manual": {
         "title": "Manuaalinen Modbus-asetus",
         "data": {

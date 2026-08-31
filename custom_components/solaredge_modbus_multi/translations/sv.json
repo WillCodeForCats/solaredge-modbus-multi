@@ -14,6 +14,13 @@
           "manual_list": "Ange manuellt en lista över växelriktarnas enhets-ID"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Upptäckt SolarEdge-växelriktare",
+        "description": "En SolarEdge Modbus/TCP-gateway hittades på {host}:{port}. Konfigurera den nu?",
+        "data": {
+          "name": "Sensorprefix"
+        }
+      },
       "manual": {
         "title": "Manuell Modbus-konfiguration",
         "data": {

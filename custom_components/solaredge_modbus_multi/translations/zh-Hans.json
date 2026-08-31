@@ -14,6 +14,13 @@
           "manual_list": "手动输入逆变器设备 ID 列表"
         }
       },
+      "zeroconf_confirm": {
+        "title": "发现 SolarEdge 逆变器",
+        "description": "在 {host}:{port} 处发现了 SolarEdge Modbus/TCP 网关。是否立即设置？",
+        "data": {
+          "name": "传感器前缀"
+        }
+      },
       "manual": {
         "title": "手动 Modbus 配置",
         "data": {
