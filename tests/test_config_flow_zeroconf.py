@@ -10,7 +10,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi.const import ConfName, DOMAIN
+from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
 
 DISCOVERY_INFO = ZeroconfServiceInfo(
     ip_address=ip_address("192.168.1.50"),
