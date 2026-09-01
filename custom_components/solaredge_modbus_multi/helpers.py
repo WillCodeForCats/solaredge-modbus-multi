@@ -5,7 +5,7 @@ import struct
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN_REGEX
+from .const import DOMAIN_REGEX, MDNS_SERIAL_REGEX
 
 
 def float_to_hex(f: float) -> str:
@@ -46,6 +46,17 @@ def update_accum(self, accum_value: int) -> None:
         return accum_value
     else:
         raise ValueError("update_accum must be an increasing value.")
+
+
+def parse_mdns_serial(hostname: str) -> str | None:
+    """Extract the serial-like suffix from a SolarEdge mDNS hostname.
+
+    Not documented by SolarEdge.
+
+    Returns the lowercased suffix, or None if hostname doesn't match.
+    """
+    match = MDNS_SERIAL_REGEX.match(hostname.rstrip(".").lower())
+    return match.group(1) if match else None
 
 
 def host_valid(host):
