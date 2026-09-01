@@ -985,8 +985,10 @@ class ACPowerFactorMeter(ACPowerFactor):
         return self._platform.meter_data
 
 
-class SolarEdgeACEnergy(SolarEdgeSensorBase):
-    """SolarEdge sensor for AC Energy watt-hour meters.
+class SolarEdgeACEnergy(SolarEdgeSensorBase, RestoreSensor):
+    """A long-term statistic: holds its last value, because devices legitimately
+    go offline. Follows the TOTAL_INCREASING pattern from
+    https://home-assistant-libs.github.io/modbus-connection/home-assistant/integration/#the-coordinator
 
     Base class for SolarEdgeACEnergyInverter/SolarEdgeACEnergyMeter.
     """
@@ -1001,8 +1003,6 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-        self._last = None
-        self._value = None
         self._log_once = False
 
         if self._phase is None:
@@ -1063,44 +1063,51 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
-        value = getattr(self._data, self._model_key)
+        return True
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (last_data := await self.async_get_last_sensor_data()) is not None:
+            self._attr_native_value = last_data.native_value
+        self._process_data()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._process_data()
+        super()._handle_coordinator_update()
+
+    def _process_data(self) -> None:
+        raw_value = getattr(self._data, self._model_key)
         sf = self._data.AC_Energy_WH_SF
 
+        if (
+            raw_value is None
+            or raw_value == SunSpecAccum.NA32
+            or raw_value > SunSpecAccum.LIMIT32
+            or sf not in SUNSPEC_SF_RANGE
+        ):
+            return
+
         try:
-            if (
-                value is None
-                or value == SunSpecAccum.NA32
-                or value > SunSpecAccum.LIMIT32
-                or sf not in SUNSPEC_SF_RANGE
-            ):
-                return False
-
-            if self._last is None:
-                self._last = 0
-
-            self._value = self.scale_factor(value, sf)
-
-            if self._value < self._last:
-                if not self._log_once:
-                    _LOGGER.warning(
-                        "Inverter accumulator went backwards; this is a SolarEdge bug: "
-                        f"{self._model_key} {self._value} < {self._last}"
-                    )
-                    self._log_once = True
-
-                return False
-
+            value = self.scale_factor(raw_value, sf)
         except (ZeroDivisionError, OverflowError) as e:
             _LOGGER.debug(f"total_increasing {self._model_key} exception: {e}")
-            return False
+            return
+
+        last = self._attr_native_value
+
+        if last is not None and last * 0.99 <= value < last:
+            if not self._log_once:
+                _LOGGER.warning(
+                    "Inverter accumulator went backwards; this is a SolarEdge bug: "
+                    f"{self._model_key} {value} < {last}"
+                )
+                self._log_once = True
+
+            return  # ignore firmware issue causing minor decrease
 
         self._log_once = False
-        return super().available
-
-    @property
-    def native_value(self):
-        self._last = self._value
-        return self._value
+        self._attr_native_value = value
 
 
 class SolarEdgeACEnergyInverter(SolarEdgeACEnergy):
