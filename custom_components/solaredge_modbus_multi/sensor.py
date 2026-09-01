@@ -6,6 +6,7 @@ import re
 
 from awesomeversion import AwesomeVersion
 from homeassistant.components.sensor import (
+    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
@@ -1871,7 +1872,12 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
         }
 
 
-class MeterVAhIE(SolarEdgeSensorBase):
+class MeterVAhIE(SolarEdgeSensorBase, RestoreSensor):
+    """A long-term statistic: holds its last value, because devices legitimately
+    go offline. Follows the TOTAL_INCREASING pattern from
+    https://home-assistant-libs.github.io/modbus-connection/home-assistant/integration/#the-coordinator
+    """
+
     device_class = SensorDeviceClass.ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = ENERGY_VOLT_AMPERE_HOUR
@@ -1880,7 +1886,6 @@ class MeterVAhIE(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-        self.last = None
 
     @property
     def icon(self) -> str:
@@ -1916,42 +1921,55 @@ class MeterVAhIE(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
+        return True
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (last_data := await self.async_get_last_sensor_data()) is not None:
+            self._attr_native_value = last_data.native_value
+        self._process_data()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._process_data()
+        super()._handle_coordinator_update()
+
+    def _process_data(self) -> None:
         if self._phase is None:
             raise NotImplementedError
 
-        value = getattr(self._platform.meter_data, f"M_VAh_{self._phase}")
+        raw_value = getattr(self._platform.meter_data, f"M_VAh_{self._phase}")
         sf = self._platform.meter_data.M_VAh_SF
-        return (
-            super().available
-            and value is not None
-            and value != SunSpecAccum.NA32
-            and value <= SunSpecAccum.LIMIT32
-            and sf is not None
-            and sf != SunSpecNotImpl.INT16
-            and sf in SUNSPEC_SF_RANGE
-        )
 
-    @property
-    def native_value(self):
-        if self._phase is None:
-            raise NotImplementedError
+        if (
+            raw_value is None
+            or raw_value == SunSpecAccum.NA32
+            or raw_value > SunSpecAccum.LIMIT32
+            or sf is None
+            or sf == SunSpecNotImpl.INT16
+            or sf not in SUNSPEC_SF_RANGE
+        ):
+            return
 
-        value = self.scale_factor(
-            getattr(self._platform.meter_data, f"M_VAh_{self._phase}"),
-            self._platform.meter_data.M_VAh_SF,
-        )
+        value = self.scale_factor(raw_value, sf)
+        last = self._attr_native_value
 
-        try:
-            return update_accum(self, value, value)
-        except Exception:
-            return None
+        if last is not None and last * 0.99 <= value < last:
+            return  # ignore firmware issue causing minor decrease
+
+        self._attr_native_value = value
 
     @property
     def suggested_display_precision(self):
         return abs(self._platform.meter_data.M_VAh_SF)
 
 
-class MetervarhIE(SolarEdgeSensorBase):
+class MetervarhIE(SolarEdgeSensorBase, RestoreSensor):
+    """A long-term statistic: holds its last value, because devices legitimately
+    go offline. Follows the TOTAL_INCREASING pattern from
+    https://home-assistant-libs.github.io/modbus-connection/home-assistant/integration/#the-coordinator
+    """
+
     device_class = SensorDeviceClass.REACTIVE_ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
     native_unit_of_measurement = UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR
@@ -1960,7 +1978,6 @@ class MetervarhIE(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-        self.last = None
 
     @property
     def icon(self) -> str:
@@ -1996,35 +2013,43 @@ class MetervarhIE(SolarEdgeSensorBase):
 
     @property
     def available(self) -> bool:
+        return True
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (last_data := await self.async_get_last_sensor_data()) is not None:
+            self._attr_native_value = last_data.native_value
+        self._process_data()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._process_data()
+        super()._handle_coordinator_update()
+
+    def _process_data(self) -> None:
         if self._phase is None:
             raise NotImplementedError
 
-        value = getattr(self._platform.meter_data, f"M_varh_{self._phase}")
+        raw_value = getattr(self._platform.meter_data, f"M_varh_{self._phase}")
         sf = self._platform.meter_data.M_varh_SF
-        return (
-            super().available
-            and value is not None
-            and value != SunSpecAccum.NA32
-            and value <= SunSpecAccum.LIMIT32
-            and sf is not None
-            and sf != SunSpecNotImpl.INT16
-            and sf in SUNSPEC_SF_RANGE
-        )
 
-    @property
-    def native_value(self):
-        if self._phase is None:
-            raise NotImplementedError
+        if (
+            raw_value is None
+            or raw_value == SunSpecAccum.NA32
+            or raw_value > SunSpecAccum.LIMIT32
+            or sf is None
+            or sf == SunSpecNotImpl.INT16
+            or sf not in SUNSPEC_SF_RANGE
+        ):
+            return
 
-        value = self.scale_factor(
-            getattr(self._platform.meter_data, f"M_varh_{self._phase}"),
-            self._platform.meter_data.M_varh_SF,
-        )
+        value = self.scale_factor(raw_value, sf)
+        last = self._attr_native_value
 
-        try:
-            return update_accum(self, value, value)
-        except Exception:
-            return None
+        if last is not None and last * 0.99 <= value < last:
+            return  # ignore firmware issue causing minor decrease
+
+        self._attr_native_value = value
 
     @property
     def suggested_display_precision(self):
