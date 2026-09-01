@@ -10,7 +10,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
+from custom_components.solaredge_modbus_multi.const import DOMAIN
 
 DISCOVERY_INFO = ZeroconfServiceInfo(
     ip_address=ip_address("192.168.1.50"),
@@ -19,19 +19,6 @@ DISCOVERY_INFO = ZeroconfServiceInfo(
     hostname="solaredge-gateway.local.",
     type="_solaredge-modbus._tcp.local.",
     name="SolarEdge Gateway._solaredge-modbus._tcp.local.",
-    properties={},
-)
-
-# SolarEdge inverters advertise a hostname like "SolarEdgeInv-<serial>.local"
-# that (probably) stays the same across a device's different interfaces,
-# unlike the resolved IP.
-DISCOVERY_INFO_WITH_SERIAL = ZeroconfServiceInfo(
-    ip_address=ip_address("192.168.1.60"),
-    ip_addresses=[ip_address("192.168.1.60")],
-    port=1502,
-    hostname="SolarEdgeInv-730663BC.local.",
-    type="_solaredge-modbus._tcp.local.",
-    name="SolarEdgeInv-730663BC._solaredge-modbus._tcp.local.",
     properties={},
 )
 
@@ -190,55 +177,6 @@ async def test_zeroconf_discovery_does_not_abort_for_different_port(hass):
         DOMAIN,
         context={"source": config_entries.SOURCE_ZEROCONF},
         data=DISCOVERY_INFO,
-    )
-
-    assert result["type"] == "form"
-    assert result["step_id"] == "zeroconf_confirm"
-
-
-@pytest.mark.usefixtures("enable_custom_integrations")
-async def test_zeroconf_discovery_aborts_for_matching_mdns_serial_on_new_interface(
-    hass,
-):
-    """Same inverter discovered via a second interface (different IP,
-    different mDNS record)"""
-    MockConfigEntry(
-        domain=DOMAIN,
-        unique_id="192.168.1.50:502",
-        data={
-            CONF_HOST: "192.168.1.50",
-            CONF_PORT: 502,
-            ConfName.MDNS_SERIAL: "730663bc",
-        },
-    ).add_to_hass(hass)
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": config_entries.SOURCE_ZEROCONF},
-        data=DISCOVERY_INFO_WITH_SERIAL,
-    )
-
-    assert result["type"] == "abort"
-    assert result["reason"] == "already_configured"
-
-
-@pytest.mark.usefixtures("enable_custom_integrations")
-async def test_zeroconf_discovery_does_not_abort_for_different_mdns_serial(hass):
-    """A different inverter's serial must not be treated as a match."""
-    MockConfigEntry(
-        domain=DOMAIN,
-        unique_id="192.168.1.50:1502",
-        data={
-            CONF_HOST: "192.168.1.50",
-            CONF_PORT: 1502,
-            ConfName.MDNS_SERIAL: "deadbeef",
-        },
-    ).add_to_hass(hass)
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": config_entries.SOURCE_ZEROCONF},
-        data=DISCOVERY_INFO_WITH_SERIAL,
     )
 
     assert result["type"] == "form"

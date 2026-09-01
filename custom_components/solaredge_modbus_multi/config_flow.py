@@ -39,7 +39,7 @@ from .const import (
     ConfDefaultStr,
     ConfName,
 )
-from .helpers import device_list_from_string, host_valid, parse_mdns_serial
+from .helpers import device_list_from_string, host_valid
 from .scanner import SolarEdgeDeviceScanner
 
 
@@ -155,7 +155,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         port = discovery_info.port
         hostname = discovery_info.hostname.rstrip(".").lower()
         discovered_ips = {ip.lower() for ip in discovery_info.addresses}
-        mdns_serial = parse_mdns_serial(hostname)
 
         # A manually configured entry may use the mDNS hostname, a DNS
         # name that resolves to the same device, or a different one of
@@ -163,13 +162,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # so none of those would match this discovery's unique_id even
         # though it's the same device.
         for entry in self._async_current_entries(include_ignore=False):
-            # A device with both an ethernet and a wifi interface
-            # advertises over both interfaces which would get a different
-            # unique_id for each. Try the serial parsed from the
-            # hostname as an additional check.
-            if mdns_serial and entry.data.get(ConfName.MDNS_SERIAL) == mdns_serial:
-                return self.async_abort(reason="already_configured")
-
             if entry.data.get(CONF_PORT) != port:
                 continue
 
@@ -197,11 +189,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
 
-        self._discovered = {
-            CONF_HOST: host,
-            CONF_PORT: port,
-            ConfName.MDNS_SERIAL: mdns_serial,
-        }
+        self._discovered = {CONF_HOST: host, CONF_PORT: port}
         self.context["title_placeholders"] = {"host": host}
 
         return await self.async_step_zeroconf_confirm()
@@ -218,7 +206,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_NAME: user_input[CONF_NAME],
                     CONF_HOST: self._discovered[CONF_HOST],
                     CONF_PORT: self._discovered[CONF_PORT],
-                    ConfName.MDNS_SERIAL: self._discovered[ConfName.MDNS_SERIAL],
                 }
             )
 
@@ -537,7 +524,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         user_input[ConfName.DEVICE_LIST]
                     )
                     this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
-                    reconfig_data = {**config_entry.data, **user_input}
 
                     if this_unique_id != config_entry.unique_id:
                         self._async_abort_entries_match(
@@ -547,14 +533,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             }
                         )
 
-                        # host/port changed, so any mDNS-derived serial we
-                        # had on file described the old device, not this one
-                        reconfig_data.pop(ConfName.MDNS_SERIAL, None)
-
                     return self.async_update_reload_and_abort(
                         config_entry,
                         unique_id=this_unique_id,
-                        data=reconfig_data,
+                        data={**config_entry.data, **user_input},
                         reason="reconfigure_successful",
                     )
         else:

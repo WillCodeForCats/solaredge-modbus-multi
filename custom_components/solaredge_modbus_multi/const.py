@@ -35,15 +35,6 @@ DOMAIN_REGEX = re.compile(
     re.IGNORECASE,
 )
 
-# SolarEdge inverters advertise an mDNS hostname like
-# "SolarEdgeInv-730663BC.local", where the suffix appears to be a serial number.
-# Used as a best-effort duplicate signal in the zeroconf flow, alongside
-# host/IP matching.
-MDNS_SERIAL_REGEX = re.compile(
-    r"^solaredgeinv-([0-9a-f]{4,16})(?:\..*)?$",
-    re.IGNORECASE,
-)
-
 DETECT_EVSE_REGEX = re.compile(
     r"^(?:SE-EV-SA)",  # Add additional prefixes with |OTHER-PREFIX
     re.IGNORECASE,
@@ -164,7 +155,6 @@ class ConfName(StrEnum):
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
-    MDNS_SERIAL = "mdns_serial"
 
     # Old config entry names for migration
     NUMBER_INVERTERS = "number_of_inverters"
