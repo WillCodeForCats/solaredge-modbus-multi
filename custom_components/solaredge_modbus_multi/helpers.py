@@ -19,22 +19,6 @@ def float_to_hex(f: float) -> str:
         raise ValueError(f"Error converting {f} to hex: {e}")
 
 
-def update_accum(self, accum_value: int) -> None:
-    if self.last is None:
-        self.last = 0
-
-    if not accum_value > 0:
-        raise ValueError("update_accum must be non-zero value.")
-
-    if accum_value >= self.last:
-        # doesn't check accumulator rollover, but it would probably take
-        # several decades to roll over to 0 so we'll worry about it later
-        self.last = accum_value
-        return accum_value
-    else:
-        raise ValueError("update_accum must be an increasing value.")
-
-
 def host_valid(host):
     """Return True if hostname or IP address is valid."""
     try:

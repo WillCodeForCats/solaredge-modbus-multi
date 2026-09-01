@@ -54,7 +54,7 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, update_accum
+from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 
