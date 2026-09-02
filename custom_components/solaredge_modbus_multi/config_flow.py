@@ -178,7 +178,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 addr_info = await asyncio.wait_for(
-                    self.hass.loop.getaddrinfo(existing_host, None), timeout=2.0
+                    self.hass.loop.getaddrinfo(existing_host, None), timeout=5.0
                 )
             except (OSError, asyncio.TimeoutError):
                 continue
