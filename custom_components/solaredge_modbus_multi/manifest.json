@@ -14,6 +14,6 @@
     "tmodbus>=0.6.1",
     "awesomeversion>=25.5.0"
   ],
-  "version": "4.0.0-pre.15",
+  "version": "4.0.0-pre.16",
   "zeroconf": ["_solaredge-modbus._tcp.local."]
 }
