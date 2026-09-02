@@ -83,6 +83,7 @@
         "title": "Opzioni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequenza di polling (secondi)",
+          "close_after_polling": "Chiudi la connessione dopo il polling",
           "detect_meters": "Misuratori di rilevamento automatico",
           "detect_batteries": "Rilevamento automatico delle batterie",
           "detect_extras": "Rileva automaticamente entità aggiuntive",
@@ -158,8 +159,8 @@
       "description": "La sezione `modbus` sotto `solaredge_modbus_multi` in `configuration.yaml` non è più supportata e viene ignorata. Rimuovila dalla tua configurazione YAML."
     },
     "deprecated_keep_modbus_open": {
-      "title": "Opzione \"Mantieni aperta la connessione Modbus\" rimossa",
-      "description": "L'opzione \"Mantieni aperta la connessione Modbus\" non è più supportata ed è stata rimossa dalla configurazione di questa integrazione. Non è richiesta alcuna azione."
+      "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",
+      "description": "L'opzione \"Mantieni aperta la connessione Modbus\" è stata sostituita da \"Chiudi la connessione dopo il polling\" nella configurazione di questa integrazione. Controlla la nuova opzione se hai bisogno dello stesso comportamento."
     }
   }
 }

@@ -83,6 +83,7 @@
         "title": "Opcje SolarEdge Modbus",
         "data": {
           "scan_interval": "Częstotliwość odczytu (sekundy)",
+          "close_after_polling": "Zamknij połączenie po odczycie",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
@@ -158,8 +159,8 @@
       "description": "Sekcja `modbus` w `solaredge_modbus_multi` w pliku `configuration.yaml` nie jest już obsługiwana i jest ignorowana. Usuń ją z konfiguracji YAML."
     },
     "deprecated_keep_modbus_open": {
-      "title": "Usunięto opcję \"Pozostaw połączenie Modbus otwarte\"",
-      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" nie jest już obsługiwana i została usunięta z konfiguracji tej integracji. Nie jest wymagana żadna czynność."
+      "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",
+      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" została zastąpiona opcją \"Zamknij połączenie po odczycie\" w konfiguracji tej integracji. Sprawdź nową opcję, jeśli potrzebujesz tego samego zachowania."
     }
   }
 }

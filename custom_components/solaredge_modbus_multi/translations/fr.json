@@ -83,6 +83,7 @@
         "title": "Options SolarEdge Modbus",
         "data": {
           "scan_interval": "Fréquence de rafraichissement (en secondes)",
+          "close_after_polling": "Fermer la connexion après le rafraichissement",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
@@ -158,8 +159,8 @@
       "description": "La section `modbus` sous `solaredge_modbus_multi` dans `configuration.yaml` n'est plus prise en charge et est ignorée. Veuillez la supprimer de votre configuration YAML."
     },
     "deprecated_keep_modbus_open": {
-      "title": "Option « Garder la connexion Modbus ouverte » supprimée",
-      "description": "L'option « Garder la connexion Modbus ouverte » n'est plus prise en charge et a été supprimée de la configuration de cette intégration. Aucune action n'est requise."
+      "title": "Option « Garder la connexion Modbus ouverte » remplacée",
+      "description": "L'option « Garder la connexion Modbus ouverte » a été remplacée par « Fermer la connexion après le rafraichissement » dans la configuration de cette intégration. Consultez la nouvelle option si vous avez besoin du même comportement."
     }
   }
 }

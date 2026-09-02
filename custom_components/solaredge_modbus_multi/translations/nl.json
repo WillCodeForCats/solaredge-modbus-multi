@@ -83,6 +83,7 @@
         "title": "SolarEdge Modbus Instellingen",
         "data": {
           "scan_interval": "Oproepfrequentie (seconden)",
+          "close_after_polling": "Verbinding sluiten na oproep",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
           "detect_extras": "Automatische detectie van aanvullende entiteiten",
@@ -158,8 +159,8 @@
       "description": "De sectie `modbus` onder `solaredge_modbus_multi` in `configuration.yaml` wordt niet meer ondersteund en wordt genegeerd. Verwijder deze uit uw YAML-configuratie."
     },
     "deprecated_keep_modbus_open": {
-      "title": "Optie 'Houd Modbus-verbinding open' verwijderd",
-      "description": "De optie \"Houd Modbus-verbinding open\" wordt niet meer ondersteund en is verwijderd uit de configuratie van deze integratie. Er is geen actie vereist."
+      "title": "Optie 'Houd Modbus-verbinding open' vervangen",
+      "description": "De optie \"Houd Modbus-verbinding open\" is in de configuratie van deze integratie vervangen door \"Verbinding sluiten na oproep\". Bekijk de nieuwe optie als je hetzelfde gedrag nodig hebt."
     }
   }
 }

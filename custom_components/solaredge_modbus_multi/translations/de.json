@@ -83,6 +83,7 @@
         "title": "SolarEdge Modbus Optionen",
         "data": {
           "scan_interval": "Abfragehäufigkeit (Sekunden)",
+          "close_after_polling": "Verbindung nach Abfrage schließen",
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
@@ -158,8 +159,8 @@
       "description": "Der Abschnitt `modbus` unter `solaredge_modbus_multi` in der `configuration.yaml` wird nicht mehr unterstützt und wird ignoriert. Bitte entfernen Sie ihn aus Ihrer YAML-Konfiguration."
     },
     "deprecated_keep_modbus_open": {
-      "title": "Option \"Modbus-Verbindung geöffnet lassen\" entfernt",
-      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wird nicht mehr unterstützt und wurde aus der Konfiguration dieser Integration entfernt. Es ist keine Aktion erforderlich."
+      "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",
+      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wurde in der Konfiguration dieser Integration durch \"Verbindung nach Abfrage schließen\" ersetzt. Prüfen Sie die neue Option, wenn Sie das gleiche Verhalten benötigen."
     }
   }
 }

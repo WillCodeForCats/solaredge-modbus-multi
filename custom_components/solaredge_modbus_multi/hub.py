@@ -175,6 +175,9 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
+        self._close_after_polling = entry_options.get(
+            ConfName.CLOSE_AFTER_POLLING, bool(ConfDefaultFlag.CLOSE_AFTER_POLLING)
+        )
 
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
@@ -206,6 +209,7 @@ class SolarEdgeModbusMultiHub:
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
                 f"sleep_after_write={self._sleep_after_write}, "
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
+                f"close_after_polling={self._close_after_polling}, "
             ),
         )
 
@@ -530,6 +534,9 @@ class SolarEdgeModbusMultiHub:
             )
             self._coordinator_timeouts_count = 0
 
+        if self.close_after_polling:
+            await self.connection.disconnect()
+
         return True
 
     async def component_update(self, unit: int, component) -> None:
@@ -676,6 +683,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def battery_energy_reset_cycles(self) -> int:
         return self._battery_energy_reset_cycles
+
+    @property
+    def close_after_polling(self) -> bool:
+        return self._close_after_polling
 
     @property
     def number_of_meters(self) -> int:

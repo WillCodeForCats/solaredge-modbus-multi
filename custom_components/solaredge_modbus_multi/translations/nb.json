@@ -83,6 +83,7 @@
         "title": "SolarEdge Modbus-alternativer",
         "data": {
           "scan_interval": "Avstemningsfrekvens (sekunder)",
+          "close_after_polling": "Lukk tilkoblingen etter avstemning",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
           "detect_extras": "Automatisk oppdage flere enheter",
@@ -158,8 +159,8 @@
       "description": "Seksjonen `modbus` under `solaredge_modbus_multi` i `configuration.yaml` støttes ikke lenger og blir ignorert. Fjern den fra YAML-konfigurasjonen din."
     },
     "deprecated_keep_modbus_open": {
-      "title": "Alternativet «Hold Modbus-tilkoblingen åpen» er fjernet",
-      "description": "Alternativet «Hold Modbus-tilkoblingen åpen» støttes ikke lenger og er fjernet fra konfigurasjonen til denne integrasjonen. Ingen handling er nødvendig."
+      "title": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet",
+      "description": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet av «Lukk tilkoblingen etter avstemning» i konfigurasjonen til denne integrasjonen. Se på det nye alternativet hvis du trenger samme oppførsel."
     }
   }
 }

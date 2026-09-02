@@ -262,6 +262,17 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             config_entry, options=update_options, version=2, minor_version=2
         )
 
+    if config_entry.version == 2 and config_entry.minor_version < 3:
+        _LOGGER.debug("Migrating from version 2.2")
+
+        # config 2.3 adds close_after_polling option
+        # keep_modbus_open was removed, but the new close_after_polling
+        # option is similar now that modbus-connection supports
+        # disconnect() without it being a permanent shutdown. The
+        # deprecated_keep_modbus_open repair issue from 2.2 now points
+        # affected users at the replacement option.
+        hass.config_entries.async_update_entry(config_entry, version=2, minor_version=3)
+
     _LOGGER.warning(
         "Migrated to config version "
         f"{config_entry.version}.{config_entry.minor_version}"

@@ -1,5 +1,7 @@
 """Tests for SolarEdgeModbusMultiHub options."""
 
+from unittest.mock import AsyncMock
+
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from modbus_connection.mock import MockModbusConnection
 
@@ -57,6 +59,7 @@ async def test_options_default_to_bool(hass):
     for attr in (
         "_detect_meters",
         "_detect_batteries",
+        "_close_after_polling",
     ):
         assert isinstance(getattr(hub, attr), bool)
 
@@ -66,3 +69,31 @@ async def test_device_list_defaults(hass):
     hub = _make_hub(hass, entry_data=entry_data)
 
     assert hub._inverter_list == ["1"]
+
+
+async def test_close_after_polling_defaults_to_false(hass):
+    # Default must not disconnect, so upgrading from a pre-release that
+    # always kept the connection open sees no behavior change.
+    hub = _make_hub(hass)
+
+    assert hub.close_after_polling is False
+
+
+async def test_close_after_polling_true_disconnects_after_successful_poll(hass):
+    hub = _make_hub(hass, entry_options={ConfName.CLOSE_AFTER_POLLING: True})
+    hub.initalized = True
+    hub.connection.disconnect = AsyncMock()
+
+    await hub.async_refresh_modbus_data()
+
+    hub.connection.disconnect.assert_awaited_once()
+
+
+async def test_close_after_polling_false_keeps_connection_open(hass):
+    hub = _make_hub(hass)
+    hub.initalized = True
+    hub.connection.disconnect = AsyncMock()
+
+    await hub.async_refresh_modbus_data()
+
+    hub.connection.disconnect.assert_not_called()
