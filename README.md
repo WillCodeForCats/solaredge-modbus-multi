@@ -4,8 +4,8 @@
 
 This integration provides Modbus/TCP local polling to one or more SolarEdge inverters for Home Assistant.
 Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters,
-multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and
-`solaredge_modbus_multi` is actively maintained.
+multiple inverters, meters, batteries, and controls. The work in this repository is also being used in
+other libraries and integrations.
 
 By default, only features which are officially documented by SolarEdge are enabled: inverters,
 synergy inverters, and meters. All of the battery (read only) and control features (read/write battery and
@@ -15,6 +15,7 @@ discovery and may not be supported by SolarEdge.
 
 ## Features
 
+- Home Assistant Auto Discovery (Zeroconf) support.
 - Inverter support for 1 to 32 SolarEdge inverters.
 - Meter support for 1 to 3 meters per inverter.
 - Battery support for 1 to 3 batteries per inverter.
@@ -22,7 +23,7 @@ discovery and may not be supported by SolarEdge.
 - Automatically detects meters and batteries.
 - Supports Three Phase Inverters with Synergy Technology.
 - Polling frequency configuration option (1 to 86400 seconds).
-- Auto-discovers inverters via Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
+- Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
 - Informational sensor for device and its attributes
 - Supports status and error reporting sensors.
@@ -60,6 +61,16 @@ Inverter site limit and battery storage controls are disabled by default: not al
 ## Specifications
 
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
+
+## Crediting Our Work
+
+There are other integrations and libraries that have included this work directly or indirectly, in
+some cases through AI agents. If you have used this work directly or indirectly, the author would appreciate it
+if you would include a prominent credit and link to this repo so that your users are aware of its origin.
+All of the original research on inverter behavior and undocumented features found here was curated by hand
+in a pre-AI era. If you use issues previously reported, or a user's diagnostic data as test cases or to generate
+code, including user feedback, please also extend credit to that user for their contributions as well as this
+repository, preferably with a direct link to the issue.
 
 ## Project Sponsors
 
