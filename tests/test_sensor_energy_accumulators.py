@@ -63,6 +63,13 @@ class TestSolarEdgeACEnergy:
         entity._process_data()
         assert entity._attr_native_value == 1000
 
+    def test_limit32_saturation_is_skipped(self):
+        # PR #1040: a fully saturated accumulator (all-1s) must be detected,
+        # not accepted as a legitimate value.
+        entity = _make_ac_energy(raw_value=SunSpecAccum.LIMIT32, sf=0, last=1000)
+        entity._process_data()
+        assert entity._attr_native_value == 1000
+
     def test_scale_factor_out_of_range_is_skipped(self):
         entity = _make_ac_energy(raw_value=1000, sf=99, last=1000)
         entity._process_data()
@@ -135,6 +142,15 @@ class TestMeterEnergyAccumulators:
     def test_na32_sentinel_is_skipped(self, cls, prefix):
         entity = _make_meter_energy(
             cls, prefix, raw_value=SunSpecAccum.NA32, sf=0, last=1000
+        )
+        entity._process_data()
+        assert entity._attr_native_value == 1000
+
+    def test_limit32_saturation_is_skipped(self, cls, prefix):
+        # PR #1040: a fully saturated accumulator (all-1s) must be detected,
+        # not accepted as a legitimate value.
+        entity = _make_meter_energy(
+            cls, prefix, raw_value=SunSpecAccum.LIMIT32, sf=0, last=1000
         )
         entity._process_data()
         assert entity._attr_native_value == 1000

@@ -1083,7 +1083,7 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase, RestoreSensor):
         if (
             raw_value is None
             or raw_value == SunSpecAccum.NA32
-            or raw_value > SunSpecAccum.LIMIT32
+            or raw_value == SunSpecAccum.LIMIT32
             or sf not in SUNSPEC_SF_RANGE
         ):
             return
@@ -1951,7 +1951,7 @@ class MeterVAhIE(SolarEdgeSensorBase, RestoreSensor):
         if (
             raw_value is None
             or raw_value == SunSpecAccum.NA32
-            or raw_value > SunSpecAccum.LIMIT32
+            or raw_value == SunSpecAccum.LIMIT32
             or sf is None
             or sf == SunSpecNotImpl.INT16
             or sf not in SUNSPEC_SF_RANGE
@@ -2043,7 +2043,7 @@ class MetervarhIE(SolarEdgeSensorBase, RestoreSensor):
         if (
             raw_value is None
             or raw_value == SunSpecAccum.NA32
-            or raw_value > SunSpecAccum.LIMIT32
+            or raw_value == SunSpecAccum.LIMIT32
             or sf is None
             or sf == SunSpecNotImpl.INT16
             or sf not in SUNSPEC_SF_RANGE
