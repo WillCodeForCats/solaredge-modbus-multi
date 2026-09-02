@@ -66,7 +66,7 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 There are other integrations and libraries that have included this work directly or indirectly, in
 some cases through AI agents. If you have used this work directly or indirectly, the author would appreciate it
-if you would include a prominent credit and link to this repo so that your users are aware of its origin.
+if you would include a prominent credit and link to this repository so that your users are aware of its origin.
 All of the original research on inverter behavior and undocumented features found here was curated by hand
 in a pre-AI era. If you use issues previously reported, or a user's diagnostic data as test cases or to generate
 code, including user feedback, please also extend credit to that user for their contributions as well as this
