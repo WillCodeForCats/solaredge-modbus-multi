@@ -154,5 +154,34 @@
       "title": "Geavanceerde time -out voor stroomregeling",
       "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor geavanceerde stroomregeling."
     }
+  },
+  "entity": {
+    "sensor": {
+      "inverter_status": {
+        "state": {
+          "I_STATUS_OFF": "Uit",
+          "I_STATUS_SLEEPING": "Slaapstand (automatisch uitschakelen)",
+          "I_STATUS_STARTING": "Netbewaking",
+          "I_STATUS_MPPT": "Productie",
+          "I_STATUS_THROTTLED": "Productie (beperkt)",
+          "I_STATUS_SHUTTING_DOWN": "Afsluiten",
+          "I_STATUS_FAULT": "Storing",
+          "I_STATUS_STANDBY": "Onderhoud"
+        }
+      },
+      "battery_status": {
+        "state": {
+          "B_STATUS_OFF": "Uit",
+          "B_STATUS_STANDBY": "Stand-by",
+          "B_STATUS_INIT": "Initialiseren",
+          "B_STATUS_CHARGE": "Laden",
+          "B_STATUS_DISCHARGE": "Ontladen",
+          "B_STATUS_FAULT": "Storing",
+          "B_STATUS_PRESERVE_CHARGE": "Lading behouden",
+          "B_STATUS_IDLE": "Inactief",
+          "B_STATUS_POWER_SAVING": "Energiebesparing"
+        }
+      }
+    }
   }
 }

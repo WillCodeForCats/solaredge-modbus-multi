@@ -154,5 +154,34 @@
       "title": "Zaawansowany limit czasu kontroli mocy",
       "description": "Falownik nie zareagował podczas czytania danych pod kątem zaawansowanych kontroli mocy."
     }
+  },
+  "entity": {
+    "sensor": {
+      "inverter_status": {
+        "state": {
+          "I_STATUS_OFF": "Wyłączony",
+          "I_STATUS_SLEEPING": "Czuwanie (automatyczne wyłączenie)",
+          "I_STATUS_STARTING": "Monitorowanie sieci",
+          "I_STATUS_MPPT": "Produkcja",
+          "I_STATUS_THROTTLED": "Produkcja (ograniczona)",
+          "I_STATUS_SHUTTING_DOWN": "Wyłączanie",
+          "I_STATUS_FAULT": "Awaria",
+          "I_STATUS_STANDBY": "Konserwacja"
+        }
+      },
+      "battery_status": {
+        "state": {
+          "B_STATUS_OFF": "Wyłączony",
+          "B_STATUS_STANDBY": "Czuwanie",
+          "B_STATUS_INIT": "Inicjalizacja",
+          "B_STATUS_CHARGE": "Ładowanie",
+          "B_STATUS_DISCHARGE": "Rozładowywanie",
+          "B_STATUS_FAULT": "Awaria",
+          "B_STATUS_PRESERVE_CHARGE": "Utrzymanie ładunku",
+          "B_STATUS_IDLE": "Bezczynny",
+          "B_STATUS_POWER_SAVING": "Oszczędzanie energii"
+        }
+      }
+    }
   }
 }

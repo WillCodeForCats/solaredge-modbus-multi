@@ -154,5 +154,34 @@
       "title": "Timeout de contrôle de puissance avancé",
       "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance avancés."
     }
+  },
+  "entity": {
+    "sensor": {
+      "inverter_status": {
+        "state": {
+          "I_STATUS_OFF": "Arrêt",
+          "I_STATUS_SLEEPING": "Veille (arrêt automatique)",
+          "I_STATUS_STARTING": "Surveillance du réseau",
+          "I_STATUS_MPPT": "Production",
+          "I_STATUS_THROTTLED": "Production (limitée)",
+          "I_STATUS_SHUTTING_DOWN": "Arrêt en cours",
+          "I_STATUS_FAULT": "Défaut",
+          "I_STATUS_STANDBY": "Maintenance"
+        }
+      },
+      "battery_status": {
+        "state": {
+          "B_STATUS_OFF": "Arrêt",
+          "B_STATUS_STANDBY": "Veille",
+          "B_STATUS_INIT": "Initialisation",
+          "B_STATUS_CHARGE": "Charge",
+          "B_STATUS_DISCHARGE": "Décharge",
+          "B_STATUS_FAULT": "Défaut",
+          "B_STATUS_PRESERVE_CHARGE": "Maintien de charge",
+          "B_STATUS_IDLE": "Inactif",
+          "B_STATUS_POWER_SAVING": "Économie d'énergie"
+        }
+      }
+    }
   }
 }

@@ -153,5 +153,34 @@
       "title": "Advanced Power Control Timeout",
       "description": "The inverter did not respond while reading data for Advanced Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
     }
+  },
+  "entity": {
+    "sensor": {
+      "inverter_status": {
+        "state": {
+          "I_STATUS_OFF": "Off",
+          "I_STATUS_SLEEPING": "Sleeping (Auto-Shutdown)",
+          "I_STATUS_STARTING": "Grid Monitoring",
+          "I_STATUS_MPPT": "Production",
+          "I_STATUS_THROTTLED": "Production (Curtailed)",
+          "I_STATUS_SHUTTING_DOWN": "Shutting Down",
+          "I_STATUS_FAULT": "Fault",
+          "I_STATUS_STANDBY": "Maintenance"
+        }
+      },
+      "battery_status": {
+        "state": {
+          "B_STATUS_OFF": "Off",
+          "B_STATUS_STANDBY": "Standby",
+          "B_STATUS_INIT": "Initializing",
+          "B_STATUS_CHARGE": "Charge",
+          "B_STATUS_DISCHARGE": "Discharge",
+          "B_STATUS_FAULT": "Fault",
+          "B_STATUS_PRESERVE_CHARGE": "Preserve Charge",
+          "B_STATUS_IDLE": "Idle",
+          "B_STATUS_POWER_SAVING": "Power Saving"
+        }
+      }
+    }
   }
 }
