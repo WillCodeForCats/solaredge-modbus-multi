@@ -147,12 +147,26 @@
       "description": "Identyfikator falownika {device_id} na {host} nie odpowiada lub nie jest prawidłowym falownikiem SolarEdge. Został pominięty. Jeśli urządzenie zostało wymienione lub jego identyfikator się zmienił, zaktualizuj listę identyfikatorów falowników w konfiguracji huba. W przeciwnym razie sprawdź urządzenie i połączenie Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Globalny limit dynamicznej kontroli mocy",
-      "description": "Falownik nie zareagował podczas czytania danych dla globalnej dynamicznej kontroli mocy."
+      "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Globalny limit czasu dynamicznej kontroli mocy",
+            "description": "Identyfikator falownika {device_id} na {host} nie odpowiedział po kilku próbach podczas odczytu danych dla globalnej dynamicznej kontroli mocy. Te elementy są niedostępne, dopóki problem nie zostanie rozwiązany.\n\nPotwierdź, aby ponowić próbę wykrycia tej funkcji przy następnym odpytywaniu. Wyłącz opcję automatycznego wykrywania dodatkowych elementów, jeśli falownik ma problemy z odczytem tych czujników."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Zaawansowany limit czasu kontroli mocy",
-      "description": "Falownik nie zareagował podczas czytania danych pod kątem zaawansowanych kontroli mocy."
+      "title": "Zaawansowany limit czasu kontroli mocy (Falownik {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Zaawansowany limit czasu kontroli mocy",
+            "description": "Identyfikator falownika {device_id} na {host} nie odpowiedział po kilku próbach podczas odczytu danych dla zaawansowanej kontroli mocy. Te elementy są niedostępne, dopóki problem nie zostanie rozwiązany.\n\nPotwierdź, aby ponowić próbę wykrycia tej funkcji przy następnym odpytywaniu. Wyłącz opcję automatycznego wykrywania dodatkowych elementów, jeśli falownik ma problemy z odczytem tych czujników."
+          }
+        }
+      }
     },
     "deprecated_yaml_modbus": {
       "title": "Konfiguracja YAML Modbus nie jest już obsługiwana",

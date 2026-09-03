@@ -147,12 +147,26 @@
       "description": "Omvormer-apparaat-ID {device_id} op {host} reageert niet of is geen geldige SolarEdge-omvormer. Deze is overgeslagen. Als het apparaat is vervangen of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Controleer anders het apparaat en de Modbus/TCP-verbinding."
     },
     "detect_timeout_gpc": {
-      "title": "Global Dynamic Power Control Time -out",
-      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor Global Dynamic Power Controls."
+      "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Time-out voor Global Dynamic Power Control",
+            "description": "Omvormer-apparaat-ID {device_id} op {host} reageerde niet na meerdere pogingen tijdens het lezen van gegevens voor Global Dynamic Power Controls. Deze entiteiten zijn niet beschikbaar totdat dit is opgelost.\n\nBevestig om deze functie bij de volgende polling opnieuw te detecteren. Schakel de optie voor automatische detectie van aanvullende entiteiten uit als de omvormer moeite heeft met het lezen van deze sensoren."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Geavanceerde time -out voor stroomregeling",
-      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor geavanceerde stroomregeling."
+      "title": "Geavanceerde time-out voor stroomregeling (Omvormer {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Geavanceerde time-out voor stroomregeling",
+            "description": "Omvormer-apparaat-ID {device_id} op {host} reageerde niet na meerdere pogingen tijdens het lezen van gegevens voor geavanceerde stroomregeling. Deze entiteiten zijn niet beschikbaar totdat dit is opgelost.\n\nBevestig om deze functie bij de volgende polling opnieuw te detecteren. Schakel de optie voor automatische detectie van aanvullende entiteiten uit als de omvormer moeite heeft met het lezen van deze sensoren."
+          }
+        }
+      }
     },
     "deprecated_yaml_modbus": {
       "title": "Modbus YAML-configuratie niet meer ondersteund",

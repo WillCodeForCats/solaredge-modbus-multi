@@ -147,12 +147,26 @@
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Tempsion mondial de contrôle de la puissance dynamique",
-      "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance dynamique globaux."
+      "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Délai d'attente du contrôle de puissance dynamique global",
+            "description": "L'ID d'appareil onduleur {device_id} sur {host} n'a pas répondu après plusieurs tentatives lors de la lecture des données pour les contrôles de puissance dynamique globaux. Ces entités sont indisponibles jusqu'à ce que ce problème soit résolu.\n\nConfirmez pour réessayer de détecter cette fonctionnalité lors du prochain sondage. Désactivez l'option de détection automatique des entités supplémentaires si l'onduleur a des difficultés à lire ces capteurs."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Timeout de contrôle de puissance avancé",
-      "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance avancés."
+      "title": "Délai d'attente du contrôle de puissance avancé (Onduleur {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Délai d'attente du contrôle de puissance avancé",
+            "description": "L'ID d'appareil onduleur {device_id} sur {host} n'a pas répondu après plusieurs tentatives lors de la lecture des données pour les contrôles de puissance avancés. Ces entités sont indisponibles jusqu'à ce que ce problème soit résolu.\n\nConfirmez pour réessayer de détecter cette fonctionnalité lors du prochain sondage. Désactivez l'option de détection automatique des entités supplémentaires si l'onduleur a des difficultés à lire ces capteurs."
+          }
+        }
+      }
     },
     "deprecated_yaml_modbus": {
       "title": "Configuration YAML Modbus non prise en charge",

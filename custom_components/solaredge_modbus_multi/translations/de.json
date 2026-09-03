@@ -147,12 +147,26 @@
       "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
     },
     "detect_timeout_gpc": {
-      "title": "Global Dynamic Power Control Timeout",
-      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für globale dynamische Leistungssteuerung."
+      "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Global Dynamic Power Control Timeout",
+            "description": "Wechselrichter-Geräte-ID {device_id} bei {host} reagierte nach mehreren Versuchen nicht beim Lesen von Daten für Global Dynamic Power Controls. Diese Entitäten sind nicht verfügbar, bis dies behoben ist.\n\nBestätigen, um die Erkennung dieser Funktion beim nächsten Abruf erneut zu versuchen. Deaktivieren Sie die Option zur automatischen Erkennung zusätzlicher Entitäten, wenn der Wechselrichter Probleme beim Lesen dieser Sensoren hat."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
-      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen."
+      "title": "Fortgeschrittene Leistungssteuerung Zeitlimit (Wechselrichter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
+            "description": "Wechselrichter-Geräte-ID {device_id} bei {host} reagierte nach mehreren Versuchen nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen. Diese Entitäten sind nicht verfügbar, bis dies behoben ist.\n\nBestätigen, um die Erkennung dieser Funktion beim nächsten Abruf erneut zu versuchen. Deaktivieren Sie die Option zur automatischen Erkennung zusätzlicher Entitäten, wenn der Wechselrichter Probleme beim Lesen dieser Sensoren hat."
+          }
+        }
+      }
     },
     "deprecated_yaml_modbus": {
       "title": "Modbus-YAML-Konfiguration wird nicht mehr unterstützt",

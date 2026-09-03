@@ -147,12 +147,26 @@
       "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Timeout di controllo del potere dinamico globale",
-      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza dinamica globali."
+      "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout di controllo della potenza dinamica globale",
+            "description": "L'ID dispositivo inverter {device_id} su {host} non ha risposto dopo diversi tentativi durante la lettura dei dati per i controlli di potenza dinamica globali. Queste entità non saranno disponibili finché il problema non sarà risolto.\n\nConferma per tentare nuovamente il rilevamento di questa funzione al prossimo polling. Disabilita l'opzione di rilevamento automatico delle entità aggiuntive se l'inverter ha problemi a leggere questi sensori."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Timeout di controllo del potere avanzato",
-      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza avanzati."
+      "title": "Timeout di controllo della potenza avanzata (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout di controllo della potenza avanzata",
+            "description": "L'ID dispositivo inverter {device_id} su {host} non ha risposto dopo diversi tentativi durante la lettura dei dati per i controlli di potenza avanzati. Queste entità non saranno disponibili finché il problema non sarà risolto.\n\nConferma per tentare nuovamente il rilevamento di questa funzione al prossimo polling. Disabilita l'opzione di rilevamento automatico delle entità aggiuntive se l'inverter ha problemi a leggere questi sensori."
+          }
+        }
+      }
     },
     "deprecated_yaml_modbus": {
       "title": "Configurazione YAML Modbus non più supportata",
