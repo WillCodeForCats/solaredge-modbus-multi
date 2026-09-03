@@ -811,16 +811,7 @@ class SolarEdgeInverter:
             )
             await self.hub.component_update(self.inverter_unit_id, self.inverter_common)
 
-            self.decoded_common = component_to_dict(self.inverter_common)
-
-            for name, value in iter(self.decoded_common.items()):
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value} "
-                        f"{type(value)}"
-                    ),
-                )
+            _log_component_fields(f"I{self.inverter_unit_id}", self.inverter_common)
 
             self.hub.inverter_common[self.inverter_unit_id] = self.inverter_common
 
@@ -894,16 +885,9 @@ class SolarEdgeInverter:
                     self.inverter_unit_id, self.mmppt_common
                 )
 
-                self.decoded_mmppt = component_to_dict(self.mmppt_common)
-
-                for name, value in iter(self.decoded_mmppt.items()):
-                    _LOGGER.debug(
-                        (
-                            f"I{self.inverter_unit_id} MMPPT: "
-                            f"{name} {hex(value) if isinstance(value, int) else value} "
-                            f"{type(value)}"
-                        ),
-                    )
+                _log_component_fields(
+                    f"I{self.inverter_unit_id} MMPPT", self.mmppt_common
+                )
 
                 if (
                     self.mmppt_common.mmppt_DID == SunSpecNotImpl.UINT16
@@ -963,7 +947,7 @@ class SolarEdgeInverter:
             )
             await self.hub.component_update(self.inverter_unit_id, self.inverter_data)
 
-            self.decoded_model = component_to_dict(self.inverter_data)
+            _log_component_fields(f"I{self.inverter_unit_id}", self.inverter_data)
 
             if (
                 self.inverter_data.C_SunSpec_DID == SunSpecNotImpl.UINT16
@@ -998,18 +982,11 @@ class SolarEdgeInverter:
                 )
                 await self.hub.component_update(self.inverter_unit_id, self.mmppt_data)
 
-                self.decoded_model.update(component_to_dict(self.mmppt_data))
+                _log_component_fields(f"I{self.inverter_unit_id}", self.mmppt_data)
 
                 for unit_index, mmppt_unit_data in enumerate(self.mmppt_data.units):
-                    self.decoded_model.update(
-                        dict(
-                            [
-                                (
-                                    f"mmppt_{unit_index}",
-                                    component_to_dict(mmppt_unit_data),
-                                )
-                            ]
-                        )
+                    _log_component_fields(
+                        f"I{self.inverter_unit_id} MMPPT{unit_index}", mmppt_unit_data
                     )
 
             except ModbusConnectionError as e:
@@ -1039,8 +1016,8 @@ class SolarEdgeInverter:
                 self.global_power_control = True
                 self._gpc_timeouts_count = 0
 
-                self.decoded_model.update(
-                    component_to_dict(self.global_power_control_data)
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.global_power_control_data
                 )
 
                 ir.async_delete_issue(
@@ -1111,8 +1088,8 @@ class SolarEdgeInverter:
                 self.advanced_power_control = True
                 self._apc_timeouts_count = 0
 
-                self.decoded_model.update(
-                    component_to_dict(self.advanced_power_control_data)
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.advanced_power_control_data
                 )
 
                 ir.async_delete_issue(
@@ -1182,8 +1159,8 @@ class SolarEdgeInverter:
                 )
                 self.site_limit_control = True
 
-                self.decoded_model.update(
-                    component_to_dict(self.site_limit_control_data)
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.site_limit_control_data
                 )
 
             except ModbusExceptionError:
@@ -1212,15 +1189,6 @@ class SolarEdgeInverter:
                     f"at SiteLimitControl: {e}"
                 ) from e
 
-        for name, value in iter(self.decoded_model.items()):
-            if isinstance(value, float):
-                display_value = float_to_hex(value)
-            else:
-                display_value = hex(value) if isinstance(value, int) else value
-            _LOGGER.debug(
-                f"I{self.inverter_unit_id}: {name} {display_value} {type(value)}"
-            )
-
         """ Power Control Options: Storage Control """
         if self.hub.option_storage_control and self.storage_control is not False:
             if self.has_battery is None:
@@ -1239,19 +1207,9 @@ class SolarEdgeInverter:
                 )
                 self.storage_control = True
 
-                self.decoded_storage_control = component_to_dict(
-                    self.storage_control_data
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.storage_control_data
                 )
-
-                for name, value in iter(self.decoded_storage_control.items()):
-                    if isinstance(value, float):
-                        display_value = float_to_hex(value)
-                    else:
-                        display_value = hex(value) if isinstance(value, int) else value
-                    _LOGGER.debug(
-                        f"I{self.inverter_unit_id}: "
-                        f"{name} {display_value} {type(value)}"
-                    )
 
             except ModbusExceptionError:
                 self.storage_control = False
@@ -1422,16 +1380,9 @@ class SolarEdgeMeter:
             )
             await self.hub.component_update(self.inverter_unit_id, self.meter_info)
 
-            self.decoded_common = component_to_dict(self.meter_info)
-
-            for name, value in iter(self.decoded_common.items()):
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id}M{self.meter_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value} "
-                        f"{type(value)}"
-                    ),
-                )
+            _log_component_fields(
+                f"I{self.inverter_unit_id}M{self.meter_id}", self.meter_info
+            )
 
             if (
                 self.meter_info.C_SunSpec_DID == SunSpecNotImpl.UINT16
@@ -1473,8 +1424,6 @@ class SolarEdgeMeter:
             )
             await self.hub.component_update(self.inverter_unit_id, self.meter_data)
 
-            self.decoded_model = component_to_dict(self.meter_data)
-
         except ModbusConnectionError as e:
             raise ModbusConnectionError(
                 f"Connection error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
@@ -1490,14 +1439,9 @@ class SolarEdgeMeter:
                 f"Timeout error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
             ) from e
 
-        for name, value in iter(self.decoded_model.items()):
-            _LOGGER.debug(
-                (
-                    f"I{self.inverter_unit_id}M{self.meter_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value} "
-                    f"{type(value)}"
-                ),
-            )
+        _log_component_fields(
+            f"I{self.inverter_unit_id}M{self.meter_id}", self.meter_data
+        )
 
         if (
             self.meter_data.C_SunSpec_DID == SunSpecNotImpl.UINT16
@@ -1620,19 +1564,9 @@ class SolarEdgeBattery:
                     self.inverter_unit_id, self.battery_info
                 )
 
-            self.decoded_common = component_to_dict(self.battery_info)
-
-            for name, value in iter(self.decoded_common.items()):
-                if isinstance(value, float):
-                    display_value = float_to_hex(value)
-                else:
-                    display_value = hex(value) if isinstance(value, int) else value
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id}B{self.battery_id}: "
-                        f"{name} {display_value} {type(value)}"
-                    ),
-                )
+            _log_component_fields(
+                f"I{self.inverter_unit_id}B{self.battery_id}", self.battery_info
+            )
 
         except TimeoutError:
             raise DeviceInvalid(
@@ -1677,8 +1611,6 @@ class SolarEdgeBattery:
             )
             await self.hub.component_update(self.inverter_unit_id, self.battery_data)
 
-            self.decoded_model = component_to_dict(self.battery_data)
-
         except ModbusConnectionError as e:
             raise ModbusConnectionError(
                 f"Connection error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
@@ -1694,16 +1626,9 @@ class SolarEdgeBattery:
                 f"Timeout error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
             ) from e
 
-        for name, value in iter(self.decoded_model.items()):
-            if isinstance(value, float):
-                display_value = float_to_hex(value)
-            else:
-                display_value = hex(value) if isinstance(value, int) else value
-
-            _LOGGER.debug(
-                f"I{self.inverter_unit_id}B{self.battery_id}: "
-                f"{name} {display_value} {type(value)}"
-            )
+        _log_component_fields(
+            f"I{self.inverter_unit_id}B{self.battery_id}", self.battery_data
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1780,13 +1705,10 @@ class SolarEdgeDERBattery:
                 self.inverter_unit_id, self.der_storage_capacity_data
             )
 
-            self.decoded_common = component_to_dict(self.der_storage_capacity_data)
-
-            for name, value in iter(self.decoded_common.items()):
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}DERB{self.battery_id}: "
-                    f"{name} {value} {type(value)}"
-                )
+            _log_component_fields(
+                f"I{self.inverter_unit_id}DERB{self.battery_id}",
+                self.der_storage_capacity_data,
+            )
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise DeviceInvalid(
@@ -1853,8 +1775,6 @@ class SolarEdgeDERBattery:
                 self.inverter_unit_id, self.der_storage_capacity_data
             )
 
-            self.decoded_model = component_to_dict(self.der_storage_capacity_data)
-
         except ModbusConnectionError as e:
             raise ModbusConnectionError(
                 "Connection error reading inverter ID "
@@ -1879,11 +1799,10 @@ class SolarEdgeDERBattery:
                 f"inverter ID {self.inverter_unit_id} at DERStorageCapacity: {e}"
             ) from e
 
-        for name, value in iter(self.decoded_model.items()):
-            _LOGGER.debug(
-                f"I{self.inverter_unit_id}DERB{self.battery_id}: "
-                f"{name} {value} {type(value)}"
-            )
+        _log_component_fields(
+            f"I{self.inverter_unit_id}DERB{self.battery_id}",
+            self.der_storage_capacity_data,
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1940,16 +1859,7 @@ class SolarEdgeEVSE:
             )
             await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
-            self.decoded_common = component_to_dict(self.evse_common)
-
-            for name, value in iter(self.decoded_common.items()):
-                _LOGGER.debug(
-                    (
-                        f"E{self.evse_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                        f"{type(value)}"
-                    ),
-                )
+            _log_component_fields(f"E{self.evse_unit_id}", self.evse_common)
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise DeviceInvalid(
@@ -1985,14 +1895,7 @@ class SolarEdgeEVSE:
             )
             await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
-            for name, value in iter(self.decoded_model.items()):
-                if isinstance(value, float):
-                    display_value = float_to_hex(value)
-                else:
-                    display_value = hex(value) if isinstance(value, int) else value
-                _LOGGER.debug(
-                    f"E{self.evse_unit_id}: {name} {display_value} {type(value)}"
-                )
+            _log_component_fields(f"E{self.evse_unit_id}", self.evse_common)
 
         except ModbusExceptionError:
             _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
