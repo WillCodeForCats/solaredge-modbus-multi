@@ -139,9 +139,6 @@ class RetryFeatureDetectionRepairFlow(RepairsFlow):
                     setattr(inverter, self._attr, None)
                     break
 
-            coordinator = self.hass.data[DOMAIN][self._entry_id]["coordinator"]
-            await coordinator.async_request_refresh()
-
             return self.async_create_entry(title="", data={})
 
         return self.async_show_form(step_id="confirm", data_schema=vol.Schema({}))
