@@ -84,6 +84,7 @@ class RetrySettings(IntEnum):
     RequestTimeout = 6  # timeout for a single modbus request, in seconds
     RequestRetries = 3  # max attempts for a single modbus request
     CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
+    FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
 
 
 class SolarEdgeTimeouts(IntEnum):
