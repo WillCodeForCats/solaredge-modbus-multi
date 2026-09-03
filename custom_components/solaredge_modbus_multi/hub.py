@@ -38,7 +38,6 @@ from .components import (
     MmpptData,
     SiteLimitControl,
     StorageControl,
-    component_to_dict,
     component_field_names,
 )
 from .const import (
@@ -759,10 +758,6 @@ class SolarEdgeInverter:
         self.inverter_unit_id = device_id
         self.hub = hub
         self.mmppt_units = []
-        self.decoded_common = {}
-        self.decoded_model = {}
-        self.decoded_mmppt = {}
-        self.decoded_storage_control = {}
         self.has_parent = False
         self.has_battery = None
         self.global_power_control = None
@@ -1339,8 +1334,6 @@ class SolarEdgeMeter:
     ) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = {}
-        self.decoded_model = {}
         self.meter_id = meter_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
@@ -1532,8 +1525,6 @@ class SolarEdgeBattery:
     ) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = {}
-        self.decoded_model = {}
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
@@ -1684,8 +1675,6 @@ class SolarEdgeDERBattery:
     ) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = {}
-        self.decoded_model = {}
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
@@ -1844,8 +1833,6 @@ class SolarEdgeEVSE:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
         self.evse_unit_id = device_id
         self.hub = hub
-        self.decoded_common = {}
-        self.decoded_model = {}
         self.has_parent = False
 
         self.evse_common = EvseCommon(self.hub.connection.for_unit(self.evse_unit_id))
