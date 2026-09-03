@@ -62,6 +62,12 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 [WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
 
+## Language Translations
+
+Translations are manually generated from English with Google Translate or using Claude. Native speaker corrections are welcome.
+Correct the file in `custom_components/translations` and submit it through a pull request. If you are unsure how to
+do that, please open an issue and copy/paste the changes or attach the updated file.
+
 ## Crediting Our Work
 
 There are other integrations and libraries that have included this work directly or indirectly, in
