@@ -15,6 +15,9 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from modbus_connection.exceptions import (
+    IllegalDataAddressError,
+    IllegalDataValueError,
+    IllegalFunctionError,
     ModbusConnectionError,
     ModbusExceptionError,
     ModbusProtocolError,
@@ -53,7 +56,6 @@ from .const import (
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
-    ModbusExceptions,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -599,23 +601,19 @@ class SolarEdgeModbusMultiHub:
         try:
             await async_write_with_retry(component, field, value)
 
+        except IllegalFunctionError as e:
+            _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
+            raise HomeAssistantError(f"Function not supported by device at ID {unit}.")
+
+        except IllegalDataAddressError as e:
+            _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
+            raise HomeAssistantError(f"Address not supported at device at ID {unit}.")
+
+        except IllegalDataValueError as e:
+            _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
+            raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
+
         except ModbusExceptionError as e:
-            if e.exception_code == ModbusExceptions.IllegalAddress:
-                _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
-                raise HomeAssistantError(
-                    f"Address not supported at device at ID {unit}."
-                )
-
-            if e.exception_code == ModbusExceptions.IllegalFunction:
-                _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
-                raise HomeAssistantError(
-                    f"Function not supported by device at ID {unit}."
-                )
-
-            if e.exception_code == ModbusExceptions.IllegalValue:
-                _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
-                raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
-
             _LOGGER.debug(f"Unit {unit} Write rejected: {e}")
             raise HomeAssistantError(
                 f"Write rejected by device at ID {unit}: {e}"
