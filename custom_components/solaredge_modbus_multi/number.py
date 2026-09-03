@@ -253,6 +253,10 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         return "Storage Charge Limit"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
+
+    @property
     def available(self) -> bool:
         charge_limit = self._platform.storage_control_data.charge_limit
         return (
@@ -294,6 +298,10 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
     @property
     def name(self) -> str:
         return "Storage Discharge Limit"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._platform.has_battery is True
 
     @property
     def available(self) -> bool:
