@@ -1017,7 +1017,7 @@ class SolarEdgeInverter:
                     self.hub._hass, DOMAIN, self._feature_timeout_issue_id("gpc")
                 )
 
-            except ModbusExceptionError:
+            except (IllegalDataAddressError, IllegalFunctionError):
                 self.global_power_control = False
                 self._gpc_timeouts_count = 0
                 _LOGGER.debug(
@@ -1028,6 +1028,7 @@ class SolarEdgeInverter:
                 ModbusConnectionError,
                 ModbusProtocolError,
                 ModbusTimeoutError,
+                ModbusExceptionError,
             ):
                 if self.global_power_control is None:
                     give_up = True
@@ -1089,7 +1090,7 @@ class SolarEdgeInverter:
                     self.hub._hass, DOMAIN, self._feature_timeout_issue_id("apc")
                 )
 
-            except ModbusExceptionError:
+            except (IllegalDataAddressError, IllegalFunctionError):
                 self.advanced_power_control = False
                 self._apc_timeouts_count = 0
                 _LOGGER.debug(
@@ -1100,6 +1101,7 @@ class SolarEdgeInverter:
                 ModbusConnectionError,
                 ModbusProtocolError,
                 ModbusTimeoutError,
+                ModbusExceptionError,
             ):
                 if self.advanced_power_control is None:
                     give_up = True
