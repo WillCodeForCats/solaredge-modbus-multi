@@ -1,0 +1,157 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolarEdge Modbus Konfiguráció",
+        "menu_options": {
+          "scan_fast": "Gyors Keresés Inverterekre",
+          "scan_full": "Teljes Keresés Inverterekre",
+          "manual_list": "Kézi Beállítás"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Az első 32 Modbus eszközazonosító keresése (1-32)",
+          "scan_full": "Az összes Modbus eszközazonosító keresése (1-247)",
+          "manual_list": "Adja meg manuálisan az inverterek eszközazonosító-listáját"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Felfedezett SolarEdge Inverter",
+        "description": "SolarEdge Modbus/TCP átjáró található itt: {host}:{port}. Beállítja most?",
+        "data": {
+          "name": "Érzékelő Előtag"
+        }
+      },
+      "manual": {
+        "title": "Kézi Modbus Konfiguráció",
+        "data": {
+          "name": "Érzékelő Előtag",
+          "host": "Inverter IP-címe",
+          "port": "Modbus/TCP Port",
+          "device_list": "Inverter Eszközazonosító-lista",
+          "bypass_device_check": "Eszközazonosító-ellenőrzés kihagyása"
+        },
+        "data_description": {
+          "bypass_device_check": "Adja hozzá az eszközazonosító-listát kapcsolódás nélkül, anélkül, hogy ellenőrizné, hogy az egyes azonosítók SolarEdge inverterként válaszolnak-e. Csak akkor használja, ha az ellenőrzés meghiúsul egy olyan eszköznél, amelyről tudja, hogy helyes, például amely a beállítás során nincs csatlakoztatva."
+        }
+      },
+      "scan_ask_host": {
+        "title": "SolarEdge Inverterek Keresése",
+        "data": {
+          "name": "Érzékelő Előtag",
+          "host": "Inverter IP-címe",
+          "port": "Modbus/TCP Port"
+        }
+      },
+      "scan_complete": {
+        "title": "Keresés Kész"
+      },
+      "features_info": {
+        "title": "Az Akkumulátorok és Vezérlők Még Nincsenek Engedélyezve",
+        "description": "Alapértelmezés szerint csak a SolarEdge által hivatalosan dokumentált funkciók vannak engedélyezve: inverterek, Synergy inverterek és mérők.\n\nAz akkumulátor-felügyelet és az összes olvasási/írási vezérlési funkció (akkumulátor-vezérlés, telephelyi korlát vezérlése) olyan dokumentáción alapul, amelyet a SolarEdge nem tesz közzé. Ezek alapértelmezés szerint le vannak tiltva, és a hub hozzáadása után külön kell engedélyezni őket az integráció konfigurációs beállításaiból.\n\nNem minden inverter támogatja ezeket Modbuson keresztül. Előfordulhat, hogy fel kell vennie a kapcsolatot a SolarEdge támogatással, hogy hozzáférést biztosítson az akkumulátorhoz és a vezérlőkhöz a telepítésén."
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus Konfiguráció",
+        "data": {
+          "host": "Inverter IP-címe",
+          "port": "Modbus/TCP Port",
+          "device_list": "Inverter Eszközazonosító-lista"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Az eszköz már konfigurálva van!",
+      "invalid_device_id": "Az eszközazonosítónak 1 és 247 között kell lennie.",
+      "invalid_inverter_count": "1 és 32 inverter között kell lennie.",
+      "invalid_host": "Érvénytelen IP-cím.",
+      "invalid_tcp_port": "Az érvényes porttartomány 1 és 65535 között van.",
+      "invalid_range_format": "A bejegyzés tartománynak tűnik, de tartományonként csak egy '-' engedélyezett.",
+      "invalid_range_lte": "A tartomány kezdő azonosítójának kisebbnek vagy egyenlőnek kell lennie, mint a záró azonosító.",
+      "empty_device_id": "Az azonosítólista üres vagy nem definiált értéket tartalmaz.",
+      "scan_failed": "Az inverterek keresése sikertelen. Ellenőrizze a kapcsolatot, és próbálja újra."
+    },
+    "abort": {
+      "already_configured": "A gazdagép és a port már konfigurálva van egy másik hubon.",
+      "reconfigure_successful": "Az újrakonfigurálás sikeres volt"
+    },
+    "progress": {
+      "scanning_for_inverters": "SolarEdge inverterek keresése..."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SolarEdge Modbus Beállítások",
+        "data": {
+          "scan_interval": "Lekérdezési Gyakoriság (másodperc)",
+          "keep_modbus_open": "Modbus Kapcsolat Nyitva Tartása",
+          "detect_meters": "Mérők Automatikus Felismerése",
+          "detect_batteries": "Akkumulátorok Automatikus Felismerése",
+          "detect_extras": "További Entitások Automatikus Felismerése",
+          "advanced_power_control": "Teljesítményvezérlési Beállítások",
+          "sleep_after_write": "Inverter Parancs Késleltetése (másodperc)"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Teljesítményvezérlési Beállítások",
+        "data": {
+          "adv_storage_control": "Tárolásvezérlés Engedélyezése",
+          "adv_site_limit_control": "Telephelyi Korlát Vezérlésének Engedélyezése"
+        },
+        "description": "Figyelmeztetés: Ezek a beállítások megsérthetik a közműszolgáltatói szerződéseket, megváltoztathatják a számláját, speciális berendezést igényelhetnek, és felülírhatják a SolarEdge vagy a telepítő által végzett konfigurációt. Használata saját felelősségre! A Modbus regiszterekben lévő állítható paraméterek hosszú távú tárolásra szolgálnak. Az időszakos módosítások károsíthatják a flash memóriát."
+      },
+      "battery_options": {
+        "title": "Akkumulátor Beállítások",
+        "data": {
+          "allow_battery_energy_reset": "Akkumulátor Energiájának Visszaállítása Engedélyezve",
+          "battery_energy_reset_cycles": "Frissítési Ciklusok az Akkumulátor Energiájának Visszaállításához",
+          "battery_rating_adjust": "Akkumulátor Kapacitásának Beállítása (százalék)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Az érvényes intervallum 1 és 86400 másodperc között van.",
+      "invalid_sleep_interval": "Az érvényes intervallum 0 és 60 másodperc között van.",
+      "invalid_percent": "Az érvényes tartomány 0 és 100 százalék között van."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Modbus Konfiguráció Ellenőrzése",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Modbus Konfiguráció Ellenőrzése",
+            "description": "Hiba történt a Modbus/TCP kapcsolat megnyitásakor.\n\nKérjük, erősítse meg a konfigurációt.",
+            "data": {
+              "host": "Inverter IP-címe",
+              "port": "Modbus/TCP Port",
+              "device_list": "Inverter Eszközazonosító-lista"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "Az eszközazonosítónak 1 és 247 között kell lennie.",
+          "invalid_inverter_count": "1 és 32 inverter között kell lennie.",
+          "invalid_host": "Érvénytelen IP-cím.",
+          "invalid_tcp_port": "Az érvényes porttartomány 1 és 65535 között van.",
+          "invalid_range_format": "A bejegyzés tartománynak tűnik, de tartományonként csak egy '-' engedélyezett.",
+          "invalid_range_lte": "A tartomány kezdő azonosítójának kisebbnek vagy egyenlőnek kell lennie, mint a záró azonosító.",
+          "empty_device_id": "Az azonosítólista üres vagy nem definiált értéket tartalmaz.",
+          "already_configured": "A gazdagép és a port már konfigurálva van egy másik hubon."
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Érvénytelen Inverter Eszközazonosító",
+      "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen nem válaszol, vagy nem érvényes SolarEdge inverter. Ki lett hagyva. Ha az eszközt kicserélték, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. Ellenkező esetben ellenőrizze az eszközt és a Modbus/TCP kapcsolatot."
+    },
+    "detect_timeout_gpc": {
+      "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése",
+      "description": "Az inverter nem válaszolt a Globális Dinamikus Teljesítményvezérlők adatainak olvasásakor. Ezek az entitások nem lesznek elérhetők. Tiltsa le a További Entitások Automatikus Felismerése opciót, ha az inverternek problémái vannak ezen érzékelők olvasásával."
+    },
+    "detect_timeout_apc": {
+      "title": "Speciális Teljesítményvezérlés Időtúllépése",
+      "description": "Az inverter nem válaszolt a Speciális Teljesítményvezérlők adatainak olvasásakor. Ezek az entitások nem lesznek elérhetők. Tiltsa le a További Entitások Automatikus Felismerése opciót, ha az inverternek problémái vannak ezen érzékelők olvasásával."
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolarEdge Modbus-konfiguration",
+        "menu_options": {
+          "scan_fast": "Hurtig scanning efter invertere",
+          "scan_full": "Fuldstændig scanning efter invertere",
+          "manual_list": "Manuel opsætning"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan de første 32 Modbus-enheds-ID'er (1-32)",
+          "scan_full": "Scan alle Modbus-enheds-ID'er (1-247)",
+          "manual_list": "Indtast manuelt en liste over inverterens enheds-ID'er"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Opdaget SolarEdge-inverter",
+        "description": "Der blev fundet en SolarEdge Modbus/TCP-gateway på {host}:{port}. Vil du konfigurere den nu?",
+        "data": {
+          "name": "Sensorpræfiks"
+        }
+      },
+      "manual": {
+        "title": "Manuel Modbus-konfiguration",
+        "data": {
+          "name": "Sensorpræfiks",
+          "host": "Inverterens IP-adresse",
+          "port": "Modbus/TCP-port",
+          "device_list": "Liste over inverterens enheds-ID'er",
+          "bypass_device_check": "Spring validering af enheds-ID over"
+        },
+        "data_description": {
+          "bypass_device_check": "Tilføj enheds-ID-listen uden at oprette forbindelse for at kontrollere, at hvert ID svarer som en SolarEdge-inverter. Brug kun dette, hvis kontrollen mislykkes for en enhed, du ved er korrekt, f.eks. en, der er offline under opsætningen."
+        }
+      },
+      "scan_ask_host": {
+        "title": "Søg efter SolarEdge-invertere",
+        "data": {
+          "name": "Sensorpræfiks",
+          "host": "Inverterens IP-adresse",
+          "port": "Modbus/TCP-port"
+        }
+      },
+      "scan_complete": {
+        "title": "Scanning fuldført"
+      },
+      "features_info": {
+        "title": "Batterier og styring er endnu ikke aktiveret",
+        "description": "Som standard er kun officielt dokumenterede SolarEdge-funktioner aktiveret: invertere, Synergy-invertere og målere.\n\nBatteriovervågning og alle læse-/skrivestyringsfunktioner (batteristyring, styring af anlægsgrænse) er baseret på dokumentation, som SolarEdge ikke offentliggør. Disse er deaktiveret som standard og skal aktiveres separat fra integrationens konfigurationsindstillinger, efter at denne hub er tilføjet.\n\nIkke alle invertere understøtter dette via Modbus. Du skal muligvis kontakte SolarEdge-support for at få adgang til batteri- og styringsfunktioner på din installation."
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-konfiguration",
+        "data": {
+          "host": "Inverterens IP-adresse",
+          "port": "Modbus/TCP-port",
+          "device_list": "Liste over inverterens enheds-ID'er"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Enheden er allerede konfigureret!",
+      "invalid_device_id": "Enheds-ID skal være mellem 1 og 247.",
+      "invalid_inverter_count": "Skal være mellem 1 og 32 invertere.",
+      "invalid_host": "Ugyldig IP-adresse.",
+      "invalid_tcp_port": "Gyldigt portinterval er 1 til 65535.",
+      "invalid_range_format": "Posten ligner et interval, men kun ét '-' pr. interval er tilladt.",
+      "invalid_range_lte": "Start-ID i et interval skal være mindre end eller lig med slut-ID.",
+      "empty_device_id": "ID-listen indeholder en tom eller udefineret værdi.",
+      "scan_failed": "Kunne ikke scanne efter invertere. Kontroller din forbindelse, og prøv igen."
+    },
+    "abort": {
+      "already_configured": "Vært og port er allerede konfigureret i en anden hub.",
+      "reconfigure_successful": "Genkonfiguration lykkedes"
+    },
+    "progress": {
+      "scanning_for_inverters": "Søger efter SolarEdge-invertere..."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SolarEdge Modbus-indstillinger",
+        "data": {
+          "scan_interval": "Pollingfrekvens (sekunder)",
+          "keep_modbus_open": "Hold Modbus-forbindelsen åben",
+          "detect_meters": "Automatisk registrering af målere",
+          "detect_batteries": "Automatisk registrering af batterier",
+          "detect_extras": "Automatisk registrering af yderligere enheder",
+          "advanced_power_control": "Effektstyringsindstillinger",
+          "sleep_after_write": "Forsinkelse for inverterkommando (sekunder)"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Effektstyringsindstillinger",
+        "data": {
+          "adv_storage_control": "Aktivér lagerstyring",
+          "adv_site_limit_control": "Aktivér styring af anlægsgrænse"
+        },
+        "description": "Advarsel: Disse indstillinger kan overtræde forsyningsaftaler, ændre din elregning, kræve specielt udstyr og overskrive konfiguration foretaget af SolarEdge eller din installatør. Bruges på eget ansvar! Justerbare parametre i Modbus-registre er beregnet til langtidslagring. Hyppige ændringer kan beskadige flashhukommelsen."
+      },
+      "battery_options": {
+        "title": "Batteriindstillinger",
+        "data": {
+          "allow_battery_energy_reset": "Tillad nulstilling af batterienergi",
+          "battery_energy_reset_cycles": "Opdateringscyklusser til nulstilling af batterienergi",
+          "battery_rating_adjust": "Justering af batterikapacitet (procent)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Gyldigt interval er 1 til 86400 sekunder.",
+      "invalid_sleep_interval": "Gyldigt interval er 0 til 60 sekunder.",
+      "invalid_percent": "Gyldigt interval er 0 til 100 procent."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Kontrollér Modbus-konfiguration",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Kontrollér Modbus-konfiguration",
+            "description": "Der opstod en fejl under forsøg på at åbne en Modbus/TCP-forbindelse.\n\nBekræft venligst din konfiguration.",
+            "data": {
+              "host": "Inverterens IP-adresse",
+              "port": "Modbus/TCP-port",
+              "device_list": "Liste over inverterens enheds-ID'er"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "Enheds-ID skal være mellem 1 og 247.",
+          "invalid_inverter_count": "Skal være mellem 1 og 32 invertere.",
+          "invalid_host": "Ugyldig IP-adresse.",
+          "invalid_tcp_port": "Gyldigt portinterval er 1 til 65535.",
+          "invalid_range_format": "Posten ligner et interval, men kun ét '-' pr. interval er tilladt.",
+          "invalid_range_lte": "Start-ID i et interval skal være mindre end eller lig med slut-ID.",
+          "empty_device_id": "ID-listen indeholder en tom eller udefineret værdi.",
+          "already_configured": "Vært og port er allerede konfigureret i en anden hub."
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Ugyldigt enheds-ID for inverter",
+      "description": "Inverterens enheds-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-inverter. Den er blevet sprunget over. Hvis enheden er blevet udskiftet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Kontrollér ellers enheden og Modbus/TCP-forbindelsen."
+    },
+    "detect_timeout_gpc": {
+      "title": "Timeout for global dynamisk effektstyring",
+      "description": "Inverteren svarede ikke ved læsning af data til global dynamisk effektstyring. Disse enheder vil være utilgængelige. Deaktivér indstillingen Automatisk registrering af yderligere enheder, hvis inverteren har problemer med at læse disse sensorer."
+    },
+    "detect_timeout_apc": {
+      "title": "Timeout for avanceret effektstyring",
+      "description": "Inverteren svarede ikke ved læsning af data til avanceret effektstyring. Disse enheder vil være utilgængelige. Deaktivér indstillingen Automatisk registrering af yderligere enheder, hvis inverteren har problemer med at læse disse sensorer."
+    }
+  }
+}

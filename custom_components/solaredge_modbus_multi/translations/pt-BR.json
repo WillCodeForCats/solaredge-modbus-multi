@@ -1,0 +1,157 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuração Modbus SolarEdge",
+        "menu_options": {
+          "scan_fast": "Varredura Rápida de Inversores",
+          "scan_full": "Varredura Completa de Inversores",
+          "manual_list": "Configuração Manual"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Varre os primeiros 32 IDs de dispositivo Modbus (1-32)",
+          "scan_full": "Varre todos os IDs de dispositivo Modbus (1-247)",
+          "manual_list": "Insira manualmente uma lista de IDs de dispositivo dos inversores"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Inversor SolarEdge Descoberto",
+        "description": "Um gateway SolarEdge Modbus/TCP foi encontrado em {host}:{port}. Configurá-lo agora?",
+        "data": {
+          "name": "Prefixo do Sensor"
+        }
+      },
+      "manual": {
+        "title": "Configuração Manual do Modbus",
+        "data": {
+          "name": "Prefixo do Sensor",
+          "host": "Endereço IP do Inversor",
+          "port": "Porta Modbus/TCP",
+          "device_list": "Lista de IDs de Dispositivo dos Inversores",
+          "bypass_device_check": "Ignorar validação do ID do dispositivo"
+        },
+        "data_description": {
+          "bypass_device_check": "Adicione a lista de IDs de dispositivo sem se conectar para verificar se cada ID responde como um inversor SolarEdge. Use isso apenas se a verificação falhar para um dispositivo que você sabe que está correto, como um que está offline durante a configuração."
+        }
+      },
+      "scan_ask_host": {
+        "title": "Buscar Inversores SolarEdge",
+        "data": {
+          "name": "Prefixo do Sensor",
+          "host": "Endereço IP do Inversor",
+          "port": "Porta Modbus/TCP"
+        }
+      },
+      "scan_complete": {
+        "title": "Varredura Concluída"
+      },
+      "features_info": {
+        "title": "Baterias e Controles Ainda Não Estão Habilitados",
+        "description": "Por padrão, apenas os recursos oficialmente documentados da SolarEdge são habilitados: inversores, inversores Synergy e medidores.\n\nO monitoramento de bateria e todos os recursos de controle de leitura/gravação (controle de bateria, controle de limite do local) são baseados em documentação que a SolarEdge não publica. Esses recursos estão desabilitados por padrão e devem ser ativados separadamente nas opções de configuração da integração após este hub ser adicionado.\n\nNem todos os inversores suportam esses recursos via Modbus. Pode ser necessário entrar em contato com o suporte da SolarEdge para liberar o acesso à bateria e aos controles em sua instalação."
+      },
+      "reconfigure": {
+        "title": "Configuração Modbus SolarEdge",
+        "data": {
+          "host": "Endereço IP do Inversor",
+          "port": "Porta Modbus/TCP",
+          "device_list": "Lista de IDs de Dispositivo dos Inversores"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "O dispositivo já está configurado!",
+      "invalid_device_id": "O ID do dispositivo deve estar entre 1 e 247.",
+      "invalid_inverter_count": "Deve haver entre 1 e 32 inversores.",
+      "invalid_host": "Endereço IP inválido.",
+      "invalid_tcp_port": "O intervalo de porta válido é de 1 a 65535.",
+      "invalid_range_format": "A entrada parece um intervalo, mas apenas um '-' por intervalo é permitido.",
+      "invalid_range_lte": "O ID inicial de um intervalo deve ser menor ou igual ao ID final.",
+      "empty_device_id": "A lista de IDs contém um valor vazio ou indefinido.",
+      "scan_failed": "Falha ao buscar inversores. Verifique sua conexão e tente novamente."
+    },
+    "abort": {
+      "already_configured": "O host e a porta já estão configurados em outro hub.",
+      "reconfigure_successful": "A reconfiguração foi bem-sucedida"
+    },
+    "progress": {
+      "scanning_for_inverters": "Buscando inversores SolarEdge..."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções do Modbus SolarEdge",
+        "data": {
+          "scan_interval": "Frequência de Sondagem (segundos)",
+          "keep_modbus_open": "Manter Conexão Modbus Aberta",
+          "detect_meters": "Detecção Automática de Medidores",
+          "detect_batteries": "Detecção Automática de Baterias",
+          "detect_extras": "Detecção Automática de Entidades Adicionais",
+          "advanced_power_control": "Opções de Controle de Energia",
+          "sleep_after_write": "Atraso de Comando do Inversor (segundos)"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "Opções de Controle de Energia",
+        "data": {
+          "adv_storage_control": "Ativar Controle de Armazenamento",
+          "adv_site_limit_control": "Ativar Controle de Limite do Local"
+        },
+        "description": "Aviso: Essas opções podem violar acordos com a concessionária, alterar sua fatura de energia, exigir equipamentos especiais e substituir o provisionamento feito pela SolarEdge ou seu instalador. Use por sua conta e risco! Os parâmetros ajustáveis nos registradores Modbus são destinados ao armazenamento de longo prazo. Alterações periódicas podem danificar a memória flash."
+      },
+      "battery_options": {
+        "title": "Opções de Bateria",
+        "data": {
+          "allow_battery_energy_reset": "Permitir Redefinição da Energia da Bateria",
+          "battery_energy_reset_cycles": "Ciclos de Atualização para Redefinir a Energia da Bateria",
+          "battery_rating_adjust": "Ajuste de Capacidade da Bateria (porcentagem)"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "O intervalo válido é de 1 a 86400 segundos.",
+      "invalid_sleep_interval": "O intervalo válido é de 0 a 60 segundos.",
+      "invalid_percent": "O intervalo válido é de 0 a 100 por cento."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Verificar Configuração do Modbus",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Verificar Configuração do Modbus",
+            "description": "Ocorreu um erro ao tentar abrir uma conexão Modbus/TCP.\n\nPor favor, confirme sua configuração.",
+            "data": {
+              "host": "Endereço IP do Inversor",
+              "port": "Porta Modbus/TCP",
+              "device_list": "Lista de IDs de Dispositivo dos Inversores"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "O ID do dispositivo deve estar entre 1 e 247.",
+          "invalid_inverter_count": "Deve haver entre 1 e 32 inversores.",
+          "invalid_host": "Endereço IP inválido.",
+          "invalid_tcp_port": "O intervalo de porta válido é de 1 a 65535.",
+          "invalid_range_format": "A entrada parece um intervalo, mas apenas um '-' por intervalo é permitido.",
+          "invalid_range_lte": "O ID inicial de um intervalo deve ser menor ou igual ao ID final.",
+          "empty_device_id": "A lista de IDs contém um valor vazio ou indefinido.",
+          "already_configured": "O host e a porta já estão configurados em outro hub."
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "ID de Dispositivo do Inversor Inválido",
+      "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está respondendo ou não é um inversor SolarEdge válido. Ele foi ignorado. Se o dispositivo foi substituído ou seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a conexão Modbus/TCP."
+    },
+    "detect_timeout_gpc": {
+      "title": "Tempo Limite do Controle Dinâmico de Energia Global",
+      "description": "O inversor não respondeu ao ler dados dos Controles Dinâmicos de Energia Global. Essas entidades ficarão indisponíveis. Desative a opção Detecção Automática de Entidades Adicionais se o inversor tiver problemas para ler esses sensores."
+    },
+    "detect_timeout_apc": {
+      "title": "Tempo Limite do Controle de Energia Avançado",
+      "description": "O inversor não respondeu ao ler dados dos Controles de Energia Avançados. Essas entidades ficarão indisponíveis. Desative a opção Detecção Automática de Entidades Adicionais se o inversor tiver problemas para ler esses sensores."
+    }
+  }
+}

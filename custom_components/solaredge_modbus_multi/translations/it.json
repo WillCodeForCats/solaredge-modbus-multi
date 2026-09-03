@@ -125,8 +125,7 @@
             "data": {
               "host": "Indirizzo IP dell'inverter",
               "port": "Porta Modbus/TCP",
-              "device_id": "Indirizzo Modbus dell'inverter (ID dispositivo)",
-              "number_of_inverters": "Numero di inverter"
+              "device_list": "Elenco ID dispositivi inverter"
             }
           }
         },

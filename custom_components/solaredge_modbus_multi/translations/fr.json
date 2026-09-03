@@ -125,8 +125,7 @@
             "data": {
               "host": "Adresse IP de l'onduleur",
               "port": "Port Modbus/TCP",
-              "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
-              "number_of_inverters": "Nombre d'onduleurs"
+              "device_list": "Liste des ID des appareils de l'onduleur"
             }
           }
         },

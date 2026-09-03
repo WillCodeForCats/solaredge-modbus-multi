@@ -125,8 +125,7 @@
             "data": {
               "host": "IP-adres van omvormer",
               "port": "Modbus/TCP-poort",
-              "device_id": "Inverter Modbus-adresse (enhets-ID)",
-              "number_of_inverters": "Antall omformere koblet sammen"
+              "device_list": "Inverter-enhetsliste"
             }
           }
         },
