@@ -754,6 +754,8 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
         self.storage_control = None
+        self._gpc_timeouts_count = 0
+        self._apc_timeouts_count = 0
         self._use_status_vendor4 = False
         self._use_mmppt_units = False
         self.write_count = 0
@@ -781,6 +783,9 @@ class SolarEdgeInverter:
         self.storage_control_data = StorageControl(
             self.hub.connection.for_unit(self.inverter_unit_id)
         )
+
+    def _feature_timeout_issue_id(self, feature: str) -> str:
+        return f"detect_timeout_{feature}_{self.hub._entry_id}_{self.inverter_unit_id}"
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
@@ -1017,13 +1022,19 @@ class SolarEdgeInverter:
                     self.inverter_unit_id, self.global_power_control_data
                 )
                 self.global_power_control = True
+                self._gpc_timeouts_count = 0
 
                 self.decoded_model.update(
                     component_to_dict(self.global_power_control_data)
                 )
 
+                ir.async_delete_issue(
+                    self.hub._hass, DOMAIN, self._feature_timeout_issue_id("gpc")
+                )
+
             except ModbusExceptionError:
                 self.global_power_control = False
+                self._gpc_timeouts_count = 0
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: global power control NOT available"
                 )
@@ -1033,21 +1044,44 @@ class SolarEdgeInverter:
                 ModbusProtocolError,
                 ModbusTimeoutError,
             ):
-                self.global_power_control = False
-                ir.async_create_issue(
-                    self.hub._hass,
-                    DOMAIN,
-                    "detect_timeout_gpc",
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.WARNING,
-                    translation_key="detect_timeout_gpc",
-                    data={"entry_id": self.hub._entry_id},
-                )
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: The inverter did not respond while "
-                    "reading data for Global Dynamic Power Controls. These entities "
-                    "will be unavailable."
-                )
+                if self.global_power_control is None:
+                    give_up = True
+                else:
+                    self._gpc_timeouts_count += 1
+                    give_up = (
+                        self._gpc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
+                    )
+
+                if give_up:
+                    self.global_power_control = False
+                    self._gpc_timeouts_count = 0
+                    ir.async_create_issue(
+                        self.hub._hass,
+                        DOMAIN,
+                        self._feature_timeout_issue_id("gpc"),
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.WARNING,
+                        translation_key="detect_timeout_gpc",
+                        translation_placeholders={
+                            "device_id": str(self.inverter_unit_id),
+                            "host": self.hub.hub_host,
+                        },
+                        data={
+                            "entry_id": self.hub._entry_id,
+                            "inverter_unit_id": self.inverter_unit_id,
+                        },
+                    )
+                    _LOGGER.debug(
+                        f"I{self.inverter_unit_id}: The inverter did not respond "
+                        "while reading data for Global Dynamic Power Controls. "
+                        "These entities will be unavailable."
+                    )
+                else:
+                    _LOGGER.debug(
+                        f"I{self.inverter_unit_id}: global power control read "
+                        f"failed ({self._gpc_timeouts_count} of "
+                        f"{RetrySettings.FeatureProbeTimeouts} times before disabling."
+                    )
 
         """ Advanced Power Control: Power Control Block """
         if self.hub.option_detect_extras and self.advanced_power_control is not False:
@@ -1060,13 +1094,19 @@ class SolarEdgeInverter:
                     self.inverter_unit_id, self.advanced_power_control_data
                 )
                 self.advanced_power_control = True
+                self._apc_timeouts_count = 0
 
                 self.decoded_model.update(
                     component_to_dict(self.advanced_power_control_data)
                 )
 
+                ir.async_delete_issue(
+                    self.hub._hass, DOMAIN, self._feature_timeout_issue_id("apc")
+                )
+
             except ModbusExceptionError:
                 self.advanced_power_control = False
+                self._apc_timeouts_count = 0
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: advanced power control NOT available"
                 )
@@ -1076,21 +1116,44 @@ class SolarEdgeInverter:
                 ModbusProtocolError,
                 ModbusTimeoutError,
             ):
-                self.advanced_power_control = False
-                ir.async_create_issue(
-                    self.hub._hass,
-                    DOMAIN,
-                    "detect_timeout_apc",
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.WARNING,
-                    translation_key="detect_timeout_apc",
-                    data={"entry_id": self.hub._entry_id},
-                )
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: The inverter did not respond while "
-                    "reading data for Advanced Power Controls. These entities "
-                    "will be unavailable."
-                )
+                if self.advanced_power_control is None:
+                    give_up = True
+                else:
+                    self._apc_timeouts_count += 1
+                    give_up = (
+                        self._apc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
+                    )
+
+                if give_up:
+                    self.advanced_power_control = False
+                    self._apc_timeouts_count = 0
+                    ir.async_create_issue(
+                        self.hub._hass,
+                        DOMAIN,
+                        self._feature_timeout_issue_id("apc"),
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.WARNING,
+                        translation_key="detect_timeout_apc",
+                        translation_placeholders={
+                            "device_id": str(self.inverter_unit_id),
+                            "host": self.hub.hub_host,
+                        },
+                        data={
+                            "entry_id": self.hub._entry_id,
+                            "inverter_unit_id": self.inverter_unit_id,
+                        },
+                    )
+                    _LOGGER.debug(
+                        f"I{self.inverter_unit_id}: The inverter did not respond "
+                        "while reading data for Advanced Power Controls. These "
+                        "entities will be unavailable."
+                    )
+                else:
+                    _LOGGER.debug(
+                        f"I{self.inverter_unit_id}: advanced power control read "
+                        f"failed ({self._apc_timeouts_count} of "
+                        f"{RetrySettings.FeatureProbeTimeouts} times before disabling."
+                    )
 
         """ Power Control Options: Site Limit Control """
         if self.hub.option_site_limit_control and self.site_limit_control is not False:
