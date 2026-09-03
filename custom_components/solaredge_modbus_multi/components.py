@@ -389,10 +389,10 @@ class BatteryInfo(Component):
 
     _B_Manufacturer = string(57600, 16)
     _B_Model = string(57616, 16)
-    B_Version = string(57632, 16)
+    _B_Version = string(57632, 16)
     _B_SerialNumber = string(57648, 16)
-    B_Device_Address = integer(57664, signed=False)
-    B_RatedEnergy = float32(57666, unit="Wh", word_order="little")
+    _B_Device_Address = integer(57664, signed=False)
+    _B_RatedEnergy = float32(57666, unit="Wh", word_order="little")
 
     @property
     def B_Manufacturer(self) -> str | None:
@@ -420,6 +420,18 @@ class BatteryInfo(Component):
         if serial is None:
             return None
         return serial.translate(_ASCII_CTRL_CHARS)
+
+    @property
+    def B_Version(self) -> str | None:
+        return self._B_Version
+
+    @property
+    def B_Device_Address(self) -> int | None:
+        return self._B_Device_Address
+
+    @property
+    def B_RatedEnergy(self) -> float | None:
+        return self._B_RatedEnergy
 
 
 class BatteryData(Component):
