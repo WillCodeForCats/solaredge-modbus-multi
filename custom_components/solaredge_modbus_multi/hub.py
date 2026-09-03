@@ -712,7 +712,7 @@ class SolarEdgeModbusMultiHub:
                     f"Write failed: No response from inverter ID {self._wr_unit}."
                 )
                 raise HomeAssistantError(
-                    "No response from inverter ID {self._wr_unit}."
+                    f"No response from inverter ID {self._wr_unit}."
                 )
 
             if type(result) is ExceptionResponse:
@@ -721,7 +721,7 @@ class SolarEdgeModbusMultiHub:
                         f"Unit {self._wr_unit} Write IllegalAddress: {result}"
                     )
                     raise HomeAssistantError(
-                        "Address not supported at device at ID {self._wr_unit}."
+                        f"Address not supported at device at ID {self._wr_unit}."
                     )
 
                 if result.exception_code == ModbusExceptions.IllegalFunction:
@@ -729,13 +729,13 @@ class SolarEdgeModbusMultiHub:
                         f"Unit {self._wr_unit} Write IllegalFunction: {result}"
                     )
                     raise HomeAssistantError(
-                        "Function not supported by device at ID {self._wr_unit}."
+                        f"Function not supported by device at ID {self._wr_unit}."
                     )
 
                 if result.exception_code == ModbusExceptions.IllegalValue:
                     _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalValue: {result}")
                     raise HomeAssistantError(
-                        "Value invalid for device at ID {self._wr_unit}."
+                        f"Value invalid for device at ID {self._wr_unit}."
                     )
 
             await self.disconnect()
