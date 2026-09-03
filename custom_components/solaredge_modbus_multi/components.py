@@ -28,9 +28,24 @@ from modbus_connection.model.sunspec import SunSpecComponent, enum16, sunssf, ui
 _ASCII_CTRL_CHARS = dict.fromkeys(range(32))
 
 
+def component_field_names(component: Component) -> list[str]:
+    """Every public field name a component exposes for logging/diagnostics.
+
+    Declared fields plus any @property a class, minus anything private.
+    """
+    names = [name for name in component.declared_fields if not name.startswith("_")]
+    for base_class in reversed(type(component).__mro__):
+        for name, value in vars(base_class).items():
+            if name.startswith("_") or not isinstance(value, property):
+                continue
+            if name not in names:
+                names.append(name)
+    return names
+
+
 def component_to_dict(component: Component) -> dict[str, Any]:
-    """Build a dict of field name to decoded value from a Component's declared fields."""
-    return {name: getattr(component, name) for name in component.declared_fields}
+    """Build a dict of field name to value from a Component's public fields."""
+    return {name: getattr(component, name) for name in component_field_names(component)}
 
 
 class InverterCommon(Component):

@@ -39,6 +39,7 @@ from .components import (
     SiteLimitControl,
     StorageControl,
     component_to_dict,
+    component_field_names,
 )
 from .const import (
     BATTERY_REG_BASE,
@@ -129,6 +130,20 @@ def _parse_se_version(version_str: str) -> AwesomeVersion:
     """Strip zero-padding from SolarEdge firmware version strings."""
     stripped = ".".join(str(int(p)) for p in version_str.split("."))
     return AwesomeVersion(stripped, ensure_strategy=AwesomeVersionStrategy.SIMPLEVER)
+
+
+def _log_component_fields(prefix: str, component) -> None:
+    """Debug-log every field of a just-read component, by name."""
+    if not _LOGGER.isEnabledFor(logging.DEBUG):
+        return
+
+    for name in component_field_names(component):
+        value = getattr(component, name)
+        if isinstance(value, float):
+            display_value = float_to_hex(value)
+        else:
+            display_value = hex(value) if isinstance(value, int) else value
+        _LOGGER.debug(f"{prefix}: {name} {display_value} {type(value)}")
 
 
 class SolarEdgeModbusMultiHub:
