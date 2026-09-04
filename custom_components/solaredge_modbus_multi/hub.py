@@ -1066,7 +1066,7 @@ class SolarEdgeInverter:
                     _LOGGER.debug(
                         f"I{self.inverter_unit_id}: global power control read "
                         f"failed ({self._gpc_timeouts_count} of "
-                        f"{RetrySettings.FeatureProbeTimeouts} times before disabling."
+                        f"{RetrySettings.FeatureProbeTimeouts} times) before disabling."
                     )
 
         """ Advanced Power Control: Power Control Block """
@@ -1139,7 +1139,7 @@ class SolarEdgeInverter:
                     _LOGGER.debug(
                         f"I{self.inverter_unit_id}: advanced power control read "
                         f"failed ({self._apc_timeouts_count} of "
-                        f"{RetrySettings.FeatureProbeTimeouts} times before disabling."
+                        f"{RetrySettings.FeatureProbeTimeouts} times) before disabling."
                     )
 
         """ Power Control Options: Site Limit Control """
