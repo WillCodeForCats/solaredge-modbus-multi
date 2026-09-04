@@ -1030,13 +1030,9 @@ class SolarEdgeInverter:
                 ModbusTimeoutError,
                 ModbusExceptionError,
             ):
-                if self.global_power_control is None:
-                    give_up = True
-                else:
-                    self._gpc_timeouts_count += 1
-                    give_up = (
-                        self._gpc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
-                    )
+                # Anything other than a definitive rejection above is treated
+                self._gpc_timeouts_count += 1
+                give_up = self._gpc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
 
                 if give_up:
                     self.global_power_control = False
@@ -1103,13 +1099,8 @@ class SolarEdgeInverter:
                 ModbusTimeoutError,
                 ModbusExceptionError,
             ):
-                if self.advanced_power_control is None:
-                    give_up = True
-                else:
-                    self._apc_timeouts_count += 1
-                    give_up = (
-                        self._apc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
-                    )
+                self._apc_timeouts_count += 1
+                give_up = self._apc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
 
                 if give_up:
                     self.advanced_power_control = False
