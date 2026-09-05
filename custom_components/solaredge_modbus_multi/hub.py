@@ -753,6 +753,10 @@ class SolarEdgeModbusMultiHub:
 
         this_timeout = this_timeout / 1000
 
+        # The per-step timeouts were based on the default request_timeout;
+        # scale the coordinator timeout if the user changes the value
+        this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
+
         _LOGGER.debug(f"coordinator timeout is {this_timeout}")
         return this_timeout
 
