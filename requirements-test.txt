@@ -1,4 +1,5 @@
 pytest>=8.0.0
-awesomeversion>=25.5.0
-pymodbus>=3.8.3
 pytest-homeassistant-custom-component>=0.13.0
+modbus-connection[tmodbus]>=4.10.0
+tmodbus>=0.6.1
+awesomeversion>=25.5.0

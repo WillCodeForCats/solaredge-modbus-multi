@@ -8,6 +8,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
+from .components import component_to_dict
 from .const import DOMAIN
 from .helpers import float_to_hex
 
@@ -17,6 +18,11 @@ REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
 REDACT_BATTERY = {
     "identifiers",
     "B_SerialNumber",
+    "serial_number",
+    "via_device",
+}
+REDACT_DER_BATTERY = {
+    "identifiers",
     "serial_number",
     "via_device",
 }
@@ -41,6 +47,18 @@ def format_values(format_input) -> Any:
     return format_input
 
 
+def _inverter_model(inverter) -> dict[str, Any]:
+    """Build the inverter's model dict fresh from its live components."""
+    model: dict[str, Any] = component_to_dict(inverter.inverter_data)
+    model.update(component_to_dict(inverter.mmppt_data))
+    for unit_index, mmppt_unit_data in enumerate(inverter.mmppt_data.units):
+        model[f"mmppt_{unit_index}"] = component_to_dict(mmppt_unit_data)
+    model.update(component_to_dict(inverter.global_power_control_data))
+    model.update(component_to_dict(inverter.advanced_power_control_data))
+    model.update(component_to_dict(inverter.site_limit_control_data))
+    return model
+
+
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> dict[str, Any]:
@@ -48,7 +66,7 @@ async def async_get_config_entry_diagnostics(
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
 
     data: dict[str, Any] = {
-        "pymodbus_version": hub.pymodbus_version,
+        "tmodbus_version": hub.tmodbus_version,
         "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
         "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
@@ -60,13 +78,19 @@ async def async_get_config_entry_diagnostics(
                 "global_power_control": inverter.global_power_control,
                 "advanced_power_control": inverter.advanced_power_control,
                 "site_limit_control": inverter.site_limit_control,
-                "common": inverter.decoded_common,
-                "model": format_values(inverter.decoded_model),
-                "is_mmppt": inverter.is_mmppt,
-                "mmppt": format_values(inverter.decoded_mmppt),
-                "has_battery": inverter.has_battery,
-                "storage_control": format_values(inverter.decoded_storage_control),
+                "common": component_to_dict(inverter.inverter_common),
+                "model": format_values(_inverter_model(inverter)),
+                "mmppt": format_values(component_to_dict(inverter.mmppt_common)),
+                "storage_control": format_values(
+                    component_to_dict(inverter.storage_control_data)
+                ),
                 "use_status_vendor4": inverter.use_status_vendor4,
+                "use_mmppt_units": inverter.use_mmppt_units,
+                "has_battery": inverter.has_battery,
+                "has_storage_control": inverter.has_storage_control,
+                "has_global_power_control": inverter.has_global_power_control,
+                "has_advanced_power_control": inverter.has_advanced_power_control,
+                "has_site_limit_control": inverter.has_site_limit_control,
             }
         }
 
@@ -77,8 +101,8 @@ async def async_get_config_entry_diagnostics(
             f"meter_id_{meter.meter_id}": {
                 "device_info": meter.device_info,
                 "inverter_unit_id": meter.inverter_unit_id,
-                "common": meter.decoded_common,
-                "model": format_values(meter.decoded_model),
+                "common": component_to_dict(meter.meter_info),
+                "model": format_values(component_to_dict(meter.meter_data)),
             }
         }
         data.update(async_redact_data(meter, REDACT_METER))
@@ -88,18 +112,31 @@ async def async_get_config_entry_diagnostics(
             f"battery_id_{battery.battery_id}": {
                 "device_info": battery.device_info,
                 "inverter_unit_id": battery.inverter_unit_id,
-                "common": battery.decoded_common,
-                "model": format_values(battery.decoded_model),
+                "common": component_to_dict(battery.battery_info),
+                "model": format_values(component_to_dict(battery.battery_data)),
             }
         }
         data.update(async_redact_data(battery, REDACT_BATTERY))
+
+    for der_battery in hub.der_batteries:
+        der_battery: dict[str, Any] = {
+            f"battery_id_{der_battery.battery_id}": {
+                "device_info": der_battery.device_info,
+                "inverter_unit_id": der_battery.inverter_unit_id,
+                "common": component_to_dict(der_battery.der_storage_capacity_data),
+                "model": format_values(
+                    component_to_dict(der_battery.der_storage_capacity_data)
+                ),
+            }
+        }
+        data.update(async_redact_data(der_battery, REDACT_DER_BATTERY))
 
     for evse in hub.evses:
         evse: dict[str, Any] = {
             f"evse_unit_id_{evse.evse_unit_id}": {
                 "device_info": evse.device_info,
-                "common": evse.decoded_common,
-                "model": format_values(evse.decoded_model),
+                "common": component_to_dict(evse.evse_common),
+                "model": format_values(component_to_dict(evse.evse_common)),
             }
         }
         data.update(async_redact_data(evse, REDACT_EVSE))

@@ -10,17 +10,8 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigFlowResult,
-    OptionsFlow,
-)
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_NAME,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-)
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
@@ -79,7 +70,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 2
-    MINOR_VERSION = 1
+    MINOR_VERSION = 3
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -589,6 +580,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
+            elif user_input[ConfName.REQUEST_TIMEOUT] < 1:
+                errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
+            elif user_input[ConfName.REQUEST_TIMEOUT] > 60:
+                errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
             elif user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
             elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
@@ -610,23 +605,24 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
-                ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
-                    ConfName.KEEP_MODBUS_OPEN,
-                    bool(ConfDefaultFlag.KEEP_MODBUS_OPEN),
+                ConfName.CLOSE_AFTER_POLLING: self.config_entry.options.get(
+                    ConfName.CLOSE_AFTER_POLLING,
+                    bool(ConfDefaultFlag.CLOSE_AFTER_POLLING),
                 ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
                     ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
                 ConfName.DETECT_BATTERIES: self.config_entry.options.get(
-                    ConfName.DETECT_BATTERIES,
-                    bool(ConfDefaultFlag.DETECT_BATTERIES),
+                    ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
                 ),
                 ConfName.DETECT_EXTRAS: self.config_entry.options.get(
                     ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
                 ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_PWR_CONTROL,
-                    bool(ConfDefaultFlag.ADV_PWR_CONTROL),
+                    ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
+                ),
+                ConfName.REQUEST_TIMEOUT: self.config_entry.options.get(
+                    ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
                 ),
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
@@ -642,8 +638,8 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                         default=user_input[CONF_SCAN_INTERVAL],
                     ): vol.Coerce(int),
                     vol.Optional(
-                        f"{ConfName.KEEP_MODBUS_OPEN}",
-                        default=user_input[ConfName.KEEP_MODBUS_OPEN],
+                        f"{ConfName.CLOSE_AFTER_POLLING}",
+                        default=user_input[ConfName.CLOSE_AFTER_POLLING],
                     ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.DETECT_METERS}",
@@ -661,6 +657,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                         f"{ConfName.ADV_PWR_CONTROL}",
                         default=user_input[ConfName.ADV_PWR_CONTROL],
                     ): cv.boolean,
+                    vol.Optional(
+                        f"{ConfName.REQUEST_TIMEOUT}",
+                        default=user_input[ConfName.REQUEST_TIMEOUT],
+                    ): vol.Coerce(int),
                     vol.Optional(
                         f"{ConfName.SLEEP_AFTER_WRITE}",
                         default=user_input[ConfName.SLEEP_AFTER_WRITE],

@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus Options",
         "data": {
           "scan_interval": "Polling Frequency (seconds)",
-          "keep_modbus_open": "Keep Modbus Connection Open",
+          "close_after_polling": "Close Connection After Polling",
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "detect_extras": "Auto-Detect Additional Entities",
           "advanced_power_control": "Power Control Options",
+          "request_timeout": "Modbus Request Timeout (seconds)",
           "sleep_after_write": "Inverter Command Delay (seconds)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Valid interval is 1 to 86400 seconds.",
+      "invalid_request_timeout": "Valid interval is 1 to 60 seconds.",
       "invalid_sleep_interval": "Valid interval is 0 to 60 seconds.",
       "invalid_percent": "Valid range is 0 to 100 percent."
     }
@@ -146,12 +148,34 @@
       "description": "Inverter Device ID {device_id} at {host} is not responding or is not a valid SolarEdge inverter. It has been skipped. If the device was replaced or its ID changed, update the Inverter Device ID List in the hub configuration. Otherwise check the device and Modbus/TCP connection."
     },
     "detect_timeout_gpc": {
-      "title": "Global Dynamic Power Control Timeout",
-      "description": "The inverter did not respond while reading data for Global Dynamic Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
+      "title": "Global Dynamic Power Control Timeout (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Global Dynamic Power Control Timeout",
+            "description": "Inverter Device ID {device_id} at {host} did not respond while reading data for Global Dynamic Power Controls after several attempts. These entities are unavailable until this is resolved.\n\nConfirm to try detecting this feature again on the next poll. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Advanced Power Control Timeout",
-      "description": "The inverter did not respond while reading data for Advanced Power Controls. These entities will be unavailable. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
+      "title": "Advanced Power Control Timeout (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Advanced Power Control Timeout",
+            "description": "Inverter Device ID {device_id} at {host} did not respond while reading data for Advanced Power Controls after several attempts. These entities are unavailable until this is resolved.\n\nConfirm to try detecting this feature again on the next poll. Disable the Auto-Detect Additional Entities option if the inverter has trouble trying to read these sensors."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML Configuration No Longer Supported",
+      "description": "The `modbus` section under `solaredge_modbus_multi` in `configuration.yaml` is no longer supported and is being ignored. Please remove it from your YAML configuration."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Keep Modbus Connection Open Option Replaced",
+      "description": "The \"Keep Modbus Connection Open\" option has been replaced by \"Close Connection After Polling\" in this integration's configuration. Review the new option if you need the same behavior."
     }
   }
 }

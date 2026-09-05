@@ -16,6 +16,7 @@ import pytest
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import State
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from modbus_connection.mock import MockModbusConnection
 from pytest_homeassistant_custom_component.common import mock_restore_cache
 
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeInverter
@@ -31,7 +32,9 @@ def _make_platform(write_count=0):
 
 
 def _make_inverter():
-    stub_hub = SimpleNamespace(write_registers=AsyncMock())
+    stub_hub = SimpleNamespace(
+        connection=MockModbusConnection(), component_write=AsyncMock()
+    )
     return SolarEdgeInverter(1, stub_hub)
 
 
@@ -120,27 +123,29 @@ async def test_removes_listener_on_remove(hass):
     assert entity._write_count_updated not in platform.write_count_listeners
 
 
-async def test_write_registers_counts_by_default():
+async def test_write_counts_by_default():
     inverter = _make_inverter()
     calls = []
     inverter.write_count_listeners.add(lambda: calls.append(True))
 
-    await inverter.write_registers(40001, [1])
+    component = SimpleNamespace()
+    await inverter.write(component, "field", 1)
 
-    inverter.hub.write_registers.assert_awaited_once_with(1, 40001, [1])
+    inverter.hub.component_write.assert_awaited_once_with(1, component, "field", 1)
     assert inverter.write_count == 1
     assert calls == [True]
 
 
-async def test_write_registers_count_write_false_skips_counting():
+async def test_write_count_write_false_skips_counting():
     # 95b9d9e "Add a flag to not track a write" - the write itself must still
     # happen, only the counter/listener side is skipped.
     inverter = _make_inverter()
     calls = []
     inverter.write_count_listeners.add(lambda: calls.append(True))
 
-    await inverter.write_registers(40001, [1], count_write=False)
+    component = SimpleNamespace()
+    await inverter.write(component, "field", 1, count_write=False)
 
-    inverter.hub.write_registers.assert_awaited_once_with(1, 40001, [1])
+    inverter.hub.component_write.assert_awaited_once_with(1, component, "field", 1)
     assert inverter.write_count == 0
     assert calls == []

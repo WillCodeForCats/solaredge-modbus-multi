@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus-alternativer",
         "data": {
           "scan_interval": "Avstemningsfrekvens (sekunder)",
-          "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
+          "close_after_polling": "Lukk tilkoblingen etter avstemning",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
           "detect_extras": "Automatisk oppdage flere enheter",
           "advanced_power_control": "Strømkontrollalternativer",
+          "request_timeout": "Tidsavbrudd for Modbus-forespørsel (sekunder)",
           "sleep_after_write": "Inverter Command Delay (sekunder)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
+      "invalid_request_timeout": "Gyldig intervall er 1 til 60 sekunder.",
       "invalid_sleep_interval": "Gyldig intervall er 0 til 60 sekunder.",
       "invalid_percent": "Gyldig område er 0 til 100 prosent."
     }
@@ -147,12 +149,34 @@
       "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."
     },
     "detect_timeout_gpc": {
-      "title": "Global dynamisk kraftkontroll timeout",
-      "description": "Omformeren svarte ikke mens du leste data for global dynamisk kraftkontroll."
+      "title": "Global dynamisk kraftkontroll timeout (Omformer {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Global dynamisk kraftkontroll timeout",
+            "description": "Omformer-enhets-ID {device_id} på {host} svarte ikke etter flere forsøk under lesing av data for global dynamisk kraftkontroll. Disse enhetene er utilgjengelige til dette er løst.\n\nBekreft for å prøve å oppdage denne funksjonen igjen ved neste avlesning. Deaktiver alternativet for automatisk oppdagelse av flere enheter hvis omformeren har problemer med å lese disse sensorene."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Avansert timeout for strømkontroll",
-      "description": "Omformeren svarte ikke mens du leste data for avanserte strømkontroller."
+      "title": "Avansert timeout for strømkontroll (Omformer {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Avansert timeout for strømkontroll",
+            "description": "Omformer-enhets-ID {device_id} på {host} svarte ikke etter flere forsøk under lesing av data for avanserte strømkontroller. Disse enhetene er utilgjengelige til dette er løst.\n\nBekreft for å prøve å oppdage denne funksjonen igjen ved neste avlesning. Deaktiver alternativet for automatisk oppdagelse av flere enheter hvis omformeren har problemer med å lese disse sensorene."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML-konfigurasjon støttes ikke lenger",
+      "description": "Seksjonen `modbus` under `solaredge_modbus_multi` i `configuration.yaml` støttes ikke lenger og blir ignorert. Fjern den fra YAML-konfigurasjonen din."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet",
+      "description": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet av «Lukk tilkoblingen etter avstemning» i konfigurasjonen til denne integrasjonen. Se på det nye alternativet hvis du trenger samme oppførsel."
     }
   }
 }

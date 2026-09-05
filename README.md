@@ -55,8 +55,8 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 ### Minimum Required Versions
 
-- Home Assistant 2025.6.0 (HA=>2025.9.0 requires release v3.1.7 or newer)
-- pymodbus 3.8.3 (pymodbus>=3.10.0 requires release v3.1.6 or newer)
+- Home Assistant 2025.9.0
+- modbus-connection 4.10.0 or newer
 
 ## Specifications
 
