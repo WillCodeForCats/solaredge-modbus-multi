@@ -61,7 +61,6 @@ class RetrySettings(IntEnum):
     Time = 1000  # first attempt in milliseconds
     Ratio = 2  # time multiplier between each attempt
     Limit = 6  # number of attempts before failing
-    RequestTimeout = 3  # timeout for a single modbus request, in seconds
     RequestRetries = 3  # max attempts for a single modbus request
     CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
     FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
@@ -95,6 +94,7 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 300
     PORT = 1502
+    REQUEST_TIMEOUT = 3
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
@@ -128,6 +128,7 @@ class ConfName(StrEnum):
     ADV_STORAGE_CONTROL = "adv_storage_control"
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
+    REQUEST_TIMEOUT = "request_timeout"
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"

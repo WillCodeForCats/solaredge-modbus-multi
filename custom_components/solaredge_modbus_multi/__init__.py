@@ -83,9 +83,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
+    request_timeout = entry.options.get(
+        ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
+    )
     connection = ModbusConnection(
         ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT]),
-        timeout=RetrySettings.RequestTimeout,
+        timeout=request_timeout,
         message_spacing=MESSAGE_SPACING,
     )
     entry.async_on_unload(connection.close)

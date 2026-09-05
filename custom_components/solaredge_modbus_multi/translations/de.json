@@ -88,6 +88,7 @@
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
           "advanced_power_control": "Optionen zur Leistungssteuerung",
+          "request_timeout": "Modbus-Anfrage-Zeitüberschreitung (Sekunden)",
           "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Gültiges Intervall ist 1 bis 86400 Sekunden.",
+      "invalid_request_timeout": "Gültiges Intervall ist 1 bis 60 Sekunden.",
       "invalid_sleep_interval": "Gültiges Intervall ist 0 bis 60 Sekunden.",
       "invalid_percent": "Gültiges Bereich ist 0 bis 100 Prozent."
     }

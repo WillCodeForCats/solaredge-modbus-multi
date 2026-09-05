@@ -580,6 +580,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
             elif user_input[CONF_SCAN_INTERVAL] > 86400:
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
+            elif user_input[ConfName.REQUEST_TIMEOUT] < 1:
+                errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
+            elif user_input[ConfName.REQUEST_TIMEOUT] > 60:
+                errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
             elif user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
             elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
@@ -617,6 +621,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
                 ),
+                ConfName.REQUEST_TIMEOUT: self.config_entry.options.get(
+                    ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
+                ),
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
                 ),
@@ -650,6 +657,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                         f"{ConfName.ADV_PWR_CONTROL}",
                         default=user_input[ConfName.ADV_PWR_CONTROL],
                     ): cv.boolean,
+                    vol.Optional(
+                        f"{ConfName.REQUEST_TIMEOUT}",
+                        default=user_input[ConfName.REQUEST_TIMEOUT],
+                    ): vol.Coerce(int),
                     vol.Optional(
                         f"{ConfName.SLEEP_AFTER_WRITE}",
                         default=user_input[ConfName.SLEEP_AFTER_WRITE],

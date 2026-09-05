@@ -181,6 +181,9 @@ class SolarEdgeModbusMultiHub:
             ConfName.ALLOW_BATTERY_ENERGY_RESET,
             bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
         )
+        self._request_timeout = entry_options.get(
+            ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
+        )
         self._sleep_after_write = entry_options.get(
             ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
         )
@@ -223,6 +226,7 @@ class SolarEdgeModbusMultiHub:
                 f"adv_storage_control={self._adv_storage_control}, "
                 f"adv_site_limit_control={self._adv_site_limit_control}, "
                 f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
+                f"request_timeout={self._request_timeout}, "
                 f"sleep_after_write={self._sleep_after_write}, "
                 f"battery_rating_adjust={self._battery_rating_adjust}, "
                 f"close_after_polling={self._close_after_polling}, "
@@ -711,6 +715,10 @@ class SolarEdgeModbusMultiHub:
     @property
     def number_of_inverters(self) -> int:
         return len(self._inverter_list)
+
+    @property
+    def request_timeout(self) -> int:
+        return self._request_timeout
 
     @property
     def sleep_after_write(self) -> int:
@@ -1540,8 +1548,8 @@ class SolarEdgeBattery:
             _LOGGER.debug(
                 f"Reading component BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             )
-            async with asyncio.timeout(RetrySettings.RequestTimeout):
-                # only try once during init, otherwise this takes too long
+            async with asyncio.timeout(self.hub.request_timeout):
+                # only try battery once during init, otherwise this takes too long
                 await self.hub.component_update(
                     self.inverter_unit_id, self.battery_info
                 )

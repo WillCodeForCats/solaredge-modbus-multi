@@ -88,6 +88,7 @@
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
           "advanced_power_control": "Opcje kontroli mocy",
+          "request_timeout": "Limit czasu żądania Modbus (sekundy)",
           "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund.",
+      "invalid_request_timeout": "Limit czasu musi być w zakresie od 1 do 60 sekund.",
       "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 60 sekund.",
       "invalid_percent": "Prawidłowy zakres wynosi od 0 do 100 procent."
     }

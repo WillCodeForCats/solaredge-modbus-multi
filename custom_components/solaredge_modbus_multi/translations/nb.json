@@ -88,6 +88,7 @@
           "detect_batteries": "Automatisk gjenkjenning av batterier",
           "detect_extras": "Automatisk oppdage flere enheter",
           "advanced_power_control": "Strømkontrollalternativer",
+          "request_timeout": "Tidsavbrudd for Modbus-forespørsel (sekunder)",
           "sleep_after_write": "Inverter Command Delay (sekunder)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
+      "invalid_request_timeout": "Gyldig intervall er 1 til 60 sekunder.",
       "invalid_sleep_interval": "Gyldig intervall er 0 til 60 sekunder.",
       "invalid_percent": "Gyldig område er 0 til 100 prosent."
     }

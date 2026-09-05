@@ -88,6 +88,7 @@
           "detect_batteries": "Rilevamento automatico delle batterie",
           "detect_extras": "Rileva automaticamente entità aggiuntive",
           "advanced_power_control": "Opzioni di controllo della potenza",
+          "request_timeout": "Timeout richiesta Modbus (secondi)",
           "sleep_after_write": "Ritardo comando inverter (secondi)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "L'intervallo valido è compreso tra 1 e 86400 secondi.",
+      "invalid_request_timeout": "L'intervallo valido è compreso tra 1 e 60 secondi.",
       "invalid_sleep_interval": "L'intervallo valido è compreso tra 0 e 60 secondi.",
       "invalid_percent": "L'intervallo valido è compreso tra 0 e 100%."
     }

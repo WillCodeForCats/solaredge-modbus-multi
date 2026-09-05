@@ -88,6 +88,7 @@
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
           "advanced_power_control": "Options de contrôle de l'alimentation",
+          "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
           "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "L'intervalle valide est de 1 à 86 400 secondes.",
+      "invalid_request_timeout": "L'intervalle valide est de 1 à 60 secondes.",
       "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
       "invalid_percent": "La plage valide est de 0 à 100 %."
     }
