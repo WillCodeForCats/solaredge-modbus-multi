@@ -61,7 +61,7 @@ class RetrySettings(IntEnum):
     Time = 1000  # first attempt in milliseconds
     Ratio = 2  # time multiplier between each attempt
     Limit = 6  # number of attempts before failing
-    RequestTimeout = 6  # timeout for a single modbus request, in seconds
+    RequestTimeout = 3  # timeout for a single modbus request, in seconds
     RequestRetries = 3  # max attempts for a single modbus request
     CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
     FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
