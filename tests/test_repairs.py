@@ -16,6 +16,8 @@ def _make_flow(hass, entry_id, inverter, attr):
 
     flow = RetryFeatureDetectionRepairFlow(entry_id, inverter.inverter_unit_id, attr)
     flow.hass = hass
+    flow.handler = DOMAIN
+    flow.issue_id = f"test_issue_{entry_id}"
     return flow
 
 
