@@ -142,6 +142,7 @@ async def test_gpc_give_up_creates_fixable_issue_then_clears_on_recovery(hass):
     assert issue is not None
     assert issue.is_fixable is True
 
+    inverter.global_power_control = None
     mock_unit.fail_read(GPC_ADDRESS, None)
     await inverter.read_modbus_data()
 
