@@ -47,6 +47,16 @@ def format_values(format_input) -> Any:
     return format_input
 
 
+def _sunspec_scan(inverter) -> list[dict[str, Any]] | None:
+    """The inverter's SunSpec model scan."""
+    if inverter.sunspec_models is None:
+        return None
+    return [
+        {"model_id": model.model_id, "address": model.address, "length": model.length}
+        for model in inverter.sunspec_models.chain
+    ]
+
+
 def _inverter_model(inverter) -> dict[str, Any]:
     """Build the inverter's model dict fresh from its live components."""
     model: dict[str, Any] = component_to_dict(inverter.inverter_data)
@@ -84,6 +94,7 @@ async def async_get_config_entry_diagnostics(
                 "storage_control": format_values(
                     component_to_dict(inverter.storage_control_data)
                 ),
+                "sunspec_models": _sunspec_scan(inverter),
                 "use_status_vendor4": inverter.use_status_vendor4,
                 "use_mmppt_units": inverter.use_mmppt_units,
                 "has_battery": inverter.has_battery,
