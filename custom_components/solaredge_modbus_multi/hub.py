@@ -328,6 +328,7 @@ class SolarEdgeModbusMultiHub:
                 suns_models = await suns_scan(
                     self.connection.for_unit(inverter_unit_id), 40000
                 )
+                new_inverter.sunspec_models = suns_models
 
                 der_storage_models = suns_models.get(713, []) if suns_models else []
 
@@ -770,6 +771,7 @@ class SolarEdgeInverter:
         self.mmppt_units = []
         self.has_parent = False
         self.has_battery = None
+        self.sunspec_models = None
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
