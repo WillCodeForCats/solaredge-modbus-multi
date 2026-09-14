@@ -15,14 +15,17 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import (
     TimestampDataUpdateCoordinator,
     UpdateFailed,
 )
+from modbus_connection import ModbusTcpParams
+from modbus_connection.tmodbus import ModbusConnection
 
-from .const import DOMAIN, ConfDefaultInt, ConfName, RetrySettings
+from .const import DOMAIN, MESSAGE_SPACING, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,15 +52,8 @@ CONFIG_SCHEMA = vol.Schema(
                         vol.Optional("limit"): vol.Coerce(int),
                     }
                 ),
-                "modbus": vol.Schema(
-                    {
-                        vol.Optional("timeout"): vol.Coerce(int),
-                        vol.Optional("retries"): vol.Coerce(int),
-                        vol.Optional("reconnect_delay"): vol.Coerce(float),
-                        vol.Optional("reconnect_delay_max"): vol.Coerce(float),
-                    }
-                ),
-            }
+            },
+            extra=vol.ALLOW_EXTRA,
         )
     },
     extra=vol.ALLOW_EXTRA,
@@ -69,14 +65,36 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
 
+    if "modbus" in hass.data[DOMAIN]["yaml"]:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "deprecated_yaml_modbus",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="deprecated_yaml_modbus",
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, "deprecated_yaml_modbus")
+
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
+    request_timeout = entry.options.get(
+        ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
+    )
+    connection = ModbusConnection(
+        ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT]),
+        timeout=request_timeout,
+        message_spacing=MESSAGE_SPACING,
+    )
+    entry.async_on_unload(connection.close)
+
     solaredge_hub = SolarEdgeModbusMultiHub(
-        hass, entry.entry_id, entry.data, entry.options
+        hass, entry.entry_id, entry.data, entry.options, connection
     )
 
     coordinator = SolarEdgeCoordinator(
@@ -101,9 +119,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    solaredge_hub = hass.data[DOMAIN][entry.entry_id]["hub"]
-    await solaredge_hub.shutdown()
-
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
@@ -230,6 +245,37 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             config_entry, unique_id=new_unique_id, version=2, minor_version=1
         )
 
+    if config_entry.version == 2 and config_entry.minor_version < 2:
+        _LOGGER.debug("Migrating from version 2.1")
+
+        update_options = {**config_entry.options}
+        had_keep_modbus_open = update_options.pop("keep_modbus_open", False)
+
+        if had_keep_modbus_open:
+            ir.async_create_issue(
+                hass,
+                DOMAIN,
+                "deprecated_keep_modbus_open",
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="deprecated_keep_modbus_open",
+            )
+
+        hass.config_entries.async_update_entry(
+            config_entry, options=update_options, version=2, minor_version=2
+        )
+
+    if config_entry.version == 2 and config_entry.minor_version < 3:
+        _LOGGER.debug("Migrating from version 2.2")
+
+        # config 2.3 adds close_after_polling option
+        # keep_modbus_open was removed, but the new close_after_polling
+        # option is similar now that modbus-connection supports
+        # disconnect() without it being a permanent shutdown. The
+        # deprecated_keep_modbus_open repair issue from 2.2 now points
+        # affected users at the replacement option.
+        hass.config_entries.async_update_entry(config_entry, version=2, minor_version=3)
+
     _LOGGER.warning(
         "Migrated to config version "
         f"{config_entry.version}.{config_entry.minor_version}"
@@ -256,10 +302,6 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
 
     async def _async_update_data(self) -> bool:
         try:
-            while self._hub.has_write:
-                _LOGGER.debug(f"Waiting for write {self._hub.has_write}")
-                await asyncio.sleep(1)
-
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,
                 limit=self._yaml_config.get("retry", {}).get(
