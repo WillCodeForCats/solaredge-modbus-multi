@@ -8,7 +8,6 @@ from custom_components.solaredge_modbus_multi.helpers import (
     device_list_from_string,
     float_to_hex,
     host_valid,
-    int_list_to_string,
 )
 
 
@@ -34,28 +33,6 @@ class TestFloatToHex:
     def test_none_raises_type_error(self):
         with pytest.raises(TypeError):
             float_to_hex(None)
-
-
-class TestIntListToString:
-    # 8ac7d03 "Create int_list_to_string helper"
-    # e15b076 "Decode strings as UINT16 with a helper function"
-    # PR #756, pymodbus 3.8 migration
-    # pymodbus STRING decoder couldn't handle SolarEdge's string registers,
-    # so we made our own helper function to decode strings.
-    # modbus-connection doesn't need this since it handles it like we already did
-
-    def test_decodes_ascii_payload_across_registers(self):
-        assert int_list_to_string([0x5345, 0x2020]) == "SE"
-
-    def test_strips_embedded_null_bytes(self):
-        assert int_list_to_string([0x5341, 0x0000]) == "SA"
-
-    def test_empty_list_returns_empty_string(self):
-        assert int_list_to_string([]) == ""
-
-    def test_non_utf8_bytes(self):
-        result = int_list_to_string([0xFF00, 0xFFFF])
-        assert isinstance(result, str)
 
 
 class TestHostValid:

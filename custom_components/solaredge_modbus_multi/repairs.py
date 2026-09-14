@@ -5,12 +5,14 @@ from __future__ import annotations
 import re
 from typing import cast
 
+import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import issue_registry as ir
 
 from .config_flow import generate_config_schema
 from .const import DOMAIN, ConfDefaultStr, ConfName
@@ -108,6 +110,50 @@ class CheckConfigurationRepairFlow(RepairsFlow):
         )
 
 
+class RetryFeatureDetectionRepairFlow(RepairsFlow):
+    """Reset an inverter's optional-feature detection flag."""
+
+    def __init__(self, entry_id: str, inverter_unit_id: int, attr: str) -> None:
+        """Create flow.
+
+        attr is global_power_control or advanced_power_control
+        """
+        self._entry_id = entry_id
+        self._inverter_unit_id = inverter_unit_id
+        self._attr = attr
+        super().__init__()
+
+    async def async_step_init(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Handle the first step of a fix flow."""
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Handle the confirm step of a fix flow."""
+        if user_input is not None:
+            hub = self.hass.data[DOMAIN][self._entry_id]["hub"]
+            for inverter in hub.inverters:
+                if inverter.inverter_unit_id == self._inverter_unit_id:
+                    setattr(inverter, self._attr, None)
+                    break
+
+            return self.async_create_entry(title="", data={})
+
+        issue_registry = ir.async_get(self.hass)
+        description_placeholders = None
+        if issue := issue_registry.async_get_issue(self.handler, self.issue_id):
+            description_placeholders = issue.translation_placeholders
+
+        return self.async_show_form(
+            step_id="confirm",
+            data_schema=vol.Schema({}),
+            description_placeholders=description_placeholders,
+        )
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
@@ -120,3 +166,13 @@ async def async_create_fix_flow(
     if (entry := hass.config_entries.async_get_entry(entry_id)) is not None:
         if issue_id == "check_configuration":
             return CheckConfigurationRepairFlow(entry)
+
+        if issue_id.startswith("detect_timeout_gpc_"):
+            return RetryFeatureDetectionRepairFlow(
+                entry_id, cast(int, data["inverter_unit_id"]), "global_power_control"
+            )
+
+        if issue_id.startswith("detect_timeout_apc_"):
+            return RetryFeatureDetectionRepairFlow(
+                entry_id, cast(int, data["inverter_unit_id"]), "advanced_power_control"
+            )
