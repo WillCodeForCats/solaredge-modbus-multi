@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus Beállítások",
         "data": {
           "scan_interval": "Lekérdezési Gyakoriság (másodperc)",
-          "keep_modbus_open": "Modbus Kapcsolat Nyitva Tartása",
+          "close_after_polling": "Kapcsolat Bezárása Lekérdezés Után",
           "detect_meters": "Mérők Automatikus Felismerése",
           "detect_batteries": "Akkumulátorok Automatikus Felismerése",
           "detect_extras": "További Entitások Automatikus Felismerése",
           "advanced_power_control": "Teljesítményvezérlési Beállítások",
+          "request_timeout": "Modbus Kérés Időtúllépése (másodperc)",
           "sleep_after_write": "Inverter Parancs Késleltetése (másodperc)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Az érvényes intervallum 1 és 86400 másodperc között van.",
+      "invalid_request_timeout": "Az érvényes intervallum 1 és 60 másodperc között van.",
       "invalid_sleep_interval": "Az érvényes intervallum 0 és 60 másodperc között van.",
       "invalid_percent": "Az érvényes tartomány 0 és 100 százalék között van."
     }
@@ -146,12 +148,34 @@
       "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen nem válaszol, vagy nem érvényes SolarEdge inverter. Ki lett hagyva. Ha az eszközt kicserélték, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. Ellenkező esetben ellenőrizze az eszközt és a Modbus/TCP kapcsolatot."
     },
     "detect_timeout_gpc": {
-      "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése",
-      "description": "Az inverter nem válaszolt a Globális Dinamikus Teljesítményvezérlők adatainak olvasásakor. Ezek az entitások nem lesznek elérhetők. Tiltsa le a További Entitások Automatikus Felismerése opciót, ha az inverternek problémái vannak ezen érzékelők olvasásával."
+      "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése",
+            "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen több próbálkozás után sem válaszolt a Globális Dinamikus Teljesítményvezérlők adatainak olvasásakor. Ezek az entitások nem érhetők el, amíg ez meg nem oldódik.\n\nErősítse meg, hogy a funkció felismerését a következő lekérdezéskor újra megpróbálja. Tiltsa le a További Entitások Automatikus Felismerése opciót, ha az inverternek problémái vannak ezen érzékelők olvasásával."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Speciális Teljesítményvezérlés Időtúllépése",
-      "description": "Az inverter nem válaszolt a Speciális Teljesítményvezérlők adatainak olvasásakor. Ezek az entitások nem lesznek elérhetők. Tiltsa le a További Entitások Automatikus Felismerése opciót, ha az inverternek problémái vannak ezen érzékelők olvasásával."
+      "title": "Speciális Teljesítményvezérlés Időtúllépése (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Speciális Teljesítményvezérlés Időtúllépése",
+            "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen több próbálkozás után sem válaszolt a Speciális Teljesítményvezérlők adatainak olvasásakor. Ezek az entitások nem érhetők el, amíg ez meg nem oldódik.\n\nErősítse meg, hogy a funkció felismerését a következő lekérdezéskor újra megpróbálja. Tiltsa le a További Entitások Automatikus Felismerése opciót, ha az inverternek problémái vannak ezen érzékelők olvasásával."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "A Modbus YAML Konfiguráció Már Nem Támogatott",
+      "description": "A `modbus` szakasz a `solaredge_modbus_multi` alatt a `configuration.yaml` fájlban már nem támogatott, és figyelmen kívül lesz hagyva. Kérjük, távolítsa el a YAML konfigurációjából."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "A „Modbus Kapcsolat Nyitva Tartása” Opció Lecserélve",
+      "description": "A „Modbus Kapcsolat Nyitva Tartása” opciót ennek az integrációnak a konfigurációjában a „Kapcsolat Bezárása Lekérdezés Után” váltotta fel. Tekintse át az új opciót, ha ugyanarra a viselkedésre van szüksége."
     }
   }
 }

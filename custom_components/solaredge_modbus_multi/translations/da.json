@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus-indstillinger",
         "data": {
           "scan_interval": "Pollingfrekvens (sekunder)",
-          "keep_modbus_open": "Hold Modbus-forbindelsen åben",
+          "close_after_polling": "Luk forbindelsen efter polling",
           "detect_meters": "Automatisk registrering af målere",
           "detect_batteries": "Automatisk registrering af batterier",
           "detect_extras": "Automatisk registrering af yderligere enheder",
           "advanced_power_control": "Effektstyringsindstillinger",
+          "request_timeout": "Modbus-forespørgselstimeout (sekunder)",
           "sleep_after_write": "Forsinkelse for inverterkommando (sekunder)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Gyldigt interval er 1 til 86400 sekunder.",
+      "invalid_request_timeout": "Gyldigt interval er 1 til 60 sekunder.",
       "invalid_sleep_interval": "Gyldigt interval er 0 til 60 sekunder.",
       "invalid_percent": "Gyldigt interval er 0 til 100 procent."
     }
@@ -146,12 +148,34 @@
       "description": "Inverterens enheds-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-inverter. Den er blevet sprunget over. Hvis enheden er blevet udskiftet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Kontrollér ellers enheden og Modbus/TCP-forbindelsen."
     },
     "detect_timeout_gpc": {
-      "title": "Timeout for global dynamisk effektstyring",
-      "description": "Inverteren svarede ikke ved læsning af data til global dynamisk effektstyring. Disse enheder vil være utilgængelige. Deaktivér indstillingen Automatisk registrering af yderligere enheder, hvis inverteren har problemer med at læse disse sensorer."
+      "title": "Timeout for global dynamisk effektstyring (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout for global dynamisk effektstyring",
+            "description": "Inverterens enheds-ID {device_id} på {host} svarede ikke ved læsning af data til global dynamisk effektstyring efter flere forsøg. Disse enheder er utilgængelige, indtil dette er løst.\n\nBekræft for at forsøge at registrere denne funktion igen ved næste polling. Deaktivér indstillingen Automatisk registrering af yderligere enheder, hvis inverteren har problemer med at læse disse sensorer."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Timeout for avanceret effektstyring",
-      "description": "Inverteren svarede ikke ved læsning af data til avanceret effektstyring. Disse enheder vil være utilgængelige. Deaktivér indstillingen Automatisk registrering af yderligere enheder, hvis inverteren har problemer med at læse disse sensorer."
+      "title": "Timeout for avanceret effektstyring (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout for avanceret effektstyring",
+            "description": "Inverterens enheds-ID {device_id} på {host} svarede ikke ved læsning af data til avanceret effektstyring efter flere forsøg. Disse enheder er utilgængelige, indtil dette er løst.\n\nBekræft for at forsøge at registrere denne funktion igen ved næste polling. Deaktivér indstillingen Automatisk registrering af yderligere enheder, hvis inverteren har problemer med at læse disse sensorer."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML-konfiguration understøttes ikke længere",
+      "description": "Afsnittet `modbus` under `solaredge_modbus_multi` i `configuration.yaml` understøttes ikke længere og ignoreres. Fjern det venligst fra din YAML-konfiguration."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Indstillingen \"Hold Modbus-forbindelsen åben\" er erstattet",
+      "description": "Indstillingen \"Hold Modbus-forbindelsen åben\" er blevet erstattet af \"Luk forbindelsen efter polling\" i denne integrations konfiguration. Gennemgå den nye indstilling, hvis du har brug for den samme funktionsmåde."
     }
   }
 }

@@ -83,11 +83,12 @@
         "title": "Opções do Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequência de Sondagem (segundos)",
-          "keep_modbus_open": "Manter Conexão Modbus Aberta",
+          "close_after_polling": "Fechar Conexão Após Sondagem",
           "detect_meters": "Detecção Automática de Medidores",
           "detect_batteries": "Detecção Automática de Baterias",
           "detect_extras": "Detecção Automática de Entidades Adicionais",
           "advanced_power_control": "Opções de Controle de Energia",
+          "request_timeout": "Tempo Limite de Solicitação Modbus (segundos)",
           "sleep_after_write": "Atraso de Comando do Inversor (segundos)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "O intervalo válido é de 1 a 86400 segundos.",
+      "invalid_request_timeout": "O intervalo válido é de 1 a 60 segundos.",
       "invalid_sleep_interval": "O intervalo válido é de 0 a 60 segundos.",
       "invalid_percent": "O intervalo válido é de 0 a 100 por cento."
     }
@@ -146,12 +148,34 @@
       "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está respondendo ou não é um inversor SolarEdge válido. Ele foi ignorado. Se o dispositivo foi substituído ou seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a conexão Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Tempo Limite do Controle Dinâmico de Energia Global",
-      "description": "O inversor não respondeu ao ler dados dos Controles Dinâmicos de Energia Global. Essas entidades ficarão indisponíveis. Desative a opção Detecção Automática de Entidades Adicionais se o inversor tiver problemas para ler esses sensores."
+      "title": "Tempo Limite do Controle Dinâmico de Energia Global (Inversor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tempo Limite do Controle Dinâmico de Energia Global",
+            "description": "O ID de Dispositivo do Inversor {device_id} em {host} não respondeu ao ler dados dos Controles Dinâmicos de Energia Global após várias tentativas. Essas entidades ficarão indisponíveis até que isso seja resolvido.\n\nConfirme para tentar detectar esse recurso novamente na próxima sondagem. Desative a opção Detecção Automática de Entidades Adicionais se o inversor tiver problemas para ler esses sensores."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Tempo Limite do Controle de Energia Avançado",
-      "description": "O inversor não respondeu ao ler dados dos Controles de Energia Avançados. Essas entidades ficarão indisponíveis. Desative a opção Detecção Automática de Entidades Adicionais se o inversor tiver problemas para ler esses sensores."
+      "title": "Tempo Limite do Controle de Energia Avançado (Inversor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tempo Limite do Controle de Energia Avançado",
+            "description": "O ID de Dispositivo do Inversor {device_id} em {host} não respondeu ao ler dados dos Controles de Energia Avançados após várias tentativas. Essas entidades ficarão indisponíveis até que isso seja resolvido.\n\nConfirme para tentar detectar esse recurso novamente na próxima sondagem. Desative a opção Detecção Automática de Entidades Adicionais se o inversor tiver problemas para ler esses sensores."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Configuração YAML do Modbus Não É Mais Suportada",
+      "description": "A seção `modbus` em `solaredge_modbus_multi` no `configuration.yaml` não é mais suportada e está sendo ignorada. Remova-a da sua configuração YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Opção Manter Conexão Modbus Aberta Substituída",
+      "description": "A opção \"Manter Conexão Modbus Aberta\" foi substituída por \"Fechar Conexão Após Sondagem\" na configuração desta integração. Revise a nova opção se precisar do mesmo comportamento."
     }
   }
 }

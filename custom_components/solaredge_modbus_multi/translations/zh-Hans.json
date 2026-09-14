@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus 选项",
         "data": {
           "scan_interval": "轮询频率（秒）",
-          "keep_modbus_open": "保持 Modbus 连接打开",
+          "close_after_polling": "轮询后关闭连接",
           "detect_meters": "自动检测电表",
           "detect_batteries": "自动检测电池",
           "detect_extras": "自动检测其他实体",
           "advanced_power_control": "功率控制选项",
+          "request_timeout": "Modbus 请求超时（秒）",
           "sleep_after_write": "逆变器命令延迟（秒）"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "有效间隔为 1 到 86400 秒。",
+      "invalid_request_timeout": "有效间隔为 1 到 60 秒。",
       "invalid_sleep_interval": "有效间隔为 0 到 60 秒。",
       "invalid_percent": "有效范围为 0 到 100 百分比。"
     }
@@ -146,12 +148,34 @@
       "description": "{host} 上的逆变器设备 ID {device_id} 无响应，或不是有效的 SolarEdge 逆变器，已被跳过。如果设备已更换或其 ID 已更改，请在集线器配置中更新逆变器设备 ID 列表。否则，请检查设备和 Modbus/TCP 连接。"
     },
     "detect_timeout_gpc": {
-      "title": "全局动态功率控制超时",
-      "description": "逆变器在读取全局动态功率控制数据时未响应。这些实体将不可用。如果逆变器读取这些传感器时出现问题，请禁用“自动检测其他实体”选项。"
+      "title": "全局动态功率控制超时（逆变器 {device_id}）",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "全局动态功率控制超时",
+            "description": "{host} 上的逆变器设备 ID {device_id} 在多次尝试后仍未响应全局动态功率控制的数据读取。在此问题解决之前，这些实体将不可用。\n\n确认以在下次轮询时重新尝试检测此功能。如果逆变器读取这些传感器时出现问题，请禁用“自动检测其他实体”选项。"
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "高级功率控制超时",
-      "description": "逆变器在读取高级功率控制数据时未响应。这些实体将不可用。如果逆变器读取这些传感器时出现问题，请禁用“自动检测其他实体”选项。"
+      "title": "高级功率控制超时（逆变器 {device_id}）",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "高级功率控制超时",
+            "description": "{host} 上的逆变器设备 ID {device_id} 在多次尝试后仍未响应高级功率控制的数据读取。在此问题解决之前，这些实体将不可用。\n\n确认以在下次轮询时重新尝试检测此功能。如果逆变器读取这些传感器时出现问题，请禁用“自动检测其他实体”选项。"
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "不再支持 Modbus YAML 配置",
+      "description": "`configuration.yaml` 中 `solaredge_modbus_multi` 下的 `modbus` 部分已不再受支持，将被忽略。请将其从您的 YAML 配置中移除。"
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "“保持 Modbus 连接打开”选项已被替换",
+      "description": "“保持 Modbus 连接打开”选项已在此集成的配置中被替换为“轮询后关闭连接”。如果您需要相同的行为，请查看新选项。"
     }
   }
 }

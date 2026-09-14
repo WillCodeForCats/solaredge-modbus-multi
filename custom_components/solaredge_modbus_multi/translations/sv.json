@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus-alternativ",
         "data": {
           "scan_interval": "Avfrågningsfrekvens (sekunder)",
-          "keep_modbus_open": "Håll Modbus-anslutningen öppen",
+          "close_after_polling": "Stäng anslutningen efter avfrågning",
           "detect_meters": "Automatisk identifiering av mätare",
           "detect_batteries": "Automatisk identifiering av batterier",
           "detect_extras": "Automatisk identifiering av ytterligare entiteter",
           "advanced_power_control": "Effektstyrningsalternativ",
+          "request_timeout": "Tidsgräns för Modbus-förfrågan (sekunder)",
           "sleep_after_write": "Fördröjning för växelriktarkommando (sekunder)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Giltigt intervall är 1 till 86400 sekunder.",
+      "invalid_request_timeout": "Giltigt intervall är 1 till 60 sekunder.",
       "invalid_sleep_interval": "Giltigt intervall är 0 till 60 sekunder.",
       "invalid_percent": "Giltigt intervall är 0 till 100 procent."
     }
@@ -146,12 +148,34 @@
       "description": "Växelriktarens enhets-ID {device_id} på {host} svarar inte eller är inte en giltig SolarEdge-växelriktare. Den har hoppats över. Om enheten byttes ut eller dess ID ändrades, uppdatera listan över växelriktarnas enhets-ID i hubbens konfiguration. Kontrollera annars enheten och Modbus/TCP-anslutningen."
     },
     "detect_timeout_gpc": {
-      "title": "Tidsgräns för global dynamisk effektstyrning",
-      "description": "Växelriktaren svarade inte vid läsning av data för global dynamisk effektstyrning. Dessa entiteter kommer att vara otillgängliga. Inaktivera alternativet Automatisk identifiering av ytterligare entiteter om växelriktaren har problem med att läsa dessa sensorer."
+      "title": "Tidsgräns för global dynamisk effektstyrning (växelriktare {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tidsgräns för global dynamisk effektstyrning",
+            "description": "Växelriktarens enhets-ID {device_id} på {host} svarade inte vid läsning av data för global dynamisk effektstyrning efter flera försök. Dessa entiteter är otillgängliga tills detta är löst.\n\nBekräfta för att försöka identifiera denna funktion igen vid nästa avfrågning. Inaktivera alternativet Automatisk identifiering av ytterligare entiteter om växelriktaren har problem med att läsa dessa sensorer."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Tidsgräns för avancerad effektstyrning",
-      "description": "Växelriktaren svarade inte vid läsning av data för avancerad effektstyrning. Dessa entiteter kommer att vara otillgängliga. Inaktivera alternativet Automatisk identifiering av ytterligare entiteter om växelriktaren har problem med att läsa dessa sensorer."
+      "title": "Tidsgräns för avancerad effektstyrning (växelriktare {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tidsgräns för avancerad effektstyrning",
+            "description": "Växelriktarens enhets-ID {device_id} på {host} svarade inte vid läsning av data för avancerad effektstyrning efter flera försök. Dessa entiteter är otillgängliga tills detta är löst.\n\nBekräfta för att försöka identifiera denna funktion igen vid nästa avfrågning. Inaktivera alternativet Automatisk identifiering av ytterligare entiteter om växelriktaren har problem med att läsa dessa sensorer."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML-konfiguration stöds inte längre",
+      "description": "Avsnittet `modbus` under `solaredge_modbus_multi` i `configuration.yaml` stöds inte längre och ignoreras. Ta bort det från din YAML-konfiguration."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Alternativet Håll Modbus-anslutningen öppen har ersatts",
+      "description": "Alternativet \"Håll Modbus-anslutningen öppen\" har ersatts av \"Stäng anslutningen efter avfrågning\" i den här integrationens konfiguration. Granska det nya alternativet om du behöver samma beteende."
     }
   }
 }

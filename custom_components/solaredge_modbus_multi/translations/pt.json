@@ -83,11 +83,12 @@
         "title": "Opções do Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequência de Sondagem (segundos)",
-          "keep_modbus_open": "Manter a Ligação Modbus Aberta",
+          "close_after_polling": "Fechar a Ligação Após a Sondagem",
           "detect_meters": "Deteção Automática de Contadores",
           "detect_batteries": "Deteção Automática de Baterias",
           "detect_extras": "Deteção Automática de Entidades Adicionais",
           "advanced_power_control": "Opções de Controlo de Potência",
+          "request_timeout": "Tempo Limite do Pedido Modbus (segundos)",
           "sleep_after_write": "Atraso de Comando do Inversor (segundos)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "O intervalo válido é de 1 a 86400 segundos.",
+      "invalid_request_timeout": "O intervalo válido é de 1 a 60 segundos.",
       "invalid_sleep_interval": "O intervalo válido é de 0 a 60 segundos.",
       "invalid_percent": "O intervalo válido é de 0 a 100 por cento."
     }
@@ -146,12 +148,34 @@
       "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está a responder ou não é um inversor SolarEdge válido. Foi ignorado. Se o dispositivo foi substituído ou o seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a ligação Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Tempo Limite do Controlo Dinâmico de Potência Global",
-      "description": "O inversor não respondeu ao ler dados dos Controlos Dinâmicos de Potência Global. Estas entidades ficarão indisponíveis. Desative a opção Deteção Automática de Entidades Adicionais se o inversor tiver problemas a ler estes sensores."
+      "title": "Tempo Limite do Controlo Dinâmico de Potência Global (Inversor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tempo Limite do Controlo Dinâmico de Potência Global",
+            "description": "O ID de Dispositivo do Inversor {device_id} em {host} não respondeu ao ler dados dos Controlos Dinâmicos de Potência Global após várias tentativas. Estas entidades ficarão indisponíveis até que isto seja resolvido.\n\nConfirme para tentar detetar esta funcionalidade novamente na próxima sondagem. Desative a opção Deteção Automática de Entidades Adicionais se o inversor tiver problemas a ler estes sensores."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Tempo Limite do Controlo de Potência Avançado",
-      "description": "O inversor não respondeu ao ler dados dos Controlos de Potência Avançados. Estas entidades ficarão indisponíveis. Desative a opção Deteção Automática de Entidades Adicionais se o inversor tiver problemas a ler estes sensores."
+      "title": "Tempo Limite do Controlo de Potência Avançado (Inversor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tempo Limite do Controlo de Potência Avançado",
+            "description": "O ID de Dispositivo do Inversor {device_id} em {host} não respondeu ao ler dados dos Controlos de Potência Avançados após várias tentativas. Estas entidades ficarão indisponíveis até que isto seja resolvido.\n\nConfirme para tentar detetar esta funcionalidade novamente na próxima sondagem. Desative a opção Deteção Automática de Entidades Adicionais se o inversor tiver problemas a ler estes sensores."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "A Configuração YAML do Modbus Já Não É Suportada",
+      "description": "A secção `modbus` em `solaredge_modbus_multi` no `configuration.yaml` já não é suportada e está a ser ignorada. Remova-a da sua configuração YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "A Opção Manter a Ligação Modbus Aberta Foi Substituída",
+      "description": "A opção \"Manter a Ligação Modbus Aberta\" foi substituída por \"Fechar a Ligação Após a Sondagem\" na configuração desta integração. Reveja a nova opção se precisar do mesmo comportamento."
     }
   }
 }

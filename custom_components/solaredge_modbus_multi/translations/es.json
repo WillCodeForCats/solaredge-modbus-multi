@@ -83,11 +83,12 @@
         "title": "Opciones de Modbus de SolarEdge",
         "data": {
           "scan_interval": "Frecuencia de sondeo (segundos)",
-          "keep_modbus_open": "Mantener abierta la conexión Modbus",
+          "close_after_polling": "Cerrar la conexión después de sondear",
           "detect_meters": "Detección automática de medidores",
           "detect_batteries": "Detección automática de baterías",
           "detect_extras": "Detección automática de entidades adicionales",
           "advanced_power_control": "Opciones de control de energía",
+          "request_timeout": "Tiempo de espera de solicitud Modbus (segundos)",
           "sleep_after_write": "Retardo de comandos del inversor (segundos)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "El intervalo válido es de 1 a 86400 segundos.",
+      "invalid_request_timeout": "El intervalo válido es de 1 a 60 segundos.",
       "invalid_sleep_interval": "El intervalo válido es de 0 a 60 segundos.",
       "invalid_percent": "El rango válido es de 0 a 100 por ciento."
     }
@@ -146,12 +148,34 @@
       "description": "El ID de dispositivo del inversor {device_id} en {host} no responde o no es un inversor SolarEdge válido. Se ha omitido. Si el dispositivo fue reemplazado o su ID cambió, actualice la Lista de ID de dispositivo de los inversores en la configuración del hub. De lo contrario, verifique el dispositivo y la conexión Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Tiempo de espera agotado del control dinámico de energía global",
-      "description": "El inversor no respondió al leer los datos de los controles dinámicos de energía global. Estas entidades no estarán disponibles. Desactive la opción Detección automática de entidades adicionales si el inversor tiene problemas para leer estos sensores."
+      "title": "Tiempo de espera agotado del control dinámico de energía global (Inversor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tiempo de espera agotado del control dinámico de energía global",
+            "description": "El ID de dispositivo del inversor {device_id} en {host} no respondió al leer datos de los controles dinámicos de energía global después de varios intentos. Estas entidades no estarán disponibles hasta que esto se resuelva.\n\nConfirme para intentar detectar esta función nuevamente en el próximo sondeo. Desactive la opción Detección automática de entidades adicionales si el inversor tiene problemas para leer estos sensores."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Tiempo de espera agotado del control de energía avanzado",
-      "description": "El inversor no respondió al leer los datos de los controles de energía avanzados. Estas entidades no estarán disponibles. Desactive la opción Detección automática de entidades adicionales si el inversor tiene problemas para leer estos sensores."
+      "title": "Tiempo de espera agotado del control de energía avanzado (Inversor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tiempo de espera agotado del control de energía avanzado",
+            "description": "El ID de dispositivo del inversor {device_id} en {host} no respondió al leer datos de los controles de energía avanzados después de varios intentos. Estas entidades no estarán disponibles hasta que esto se resuelva.\n\nConfirme para intentar detectar esta función nuevamente en el próximo sondeo. Desactive la opción Detección automática de entidades adicionales si el inversor tiene problemas para leer estos sensores."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "La configuración de Modbus en YAML ya no es compatible",
+      "description": "La sección `modbus` bajo `solaredge_modbus_multi` en `configuration.yaml` ya no es compatible y se está ignorando. Elimínela de su configuración YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Se reemplazó la opción Mantener abierta la conexión Modbus",
+      "description": "La opción \"Mantener abierta la conexión Modbus\" ha sido reemplazada por \"Cerrar la conexión después de sondear\" en la configuración de esta integración. Revise la nueva opción si necesita el mismo comportamiento."
     }
   }
 }

@@ -83,11 +83,12 @@
         "title": "Opțiuni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frecvență de Interogare (secunde)",
-          "keep_modbus_open": "Menține Conexiunea Modbus Deschisă",
+          "close_after_polling": "Închide Conexiunea După Interogare",
           "detect_meters": "Detectare Automată a Contoarelor",
           "detect_batteries": "Detectare Automată a Bateriilor",
           "detect_extras": "Detectare Automată a Entităților Suplimentare",
           "advanced_power_control": "Opțiuni de Control al Puterii",
+          "request_timeout": "Timeout Solicitare Modbus (secunde)",
           "sleep_after_write": "Întârziere Comandă Invertor (secunde)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Intervalul valid este 1 până la 86400 de secunde.",
+      "invalid_request_timeout": "Intervalul valid este 1 până la 60 de secunde.",
       "invalid_sleep_interval": "Intervalul valid este 0 până la 60 de secunde.",
       "invalid_percent": "Intervalul valid este 0 până la 100 la sută."
     }
@@ -146,12 +148,34 @@
       "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu răspunde sau nu este un invertor SolarEdge valid. A fost omis. Dacă dispozitivul a fost înlocuit sau ID-ul acestuia s-a schimbat, actualizați Lista de ID-uri de Dispozitiv ale Invertoarelor din configurația hub-ului. În caz contrar, verificați dispozitivul și conexiunea Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Timeout Control Dinamic Global al Puterii",
-      "description": "Invertorul nu a răspuns la citirea datelor pentru Controalele Dinamice Globale ale Puterii. Aceste entități vor fi indisponibile. Dezactivați opțiunea Detectare Automată a Entităților Suplimentare dacă invertorul are probleme la citirea acestor senzori."
+      "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout Control Dinamic Global al Puterii",
+            "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu a răspuns la citirea datelor pentru Controalele Dinamice Globale ale Puterii, după mai multe încercări. Aceste entități sunt indisponibile până la rezolvarea problemei.\n\nConfirmați pentru a încerca detectarea acestei funcții din nou la următoarea interogare. Dezactivați opțiunea Detectare Automată a Entităților Suplimentare dacă invertorul are probleme la citirea acestor senzori."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Timeout Control Avansat al Puterii",
-      "description": "Invertorul nu a răspuns la citirea datelor pentru Controalele Avansate ale Puterii. Aceste entități vor fi indisponibile. Dezactivați opțiunea Detectare Automată a Entităților Suplimentare dacă invertorul are probleme la citirea acestor senzori."
+      "title": "Timeout Control Avansat al Puterii (Invertor {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout Control Avansat al Puterii",
+            "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu a răspuns la citirea datelor pentru Controalele Avansate ale Puterii, după mai multe încercări. Aceste entități sunt indisponibile până la rezolvarea problemei.\n\nConfirmați pentru a încerca detectarea acestei funcții din nou la următoarea interogare. Dezactivați opțiunea Detectare Automată a Entităților Suplimentare dacă invertorul are probleme la citirea acestor senzori."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Configurația Modbus YAML Nu Mai Este Acceptată",
+      "description": "Secțiunea `modbus` de sub `solaredge_modbus_multi` din `configuration.yaml` nu mai este acceptată și este ignorată. Vă rugăm să o eliminați din configurația YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Opțiunea Menține Conexiunea Modbus Deschisă a Fost Înlocuită",
+      "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” a fost înlocuită cu „Închide Conexiunea După Interogare” în configurația acestei integrări. Verificați noua opțiune dacă aveți nevoie de același comportament."
     }
   }
 }

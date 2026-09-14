@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus -valinnat",
         "data": {
           "scan_interval": "Kyselytaajuus (sekuntia)",
-          "keep_modbus_open": "Pidä Modbus-yhteys avoinna",
+          "close_after_polling": "Sulje yhteys kyselyn jälkeen",
           "detect_meters": "Mittareiden automaattinen tunnistus",
           "detect_batteries": "Akkujen automaattinen tunnistus",
           "detect_extras": "Lisäentiteettien automaattinen tunnistus",
           "advanced_power_control": "Tehonhallinnan valinnat",
+          "request_timeout": "Modbus-pyynnön aikakatkaisu (sekuntia)",
           "sleep_after_write": "Vaihtosuuntaajan komennon viive (sekuntia)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Kelvollinen aikaväli on 1–86400 sekuntia.",
+      "invalid_request_timeout": "Kelvollinen aikaväli on 1–60 sekuntia.",
       "invalid_sleep_interval": "Kelvollinen aikaväli on 0–60 sekuntia.",
       "invalid_percent": "Kelvollinen alue on 0–100 prosenttia."
     }
@@ -146,12 +148,34 @@
       "description": "Vaihtosuuntaajan laitetunnus {device_id} osoitteessa {host} ei vastaa tai ei ole kelvollinen SolarEdge-vaihtosuuntaaja. Se on ohitettu. Jos laite vaihdettiin tai sen tunnus muuttui, päivitä vaihtosuuntaajien laitetunnusluettelo keskittimen asetuksissa. Muussa tapauksessa tarkista laite ja Modbus/TCP-yhteys."
     },
     "detect_timeout_gpc": {
-      "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu",
-      "description": "Vaihtosuuntaaja ei vastannut, kun luettiin globaalin dynaamisen tehonhallinnan tietoja. Nämä entiteetit eivät ole käytettävissä. Poista käytöstä Lisäentiteettien automaattinen tunnistus -asetus, jos vaihtosuuntaajalla on ongelmia näiden antureiden lukemisessa."
+      "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu",
+            "description": "Vaihtosuuntaajan laitetunnus {device_id} osoitteessa {host} ei vastannut useiden yritysten jälkeen luettaessa globaalin dynaamisen tehonhallinnan tietoja. Nämä entiteetit eivät ole käytettävissä, kunnes tämä on ratkaistu.\n\nVahvista yrittääksesi tunnistaa tämän ominaisuuden uudelleen seuraavassa kyselyssä. Poista käytöstä Lisäentiteettien automaattinen tunnistus -asetus, jos vaihtosuuntaajalla on ongelmia näiden antureiden lukemisessa."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Edistyneen tehonhallinnan aikakatkaisu",
-      "description": "Vaihtosuuntaaja ei vastannut, kun luettiin edistyneen tehonhallinnan tietoja. Nämä entiteetit eivät ole käytettävissä. Poista käytöstä Lisäentiteettien automaattinen tunnistus -asetus, jos vaihtosuuntaajalla on ongelmia näiden antureiden lukemisessa."
+      "title": "Edistyneen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Edistyneen tehonhallinnan aikakatkaisu",
+            "description": "Vaihtosuuntaajan laitetunnus {device_id} osoitteessa {host} ei vastannut useiden yritysten jälkeen luettaessa edistyneen tehonhallinnan tietoja. Nämä entiteetit eivät ole käytettävissä, kunnes tämä on ratkaistu.\n\nVahvista yrittääksesi tunnistaa tämän ominaisuuden uudelleen seuraavassa kyselyssä. Poista käytöstä Lisäentiteettien automaattinen tunnistus -asetus, jos vaihtosuuntaajalla on ongelmia näiden antureiden lukemisessa."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML -määritystä ei enää tueta",
+      "description": "`modbus`-osiota kohdassa `solaredge_modbus_multi` tiedostossa `configuration.yaml` ei enää tueta, ja se ohitetaan. Poista se YAML-määrityksestäsi."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Pidä Modbus-yhteys avoinna -asetus korvattu",
+      "description": "Asetus \"Pidä Modbus-yhteys avoinna\" on korvattu asetuksella \"Sulje yhteys kyselyn jälkeen\" tämän integraation määrityksissä. Tarkista uusi asetus, jos tarvitset samaa toimintaa."
     }
   }
 }
