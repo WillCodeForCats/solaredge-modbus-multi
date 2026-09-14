@@ -30,10 +30,9 @@ async def async_setup_entry(
     entities = []
 
     for inverter in hub.inverters:
-        if hub.option_detect_extras and inverter.advanced_power_control:
-            entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
-
         entities.append(GridStatusOnOff(inverter, config_entry, coordinator))
+        if hub.option_detect_extras:
+            entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -64,10 +63,6 @@ class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
     def config_entry_name(self):
         return self._config_entry.data["name"]
 
-    @property
-    def available(self) -> bool:
-        return super().available and self._platform.online
-
     @callback
     def _handle_coordinator_update(self) -> None:
         self.async_write_ha_state()
@@ -82,8 +77,8 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
     def available(self) -> bool:
         return (
             super().available
-            and self._platform.advanced_power_control is True
-            and "AdvPwrCtrlEn" in self._platform.decoded_model.keys()
+            and self._platform.has_advanced_power_control
+            and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
 
     @property
@@ -96,7 +91,7 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 
     @property
     def is_on(self) -> bool:
-        return self._platform.decoded_model["AdvPwrCtrlEn"] == 0x1
+        return self._platform.advanced_power_control_data.AdvPwrCtrlEn == 0x1
 
 
 class GridStatusOnOff(SolarEdgeBinarySensorBase):
@@ -108,7 +103,7 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
     @property
     def available(self) -> bool:
         return (
-            super().available and "I_Grid_Status" in self._platform.decoded_model.keys()
+            super().available and self._platform.inverter_data.I_Grid_Status is not None
         )
 
     @property
@@ -121,8 +116,8 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return "I_Grid_Status" in self._platform.decoded_model.keys()
+        return self._platform.inverter_data.I_Grid_Status is not None
 
     @property
     def is_on(self) -> bool:
-        return not self._platform.decoded_model["I_Grid_Status"]
+        return self._platform.inverter_data.I_Grid_Status == 0x0

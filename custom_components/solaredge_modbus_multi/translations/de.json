@@ -83,11 +83,12 @@
         "title": "SolarEdge Modbus Optionen",
         "data": {
           "scan_interval": "Abfragehäufigkeit (Sekunden)",
-          "keep_modbus_open": "Modbus-Verbindung geöffnet lassen",
+          "close_after_polling": "Verbindung nach Abfrage schließen",
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
           "advanced_power_control": "Optionen zur Leistungssteuerung",
+          "request_timeout": "Modbus-Anfrage-Zeitüberschreitung (Sekunden)",
           "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Gültiges Intervall ist 1 bis 86400 Sekunden.",
+      "invalid_request_timeout": "Gültiges Intervall ist 1 bis 60 Sekunden.",
       "invalid_sleep_interval": "Gültiges Intervall ist 0 bis 60 Sekunden.",
       "invalid_percent": "Gültiges Bereich ist 0 bis 100 Prozent."
     }
@@ -147,12 +149,34 @@
       "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
     },
     "detect_timeout_gpc": {
-      "title": "Global Dynamic Power Control Timeout",
-      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für globale dynamische Leistungssteuerung."
+      "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Global Dynamic Power Control Timeout",
+            "description": "Wechselrichter-Geräte-ID {device_id} bei {host} reagierte nach mehreren Versuchen nicht beim Lesen von Daten für Global Dynamic Power Controls. Diese Entitäten sind nicht verfügbar, bis dies behoben ist.\n\nBestätigen, um die Erkennung dieser Funktion beim nächsten Abruf erneut zu versuchen. Deaktivieren Sie die Option zur automatischen Erkennung zusätzlicher Entitäten, wenn der Wechselrichter Probleme beim Lesen dieser Sensoren hat."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
-      "description": "Der Wechselrichter reagierte nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen."
+      "title": "Fortgeschrittene Leistungssteuerung Zeitlimit (Wechselrichter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
+            "description": "Wechselrichter-Geräte-ID {device_id} bei {host} reagierte nach mehreren Versuchen nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen. Diese Entitäten sind nicht verfügbar, bis dies behoben ist.\n\nBestätigen, um die Erkennung dieser Funktion beim nächsten Abruf erneut zu versuchen. Deaktivieren Sie die Option zur automatischen Erkennung zusätzlicher Entitäten, wenn der Wechselrichter Probleme beim Lesen dieser Sensoren hat."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus-YAML-Konfiguration wird nicht mehr unterstützt",
+      "description": "Der Abschnitt `modbus` unter `solaredge_modbus_multi` in der `configuration.yaml` wird nicht mehr unterstützt und wird ignoriert. Bitte entfernen Sie ihn aus Ihrer YAML-Konfiguration."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",
+      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wurde in der Konfiguration dieser Integration durch \"Verbindung nach Abfrage schließen\" ersetzt. Prüfen Sie die neue Option, wenn Sie das gleiche Verhalten benötigen."
     }
   }
 }

@@ -83,11 +83,12 @@
         "title": "Opcje SolarEdge Modbus",
         "data": {
           "scan_interval": "Częstotliwość odczytu (sekundy)",
-          "keep_modbus_open": "Pozostaw połączenie Modbus otwarte",
+          "close_after_polling": "Zamknij połączenie po odczycie",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
           "advanced_power_control": "Opcje kontroli mocy",
+          "request_timeout": "Limit czasu żądania Modbus (sekundy)",
           "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "Próbkowanie musi być w zakresie od 1 do 86400 sekund.",
+      "invalid_request_timeout": "Limit czasu musi być w zakresie od 1 do 60 sekund.",
       "invalid_sleep_interval": "Próbkowanie musi być w zakresie od 0 do 60 sekund.",
       "invalid_percent": "Prawidłowy zakres wynosi od 0 do 100 procent."
     }
@@ -147,12 +149,34 @@
       "description": "Identyfikator falownika {device_id} na {host} nie odpowiada lub nie jest prawidłowym falownikiem SolarEdge. Został pominięty. Jeśli urządzenie zostało wymienione lub jego identyfikator się zmienił, zaktualizuj listę identyfikatorów falowników w konfiguracji huba. W przeciwnym razie sprawdź urządzenie i połączenie Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Globalny limit dynamicznej kontroli mocy",
-      "description": "Falownik nie zareagował podczas czytania danych dla globalnej dynamicznej kontroli mocy."
+      "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Globalny limit czasu dynamicznej kontroli mocy",
+            "description": "Identyfikator falownika {device_id} na {host} nie odpowiedział po kilku próbach podczas odczytu danych dla globalnej dynamicznej kontroli mocy. Te elementy są niedostępne, dopóki problem nie zostanie rozwiązany.\n\nPotwierdź, aby ponowić próbę wykrycia tej funkcji przy następnym odpytywaniu. Wyłącz opcję automatycznego wykrywania dodatkowych elementów, jeśli falownik ma problemy z odczytem tych czujników."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Zaawansowany limit czasu kontroli mocy",
-      "description": "Falownik nie zareagował podczas czytania danych pod kątem zaawansowanych kontroli mocy."
+      "title": "Zaawansowany limit czasu kontroli mocy (Falownik {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Zaawansowany limit czasu kontroli mocy",
+            "description": "Identyfikator falownika {device_id} na {host} nie odpowiedział po kilku próbach podczas odczytu danych dla zaawansowanej kontroli mocy. Te elementy są niedostępne, dopóki problem nie zostanie rozwiązany.\n\nPotwierdź, aby ponowić próbę wykrycia tej funkcji przy następnym odpytywaniu. Wyłącz opcję automatycznego wykrywania dodatkowych elementów, jeśli falownik ma problemy z odczytem tych czujników."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Konfiguracja YAML Modbus nie jest już obsługiwana",
+      "description": "Sekcja `modbus` w `solaredge_modbus_multi` w pliku `configuration.yaml` nie jest już obsługiwana i jest ignorowana. Usuń ją z konfiguracji YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",
+      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" została zastąpiona opcją \"Zamknij połączenie po odczycie\" w konfiguracji tej integracji. Sprawdź nową opcję, jeśli potrzebujesz tego samego zachowania."
     }
   }
 }

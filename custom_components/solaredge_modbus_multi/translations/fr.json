@@ -83,11 +83,12 @@
         "title": "Options SolarEdge Modbus",
         "data": {
           "scan_interval": "Fréquence de rafraichissement (en secondes)",
-          "keep_modbus_open": "Garder la connection Modbus ouverte",
+          "close_after_polling": "Fermer la connexion après le rafraichissement",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
           "advanced_power_control": "Options de contrôle de l'alimentation",
+          "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
           "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "L'intervalle valide est de 1 à 86 400 secondes.",
+      "invalid_request_timeout": "L'intervalle valide est de 1 à 60 secondes.",
       "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
       "invalid_percent": "La plage valide est de 0 à 100 %."
     }
@@ -147,12 +149,34 @@
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Tempsion mondial de contrôle de la puissance dynamique",
-      "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance dynamique globaux."
+      "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Délai d'attente du contrôle de puissance dynamique global",
+            "description": "L'ID d'appareil onduleur {device_id} sur {host} n'a pas répondu après plusieurs tentatives lors de la lecture des données pour les contrôles de puissance dynamique globaux. Ces entités sont indisponibles jusqu'à ce que ce problème soit résolu.\n\nConfirmez pour réessayer de détecter cette fonctionnalité lors du prochain sondage. Désactivez l'option de détection automatique des entités supplémentaires si l'onduleur a des difficultés à lire ces capteurs."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Timeout de contrôle de puissance avancé",
-      "description": "L'onduleur n'a pas répondu lors de la lecture des données pour les contrôles de puissance avancés."
+      "title": "Délai d'attente du contrôle de puissance avancé (Onduleur {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Délai d'attente du contrôle de puissance avancé",
+            "description": "L'ID d'appareil onduleur {device_id} sur {host} n'a pas répondu après plusieurs tentatives lors de la lecture des données pour les contrôles de puissance avancés. Ces entités sont indisponibles jusqu'à ce que ce problème soit résolu.\n\nConfirmez pour réessayer de détecter cette fonctionnalité lors du prochain sondage. Désactivez l'option de détection automatique des entités supplémentaires si l'onduleur a des difficultés à lire ces capteurs."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Configuration YAML Modbus non prise en charge",
+      "description": "La section `modbus` sous `solaredge_modbus_multi` dans `configuration.yaml` n'est plus prise en charge et est ignorée. Veuillez la supprimer de votre configuration YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Option « Garder la connexion Modbus ouverte » remplacée",
+      "description": "L'option « Garder la connexion Modbus ouverte » a été remplacée par « Fermer la connexion après le rafraichissement » dans la configuration de cette intégration. Consultez la nouvelle option si vous avez besoin du même comportement."
     }
   }
 }

@@ -83,11 +83,12 @@
         "title": "Opzioni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequenza di polling (secondi)",
-          "keep_modbus_open": "Mantieni aperta la connessione Modbus",
+          "close_after_polling": "Chiudi la connessione dopo il polling",
           "detect_meters": "Misuratori di rilevamento automatico",
           "detect_batteries": "Rilevamento automatico delle batterie",
           "detect_extras": "Rileva automaticamente entità aggiuntive",
           "advanced_power_control": "Opzioni di controllo della potenza",
+          "request_timeout": "Timeout richiesta Modbus (secondi)",
           "sleep_after_write": "Ritardo comando inverter (secondi)"
         }
       },
@@ -110,6 +111,7 @@
     },
     "error": {
       "invalid_scan_interval": "L'intervallo valido è compreso tra 1 e 86400 secondi.",
+      "invalid_request_timeout": "L'intervallo valido è compreso tra 1 e 60 secondi.",
       "invalid_sleep_interval": "L'intervallo valido è compreso tra 0 e 60 secondi.",
       "invalid_percent": "L'intervallo valido è compreso tra 0 e 100%."
     }
@@ -147,12 +149,34 @@
       "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
     },
     "detect_timeout_gpc": {
-      "title": "Timeout di controllo del potere dinamico globale",
-      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza dinamica globali."
+      "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout di controllo della potenza dinamica globale",
+            "description": "L'ID dispositivo inverter {device_id} su {host} non ha risposto dopo diversi tentativi durante la lettura dei dati per i controlli di potenza dinamica globali. Queste entità non saranno disponibili finché il problema non sarà risolto.\n\nConferma per tentare nuovamente il rilevamento di questa funzione al prossimo polling. Disabilita l'opzione di rilevamento automatico delle entità aggiuntive se l'inverter ha problemi a leggere questi sensori."
+          }
+        }
+      }
     },
     "detect_timeout_apc": {
-      "title": "Timeout di controllo del potere avanzato",
-      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza avanzati."
+      "title": "Timeout di controllo della potenza avanzata (Inverter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Timeout di controllo della potenza avanzata",
+            "description": "L'ID dispositivo inverter {device_id} su {host} non ha risposto dopo diversi tentativi durante la lettura dei dati per i controlli di potenza avanzati. Queste entità non saranno disponibili finché il problema non sarà risolto.\n\nConferma per tentare nuovamente il rilevamento di questa funzione al prossimo polling. Disabilita l'opzione di rilevamento automatico delle entità aggiuntive se l'inverter ha problemi a leggere questi sensori."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Configurazione YAML Modbus non più supportata",
+      "description": "La sezione `modbus` sotto `solaredge_modbus_multi` in `configuration.yaml` non è più supportata e viene ignorata. Rimuovila dalla tua configurazione YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",
+      "description": "L'opzione \"Mantieni aperta la connessione Modbus\" è stata sostituita da \"Chiudi la connessione dopo il polling\" nella configurazione di questa integrazione. Controlla la nuova opzione se hai bisogno dello stesso comportamento."
     }
   }
 }

@@ -1,8 +1,16 @@
 """Tests for SolarEdgeModbusMultiHub options."""
 
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from unittest.mock import AsyncMock
 
-from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
+import pytest
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from modbus_connection.mock import MockModbusConnection
+
+from custom_components.solaredge_modbus_multi.const import (
+    DOMAIN,
+    ConfDefaultInt,
+    ConfName,
+)
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
 
 ENTRY_DATA = {
@@ -23,6 +31,7 @@ def _make_hub(hass, entry_data=None, entry_options=None):
         "test_entry_id",
         entry_data if entry_data is not None else ENTRY_DATA,
         entry_options if entry_options is not None else {},
+        MockModbusConnection(),
     )
 
 
@@ -55,7 +64,7 @@ async def test_options_default_to_bool(hass):
     for attr in (
         "_detect_meters",
         "_detect_batteries",
-        "_keep_modbus_open",
+        "_close_after_polling",
     ):
         assert isinstance(getattr(hub, attr), bool)
 
@@ -65,3 +74,72 @@ async def test_device_list_defaults(hass):
     hub = _make_hub(hass, entry_data=entry_data)
 
     assert hub._inverter_list == ["1"]
+
+
+async def test_close_after_polling_defaults_to_false(hass):
+    # Default must not disconnect, so upgrading from a pre-release that
+    # always kept the connection open sees no behavior change.
+    hub = _make_hub(hass)
+
+    assert hub.close_after_polling is False
+
+
+async def test_close_after_polling_true_disconnects_after_successful_poll(hass):
+    hub = _make_hub(hass, entry_options={ConfName.CLOSE_AFTER_POLLING: True})
+    hub.initalized = True
+    hub.connection.disconnect = AsyncMock()
+
+    await hub.async_refresh_modbus_data()
+
+    hub.connection.disconnect.assert_awaited_once()
+
+
+async def test_close_after_polling_false_keeps_connection_open(hass):
+    hub = _make_hub(hass)
+    hub.initalized = True
+    hub.connection.disconnect = AsyncMock()
+
+    await hub.async_refresh_modbus_data()
+
+    hub.connection.disconnect.assert_not_called()
+
+
+async def test_request_timeout_defaults_to_int(hass):
+    hub = _make_hub(hass)
+
+    assert hub._request_timeout == ConfDefaultInt.REQUEST_TIMEOUT
+    assert isinstance(hub._request_timeout, int)
+    assert not isinstance(hub._request_timeout, bool)
+
+
+async def test_request_timeout_override_is_stored(hass):
+    hub = _make_hub(hass, entry_options={ConfName.REQUEST_TIMEOUT: 10})
+
+    assert hub._request_timeout == 10
+    assert isinstance(hub._request_timeout, int)
+    assert not isinstance(hub._request_timeout, bool)
+
+
+async def test_coordinator_timeout_unchanged_at_default_request_timeout(hass):
+    # default value of request_timeout makes scaling ratio is 1.0
+    default_hub = _make_hub(hass)
+    explicit_default_hub = _make_hub(
+        hass, entry_options={ConfName.REQUEST_TIMEOUT: ConfDefaultInt.REQUEST_TIMEOUT}
+    )
+
+    assert explicit_default_hub.coordinator_timeout == pytest.approx(
+        default_hub.coordinator_timeout
+    )
+
+
+async def test_coordinator_timeout_scales_with_request_timeout(hass):
+    default_hub = _make_hub(hass)
+
+    doubled_hub = _make_hub(
+        hass,
+        entry_options={ConfName.REQUEST_TIMEOUT: ConfDefaultInt.REQUEST_TIMEOUT * 2},
+    )
+
+    assert doubled_hub.coordinator_timeout == pytest.approx(
+        default_hub.coordinator_timeout * 2
+    )
