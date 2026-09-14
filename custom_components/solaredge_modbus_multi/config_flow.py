@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import re
 from typing import Any
 
@@ -152,6 +153,38 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a SolarEdge Modbus/TCP gateway discovered via mDNS."""
         host = discovery_info.host.lower()
         port = discovery_info.port
+        hostname = discovery_info.hostname.rstrip(".").lower()
+        discovered_ips = {ip.lower() for ip in discovery_info.addresses}
+
+        # A manually configured entry may use the mDNS hostname, a DNS
+        # name that resolves to the same device, or a different one of
+        # the device's advertised addresses. unique_id is host:port,
+        # so none of those would match this discovery's unique_id even
+        # though it's the same device.
+        for entry in self._async_current_entries(include_ignore=False):
+            if entry.data.get(CONF_PORT) != port:
+                continue
+
+            existing_host = entry.data.get(CONF_HOST, "").lower()
+
+            if existing_host in discovered_ips or existing_host == hostname:
+                return self.async_abort(reason="already_configured")
+
+            try:
+                ipaddress.ip_address(existing_host)
+                continue  # an IP that didn't match above is a different host
+            except ValueError:
+                pass  # not an IP - may be a DNS name, try resolving it
+
+            try:
+                addr_info = await asyncio.wait_for(
+                    self.hass.loop.getaddrinfo(existing_host, None), timeout=5.0
+                )
+            except (OSError, asyncio.TimeoutError):
+                continue
+
+            if {info[4][0].lower() for info in addr_info} & discovered_ips:
+                return self.async_abort(reason="already_configured")
 
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
@@ -490,19 +523,34 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[ConfName.DEVICE_LIST] = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
-                    this_unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
 
-                    if this_unique_id != config_entry.unique_id:
-                        self._async_abort_entries_match(
-                            {
-                                "host": user_input[CONF_HOST],
-                                "port": user_input[CONF_PORT],
-                            }
+                    # unique_id may not be host:port forever. Only update
+                    # if it still looks like the host:port format.
+                    # Otherwise leave alone. A host/port change here is
+                    # a reconnect, not evidence the device itself changed.
+                    old_unique_id = (
+                        f"{config_entry.data.get(CONF_HOST)}:"
+                        f"{config_entry.data.get(CONF_PORT)}"
+                    )
+
+                    if config_entry.unique_id == old_unique_id:
+                        new_unique_id = (
+                            f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
                         )
+
+                        if new_unique_id != config_entry.unique_id:
+                            self._async_abort_entries_match(
+                                {
+                                    "host": user_input[CONF_HOST],
+                                    "port": user_input[CONF_PORT],
+                                }
+                            )
+                    else:
+                        new_unique_id = config_entry.unique_id
 
                     return self.async_update_reload_and_abort(
                         config_entry,
-                        unique_id=this_unique_id,
+                        unique_id=new_unique_id,
                         data={**config_entry.data, **user_input},
                         reason="reconfigure_successful",
                     )
