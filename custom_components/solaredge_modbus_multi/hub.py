@@ -49,6 +49,7 @@ from .const import (
     DOMAIN,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
+    MODBUS_CONNECTION_REQUIRED_VERSION,
     STATUS_VENDOR4_VERSION,
     TMODBUS_REQUIRED_VERSION,
     WRITE_SETTLE_CYCLES,
@@ -64,6 +65,7 @@ from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 tmodbus_version = importlib.metadata.version("tmodbus")
+modbus_connection_version = importlib.metadata.version("modbus_connection")
 
 
 class SolarEdgeException(Exception):
@@ -215,6 +217,7 @@ class SolarEdgeModbusMultiHub:
         self.connection = connection
 
         self._tmodbus_version = tmodbus_version
+        self._modbus_connection_version = modbus_connection_version
 
         _LOGGER.debug(
             (
@@ -234,18 +237,35 @@ class SolarEdgeModbusMultiHub:
         )
 
         _LOGGER.debug(f"tmodbus version {self.tmodbus_version}")
+        _LOGGER.debug(f"modbus-connection version {self.modbus_connection_version}")
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
 
         tmodbus_version_tuple = self._safe_version_tuple(self.tmodbus_version)
-        required_version_tuple = self._safe_version_tuple(self.tmodbus_required_version)
+        required_tmodbus_version_tuple = self._safe_version_tuple(
+            self.tmodbus_required_version
+        )
 
-        if tmodbus_version_tuple < required_version_tuple:
+        if tmodbus_version_tuple < required_tmodbus_version_tuple:
             raise HubInitFailed(
                 f"tmodbus version must be at least {self.tmodbus_required_version}, "
                 f"but {self.tmodbus_version} is installed. Please remove or upgrade other custom "
                 "integrations that depend on an older version of tmodbus and restart."
+            )
+
+        modbus_connection_version_tuple = self._safe_version_tuple(
+            self.modbus_connection_version
+        )
+        required_modbus_connection_version_tuple = self._safe_version_tuple(
+            self.modbus_connection_required_version
+        )
+
+        if modbus_connection_version_tuple < required_modbus_connection_version_tuple:
+            raise HubInitFailed(
+                f"modbus-connection version must be at least {self.modbus_connection_required_version}, "
+                f"but {self.modbus_connection_version} is installed. Please remove or upgrade other custom "
+                "integrations that depend on an older version of modbus-connection and restart."
             )
 
         if self.option_storage_control:
@@ -730,8 +750,16 @@ class SolarEdgeModbusMultiHub:
         return TMODBUS_REQUIRED_VERSION
 
     @property
+    def modbus_connection_required_version(self) -> str:
+        return MODBUS_CONNECTION_REQUIRED_VERSION
+
+    @property
     def tmodbus_version(self) -> str:
         return self._tmodbus_version
+
+    @property
+    def modbus_connection_version(self) -> str:
+        return self._modbus_connection_version
 
     @property
     def coordinator_timeout(self) -> int:
