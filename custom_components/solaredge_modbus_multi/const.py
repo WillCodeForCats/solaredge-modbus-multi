@@ -19,8 +19,9 @@ BYPASS_DEVICE_CHECK = "bypass_device_check"
 # spacing active before clearing it back to 0.
 WRITE_SETTLE_CYCLES: Final = 2
 
-# raise a startup exception if tmodbus version is less than this
+# raise a startup exception if library versions are less than this
 TMODBUS_REQUIRED_VERSION = "0.6.1"
+MODBUS_CONNECTION_REQUIRED_VERSION = "4.10.0"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
