@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.metadata
 import logging
 from datetime import timedelta
 
@@ -15,6 +16,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
@@ -22,13 +24,50 @@ from homeassistant.helpers.update_coordinator import (
     TimestampDataUpdateCoordinator,
     UpdateFailed,
 )
-from modbus_connection import ModbusTcpParams
-from modbus_connection.tmodbus import ModbusConnection
 
-from .const import DOMAIN, MESSAGE_SPACING, ConfDefaultInt, ConfName, RetrySettings
-from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
+from .const import (
+    DOMAIN,
+    MESSAGE_SPACING,
+    MODBUS_CONNECTION_REQUIRED_VERSION,
+    TMODBUS_REQUIRED_VERSION,
+    ConfDefaultInt,
+    ConfName,
+    RetrySettings,
+)
+from .helpers import safe_version_tuple
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _check_dependency_versions() -> None:
+    """Fail early if tmodbus/modbus-connection are missing or older than required."""
+
+    for display_name, distribution_name, required in (
+        ("tmodbus", "tmodbus", TMODBUS_REQUIRED_VERSION),
+        ("modbus-connection", "modbus_connection", MODBUS_CONNECTION_REQUIRED_VERSION),
+    ):
+        try:
+            installed = importlib.metadata.version(distribution_name)
+        except importlib.metadata.PackageNotFoundError:
+            raise ConfigEntryError(
+                f"{display_name} is not installed. Please restart Home Assistant "
+                "to install missing dependencies."
+            )
+
+        if safe_version_tuple(installed) < safe_version_tuple(required):
+            raise ConfigEntryError(
+                f"{display_name} version must be at least {required}, but {installed} "
+                "is installed. Please remove or upgrade other custom integrations "
+                f"that depend on an older version of {display_name} and restart."
+            )
+
+
+_check_dependency_versions()
+
+from modbus_connection import ModbusTcpParams  # noqa: E402
+from modbus_connection.tmodbus import ModbusConnection  # noqa: E402
+
+from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub  # noqa: E402
 
 PLATFORMS: list[str] = [
     Platform.BINARY_SENSOR,

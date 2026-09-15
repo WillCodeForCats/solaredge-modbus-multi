@@ -49,9 +49,7 @@ from .const import (
     DOMAIN,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
-    MODBUS_CONNECTION_REQUIRED_VERSION,
     STATUS_VENDOR4_VERSION,
-    TMODBUS_REQUIRED_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
     ConfDefaultInt,
@@ -241,32 +239,6 @@ class SolarEdgeModbusMultiHub:
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
-
-        tmodbus_version_tuple = self._safe_version_tuple(self.tmodbus_version)
-        required_tmodbus_version_tuple = self._safe_version_tuple(
-            self.tmodbus_required_version
-        )
-
-        if tmodbus_version_tuple < required_tmodbus_version_tuple:
-            raise HubInitFailed(
-                f"tmodbus version must be at least {self.tmodbus_required_version}, "
-                f"but {self.tmodbus_version} is installed. Please remove or upgrade other custom "
-                "integrations that depend on an older version of tmodbus and restart."
-            )
-
-        modbus_connection_version_tuple = self._safe_version_tuple(
-            self.modbus_connection_version
-        )
-        required_modbus_connection_version_tuple = self._safe_version_tuple(
-            self.modbus_connection_required_version
-        )
-
-        if modbus_connection_version_tuple < required_modbus_connection_version_tuple:
-            raise HubInitFailed(
-                f"modbus-connection version must be at least {self.modbus_connection_required_version}, "
-                f"but {self.modbus_connection_version} is installed. Please remove or upgrade other custom "
-                "integrations that depend on an older version of modbus-connection and restart."
-            )
 
         if self.option_storage_control:
             _LOGGER.warning(
@@ -657,15 +629,6 @@ class SolarEdgeModbusMultiHub:
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
 
-    @staticmethod
-    def _safe_version_tuple(version_str: str) -> tuple[int, ...]:
-        try:
-            version_parts = version_str.split(".")
-            version_tuple = tuple(int(part) for part in version_parts)
-            return version_tuple
-        except ValueError:
-            raise ValueError(f"Invalid version string: {version_str}")
-
     @property
     def initalized(self):
         return self._initalized
@@ -744,14 +707,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def sleep_after_write(self) -> int:
         return self._sleep_after_write
-
-    @property
-    def tmodbus_required_version(self) -> str:
-        return TMODBUS_REQUIRED_VERSION
-
-    @property
-    def modbus_connection_required_version(self) -> str:
-        return MODBUS_CONNECTION_REQUIRED_VERSION
 
     @property
     def tmodbus_version(self) -> str:
