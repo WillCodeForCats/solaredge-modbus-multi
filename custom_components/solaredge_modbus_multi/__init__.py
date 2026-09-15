@@ -42,6 +42,8 @@ _LOGGER = logging.getLogger(__name__)
 def _check_dependency_versions() -> None:
     """Fail early if tmodbus/modbus-connection are missing or older than required."""
 
+    installed_versions = {}
+
     for display_name, distribution_name, required in (
         ("tmodbus", "tmodbus", TMODBUS_REQUIRED_VERSION),
         ("modbus-connection", "modbus_connection", MODBUS_CONNECTION_REQUIRED_VERSION),
@@ -60,6 +62,13 @@ def _check_dependency_versions() -> None:
                 "is installed. Please remove or upgrade other custom integrations "
                 f"that depend on an older version of {display_name} and restart."
             )
+
+        installed_versions[display_name] = installed
+
+    _LOGGER.debug(
+        "Installed versions: "
+        + ", ".join(f"{name} {version}" for name, version in installed_versions.items())
+    )
 
 
 _check_dependency_versions()

@@ -234,9 +234,6 @@ class SolarEdgeModbusMultiHub:
             ),
         )
 
-        _LOGGER.debug(f"tmodbus version {self.tmodbus_version}")
-        _LOGGER.debug(f"modbus-connection version {self.modbus_connection_version}")
-
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
 
