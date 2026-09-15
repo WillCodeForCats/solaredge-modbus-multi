@@ -1,8 +1,8 @@
 """Tests for _check_dependency_versions()
 
-Runs at import time of custom_components/solaredge_modbus_multi/__init__.py
-before modbus_connection or .hub are imported, so old or missing install fails with a
-ConfigEntryError instead of ImportError once we're into hub
+Called from async_setup_entry via hass.async_add_executor_job before
+modbus_connection or .hub are imported, so an old or missing install fails
+with a ConfigEntryError message we can define.
 """
 
 import importlib.metadata
