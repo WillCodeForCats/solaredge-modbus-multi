@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import importlib.metadata
 import logging
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
@@ -62,8 +61,6 @@ from .const import (
 from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
-tmodbus_version = importlib.metadata.version("tmodbus")
-modbus_connection_version = importlib.metadata.version("modbus_connection")
 
 
 class SolarEdgeException(Exception):
@@ -213,9 +210,6 @@ class SolarEdgeModbusMultiHub:
         self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
 
         self.connection = connection
-
-        self._tmodbus_version = tmodbus_version
-        self._modbus_connection_version = modbus_connection_version
 
         _LOGGER.debug(
             (
@@ -704,14 +698,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def sleep_after_write(self) -> int:
         return self._sleep_after_write
-
-    @property
-    def tmodbus_version(self) -> str:
-        return self._tmodbus_version
-
-    @property
-    def modbus_connection_version(self) -> str:
-        return self._modbus_connection_version
 
     @property
     def coordinator_timeout(self) -> int:
