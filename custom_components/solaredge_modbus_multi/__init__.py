@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _check_dependency_versions() -> None:
+def _check_dependency_versions() -> dict[str, str]:
     """Fail early if tmodbus/modbus-connection are missing or older than required.
     Must be called from async_setup_entry via hass.async_add_executor_job
     """
@@ -79,6 +79,8 @@ def _check_dependency_versions() -> None:
         "Installed versions: "
         + ", ".join(f"{name} {version}" for name, version in installed_versions.items())
     )
+
+    return installed_versions
 
 
 PLATFORMS: list[str] = [
@@ -137,7 +139,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # importlib.metadata does blocking file I/O, and modbus_connection/.hub
     # aren't safe to import until we know the versions are good -- see
     # _check_dependency_versions()'s docstring.
-    await hass.async_add_executor_job(_check_dependency_versions)
+    installed_versions = await hass.async_add_executor_job(_check_dependency_versions)
 
     from modbus_connection import ModbusTcpParams
     from modbus_connection.tmodbus import ModbusConnection
@@ -167,6 +169,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
         "coordinator": coordinator,
+        "dependency_versions": installed_versions,
     }
 
     await coordinator.async_config_entry_first_refresh()
