@@ -73,10 +73,13 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    hub = entry_data["hub"]
+    dependency_versions = entry_data["dependency_versions"]
 
     data: dict[str, Any] = {
-        "tmodbus_version": hub.tmodbus_version,
+        "tmodbus_version": dependency_versions["tmodbus"],
+        "modbus_connection_version": dependency_versions["modbus-connection"],
         "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
         "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
@@ -109,7 +112,7 @@ async def async_get_config_entry_diagnostics(
 
     for meter in hub.meters:
         meter: dict[str, Any] = {
-            f"meter_id_{meter.meter_id}": {
+            f"meter_id_I{meter.inverter_unit_id}_M{meter.meter_id}": {
                 "device_info": meter.device_info,
                 "inverter_unit_id": meter.inverter_unit_id,
                 "common": component_to_dict(meter.meter_info),
@@ -120,7 +123,7 @@ async def async_get_config_entry_diagnostics(
 
     for battery in hub.batteries:
         battery: dict[str, Any] = {
-            f"battery_id_{battery.battery_id}": {
+            f"battery_id_I{battery.inverter_unit_id}_B{battery.battery_id}": {
                 "device_info": battery.device_info,
                 "inverter_unit_id": battery.inverter_unit_id,
                 "common": component_to_dict(battery.battery_info),
@@ -131,10 +134,10 @@ async def async_get_config_entry_diagnostics(
 
     for der_battery in hub.der_batteries:
         der_battery: dict[str, Any] = {
-            f"battery_id_{der_battery.battery_id}": {
+            f"der_battery_id_I{der_battery.inverter_unit_id}"
+            f"_DERB{der_battery.battery_id}": {
                 "device_info": der_battery.device_info,
                 "inverter_unit_id": der_battery.inverter_unit_id,
-                "common": component_to_dict(der_battery.der_storage_capacity_data),
                 "model": format_values(
                     component_to_dict(der_battery.der_storage_capacity_data)
                 ),
@@ -146,7 +149,6 @@ async def async_get_config_entry_diagnostics(
         evse: dict[str, Any] = {
             f"evse_unit_id_{evse.evse_unit_id}": {
                 "device_info": evse.device_info,
-                "common": component_to_dict(evse.evse_common),
                 "model": format_values(component_to_dict(evse.evse_common)),
             }
         }
