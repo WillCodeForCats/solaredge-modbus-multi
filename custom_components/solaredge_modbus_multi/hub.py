@@ -18,6 +18,7 @@ from modbus_connection.exceptions import (
     IllegalDataValueError,
     IllegalFunctionError,
     ModbusConnectionError,
+    ModbusError,
     ModbusExceptionError,
     ModbusProtocolError,
     ModbusTimeoutError,
@@ -314,13 +315,7 @@ class SolarEdgeModbusMultiHub:
                             f"(length {model.length})"
                         )
 
-                except (
-                    ModbusConnectionError,
-                    ModbusProtocolError,
-                    ModbusTimeoutError,
-                    ModbusExceptionError,
-                    SunSpecError,
-                ) as e:
+                except (ModbusError, SunSpecError) as e:
                     _LOGGER.debug(f"E{inverter_unit_id}: SunS model scan failed: {e}")
 
                 # Skip meter and battery detection if DeviceIsEVSE
@@ -344,13 +339,7 @@ class SolarEdgeModbusMultiHub:
                         f"(length {model.length})"
                     )
 
-            except (
-                ModbusConnectionError,
-                ModbusProtocolError,
-                ModbusTimeoutError,
-                ModbusExceptionError,
-                SunSpecError,
-            ) as e:
+            except (ModbusError, SunSpecError) as e:
                 _LOGGER.debug(f"I{inverter_unit_id}: SunS model scan failed: {e}")
                 der_storage_models = []
 
