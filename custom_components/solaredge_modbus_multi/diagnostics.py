@@ -150,6 +150,7 @@ async def async_get_config_entry_diagnostics(
             f"evse_unit_id_{evse.evse_unit_id}": {
                 "device_info": evse.device_info,
                 "model": format_values(component_to_dict(evse.evse_common)),
+                "sunspec_models": _sunspec_scan(evse),
             }
         }
         data.update(async_redact_data(evse, REDACT_EVSE))
