@@ -58,8 +58,6 @@ def _fake_der_battery(inverter_unit_id, battery_id):
 
 def _fake_hub(meters=(), batteries=(), der_batteries=()):
     return SimpleNamespace(
-        tmodbus_version="0.6.2",
-        modbus_connection_version="4.12.1",
         inverters=[],
         meters=list(meters),
         batteries=list(batteries),
@@ -73,7 +71,10 @@ async def _get_diagnostics(hass, hub):
     entry.add_to_hass(hass)
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["yaml"] = {}
-    hass.data[DOMAIN][entry.entry_id] = {"hub": hub}
+    hass.data[DOMAIN][entry.entry_id] = {
+        "hub": hub,
+        "dependency_versions": {"tmodbus": "0.6.2", "modbus-connection": "4.12.1"},
+    }
 
     return await async_get_config_entry_diagnostics(hass, entry)
 
