@@ -833,7 +833,7 @@ class SolarEdgeInverter:
         self.serial = self.inverter_common.C_SerialNumber
         self.device_address = self.inverter_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
-        self.uid_base = f"{self.model}_{self.serial}"
+        self.uid_base = f"{self.serial}"
 
         try:
             this_ver = _parse_se_version(self.inverter_common.C_Version)
@@ -1389,9 +1389,8 @@ class SolarEdgeMeter:
             f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
 
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
+        inverter_serial = self.inverter_common.C_SerialNumber
+        self.uid_base = f"{inverter_serial}_M{self.meter_id}"
 
     async def read_modbus_data(self) -> None:
         try:
@@ -1574,9 +1573,8 @@ class SolarEdgeBattery:
             f"I{self.inverter_unit_id} B{self.battery_id}"
         )
 
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
+        inverter_serial = self.inverter_common.C_SerialNumber
+        self.uid_base = f"{inverter_serial}_B{self.battery_id}"
 
     async def read_modbus_data(self) -> None:
         try:
@@ -1727,9 +1725,8 @@ class SolarEdgeDERBattery:
             f"I{self.inverter_unit_id} DERB{self.battery_id}"
         )
 
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_DERB{self.battery_id}"
+        inverter_serial = self.inverter_common.C_SerialNumber
+        self.uid_base = f"{inverter_serial}_DERB{self.battery_id}"
 
     async def read_modbus_data(self) -> None:
         """Refresh from DER Storage Capacity (SunSpec model 713).
@@ -1855,7 +1852,7 @@ class SolarEdgeEVSE:
         self.serial = self.evse_common.C_SerialNumber
         self.device_address = self.evse_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} E{self.evse_unit_id}"
-        self.uid_base = f"{self.model}_{self.serial}"
+        self.uid_base = f"{self.serial}"
 
     async def read_modbus_data(self) -> None:
         """Read and update dynamic modbus registers."""
