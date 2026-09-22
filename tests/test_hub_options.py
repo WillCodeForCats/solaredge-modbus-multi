@@ -8,6 +8,7 @@ from modbus_connection.mock import MockModbusConnection
 
 from custom_components.solaredge_modbus_multi.const import (
     DOMAIN,
+    WRITE_SETTLE_CYCLES,
     ConfDefaultInt,
     ConfName,
 )
@@ -143,3 +144,20 @@ async def test_coordinator_timeout_scales_with_request_timeout(hass):
     assert doubled_hub.coordinator_timeout == pytest.approx(
         default_hub.coordinator_timeout * 2
     )
+
+
+async def test_coordinator_timeout_with_sleep_after_write(hass):
+    hub = _make_hub(hass, entry_options={ConfName.SLEEP_AFTER_WRITE: 5})
+    baseline_hub = _make_hub(hass)
+
+    assert hub.coordinator_timeout == pytest.approx(
+        baseline_hub.coordinator_timeout + 5 * WRITE_SETTLE_CYCLES
+    )
+
+
+async def test_coordinator_timeout_default_sleep_after_write(hass):
+    # sleep_after_write defaults to 0
+    hub = _make_hub(hass)
+    baseline_hub = _make_hub(hass)
+
+    assert hub.coordinator_timeout == pytest.approx(baseline_hub.coordinator_timeout)

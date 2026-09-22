@@ -736,6 +736,9 @@ class SolarEdgeModbusMultiHub:
         # scale the coordinator timeout if the user changes the value
         this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
 
+        # Add the sleep_after_write value to the coordinator timeout
+        this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES
+
         _LOGGER.debug(f"coordinator timeout is {this_timeout}")
         return this_timeout
 
