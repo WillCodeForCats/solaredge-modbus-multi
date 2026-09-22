@@ -73,11 +73,13 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    hub = entry_data["hub"]
+    dependency_versions = entry_data["dependency_versions"]
 
     data: dict[str, Any] = {
-        "tmodbus_version": hub.tmodbus_version,
-        "modbus_connection_version": hub.modbus_connection_version,
+        "tmodbus_version": dependency_versions["tmodbus"],
+        "modbus_connection_version": dependency_versions["modbus-connection"],
         "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
         "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
@@ -148,6 +150,7 @@ async def async_get_config_entry_diagnostics(
             f"evse_unit_id_{evse.evse_unit_id}": {
                 "device_info": evse.device_info,
                 "model": format_values(component_to_dict(evse.evse_common)),
+                "sunspec_models": _sunspec_scan(evse),
             }
         }
         data.update(async_redact_data(evse, REDACT_EVSE))
