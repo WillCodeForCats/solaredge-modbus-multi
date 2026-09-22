@@ -201,6 +201,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if {info[4][0].lower() for info in addr_info} & discovered_ips:
                 return self.async_abort(reason="already_configured")
 
+        if not await self._async_port_open(host, port):
+            return self.async_abort(reason="cannot_connect")
+
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
 
