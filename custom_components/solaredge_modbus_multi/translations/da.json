@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Vært og port er allerede konfigureret i en anden hub.",
+      "cannot_connect": "Kunne ikke oprette forbindelse til den fundne enhed.",
       "reconfigure_successful": "Genkonfiguration lykkedes"
     },
     "progress": {

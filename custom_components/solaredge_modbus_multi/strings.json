@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Host and port is already configured in another hub.",
+      "cannot_connect": "Could not connect to the discovered device.",
       "reconfigure_successful": "Re-configuration was successful"
     },
     "progress": {
