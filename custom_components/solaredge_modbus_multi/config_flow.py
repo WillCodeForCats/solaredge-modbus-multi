@@ -25,6 +25,7 @@ from .const import (
     SETUP_SCAN_FAST,
     SETUP_SCAN_FULL,
     SETUP_TYPE,
+    ZEROCONF_PROBE_TIMEOUT,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
