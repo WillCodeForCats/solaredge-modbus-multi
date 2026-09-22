@@ -2,7 +2,7 @@
 
 import socket
 from ipaddress import ip_address
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant import config_entries
@@ -21,6 +21,19 @@ DISCOVERY_INFO = ZeroconfServiceInfo(
     name="SolarEdge Gateway._solaredge-modbus._tcp.local.",
     properties={},
 )
+
+
+@pytest.fixture(autouse=True)
+def mock_port_open():
+    """Assume the discovered port is reachable unless a test overrides this.
+    Real discovery checks the port before offering the device up for setup.
+    """
+    with patch(
+        "custom_components.solaredge_modbus_multi.config_flow."
+        "SolaredgeModbusMultiConfigFlow._async_port_open",
+        AsyncMock(return_value=True),
+    ) as mock:
+        yield mock
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
@@ -207,3 +220,34 @@ async def test_zeroconf_discovery_does_not_resolve_dns_for_mismatched_ip(
     assert result["type"] == "form"
     assert result["step_id"] == "zeroconf_confirm"
     resolve.assert_not_awaited()
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_discovery_aborts_if_port_not_open(hass, mock_port_open):
+    """A follower inverter may advertise mDNS without exposing its own
+    reachable Modbus/TCP port - see issue #1084."""
+    mock_port_open.return_value = False
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_ZEROCONF},
+        data=DISCOVERY_INFO,
+    )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "cannot_connect"
+    mock_port_open.assert_awaited_once_with("192.168.1.50", 1502)
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_discovery_probes_before_confirm(hass, mock_port_open):
+    """The port probe should run before the device is offered for setup."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_ZEROCONF},
+        data=DISCOVERY_INFO,
+    )
+
+    mock_port_open.assert_awaited_once_with("192.168.1.50", 1502)
+    assert result["type"] == "form"
+    assert result["step_id"] == "zeroconf_confirm"
