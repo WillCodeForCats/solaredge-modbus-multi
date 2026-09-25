@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "A gazdagép és a port már konfigurálva van egy másik hubon.",
+      "cannot_connect": "Nem sikerült csatlakozni a felfedezett eszközhöz.",
       "reconfigure_successful": "Az újrakonfigurálás sikeres volt"
     },
     "progress": {

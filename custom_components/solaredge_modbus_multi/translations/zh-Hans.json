@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "主机和端口已在另一个集线器中配置。",
+      "cannot_connect": "无法连接到发现的设备。",
       "reconfigure_successful": "重新配置成功"
     },
     "progress": {

@@ -25,6 +25,7 @@ from .const import (
     SETUP_SCAN_FAST,
     SETUP_SCAN_FULL,
     SETUP_TYPE,
+    ZEROCONF_PROBE_TIMEOUT,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -86,6 +87,29 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
+
+    @staticmethod
+    async def _async_port_open(
+        host: str, port: int, timeout: float = ZEROCONF_PROBE_TIMEOUT
+    ) -> bool:
+        """Check if a TCP port actually accepts connections. mDNS only confirms
+        a device advertised itself, not that its Modbus TCP port is actually reachable.
+        """
+        try:
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(host, port), timeout=timeout
+            )
+        except (OSError, asyncio.TimeoutError):
+            return False
+
+        try:
+            writer.close()
+            await writer.wait_closed()
+        except OSError:
+            pass
+
+        await asyncio.sleep(1.0)
+        return True
 
     async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
         try:
@@ -176,6 +200,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if {info[4][0].lower() for info in addr_info} & discovered_ips:
                 return self.async_abort(reason="already_configured")
+
+        if not await self._async_port_open(host, port):
+            return self.async_abort(reason="cannot_connect")
 
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})

@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub.",
+      "cannot_connect": "Impossible de se connecter à l'appareil découvert.",
       "reconfigure_successful": "La reconfiguration a réussi"
     },
     "progress": {
