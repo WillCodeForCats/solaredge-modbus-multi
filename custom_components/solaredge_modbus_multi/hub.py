@@ -11,6 +11,7 @@ from awesomeversion.exceptions import (
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from modbus_connection.exceptions import (
@@ -261,6 +262,14 @@ class SolarEdgeModbusMultiHub:
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
 
+                # for via_device_id
+                device_registry = dr.async_get(self._hass)
+                inverter_device = device_registry.async_get_or_create(
+                    config_entry_id=self._entry_id,
+                    **new_inverter.device_info,
+                )
+                new_inverter.device_registry_id = inverter_device.id
+
                 ir.async_delete_issue(
                     self._hass,
                     DOMAIN,
@@ -362,7 +371,7 @@ class SolarEdgeModbusMultiHub:
                                     ),
                                 )
 
-                        new_meter.via_device = new_inverter.uid_base
+                        new_meter.via_device_id = new_inverter.device_registry_id
                         self.meters.append(new_meter)
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
@@ -402,7 +411,7 @@ class SolarEdgeModbusMultiHub:
                                     f"{new_battery.serial}"
                                 )
 
-                        new_battery.via_device = new_inverter.uid_base
+                        new_battery.via_device_id = new_inverter.device_registry_id
                         self.batteries.append(new_battery)
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
@@ -749,6 +758,7 @@ class SolarEdgeInverter:
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
+        self.device_registry_id: str | None = None
         self.mmppt_units = []
         self.has_parent = False
         self.has_battery = None
@@ -1300,7 +1310,7 @@ class SolarEdgeMMPPTUnit:
             model=self.inverter.model,
             hw_version=f"ID {self.mmppt_id}",
             serial_number=f"{self.mmppt_idstr}",
-            via_device=(DOMAIN, self.inverter.uid_base),
+            via_device_id=self.inverter.device_registry_id,
         )
 
     @property
@@ -1324,7 +1334,7 @@ class SolarEdgeMeter:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
-        self._via_device = None
+        self._via_device_id = None
 
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
@@ -1442,16 +1452,16 @@ class SolarEdgeMeter:
             serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
-            via_device=self.via_device,
+            via_device_id=self.via_device_id,
         )
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
+    def via_device_id(self) -> str | None:
+        return self._via_device_id
 
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    @via_device_id.setter
+    def via_device_id(self, device_registry_id: str | None) -> None:
+        self._via_device_id = device_registry_id
 
 
 class _DERStorageBatteryInfo:
@@ -1514,7 +1524,7 @@ class SolarEdgeBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self._via_device = None
+        self._via_device_id = None
 
         try:
             self.base_offset = BATTERY_REG_BASE[self.battery_id] - BATTERY_REG_BASE[1]
@@ -1789,16 +1799,16 @@ class SolarEdgeDERBattery:
             model=self.model,
             serial_number=self.serial,
             sw_version=self.fw_version,
-            via_device=self.via_device,
+            via_device_id=self.via_device_id,
         )
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
+    def via_device_id(self) -> str | None:
+        return self._via_device_id
 
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    @via_device_id.setter
+    def via_device_id(self, device_registry_id: str | None) -> None:
+        self._via_device_id = device_registry_id
 
     @property
     def allow_battery_energy_reset(self) -> bool:
