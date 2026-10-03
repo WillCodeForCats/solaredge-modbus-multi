@@ -50,6 +50,23 @@ def repair_flow(mock_config_entry: MockConfigEntry) -> CheckConfigurationRepairF
     return CheckConfigurationRepairFlow(mock_config_entry)
 
 
+@pytest.fixture
+async def mock_setup_entry(hass: HomeAssistant):
+    """Stub entry setup for flows that end in a reload.
+
+    A real setup would open a Modbus socket to the test host, which the
+    harness blocks and then fails the test on at teardown. The reload is
+    only scheduled, so drain it here while the stub is still in place.
+    """
+    with patch(
+        "custom_components.solaredge_modbus_multi.async_setup_entry",
+        return_value=True,
+    ) as mock:
+        yield mock
+        await hass.async_block_till_done()
+
+
+@pytest.mark.usefixtures("mock_setup_entry")
 class TestCheckConfigurationRepairFlow:
     """Test CheckConfigurationRepairFlow class."""
 
@@ -517,6 +534,7 @@ class TestAsyncCreateFixFlow:
             await async_create_fix_flow(hass, "check_configuration", None)
 
 
+@pytest.mark.usefixtures("mock_setup_entry")
 class TestRepairFlowIntegration:
     """Integration tests for repair flow."""
 
