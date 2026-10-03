@@ -18,5 +18,5 @@
     "pymodbus==3.13.1",
     "awesomeversion>=25.5.0"
   ],
-  "version": "4.0.0+cohenam.3"
+  "version": "4.0.0+cohenam.4"
 }

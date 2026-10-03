@@ -12,6 +12,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
@@ -164,6 +165,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) ->
         ) from err
 
     try:
+        # Register the inverters before any platform creates entities: meters,
+        # batteries and MPPT units link to their inverter by device-registry
+        # id (via_device_id), which exists only once the inverter is registered.
+        device_registry = dr.async_get(hass)
+        for inverter in solaredge_hub.inverters:
+            inverter.registry_device_id = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id, **inverter.device_info
+            ).id
+
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     except BaseException:
         # A failed (or cancelled) platform setup must not leak the connected

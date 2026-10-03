@@ -1419,18 +1419,23 @@ async def test_inverter_properties(mock_hub) -> None:
     assert inverter.online == mock_hub.online
 
 
-async def test_meter_via_device_property(mock_hub) -> None:
-    """Test meter via_device property."""
+async def test_meter_via_device_id_follows_parent_inverter(mock_hub) -> None:
+    """The meter's via_device_id is its inverter's registry id, once known."""
     mock_hub.inverter_common[1] = {
         "C_Model": "SE10K",
         "C_SerialNumber": "123456789",
     }
     mock_hub.mmppt_common[1] = None
 
+    inverter = SolarEdgeInverter(device_id=1, hub=mock_hub)
     meter = SolarEdgeMeter(device_id=1, meter_id=1, hub=mock_hub)
-    meter.via_device = "test_device"
+    assert meter.via_device_id is None
 
-    assert meter.via_device == (DOMAIN, "test_device")
+    meter.inverter = inverter
+    assert meter.via_device_id is None
+
+    inverter.registry_device_id = "0123456789abcdef0123456789abcdef"
+    assert meter.via_device_id == "0123456789abcdef0123456789abcdef"
 
 
 async def test_battery_properties(mock_hub) -> None:
