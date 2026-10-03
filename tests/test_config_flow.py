@@ -14,9 +14,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
 
-# Check if SOURCE_RECONFIGURE is available (Home Assistant 2025.2+)
-HAS_RECONFIGURE = hasattr(config_entries, "SOURCE_RECONFIGURE")
-
 
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
@@ -254,7 +251,6 @@ async def test_form_invalid_inverter_count(hass: HomeAssistant) -> None:
 
 
 # Reconfigure flow tests
-@pytest.mark.skipif(not HAS_RECONFIGURE, reason="SOURCE_RECONFIGURE not available")
 async def test_reconfigure_form_display(
     hass: HomeAssistant, mock_config_entry_data
 ) -> None:
@@ -284,7 +280,6 @@ async def test_reconfigure_form_display(
     assert result["errors"] == {}
 
 
-@pytest.mark.skipif(not HAS_RECONFIGURE, reason="SOURCE_RECONFIGURE not available")
 async def test_reconfigure_valid_input(
     hass: HomeAssistant, mock_config_entry_data
 ) -> None:
@@ -322,7 +317,6 @@ async def test_reconfigure_valid_input(
     assert result["reason"] == "reconfigure_successful"
 
 
-@pytest.mark.skipif(not HAS_RECONFIGURE, reason="SOURCE_RECONFIGURE not available")
 async def test_reconfigure_invalid_host(
     hass: HomeAssistant, mock_config_entry_data
 ) -> None:
@@ -360,7 +354,6 @@ async def test_reconfigure_invalid_host(
     assert result["errors"] == {CONF_HOST: "invalid_host"}
 
 
-@pytest.mark.skipif(not HAS_RECONFIGURE, reason="SOURCE_RECONFIGURE not available")
 async def test_reconfigure_invalid_port(
     hass: HomeAssistant, mock_config_entry_data
 ) -> None:
@@ -398,7 +391,6 @@ async def test_reconfigure_invalid_port(
     assert result["errors"] == {CONF_PORT: "invalid_tcp_port"}
 
 
-@pytest.mark.skipif(not HAS_RECONFIGURE, reason="SOURCE_RECONFIGURE not available")
 async def test_reconfigure_duplicate_entry(
     hass: HomeAssistant, mock_config_entry_data
 ) -> None:
@@ -1166,7 +1158,6 @@ async def test_options_flow_reloads_exactly_once(
     mock_schedule.assert_called_once_with(entry.entry_id)
 
 
-@pytest.mark.skipif(not HAS_RECONFIGURE, reason="SOURCE_RECONFIGURE not available")
 async def test_reconfigure_reloads_exactly_once(
     hass: HomeAssistant, mock_config_entry_data
 ) -> None:
