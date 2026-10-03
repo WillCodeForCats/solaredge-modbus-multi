@@ -1,38 +1,9 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "solaredge-modbus-multi"
-version = "3.3.0"
-description = "Home Assistant integration for SolarEdge inverters using Modbus/TCP"
-readme = "README.md"
-license = {text = "Apache-2.0"}
-requires-python = ">=3.14"
-dependencies = [
-    "modbus-connection[pymodbus]==4.10.0",
-    "pymodbus==3.13.1",
-    "awesomeversion>=25.5.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pre-commit>=3.5.0",
-    "ruff>=0.8.0",
-]
-test = [
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-cov>=4.1.0",
-    "pytest-homeassistant-custom-component>=0.13.354",
-]
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["custom_components*"]
+# Tool configuration only. The integration is deployed as a git submodule bind-mounted
+# into Home Assistant, never built or installed as a package; runtime pins live in
+# custom_components/solaredge_modbus_multi/manifest.json, test pins in requirements*.txt.
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 line-length = 88
 
 [tool.ruff.lint]

@@ -552,9 +552,9 @@ async def test_diagnostics_exposes_poll_groups(hass, make_hub) -> None:
 
     # This hub has no devices, so "due" is all it can honestly claim: being
     # scheduled is not evidence that anything was read.
-    assert all(
-        group["last_served_cycle"] is None for group in groups.values()
-    ), "cadence evidence must require an actual read"
+    assert all(group["last_served_cycle"] is None for group in groups.values()), (
+        "cadence evidence must require an actual read"
+    )
 
     assert diagnostics["yaml"]["poll"] == {"meter": 2, "battery": 3}
 

@@ -1,50 +1,38 @@
-# SolarEdge Modbus Multi
+# SolarEdge Modbus Multi (cohenam fork)
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+Home Assistant custom integration polling one or more SolarEdge inverters, their
+meters and batteries over Modbus/TCP. A private fork of
+[WillCodeForCats/solaredge-modbus-multi](https://github.com/WillCodeForCats/solaredge-modbus-multi)
+that stopped tracking upstream in 2026 (last common point: upstream v3.3.x); it is
+maintained for the two Home Assistant instances in the `homekit` repository and is
+not published to HACS.
 
-This integration provides Modbus/TCP local polling to one or more SolarEdge inverters for Home Assistant. Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters, multiple inverters, meters, and batteries. It has significant improvements over similar integrations, and `solaredge_modbus_multi` is actively maintained.
+## Deployment
 
-By default, only features officially documented by SolarEdge are enabled:
-inverters, synergy inverters, and meters. Battery monitoring and write-capable
-power or storage controls are opt-in because they rely on non-public
-documentation or user discovery and may not be supported by SolarEdge.
+The integration is **not** installed — it is a git submodule of `homekit`
+(`plugins/solaredge-modbus-multi`) whose `custom_components/solaredge_modbus_multi`
+directory is bind-mounted read-only into both Home Assistant containers. Moving the
+submodule pointer therefore changes the code for both instances at once; only the
+restarts can be staggered. The deployment procedure, the rule about never editing
+the live checkout in place, and the inverters' single-Modbus-session constraint are
+documented in the parent repository's `AGENTS.md`.
+
+Requirements:
+
+- Home Assistant **2026.8.0** or newer (the `via_device_id` device-registry API).
+- Python 3.14 (what HA 2026.8+ runs on; also the test harness floor).
+- `pymodbus 3.13.1` and `modbus-connection >=4.4,<5` — the manifest accepts the
+  version the HA core image ships so nothing is pip-installed at boot (see `AGENTS.md`).
 
 ## Features
 
-- Inverter support for 1 to 32 SolarEdge inverters.
-- Meter support for 1 to 3 meters per inverter.
-- Battery support for 1 to 3 batteries per inverter.
-- Supports site limit and storage controls.
-- Automatically detects meters and batteries.
-- Supports Three Phase Inverters with Synergy Technology.
-- Polling frequency configuration option (1 to 86400 seconds).
-- Auto-discovers inverters via Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
-- Connects locally using Modbus/TCP - no cloud dependencies.
-- Informational sensor for device and its attributes
-- Supports status and error reporting sensors.
-- User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
+- 1 to 32 inverters per hub, up to three meters and three batteries each; Synergy
+  (multi-MPPT) inverters; EVSE detection.
+- Config flow with fast scan (IDs 1–32), complete scan (IDs 1–247) or a manual ID
+  list; options, reconfigure and repair flows; diagnostics download.
+- Per-register-group polling cadence (below), hardware writes gated off by default.
 
-Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
-
-## Installation
-
-Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
-
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=WillCodeForCats&repository=solaredge-modbus-multi&category=integration)
-
-OR
-
-Download the [latest release](https://github.com/WillCodeForCats/solaredge-modbus-multi/releases) and copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
-
-After rebooting Home Assistant, this integration can be configured through the integration setup UI. It also supports options, repair issues, and reconfiguration through the user interface.
-
-### Configuration
-
-[WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
-
-Inverter site limit and battery storage controls are disabled by default: not all inverters support controls. You will need to enable Power Control Options after adding your inverter hub in the integration.
-
-#### Hardware writes
+### Hardware writes
 
 Modbus write commands are **off by default**. While disabled, no write-capable
 entity is created (number, select, switch, and the power-settings buttons) and the
@@ -52,7 +40,7 @@ hub refuses a write before it reaches the inverter. Turn on **Allow Hardware
 Writes** in the integration options to enable them. The Refresh button is
 unaffected — it only re-reads.
 
-#### Polling frequency per register group
+### Polling frequency per register group
 
 Modbus reads are block reads, so the finest granularity for thinning polling is a
 group of blocks rather than an individual entity. Each group has a cycle
@@ -82,23 +70,15 @@ Skipped groups keep their last values — entities stay available and simply do 
 change until the group is read again. A write always forces the `settings` group
 on the next poll, so a control entity still shows its new value promptly.
 
-### Documentation
+## Development
 
-[WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
+`AGENTS.md` is the contributor guide: environment setup (Python 3.14, `uv`), Ruff and
+pytest commands, the hardware-safety rules, and the design decisions that look like
+unfinished work but are deliberate. Tests run on GitHub Actions for pull requests and
+for pushes to `fix/**`, `feat/**` and `refactor/**` branches.
 
-### Minimum Required Versions
+`docs/` holds the SunSpec implementation technical note the register maps are based on.
 
-- Home Assistant 2025.2.0 (HA=>2025.9.0 requires release v3.1.7 or newer)
-- pymodbus 3.8.3 (pymodbus>=3.10.0 requires release v3.1.6 or newer)
+## License
 
-## Specifications
-
-[WillCodeForCats/solaredge-modbus-multi/tree/main/doc](https://github.com/WillCodeForCats/solaredge-modbus-multi/tree/main/doc)
-
-## Project Sponsors
-
-- [@bertybuttface](https://github.com/bertybuttface)
-- [@dominikamann](https://github.com/dominikamann)
-- [@maksyms](https://github.com/maksyms)
-- [@pwo108](https://github.com/pwo108)
-- [@barrown](https://github.com/barrown)
+Apache-2.0, as upstream.

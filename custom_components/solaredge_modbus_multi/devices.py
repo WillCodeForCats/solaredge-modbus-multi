@@ -328,7 +328,7 @@ class SolarEdgeInverter:
         except ModbusIOError:
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
-        except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+        except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
             )
@@ -384,7 +384,7 @@ class SolarEdgeInverter:
                 f"No response from inverter ID {self.inverter_unit_id}"
             )
 
-        except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+        except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
             _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
             self.decoded_mmppt = None
 
@@ -688,7 +688,7 @@ class SolarEdgeInverter:
                         ),
                     )
 
-            except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+            except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
                 self.global_power_control = False
                 ir.async_delete_issue(
                     self.hub._hass,
@@ -702,7 +702,7 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: global power control NOT available"
                 )
 
-            except (TimeoutError, ModbusIOError):
+            except TimeoutError, ModbusIOError:
                 # Handled here, so the refresh still completes — but the
                 # settings data is stale, so the poll must not count as a
                 # served re-read.
@@ -828,7 +828,7 @@ class SolarEdgeInverter:
                         ),
                     )
 
-            except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+            except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
                 self.advanced_power_control = False
                 ir.async_delete_issue(
                     self.hub._hass,
@@ -842,7 +842,7 @@ class SolarEdgeInverter:
                     f"I{self.inverter_unit_id}: advanced power control NOT available"
                 )
 
-            except (TimeoutError, ModbusIOError):
+            except TimeoutError, ModbusIOError:
                 # Handled here, so the refresh still completes — but the
                 # settings data is stale, so the poll must not count as a
                 # served re-read.
@@ -894,7 +894,7 @@ class SolarEdgeInverter:
 
                 self.site_limit_control = True
 
-            except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+            except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
                 self.site_limit_control = False
                 drop_decoded(self.decoded_model, SITE_LIMIT_DECODED_KEYS)
                 _LOGGER.debug(
@@ -925,7 +925,7 @@ class SolarEdgeInverter:
                     }
                 )
 
-            except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+            except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
                 drop_decoded(self.decoded_model, ("Ext_Prod_Max",))
                 _LOGGER.debug(f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available")
 
@@ -957,7 +957,7 @@ class SolarEdgeInverter:
                 )
                 self._grid_status = True
 
-            except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+            except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
                 self._grid_status = False
                 drop_decoded(self.decoded_model, GRID_STATUS_DECODED_KEYS)
                 _LOGGER.debug(f"I{self.inverter_unit_id}: Grid On/Off NOT available")
@@ -1043,7 +1043,7 @@ class SolarEdgeInverter:
 
                 log_decoded(f"I{self.inverter_unit_id}", self.decoded_storage_control)
 
-            except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+            except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
                 self.decoded_storage_control = False
                 _LOGGER.debug(
                     f"I{self.inverter_unit_id}: storage control NOT available"
@@ -1212,7 +1212,7 @@ class SolarEdgeMeter:
         except ModbusIOError:
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
-        except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+        except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
             raise DeviceInvalid(f"Meter {self.meter_id}: unsupported address")
 
         self.manufacturer = self.decoded_common["C_Manufacturer"]
@@ -1455,7 +1455,7 @@ class SolarEdgeBattery:
         except ModbusIOError:
             raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
 
-        except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+        except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
             raise DeviceInvalid(f"Battery {self.battery_id} unsupported address")
 
         self.decoded_common["B_Manufacturer"] = self.decoded_common[
@@ -1735,7 +1735,7 @@ class SolarEdgeEVSE:
             # answered the inverter probe, so surface this as retryable.
             raise ModbusReadError(f"No response from evse ID {self.evse_unit_id}")
 
-        except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+        except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
             raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
 
         if (
@@ -1769,7 +1769,7 @@ class SolarEdgeEVSE:
 
             log_decoded(f"E{self.evse_unit_id}", self.decoded_model)
 
-        except (ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue):
+        except ModbusIllegalAddress, ModbusIllegalFunction, ModbusIllegalValue:
             _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
 
         except ModbusIOError:

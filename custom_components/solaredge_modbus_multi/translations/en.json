@@ -60,7 +60,6 @@
     },
     "abort": {
       "already_configured": "Host and port is already configured in another hub.",
-      "reconfigure_successful": "Re-configuration was successful",
       "scan_failed": "Failed to scan for inverters: {error}"
     },
     "progress": {

@@ -224,7 +224,7 @@ class SolarEdgeDeviceScanner:
                 try:
                     async with asyncio.timeout(self._connect_timeout):
                         await self._transport.connect()
-                except (TimeoutError, OSError, ModbusIOError):
+                except TimeoutError, OSError, ModbusIOError:
                     pass
 
                 if not self._transport.connected:

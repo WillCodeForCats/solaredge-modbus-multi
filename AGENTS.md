@@ -24,7 +24,7 @@ requires it):
 ```bash
 uv venv --python 3.14
 source .venv/bin/activate
-uv pip install -r requirements.txt -r requirements_test.txt "ruff==0.8.3" "pre-commit>=3.5.0"
+uv pip install -r requirements.txt -r requirements_test.txt "ruff==0.16.10" "pre-commit>=3.5.0"
 ruff check custom_components/ tests/
 ruff format --check custom_components/ tests/
 python -m pytest tests/ -q
@@ -32,9 +32,18 @@ pre-commit run --all-files
 ```
 
 Run a focused test while iterating, for example
-`python -m pytest tests/test_hub.py -q`. This HACS integration has no separate
-build step; manual testing uses a copy under Home Assistant's
-`config/custom_components/`.
+`python -m pytest tests/test_hub.py -q`. There is no build or install step: the
+integration is deployed as a git submodule of the `homekit` repository whose
+`custom_components/solaredge_modbus_multi` directory is bind-mounted into both
+Home Assistant containers. Never edit that live checkout in place — work in a
+separate worktree and move the submodule pointer at deploy time (procedure in
+the parent repository's `AGENTS.md`). `pyproject.toml` holds tool configuration
+only; runtime pins live in `manifest.json`, test pins in `requirements*.txt`.
+
+`PARALLEL_UPDATES` is `0` on the coordinator-driven `sensor` and `binary_sensor`
+platforms and `1` on `number`, `select`, `switch` and `button`. It is a
+per-platform semaphore on service calls, not an inverter lock — the transport
+lock in `modbus_transport.py` is what serialises the single Modbus session.
 
 ## Coding Style & Naming Conventions
 
@@ -125,12 +134,26 @@ Its purpose was converging with upstream once it was safe. The fork no longer
 tracks upstream, so that purpose is gone. What remains would be removing working
 functionality behind a one-way 2.1 → 2.2 config-entry migration on two live
 instances, for no user-visible gain. Note these are *unused*, not *inert*:
-`keep_modbus_open` drives real branches (`hub.py:538,678`) and `modbus.timeout`
-feeds `_mb_timeout` (`hub.py:205`); they simply never fire under the deployed
+`keep_modbus_open` drives real branches (`hub.py:495,635`) and `modbus.timeout`
+feeds `_mb_timeout` (`hub.py:174`); they simply never fire under the deployed
 options. Reopen only if a concrete need appears.
 
 ### `awesomeversion` is required
 
-It is not a pymodbus version guard and cannot be dropped. It gates
-`use_status_vendor4` on the inverter's `C_Version` (`devices.py:386`) and the
-inverted-power sensors on `HA_VERSION` (`sensor.py:623,1760`).
+It is not a pymodbus version guard and cannot be dropped: it gates
+`use_status_vendor4` on the inverter's firmware `C_Version` (`devices.py:402`).
+(It used to gate the inverted-power sensors on `HA_VERSION` too; that comparison
+became constant once the floor moved to HA 2026.8 and was removed.)
+
+### Upstream is not a remote
+
+The fork stopped tracking WillCodeForCats/solaredge-modbus-multi in 2026 and the
+`upstream` remote (with its ~60 branches and 316 tags) was removed from the
+checkouts. `origin` is fetched with `tagOpt --no-tags`. For a one-off cherry-pick:
+
+```bash
+git remote add upstream https://github.com/WillCodeForCats/solaredge-modbus-multi.git
+git fetch --no-tags upstream main
+git cherry-pick <sha>
+git remote remove upstream
+```
