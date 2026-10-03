@@ -18,10 +18,11 @@ in `conftest.py`, transport tests use `fake_modbus_server.py`, and
 
 ## Build, Test, and Development Commands
 
-Use Python 3.13 to match CI (the package supports Python 3.12+):
+Use Python 3.14 to match CI (Home Assistant 2026.8+, the integration's floor,
+requires it):
 
 ```bash
-uv venv --python 3.13
+uv venv --python 3.14
 source .venv/bin/activate
 uv pip install -r requirements.txt -r requirements_test.txt "ruff==0.8.3" "pre-commit>=3.5.0"
 ruff check custom_components/ tests/

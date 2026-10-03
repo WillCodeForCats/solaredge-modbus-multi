@@ -23,6 +23,22 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.fixture(autouse=True)
+async def mock_setup_entry(hass: HomeAssistant):
+    """Stub entry setup: the options and reconfigure flows end in a reload.
+
+    A real setup would open a Modbus socket to the test host, which the
+    harness blocks and then fails the test on at teardown. The reload is
+    only scheduled, so drain it here while the stub is still in place.
+    """
+    with patch(
+        "custom_components.solaredge_modbus_multi.async_setup_entry",
+        return_value=True,
+    ) as mock:
+        yield mock
+        await hass.async_block_till_done()
+
+
 async def _start_manual_flow(hass: HomeAssistant):
     """Start a user flow and select manual setup from the menu."""
     result = await hass.config_entries.flow.async_init(

@@ -8,7 +8,7 @@ version = "3.3.0"
 description = "Home Assistant integration for SolarEdge inverters using Modbus/TCP"
 readme = "README.md"
 license = {text = "Apache-2.0"}
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "modbus-connection[pymodbus]==4.4.0",
     "pymodbus==3.13.1",
@@ -24,7 +24,7 @@ test = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
-    "pytest-homeassistant-custom-component>=0.13.190",
+    "pytest-homeassistant-custom-component>=0.13.354",
 ]
 
 [tool.setuptools.packages.find]

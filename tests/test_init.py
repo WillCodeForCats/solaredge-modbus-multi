@@ -9,7 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi import (
@@ -967,4 +968,130 @@ async def test_setup_entry_platform_failure_shuts_hub_down(
             with pytest.raises(ImportError):
                 await async_setup_entry(hass, mock_config_entry)
 
+            assert mock_shutdown.await_count >= 1
+
+
+async def test_setup_entry_registers_inverters_before_platforms(
+    hass: HomeAssistant,
+    mock_config_entry,
+    mock_modbus_client,
+    mock_inverter_registers,
+    mock_inverter_model_registers,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Children link by registry id, so inverters are registered before any entity."""
+    from tests.conftest import create_modbus_response
+
+    await async_setup(hass, {})
+
+    mock_client = mock_modbus_client.return_value
+
+    def mock_read(address, count, **kwargs):
+        if address == 40000:
+            return create_modbus_response(mock_inverter_registers)
+        elif address == 40044:
+            return create_modbus_response(
+                [0] * 8 + [0] * 17 + mock_inverter_model_registers
+            )
+        elif address == 40121:
+            return create_modbus_response([0xFFFF] * count)
+        else:
+            return create_modbus_response([0] * count)
+
+    mock_client.read_holding_registers = AsyncMock(side_effect=mock_read)
+
+    # What the inverters carried at the moment platforms were forwarded
+    ids_at_forward: dict[str, str | None] = {}
+    original_forward = hass.config_entries.async_forward_entry_setups
+
+    async def capture_forward(entry, platforms):
+        hub = entry.runtime_data.hub
+        ids_at_forward.update(
+            {inv.uid_base: inv.registry_device_id for inv in hub.inverters}
+        )
+        await original_forward(entry, platforms)
+
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.modbus_transport."
+            "ModbusConnection",
+            mock_modbus_client,
+        ),
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            side_effect=capture_forward,
+        ),
+    ):
+        assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    registry = dr.async_get(hass)
+    assert ids_at_forward
+    for uid_base, registry_id in ids_at_forward.items():
+        assert registry_id is not None
+        device = registry.async_get(registry_id)
+        assert device is not None
+        assert (DOMAIN, uid_base) in device.identifiers
+        assert device.config_entry_id == mock_config_entry.entry_id
+
+    assert "via_device" not in caplog.text
+    assert "deprecated" not in caplog.text
+
+
+async def test_setup_entry_registration_failure_shuts_hub_down(
+    hass: HomeAssistant,
+    mock_config_entry,
+    mock_modbus_client,
+    mock_inverter_registers,
+    mock_inverter_model_registers,
+) -> None:
+    """A registry error before platform forward must not leak the session either."""
+    from tests.conftest import create_modbus_response
+
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["yaml"] = {}
+
+    mock_client = mock_modbus_client.return_value
+
+    def mock_read(address, count, **kwargs):
+        if address == 40000:
+            return create_modbus_response(mock_inverter_registers)
+        elif address == 40044:
+            return create_modbus_response(
+                [0] * 8 + [0] * 17 + mock_inverter_model_registers
+            )
+        else:
+            return create_modbus_response([0] * count)
+
+    mock_client.read_holding_registers = AsyncMock(side_effect=mock_read)
+
+    with patch(
+        "custom_components.solaredge_modbus_multi.modbus_transport.ModbusConnection",
+        mock_modbus_client,
+    ):
+        with (
+            patch.object(
+                dr.DeviceRegistry,
+                "async_get_or_create",
+                side_effect=HomeAssistantError("registry refused the inverter"),
+            ),
+            patch.object(
+                hass.config_entries,
+                "async_forward_entry_setups",
+                new_callable=AsyncMock,
+            ) as mock_forward,
+            patch(
+                "custom_components.solaredge_modbus_multi.hub."
+                "SolarEdgeModbusMultiHub.shutdown",
+                new_callable=AsyncMock,
+            ) as mock_shutdown,
+        ):
+            mock_config_entry.mock_state(
+                hass, config_entries.ConfigEntryState.SETUP_IN_PROGRESS
+            )
+            with pytest.raises(HomeAssistantError):
+                await async_setup_entry(hass, mock_config_entry)
+
+            mock_forward.assert_not_awaited()
             assert mock_shutdown.await_count >= 1

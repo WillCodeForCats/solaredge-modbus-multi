@@ -217,7 +217,7 @@ def mock_meter():
         "name": "SolarEdge Meter 1",
         "manufacturer": "SolarEdge",
         "model": "WND-3Y-400-MB",
-        "via_device": (DOMAIN, "inv_123456789"),
+        "via_device_id": "0123456789abcdef0123456789abcdef",
     }
     meter.decoded_common = {
         "C_Manufacturer": "SolarEdge",
@@ -242,7 +242,7 @@ def mock_battery():
         "name": "SolarEdge Battery 1",
         "manufacturer": "SolarEdge",
         "model": "BAT-10K1PS0B-01",
-        "via_device": (DOMAIN, "inv_123456789"),
+        "via_device_id": "0123456789abcdef0123456789abcdef",
     }
     battery.decoded_common = {
         "C_Manufacturer": "SolarEdge",
@@ -476,8 +476,8 @@ class TestAsyncGetConfigEntryDiagnostics:
         device_info = meter_data["device_info"]
         if "identifiers" in device_info:
             assert device_info["identifiers"] == "**REDACTED**"
-        if "via_device" in device_info:
-            assert device_info["via_device"] == "**REDACTED**"
+        # The registry id is opaque, not a serial: it is left in the clear
+        assert device_info["via_device_id"] == "0123456789abcdef0123456789abcdef"
 
         common_data = meter_data["common"]
         if "C_SerialNumber" in common_data:
@@ -535,8 +535,8 @@ class TestAsyncGetConfigEntryDiagnostics:
         device_info = battery_data["device_info"]
         if "identifiers" in device_info:
             assert device_info["identifiers"] == "**REDACTED**"
-        if "via_device" in device_info:
-            assert device_info["via_device"] == "**REDACTED**"
+        # The registry id is opaque, not a serial: it is left in the clear
+        assert device_info["via_device_id"] == "0123456789abcdef0123456789abcdef"
 
         common_data = battery_data["common"]
         if "B_SerialNumber" in common_data:
@@ -779,14 +779,14 @@ class TestRedactionConstants:
         assert "identifiers" in REDACT_METER
         assert "C_SerialNumber" in REDACT_METER
         assert "serial_number" in REDACT_METER
-        assert "via_device" in REDACT_METER
+        assert "via_device" not in REDACT_METER
 
     def test_redact_battery_constants(self):
         """Test REDACT_BATTERY contains expected fields."""
         assert "identifiers" in REDACT_BATTERY
         assert "B_SerialNumber" in REDACT_BATTERY
         assert "serial_number" in REDACT_BATTERY
-        assert "via_device" in REDACT_BATTERY
+        assert "via_device" not in REDACT_BATTERY
 
 
 async def test_diagnostics_polling_section(

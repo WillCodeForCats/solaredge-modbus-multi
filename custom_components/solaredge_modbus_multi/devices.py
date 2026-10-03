@@ -241,12 +241,28 @@ def decode_sunspec_common_block(registers: list[int]) -> dict:
     return decoded
 
 
+def link_via_device(info: DeviceInfo, via_device_id: str | None) -> DeviceInfo:
+    """Link a child device to its inverter by device-registry id.
+
+    The id exists only once async_setup_entry has registered the inverter.
+    Until then the key is left out: an absent key keeps whatever link the
+    registry already holds, whereas None would clear it.
+    """
+    if via_device_id is not None:
+        info["via_device_id"] = via_device_id
+    return info
+
+
 class SolarEdgeInverter:
     """Defines a SolarEdge inverter."""
 
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
         self.inverter_unit_id = device_id
         self.hub = hub
+        # HA device-registry id, set by async_setup_entry once the inverter
+        # device is registered. Meters, batteries and MPPT units link to it
+        # through via_device_id, so it must exist before their entities do.
+        self.registry_device_id: str | None = None
         self.mmppt_units = []
         self.decoded_common = {}
         self.decoded_model = {}
@@ -1105,15 +1121,20 @@ class SolarEdgeMMPPTUnit:
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        return DeviceInfo(
+        info = DeviceInfo(
             identifiers={(DOMAIN, self.inverter.uid_base, self.mmppt_key)},
             name=f"{self.inverter.name} MPPT{self.unit}",
             manufacturer=self.inverter.manufacturer,
             model=self.inverter.model,
             hw_version=f"ID {self.mmppt_id}",
             serial_number=f"{self.mmppt_idstr}",
-            via_device=(DOMAIN, self.inverter.uid_base),
         )
+        return link_via_device(info, self.via_device_id)
+
+    @property
+    def via_device_id(self) -> str | None:
+        """Registry id of the parent inverter, once it has been registered."""
+        return self.inverter.registry_device_id
 
     @property
     def mmppt_id(self) -> str:
@@ -1138,7 +1159,8 @@ class SolarEdgeMeter:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
-        self._via_device = None
+        # The parent inverter object; the hub sets it on discovery.
+        self.inverter: SolarEdgeInverter | None = None
         self._last_update_timestamp = None
 
         try:
@@ -1351,7 +1373,7 @@ class SolarEdgeMeter:
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        return DeviceInfo(
+        info = DeviceInfo(
             identifiers={(DOMAIN, self.uid_base)},
             name=self.name,
             manufacturer=self.manufacturer,
@@ -1359,16 +1381,15 @@ class SolarEdgeMeter:
             serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
-            via_device=self.via_device,
         )
+        return link_via_device(info, self.via_device_id)
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
-
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    def via_device_id(self) -> str | None:
+        """Registry id of the parent inverter, once it has been registered."""
+        if self.inverter is None:
+            return None
+        return self.inverter.registry_device_id
 
     @property
     def last_update(self) -> datetime.datetime | None:
@@ -1389,7 +1410,8 @@ class SolarEdgeBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self._via_device = None
+        # The parent inverter object; the hub sets it on discovery.
+        self.inverter: SolarEdgeInverter | None = None
         self._last_update_timestamp = None
         self._sample_generation = 0
 
@@ -1596,23 +1618,22 @@ class SolarEdgeBattery:
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        return DeviceInfo(
+        info = DeviceInfo(
             identifiers={(DOMAIN, self.uid_base)},
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
             serial_number=self.serial,
             sw_version=self.fw_version,
-            via_device=self.via_device,
         )
+        return link_via_device(info, self.via_device_id)
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
-
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    def via_device_id(self) -> str | None:
+        """Registry id of the parent inverter, once it has been registered."""
+        if self.inverter is None:
+            return None
+        return self.inverter.registry_device_id
 
     @property
     def allow_battery_energy_reset(self) -> bool:

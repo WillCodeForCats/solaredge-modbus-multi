@@ -17,8 +17,9 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          # HA loader breaks on 3.14; keep in lockstep with the local venv.
-          python-version: "3.13"
+          # HA >= 2026.8 (the via_device_id floor) requires 3.14; keep in
+          # lockstep with the local venv.
+          python-version: "3.14"
 
       - name: Install dependencies
         run: |

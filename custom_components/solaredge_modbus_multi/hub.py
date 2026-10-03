@@ -402,7 +402,7 @@ class SolarEdgeModbusMultiHub:
                                     ),
                                 )
 
-                        new_meter.via_device = new_inverter.uid_base
+                        new_meter.inverter = new_inverter
                         self.meters.append(new_meter)
                         _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
 
@@ -438,7 +438,7 @@ class SolarEdgeModbusMultiHub:
                                     f"{new_battery.serial}"
                                 )
 
-                        new_battery.via_device = new_inverter.uid_base
+                        new_battery.inverter = new_inverter
                         self.batteries.append(new_battery)
                         _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
 
