@@ -316,7 +316,7 @@ class SolarEdgeSensorBase(SolarEdgeEntityBase, SensorEntity):
         """Display precision from a scale factor, or None if not implemented."""
         try:
             sf = model[sf_key]
-        except (KeyError, TypeError):
+        except KeyError, TypeError:
             return None
 
         if sf == SunSpecNotImpl.INT16 or sf not in SUNSPEC_SF_RANGE:
@@ -342,7 +342,7 @@ class SolarEdgeSensorBase(SolarEdgeEntityBase, SensorEntity):
 
             return self.scale_factor(value, sf)
 
-        except (TypeError, KeyError):
+        except TypeError, KeyError:
             return None
 
 
@@ -1706,7 +1706,7 @@ class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
 
             return super().available
 
-        except (TypeError, KeyError):
+        except TypeError, KeyError:
             return False
 
     @property

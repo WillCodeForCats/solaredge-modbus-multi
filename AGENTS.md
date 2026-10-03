@@ -24,7 +24,7 @@ requires it):
 ```bash
 uv venv --python 3.14
 source .venv/bin/activate
-uv pip install -r requirements.txt -r requirements_test.txt "ruff==0.8.3" "pre-commit>=3.5.0"
+uv pip install -r requirements.txt -r requirements_test.txt "ruff==0.16.10" "pre-commit>=3.5.0"
 ruff check custom_components/ tests/
 ruff format --check custom_components/ tests/
 python -m pytest tests/ -q

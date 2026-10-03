@@ -87,7 +87,7 @@ class FakeModbusServer:
                     writer.write(response)
                 await writer.drain()
 
-        except (asyncio.IncompleteReadError, ConnectionResetError, OSError):
+        except asyncio.IncompleteReadError, ConnectionResetError, OSError:
             pass
         finally:
             self._active_sessions -= 1
