@@ -1,3 +1,6 @@
-modbus-connection[pymodbus]==4.4.0
+# The manifest accepts modbus-connection >=4.4.0,<5 so HA never has to pip-install over the
+# version the core image ships (core's `modbus` pins it exactly). Tests run against the
+# version production actually has — bump this when the HA image moves.
+modbus-connection[pymodbus]==4.10.0
 pymodbus==3.13.1
 awesomeversion>=25.5.0

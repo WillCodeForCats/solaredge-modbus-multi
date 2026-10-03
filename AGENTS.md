@@ -85,12 +85,29 @@ the actual guard regardless.
 
 ## Decisions that look like unfinished work
 
+### The manifest takes a modbus-connection *range*; the test pin is exact
+
+`manifest.json` requires `modbus-connection[pymodbus]>=4.4.0,<5` while
+`requirements.txt` pins `==4.10.0`. That is deliberate. Home Assistant core's own
+`modbus` integration pins modbus-connection exactly (4.10.0 in 2026.9) and the HA
+image ships that version; an exact *different* pin here made HA pip-install over
+it on every first boot after an image update — a network dependency at boot, and
+whichever integration loaded last decided which version both ran on. The range
+is satisfied by whatever core ships (`util/package.py::is_installed` checks the
+specifier), so no pip runs. The test pin follows the version production actually
+has: bump it when the HA image moves, and run the suite. The fork touches only
+the connection/unit layer, the `exceptions` and `encode`/`decode` helpers — the
+surface that stayed compatible from 4.4 through 4.10. The `<5` cap is the guard
+against a breaking major arriving through a core bump.
+
 ### `close()` is permanent — connection generations remain fork policy
 
 `modbus_connection`'s `close()` sets `_closed` for good; a later `connect()`
 raises `ClientClosedError`. modbus-connection 4.0.0's release notes state this as
-deliberate design, not an alpha rough edge. Version 4.2 added `disconnect()` for
-reusing the same connection object after dropping its link, but this fork still
+deliberate design, not an alpha rough edge; 4.10.0 still closes for good and
+`connect()` still rejects a closed instance. Version 4.2 added `disconnect()`
+(4.9 put it on the unit protocol too) for reusing the same connection object
+after dropping its link, but this fork still
 retires failed and cancelled generations: its connection graph is small, while
 replacement guarantees shielded connects are cleaned up and late callbacks
 cannot touch live diagnostics. Keep `ModbusTransport`'s generations,
