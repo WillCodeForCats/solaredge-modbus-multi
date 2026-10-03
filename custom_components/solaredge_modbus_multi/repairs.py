@@ -5,8 +5,7 @@ from __future__ import annotations
 import re
 from typing import cast
 
-from homeassistant import data_entry_flow
-from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -30,13 +29,13 @@ class CheckConfigurationRepairFlow(RepairsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """Handle the first step of a fix flow."""
         return await self.async_step_confirm()
 
     async def async_step_confirm(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """Handle the confirm step of a fix flow."""
         errors = {}
 
@@ -124,7 +123,7 @@ async def async_create_fix_flow(
     entry_id = cast(str, data["entry_id"])
 
     if (entry := hass.config_entries.async_get_entry(entry_id)) is not None:
-        # Ids are scoped per entry ("check_configuration_<entry_id>"); the
-        # bare legacy id is still dispatched for issues created pre-upgrade.
+        # Ids are scoped per entry ("check_configuration_<entry_id>"), so
+        # match on the prefix.
         if issue_id.startswith("check_configuration"):
             return CheckConfigurationRepairFlow(entry)

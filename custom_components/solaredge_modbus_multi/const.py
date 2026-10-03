@@ -14,9 +14,6 @@ SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
 SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
 SETUP_MANUAL = "manual_list"
 
-# raise a startup exception if pymodbus version is less than this
-PYMODBUS_REQUIRED_VERSION = "3.8.3"
-
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
@@ -41,7 +38,6 @@ DETECT_EVSE_REGEX = re.compile(
 )
 
 STATUS_VENDOR4_VERSION = "3.20.0"  # solaredge firmware version
-INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 
 
 class ModbusExceptions:
@@ -1459,8 +1455,3 @@ def check_config_issue_id(entry_id: str) -> str:
 def detect_timeout_issue_id(kind: str, entry_id: str, inverter_unit_id: int) -> str:
     """Repair issue id for a control-block detection timeout, per inverter."""
     return f"detect_timeout_{kind}_{entry_id}_{inverter_unit_id}"
-
-
-# Pre-scoping ids: one shared issue per kind for ALL entries and inverters,
-# so two hubs (or two inverters) collided on create/delete. Swept on setup.
-LEGACY_ISSUE_IDS = ("check_configuration", "detect_timeout_gpc", "detect_timeout_apc")

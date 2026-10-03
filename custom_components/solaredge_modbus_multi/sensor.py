@@ -5,7 +5,6 @@ import logging
 import re
 from dataclasses import dataclass
 
-from awesomeversion import AwesomeVersion
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -13,20 +12,19 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    PERCENTAGE,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfRatio,
     UnitOfReactivePower,
     UnitOfTemperature,
 )
-from homeassistant.const import __version__ as HA_VERSION
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import SolarEdgeConfigEntry
 from .const import (
@@ -36,7 +34,6 @@ from .const import (
     DEVICE_STATUS_TEXT,
     ENERGY_VOLT_AMPERE_HOUR,
     ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
-    INVERTED_POWER_VERSION,
     METER_EVENTS,
     MMPPT_EVENTS,
     RRCR_STATUS,
@@ -52,6 +49,9 @@ from .entity import SolarEdgeEntityBase
 from .helpers import float_to_hex, is_float32_not_impl, update_accum
 
 _LOGGER = logging.getLogger(__name__)
+
+# Coordinator-driven, read-only: HA need not throttle entity updates.
+PARALLEL_UPDATES = 0
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -82,7 +82,7 @@ def _import_export_icon(phase: str | None) -> str | None:
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: SolarEdgeConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     hub = config_entry.runtime_data.hub
     coordinator = config_entry.runtime_data.coordinator
@@ -620,7 +620,10 @@ class ACPowerInverted(ACPower):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return AwesomeVersion(HA_VERSION) < AwesomeVersion(INVERTED_POWER_VERSION)
+        # The non-inverted sensor is the one the energy dashboard wants since HA
+        # 2026.2; this stays registered but off. A property, not an _attr_: the
+        # parent's property would otherwise decide.
+        return False
 
     @property
     def native_value(self):
@@ -702,7 +705,7 @@ class ACPowerFactor(SolarEdgeSensorBase):
         name="AC Power Factor",
         device_class=SensorDeviceClass.POWER_FACTOR,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         entity_registry_enabled_default=False,
     )
 
@@ -1332,7 +1335,7 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
         key="active_power_limit",
         name="Active Power Limit",
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         suggested_display_precision=0,
         icon="mdi:percent",
     )
@@ -1757,7 +1760,10 @@ class SolarEdgeBatteryPowerInverted(SolarEdgeBatteryPower):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return AwesomeVersion(HA_VERSION) < AwesomeVersion(INVERTED_POWER_VERSION)
+        # The non-inverted sensor is the one the energy dashboard wants since HA
+        # 2026.2; this stays registered but off. A property, not an _attr_: the
+        # parent's property would otherwise decide.
+        return False
 
     @property
     def native_value(self):
@@ -2022,7 +2028,7 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
         name="State of Health",
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         suggested_display_precision=0,
         icon="mdi:battery-heart-outline",
     )
@@ -2045,7 +2051,7 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
         name="State of Energy",
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         suggested_display_precision=0,
     )
 

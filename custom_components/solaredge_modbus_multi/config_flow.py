@@ -35,6 +35,17 @@ from .const import (
 from .helpers import device_list_from_string, host_valid
 from .scanner import SolarEdgeDeviceScanner
 
+# Keys device_list_from_string / check_device_id raise (helpers.py); they map
+# straight onto strings.json and must not be wrapped as connection errors.
+DEVICE_LIST_ERRORS = frozenset(
+    {
+        "invalid_range_format",
+        "invalid_range_lte",
+        "empty_device_id",
+        "invalid_device_id",
+    }
+)
+
 
 class ScanOtherDeviceError(HomeAssistantError):
     """Device IDs that responded but aren't SolarEdge inverters."""
@@ -44,6 +55,12 @@ class ScanOtherDeviceError(HomeAssistantError):
 
 class ScanNoResponseError(HomeAssistantError):
     """Device IDs that didn't respond or timed out."""
+
+    pass
+
+
+class ScanNoInvertersError(HomeAssistantError):
+    """The scanned IDs answered, but none of them is an inverter."""
 
     pass
 
@@ -245,21 +262,32 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
 
             if self._scan_user_input is None:
-                raise AbortFlow("No scan data available")
+                raise AbortFlow(
+                    "scan_failed",
+                    description_placeholders={"error": "no scan data available"},
+                )
 
             return self.async_create_entry(
                 title=self._scan_user_input[CONF_NAME],
                 data=self._scan_user_input,
             )
 
+        except AbortFlow:
+            raise
+
         except Exception as e:
-            raise AbortFlow(f"Scan failed: {e}")
+            raise AbortFlow(
+                "scan_failed", description_placeholders={"error": str(e)}
+            ) from e
 
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the manual config flow step."""
         errors = {}
+        # Error strings are translation keys; anything free-form (device ids,
+        # an exception message) goes through a placeholder instead.
+        description_placeholders: dict[str, str] = {}
 
         if user_input is not None:
             user_input[CONF_HOST] = user_input[CONF_HOST].lower()
@@ -297,27 +325,39 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                     if scan_return["other_devices"]:
                         raise ScanOtherDeviceError(
-                            f"Invalid devices found at ID(s): {scan_return['other_devices']}"
+                            ", ".join(map(str, scan_return["other_devices"]))
                         )
 
                     if scan_return["no_response"]:
                         raise ScanNoResponseError(
-                            f"No response from ID(s): {scan_return['no_response']}"
+                            ", ".join(map(str, scan_return["no_response"]))
                         )
 
                     if not scan_return["inverters"]:
-                        raise HomeAssistantError(
-                            "No inverter devices found in ID list."
-                        )
+                        raise ScanNoInvertersError()
 
                     inverter_count = len(scan_return["inverters"])
                     user_input[ConfName.DEVICE_LIST] = scan_return["inverters"]
 
-                except (ScanOtherDeviceError, ScanNoResponseError) as e:
-                    errors[ConfName.DEVICE_LIST] = f"{e}"
+                except ScanOtherDeviceError as e:
+                    errors[ConfName.DEVICE_LIST] = "scan_other_devices"
+                    description_placeholders["ids"] = str(e)
+
+                except ScanNoResponseError as e:
+                    errors[ConfName.DEVICE_LIST] = "scan_no_response"
+                    description_placeholders["ids"] = str(e)
+
+                except ScanNoInvertersError:
+                    errors[ConfName.DEVICE_LIST] = "no_inverters"
 
                 except HomeAssistantError as e:
-                    errors[CONF_HOST] = f"{e}"
+                    if str(e) in DEVICE_LIST_ERRORS:
+                        # device_list_from_string already speaks in keys
+                        errors[ConfName.DEVICE_LIST] = str(e)
+                    else:
+                        # the scanner could not reach the host
+                        errors[CONF_HOST] = "cannot_connect"
+                        description_placeholders["error"] = str(e)
 
                 else:
                     if not 1 <= inverter_count <= 32:
@@ -357,6 +397,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 },
             ),
             errors=errors,
+            description_placeholders=description_placeholders,
         )
 
     async def async_step_reconfigure(

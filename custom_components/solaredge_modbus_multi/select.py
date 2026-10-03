@@ -5,7 +5,7 @@ import logging
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from modbus_connection.encode import encode_int32, encode_uint16
 
 from . import SolarEdgeConfigEntry
@@ -22,11 +22,15 @@ from .entity import SolarEdgeEntityBase
 
 _LOGGER = logging.getLogger(__name__)
 
+# Writes go to an inverter with a single Modbus session; one service call
+# at a time per platform (the transport lock is the real guard).
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: SolarEdgeConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     hub = config_entry.runtime_data.hub
     coordinator = config_entry.runtime_data.coordinator

@@ -9,6 +9,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
@@ -228,7 +229,8 @@ async def test_form_invalid_device_list(hass: HomeAssistant) -> None:
     )
 
     assert result["type"] == FlowResultType.FORM
-    assert result["errors"] == {CONF_HOST: "invalid_device_id"}
+    # The parser key lands on the field it is about, not on the host
+    assert result["errors"] == {ConfName.DEVICE_LIST: "invalid_device_id"}
 
 
 async def test_form_invalid_inverter_count(hass: HomeAssistant) -> None:
@@ -1247,3 +1249,91 @@ async def test_manual_readd_aborts_before_any_scan(
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "already_configured"
     scanner_cls.assert_not_called()
+
+
+async def test_manual_scan_errors_are_translation_keys(hass: HomeAssistant) -> None:
+    """Scan outcomes surface as keys with the free text in placeholders."""
+    result = await _start_manual_flow(hass)
+    form = {
+        CONF_NAME: "Test SolarEdge",
+        CONF_HOST: "192.168.1.100",
+        CONF_PORT: 1502,
+        ConfName.DEVICE_LIST: "1,2",
+    }
+
+    with _mock_device_scanner(other_devices=[2]):
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], form)
+    assert result["errors"] == {ConfName.DEVICE_LIST: "scan_other_devices"}
+    assert result["description_placeholders"] == {"ids": "2"}
+
+    with _mock_device_scanner(no_response=[1, 2]):
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], form)
+    assert result["errors"] == {ConfName.DEVICE_LIST: "scan_no_response"}
+    assert result["description_placeholders"] == {"ids": "1, 2"}
+
+    with _mock_device_scanner():
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], form)
+    assert result["errors"] == {ConfName.DEVICE_LIST: "no_inverters"}
+
+
+async def test_manual_connect_failure_is_cannot_connect(hass: HomeAssistant) -> None:
+    """A scanner that cannot reach the host reports cannot_connect on the host."""
+    result = await _start_manual_flow(hass)
+
+    scanner = AsyncMock()
+    scanner.connect.side_effect = HomeAssistantError("Unable to connect to x:1502")
+    with patch(
+        "custom_components.solaredge_modbus_multi.config_flow.SolarEdgeDeviceScanner",
+        return_value=scanner,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_NAME: "Test SolarEdge",
+                CONF_HOST: "192.168.1.100",
+                CONF_PORT: 1502,
+                ConfName.DEVICE_LIST: "1",
+            },
+        )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {CONF_HOST: "cannot_connect"}
+    assert result["description_placeholders"] == {
+        "error": "Unable to connect to x:1502"
+    }
+
+
+def test_every_flow_error_key_has_a_string() -> None:
+    """Keys the flows emit must exist in strings.json, placeholders included."""
+    import json
+    import pathlib
+
+    from custom_components.solaredge_modbus_multi.config_flow import (
+        DEVICE_LIST_ERRORS,
+    )
+
+    strings = json.loads(
+        (
+            pathlib.Path(__file__).parents[1]
+            / "custom_components/solaredge_modbus_multi/strings.json"
+        ).read_text()
+    )
+    config_errors = strings["config"]["error"]
+    for key in (
+        *DEVICE_LIST_ERRORS,
+        "scan_other_devices",
+        "scan_no_response",
+        "no_inverters",
+        "cannot_connect",
+        "invalid_host",
+        "invalid_tcp_port",
+        "invalid_inverter_count",
+    ):
+        assert key in config_errors, key
+    assert "{ids}" in config_errors["scan_other_devices"]
+    assert "{ids}" in config_errors["scan_no_response"]
+    assert "{error}" in config_errors["cannot_connect"]
+    assert "{error}" in strings["config"]["abort"]["scan_failed"]
+    fix_flow_errors = strings["issues"]["check_configuration"]["fix_flow"]["error"]
+    for key in DEVICE_LIST_ERRORS:
+        assert key in fix_flow_errors, key

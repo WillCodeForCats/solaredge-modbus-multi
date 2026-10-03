@@ -792,30 +792,6 @@ class TestIssueScoping:
         for issue_id in remove_ids:
             assert registry.async_get_issue(DOMAIN, issue_id) is None
 
-    async def test_setup_sweeps_legacy_issue_ids(self, hass: HomeAssistant) -> None:
-        """async_setup garbage-collects the pre-scoping global issue ids."""
-        from homeassistant.helpers import issue_registry as ir
-
-        from custom_components.solaredge_modbus_multi import async_setup
-        from custom_components.solaredge_modbus_multi.hub import LEGACY_ISSUE_IDS
-
-        registry = ir.async_get(hass)
-        for legacy_id in LEGACY_ISSUE_IDS:
-            ir.async_create_issue(
-                hass,
-                DOMAIN,
-                legacy_id,
-                is_fixable=False,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="detect_timeout_gpc",
-                data={"entry_id": "legacy"},
-            )
-
-        assert await async_setup(hass, {}) is True
-
-        for legacy_id in LEGACY_ISSUE_IDS:
-            assert registry.async_get_issue(DOMAIN, legacy_id) is None
-
 
 class TestRepairReload:
     """The repair fix must schedule exactly one reload of the fixed entry."""

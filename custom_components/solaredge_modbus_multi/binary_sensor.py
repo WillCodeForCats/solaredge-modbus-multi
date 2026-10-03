@@ -10,18 +10,21 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import SolarEdgeConfigEntry
 from .entity import SolarEdgeEntityBase
 
 _LOGGER = logging.getLogger(__name__)
 
+# Coordinator-driven, read-only: HA need not throttle entity updates.
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: SolarEdgeConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     hub = config_entry.runtime_data.hub
     coordinator = config_entry.runtime_data.coordinator

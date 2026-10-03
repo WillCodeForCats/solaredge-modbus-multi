@@ -574,6 +574,24 @@ class TestACPowerInverted:
 
         assert sensor.native_value is None
 
+    def test_ac_power_inverted_disabled_by_default(
+        self, mock_meter_platform_did201, mock_config_entry, mock_coordinator
+    ):
+        """Off by default even though the parent ACPower enables total power.
+
+        The energy dashboard reads the non-inverted sensor since HA 2026.2;
+        the parent's property would say True here, so the override matters.
+        """
+        parent = ACPower(
+            mock_meter_platform_did201, mock_config_entry, mock_coordinator
+        )
+        assert parent.entity_registry_enabled_default is True
+
+        sensor = ACPowerInverted(
+            mock_meter_platform_did201, mock_config_entry, mock_coordinator
+        )
+        assert sensor.entity_registry_enabled_default is False
+
 
 class TestACFrequency:
     """Tests for ACFrequency sensor."""
@@ -1021,6 +1039,15 @@ class TestSolarEdgeBatteryPowerInverted:
         )
 
         assert sensor.native_value is None
+
+    def test_battery_power_inverted_disabled_by_default(
+        self, mock_battery_platform, mock_config_entry, mock_coordinator
+    ):
+        """The inverted battery power sensor is registered but off."""
+        sensor = SolarEdgeBatteryPowerInverted(
+            mock_battery_platform, mock_config_entry, mock_coordinator
+        )
+        assert sensor.entity_registry_enabled_default is False
 
 
 class TestSolarEdgeBatterySOE:
