@@ -231,22 +231,6 @@ async def test_hub_properties(mock_hub) -> None:
 # Hub Initialization Error Tests
 
 
-async def test_hub_init_pymodbus_version_check_fail(
-    mock_hub, mock_modbus_client
-) -> None:
-    """Test hub initialization fails with old pymodbus version."""
-    with patch(
-        "custom_components.solaredge_modbus_multi.modbus_transport.ModbusConnection",
-        mock_modbus_client,
-    ):
-        with patch.object(mock_hub, "_pymodbus_version", "3.0.0"):
-            await mock_hub.connect()
-            with pytest.raises(
-                HubInitFailed, match="pymodbus version must be at least"
-            ):
-                await mock_hub._async_init_solaredge()
-
-
 async def test_hub_init_connection_failed(mock_hub, mock_modbus_client) -> None:
     """Test hub initialization fails when not connected."""
     mock_modbus_client.return_value.connected = False
@@ -1358,18 +1342,6 @@ async def test_battery_invalid_id(mock_hub) -> None:
 
 
 # Hub Property and Utility Tests
-
-
-async def test_hub_safe_version_tuple_valid(mock_hub) -> None:
-    """Test version tuple parsing with valid version."""
-    result = mock_hub._safe_version_tuple("3.8.3")
-    assert result == (3, 8, 3)
-
-
-async def test_hub_safe_version_tuple_invalid(mock_hub) -> None:
-    """Test version tuple parsing with invalid version."""
-    with pytest.raises(ValueError, match="Invalid version string"):
-        mock_hub._safe_version_tuple("invalid.version.x")
 
 
 async def test_hub_coordinator_timeout_not_initialized(mock_hub) -> None:

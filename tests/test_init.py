@@ -595,6 +595,22 @@ async def test_async_remove_config_entry_device_in_use(
         # Should fail because device is in use
         assert result is False
 
+        # An EVSE the hub knows is in use too — it used to be missing from
+        # the check, so a live charger could be deleted from the UI.
+        evse = SimpleNamespace(
+            device_info={"identifiers": {(DOMAIN, "SE-EV-KIT_EVSE123")}}
+        )
+        hub.evses.append(evse)
+        evse_entry = device_registry.async_get_or_create(
+            config_entry_id=mock_config_entry.entry_id,
+            identifiers={(DOMAIN, "SE-EV-KIT_EVSE123")},
+            name="Test EVSE",
+        )
+        assert (
+            await async_remove_config_entry_device(hass, mock_config_entry, evse_entry)
+            is False
+        )
+
 
 async def test_async_remove_config_entry_device_not_in_use(
     hass: HomeAssistant,

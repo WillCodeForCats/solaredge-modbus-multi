@@ -1,8 +1,9 @@
 """SolarEdge Modbus Multi hub: session orchestration and polling.
 
-Device classes, decode helpers and the exception hierarchy moved to
-devices.py / exceptions.py (with the repair-issue id helpers in
-const.py); everything remains importable from this module.
+Device classes live in devices.py, the exception hierarchy in exceptions.py
+and the repair-issue id helpers in const.py. The names re-exported below are
+the ones the platforms and tests still import from here; import anything
+else from its own module.
 """
 
 from __future__ import annotations
@@ -20,9 +21,7 @@ from homeassistant.util import dt
 from .const import (
     BATTERY_REG_BASE,
     DOMAIN,
-    LEGACY_ISSUE_IDS,
     METER_REG_BASE,
-    PYMODBUS_REQUIRED_VERSION,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -35,26 +34,13 @@ from .const import (
     detect_timeout_issue_id,
 )
 from .devices import (
-    APC_BLOCK1_FLOAT32_FIELDS,
-    APC_BLOCK2_FLOAT32_FIELDS,
-    APC_DECODED_KEYS,
-    APC_INT32_FIELDS,
-    APC_UINT32_FIELDS,
-    GPC_DECODED_KEYS,
-    GRID_STATUS_DECODED_KEYS,
-    SITE_LIMIT_DECODED_KEYS,
     SolarEdgeBattery,
     SolarEdgeEVSE,
     SolarEdgeInverter,
     SolarEdgeMeter,
-    SolarEdgeMMPPTUnit,
-    decode_sunspec_common_block,
-    drop_decoded,
-    log_decoded,
 )
 from .exceptions import (
     DataUpdateFailed,
-    DeviceInitFailed,
     DeviceInvalid,
     DeviceIsEVSE,
     HubInitFailed,
@@ -64,24 +50,13 @@ from .exceptions import (
     ModbusIOError,
     ModbusReadError,
     ModbusWriteError,
-    SolarEdgeException,
 )
 from .modbus_transport import ModbusTransport
 
 _LOGGER = logging.getLogger(__name__)
 
 __all__ = [
-    "APC_BLOCK1_FLOAT32_FIELDS",
-    "APC_BLOCK2_FLOAT32_FIELDS",
-    "APC_DECODED_KEYS",
-    "APC_INT32_FIELDS",
-    "APC_UINT32_FIELDS",
-    "GPC_DECODED_KEYS",
-    "GRID_STATUS_DECODED_KEYS",
-    "LEGACY_ISSUE_IDS",
-    "SITE_LIMIT_DECODED_KEYS",
     "DataUpdateFailed",
-    "DeviceInitFailed",
     "DeviceInvalid",
     "DeviceIsEVSE",
     "HubInitFailed",
@@ -90,20 +65,14 @@ __all__ = [
     "ModbusIllegalValue",
     "ModbusIOError",
     "ModbusReadError",
-    "ModbusWriteError",
     "SolarEdgeBattery",
     "SolarEdgeEVSE",
-    "SolarEdgeException",
     "SolarEdgeInverter",
     "SolarEdgeMeter",
-    "SolarEdgeMMPPTUnit",
     "SolarEdgeModbusMultiHub",
     "async_delete_entry_issues",
     "check_config_issue_id",
-    "decode_sunspec_common_block",
     "detect_timeout_issue_id",
-    "drop_decoded",
-    "log_decoded",
 ]
 
 
@@ -298,18 +267,6 @@ class SolarEdgeModbusMultiHub:
 
     async def _async_init_solaredge(self) -> None:
         """Detect devices and load initial modbus data from inverters."""
-
-        pymodbus_version_tuple = self._safe_version_tuple(self.pymodbus_version)
-        required_version_tuple = self._safe_version_tuple(
-            self.pymodbus_required_version
-        )
-
-        if pymodbus_version_tuple < required_version_tuple:
-            raise HubInitFailed(
-                f"pymodbus version must be at least {self.pymodbus_required_version}, "
-                f"but {self.pymodbus_version} is installed. Please remove other custom "
-                "integrations that depend on an older version of pymodbus and restart."
-            )
 
         if not self.is_connected:
             ir.async_create_issue(
@@ -860,15 +817,6 @@ class SolarEdgeModbusMultiHub:
         elif 61698 <= address <= 61865:
             self._uncommitted_power_settings.add(address)
 
-    @staticmethod
-    def _safe_version_tuple(version_str: str) -> tuple[int, ...]:
-        try:
-            version_parts = version_str.split(".")
-            version_tuple = tuple(int(part) for part in version_parts)
-            return version_tuple
-        except ValueError:
-            raise ValueError(f"Invalid version string: {version_str}")
-
     @property
     def online(self):
         return self._online
@@ -987,10 +935,6 @@ class SolarEdgeModbusMultiHub:
     @property
     def sleep_after_write(self) -> int:
         return self._sleep_after_write
-
-    @property
-    def pymodbus_required_version(self) -> str:
-        return PYMODBUS_REQUIRED_VERSION
 
     @property
     def pymodbus_version(self) -> str:

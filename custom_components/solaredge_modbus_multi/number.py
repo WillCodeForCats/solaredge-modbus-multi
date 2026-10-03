@@ -4,15 +4,15 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import (
-    PERCENTAGE,
     UnitOfElectricCurrent,
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfRatio,
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from modbus_connection.encode import encode_float32, encode_uint16, encode_uint32
 
 from . import SolarEdgeConfigEntry
@@ -22,11 +22,15 @@ from .helpers import is_float32_not_impl
 
 _LOGGER = logging.getLogger(__name__)
 
+# Writes go to an inverter with a single Modbus session; one service call
+# at a time per platform (the transport lock is the real guard).
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: SolarEdgeConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     hub = config_entry.runtime_data.hub
     coordinator = config_entry.runtime_data.coordinator
@@ -121,7 +125,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         if self._platform.decoded_storage_control["ac_charge_policy"] == 2:
             return UnitOfEnergy.KILO_WATT_HOUR
         elif self._platform.decoded_storage_control["ac_charge_policy"] == 3:
-            return PERCENTAGE
+            return UnitOfRatio.PERCENTAGE
         else:
             return None
 
@@ -153,7 +157,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
 
 class StorageBackupReserve(SolarEdgeNumberBase):
-    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_unit_of_measurement = UnitOfRatio.PERCENTAGE
     _attr_native_min_value = 0
     _attr_native_max_value = 100
     _attr_icon = "mdi:battery-positive"
@@ -416,7 +420,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     """Global Dynamic Power Control: Set Inverter Active Power Limit"""
 
-    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_unit_of_measurement = UnitOfRatio.PERCENTAGE
     _attr_native_min_value = 0
     _attr_native_max_value = 100
     _attr_mode = "slider"
@@ -505,7 +509,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 class SolarEdgePowerReduce(SolarEdgeNumberBase):
     """Limits the inverter's maximum output power from 0-100%"""
 
-    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_unit_of_measurement = UnitOfRatio.PERCENTAGE
     _attr_native_min_value = 0
     _attr_native_max_value = 100
     _attr_mode = "slider"

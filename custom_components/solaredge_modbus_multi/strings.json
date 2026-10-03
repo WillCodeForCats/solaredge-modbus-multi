@@ -52,11 +52,16 @@
       "invalid_range_format": "Entry looks like a range but only one '-' per range is allowed.",
       "invalid_range_lte": "Starting ID in a range must be less than or equal to the end ID.",
       "empty_device_id": "The ID list contains an empty or undefined value.",
-      "scan_failed": "Failed to scan for inverters. Please check your connection and try again."
+      "scan_failed": "Failed to scan for inverters: {error}",
+      "scan_other_devices": "ID(s) {ids} answered but are not SolarEdge inverters.",
+      "scan_no_response": "No response from ID(s) {ids}.",
+      "no_inverters": "No inverter devices found in the ID list.",
+      "cannot_connect": "Unable to connect: {error}"
     },
     "abort": {
       "already_configured": "Host and port is already configured in another hub.",
-      "reconfigure_successful": "Re-configuration was successful"
+      "reconfigure_successful": "Re-configuration was successful",
+      "scan_failed": "Failed to scan for inverters: {error}"
     },
     "progress": {
       "scanning_for_inverters": "Scanning for SolarEdge inverters..."

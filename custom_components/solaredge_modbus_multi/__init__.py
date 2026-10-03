@@ -13,7 +13,6 @@ from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platfo
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -28,7 +27,6 @@ from .const import (
     RetrySettings,
 )
 from .hub import (
-    LEGACY_ISSUE_IDS,
     DataUpdateFailed,
     HubInitFailed,
     SolarEdgeModbusMultiHub,
@@ -120,10 +118,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
 
-    # One-time sweep of pre-scoping global issue ids left by an upgrade.
-    for legacy_issue_id in LEGACY_ISSUE_IDS:
-        ir.async_delete_issue(hass, DOMAIN, legacy_issue_id)
-
     return True
 
 
@@ -146,23 +140,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) ->
     try:
         await coordinator.async_config_entry_first_refresh()
     except ConfigEntryNotReady:
-        # first_refresh wraps hub failures into ConfigEntryNotReady itself;
+        # The coordinator turns HubInitFailed / DataUpdateFailed into
+        # UpdateFailed, which first_refresh surfaces as ConfigEntryNotReady;
         # close the half-open modbus client before HA schedules the retry.
         await solaredge_hub.shutdown()
         raise
-    except HubInitFailed as err:
-        _LOGGER.debug("Initial connection failed: %s", err)
-        await solaredge_hub.shutdown()
-        raise ConfigEntryNotReady(
-            f"Unable to connect to SolarEdge inverter at "
-            f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]}: {err}"
-        ) from err
-    except DataUpdateFailed as err:
-        _LOGGER.debug("Initial data refresh failed: %s", err)
-        await solaredge_hub.shutdown()
-        raise ConfigEntryNotReady(
-            f"Unable to read data from SolarEdge inverter: {err}"
-        ) from err
 
     try:
         # Register the inverters before any platform creates entities: meters,
@@ -214,34 +196,19 @@ async def async_remove_config_entry_device(
     """Remove a config entry from a device."""
     solaredge_hub = config_entry.runtime_data.hub
 
-    known_devices = set()
-
-    for inverter in solaredge_hub.inverters:
-        inverter_device_ids = {
-            dev_id[1]
-            for dev_id in inverter.device_info["identifiers"]
-            if dev_id[0] == DOMAIN
-        }
-        for dev_id in inverter_device_ids:
-            known_devices.add(dev_id)
-
-    for meter in solaredge_hub.meters:
-        meter_device_ids = {
-            dev_id[1]
-            for dev_id in meter.device_info["identifiers"]
-            if dev_id[0] == DOMAIN
-        }
-        for dev_id in meter_device_ids:
-            known_devices.add(dev_id)
-
-    for battery in solaredge_hub.batteries:
-        battery_device_ids = {
-            dev_id[1]
-            for dev_id in battery.device_info["identifiers"]
-            if dev_id[0] == DOMAIN
-        }
-        for dev_id in battery_device_ids:
-            known_devices.add(dev_id)
+    # Every device the hub currently knows, EVSEs included — a live device
+    # must not be deletable from the UI (it would only come back on reload).
+    known_devices = {
+        dev_id[1]
+        for device in (
+            *solaredge_hub.inverters,
+            *solaredge_hub.meters,
+            *solaredge_hub.batteries,
+            *solaredge_hub.evses,
+        )
+        for dev_id in device.device_info["identifiers"]
+        if dev_id[0] == DOMAIN
+    }
 
     this_device_ids = {
         dev_id[1] for dev_id in device_entry.identifiers if dev_id[0] == DOMAIN
@@ -383,10 +350,10 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
             )
 
         except HubInitFailed as e:
-            raise UpdateFailed(f"{e}")
+            raise UpdateFailed(f"{e}") from e
 
         except DataUpdateFailed as e:
-            raise UpdateFailed(f"{e}")
+            raise UpdateFailed(f"{e}") from e
 
     async def _refresh_modbus_data_with_retry(
         self,
