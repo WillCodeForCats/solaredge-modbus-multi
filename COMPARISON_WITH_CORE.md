@@ -156,7 +156,7 @@ Core depends on [frenck/python-solaredged](https://github.com/frenck/python-sola
 - **The library supports more than core exposes.** It reads per-string DC data (SunSpec 160), up to three meters and VAh/varh energy. Core creates no per-string entities and no VAh/varh sensors.
 - **Register sources.** Its README states that the register map is based on SolarEdge's public SunSpec documentation and `solaredge-modbus-multi`.
 
-**Coupling.** Core's integration and the `solaredged` library are described by the maintainer as coupled: the integration's structure (one object per device ID, probe then poll, a report of failed blocks) follows the library's API, and library bumps such as 0.2.3 to 0.4.0 come with integration changes. `solaredge-modbus-multi` has not split out a library; register handling and polling live in the integration and change together.
+**Coupling.** Core's integration and the `solaredged` library are coupled. The library is under the same owner as the core codeowner (@frenck), and the integration is built directly on its API: the integration's structure (one object per device ID, probe then poll, a report of failed blocks) follows the library's API, and library bumps such as 0.2.3 to 0.4.0 come with integration changes. `solaredge-modbus-multi` has not split out a library; register handling and polling live in the integration and change together.
 
 ## Strengths by area
 
