@@ -58,8 +58,8 @@ Both create an inverter device with meter and battery sub-devices. solaredge-mod
 | Diagnostic extras | Last-update sensor, write-count sensor, power-control-enabled binary sensor, refresh button | None |
 | Device layout | Inverter, meter and battery devices under the hub | Inverter device; meters and batteries linked via device; stale ones removed; a Storage state of charge sensor on the inverter when a DER storage block reports charge and no battery block exists |
 | Attachment changes | Auto-detect options for meters, batteries, extras | Checks every 15 min; reloads the entry when meters, batteries, grid status or a control block appear or disappear |
-| Diagnostics download | Yes | Yes; includes settings polls, control blocks and the SunSpec model chain |
-| Languages | 19 translation files, maintained by hand | English `strings.json`; other languages through HA's translation system |
+| Diagnostics download | Yes; includes the SunSpec model chain, power control, advanced power control and storage control data, DER battery and EV charger data, and dependency versions | Yes; includes the SunSpec model chain, settings polls and control block data |
+| Languages | 19 files in `translations/` (English plus 18 other languages), maintained by hand | English `strings.json`; other languages through HA's translation system |
 
 The entity lists were compiled by reading entity key names in each codebase and have not been checked entry by entry.
 
