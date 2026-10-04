@@ -438,7 +438,7 @@ class SolarEdgeModbusMultiHub:
                         )
                         await new_der_battery.init_device()
 
-                        new_der_battery.via_device = new_inverter.uid_base
+                        new_der_battery.via_device_id = new_inverter.device_registry_id
                         self.der_batteries.append(new_der_battery)
                         _LOGGER.debug(
                             f"Found I{inverter_unit_id} DER Storage Capacity "
@@ -1627,16 +1627,16 @@ class SolarEdgeBattery:
             model=self.model,
             serial_number=self.serial,
             sw_version=self.fw_version,
-            via_device=self.via_device,
+            via_device_id=self.via_device_id,
         )
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
+    def via_device_id(self) -> str | None:
+        return self._via_device_id
 
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    @via_device_id.setter
+    def via_device_id(self, device_registry_id: str | None) -> None:
+        self._via_device_id = device_registry_id
 
     @property
     def allow_battery_energy_reset(self) -> bool:
@@ -1674,7 +1674,7 @@ class SolarEdgeDERBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self._via_device = None
+        self._via_device_id = None
 
         self.der_storage_capacity_data = DERStorageCapacity(
             self.hub.connection.for_unit(self.inverter_unit_id), der_storage_model
