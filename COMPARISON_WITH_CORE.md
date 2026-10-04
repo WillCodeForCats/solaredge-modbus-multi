@@ -104,7 +104,6 @@ The two integrations model a leader inverter with followers differently. solared
 | Polling | One ID at a time, in a single loop | Separate polls per entry (10 s readings, 5 min settings) that can overlap on the same bus |
 | Reported behavior | n/a | Overlapping polls time out; the affected inverter alternates between available and unavailable |
 | Measurement consistency | All inverters and meters are read in the same loop | Entries are read at different times, so sums can differ, for example a meter that measures the aggregate of all inverter outputs |
-| Commands | A command to the leader can cascade to its followers | Each inverter is commanded separately |
 | Attached devices | Meters and batteries can attach to the leader or any follower and are part of one system | Attached to the inverter entry they were read from |
 
 Single-inverter installations are not affected, and are probably the majority.
@@ -172,7 +171,7 @@ Core suits a single inverter, with or without a meter or battery, that needs a s
 
 **solaredge-modbus-multi**
 
-- Leader and followers modelled as one system: one hub, one polling loop, consistent readings and cascaded commands, set up in one flow with fast and full ID scans
+- Leader and followers modelled as one system: one hub, one polling loop and consistent readings, set up in one flow with fast and full ID scans
 - Per-MPPT sensors and meter/MMPPT event sensors
 - Options flow: polling interval, timeouts, command delay, and detection toggles. Switching detection off stops all probing for that hardware, which avoids repeated timeouts on inverters that lack it. The trade-off is that the user must change the option
 - Commit and restore-defaults buttons, write counter, refresh button
