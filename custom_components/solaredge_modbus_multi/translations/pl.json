@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Host i port są już skonfigurowane w innym koncentratorze.",
+      "cannot_connect": "Nie można połączyć się z wykrytym urządzeniem.",
       "reconfigure_successful": "Ponowna konfiguracja przebiegła pomyślnie"
     },
     "progress": {

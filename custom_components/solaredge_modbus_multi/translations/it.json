@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "L'host e la porta sono già configurati in un altro hub.",
+      "cannot_connect": "Impossibile connettersi al dispositivo rilevato.",
       "reconfigure_successful": "La riconfigurazione ha avuto successo"
     },
     "progress": {

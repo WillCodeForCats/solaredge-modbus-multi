@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
+      "cannot_connect": "Kunne ikke koble til den oppdagede enheten.",
       "reconfigure_successful": "Omkonfigureringen var vellykket"
     },
     "progress": {

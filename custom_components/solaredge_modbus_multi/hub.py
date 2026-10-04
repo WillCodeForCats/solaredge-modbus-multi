@@ -19,6 +19,7 @@ from modbus_connection.exceptions import (
     IllegalDataValueError,
     IllegalFunctionError,
     ModbusConnectionError,
+    ModbusError,
     ModbusExceptionError,
     ModbusProtocolError,
     ModbusTimeoutError,
@@ -309,6 +310,23 @@ class SolarEdgeModbusMultiHub:
                 await new_evse.init_device()
                 self.evses.append(new_evse)
 
+                try:
+                    _LOGGER.debug(
+                        f"Scanning SunS models at {self.hub_host} ID {inverter_unit_id}"
+                    )
+                    new_evse.sunspec_models = await suns_scan(
+                        self.connection.for_unit(inverter_unit_id), 40000
+                    )
+
+                    for model in new_evse.sunspec_models.chain:
+                        _LOGGER.debug(
+                            f"E{inverter_unit_id}: found SunS model {model.model_id} "
+                            f"(length {model.length})"
+                        )
+
+                except (ModbusError, SunSpecError) as e:
+                    _LOGGER.debug(f"E{inverter_unit_id}: SunS model scan failed: {e}")
+
                 # Skip meter and battery detection if DeviceIsEVSE
                 new_evse.evse_common.restrict_fields(["C_Version"])
                 continue
@@ -330,13 +348,7 @@ class SolarEdgeModbusMultiHub:
                         f"(length {model.length})"
                     )
 
-            except (
-                ModbusConnectionError,
-                ModbusProtocolError,
-                ModbusTimeoutError,
-                ModbusExceptionError,
-                SunSpecError,
-            ) as e:
+            except (ModbusError, SunSpecError) as e:
                 _LOGGER.debug(f"I{inverter_unit_id}: SunS model scan failed: {e}")
                 der_storage_models = []
 
@@ -732,6 +744,9 @@ class SolarEdgeModbusMultiHub:
         # The per-step timeouts were based on the default request_timeout;
         # scale the coordinator timeout if the user changes the value
         this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
+
+        # Add the sleep_after_write value to the coordinator timeout
+        this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES
 
         _LOGGER.debug(f"coordinator timeout is {this_timeout}")
         return this_timeout
@@ -1815,6 +1830,7 @@ class SolarEdgeEVSE:
         self.evse_unit_id = device_id
         self.hub = hub
         self.has_parent = False
+        self.sunspec_models = None
 
         self.evse_common = EvseCommon(self.hub.connection.for_unit(self.evse_unit_id))
 

@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Isäntä ja portti on jo määritetty toisessa keskittimessä.",
+      "cannot_connect": "Löydettyyn laitteeseen ei saatu yhteyttä.",
       "reconfigure_successful": "Uudelleenmääritys onnistui"
     },
     "progress": {

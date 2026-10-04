@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Gazda și portul sunt deja configurate într-un alt hub.",
+      "cannot_connect": "Nu s-a putut conecta la dispozitivul descoperit.",
       "reconfigure_successful": "Reconfigurarea a fost efectuată cu succes"
     },
     "progress": {
