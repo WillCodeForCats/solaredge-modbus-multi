@@ -67,29 +67,17 @@ The entity lists were compiled by reading entity key names in each codebase and 
 
 Both integrations can write to the inverter. solaredge-modbus-multi makes battery and control features opt-in and adds a commit step; core creates the controls when the corresponding block answers, and disables some by default.
 
-### Warnings and officially supported registers
+### Warnings and register support
 
-solaredge-modbus-multi treats as officially supported only the registers in `doc/sunspec-implementation-technical-note.pdf`, obtained from SolarEdge's website. Other documents in the same `doc` folder, such as `Power-Control-Open-Protocol-for-SolarEdge-Inverters.pdf`, were not obtained directly from SolarEdge. Registers found by reverse engineering are also treated as unsupported.
+solaredge-modbus-multi distinguishes officially supported from unsupported registers. It treats as officially supported only the registers in `doc/sunspec-implementation-technical-note.pdf`, obtained from SolarEdge's website (version 3.2, June 2025). That covers the inverter, multiple MPPT and meters. It treats the following as unsupported:
+
+- Grid status (40113), found by reverse engineering and not documented anywhere. Its register lies between the officially documented `I_Status_Vendor` (40108) and `I_Status_Vendor4` (40119), so the line is less clear than for the other blocks.
+- Batteries, storage control, export control and power control, which appear in `Power-Control-Open-Protocol-for-SolarEdge-Inverters.pdf` (where batteries are called StorEdge). That document was not obtained directly from SolarEdge.
+- The third battery block (58368, 0xE400), which is not in that document and was discovered by a community user.
 
 solaredge-modbus-multi enables only officially supported features by default. Battery and control features are turned on separately under Configure, behind a warning that such changes can violate utility agreements, alter billing, overwrite provisioning by SolarEdge or the installer, and wear flash memory.
 
-Core does not show a warning or confirmation step in the integration before creating its controls; its strings and code contain only log warnings. The core documentation page (beta) has an "Important Warning" section: register writes "must be used carefully", "An automation that writes one every few minutes will wear it out", and misconfigured settings may violate grid agreements. The warning is in the documentation, not in the setup flow.
-
-The table compares core's register blocks with the official technical note (version 3.2, June 2025). It is based on a text search of the extracted PDF; a block shown only as an image or unusual table could be missed.
-
-| Block core uses (address) | Core exposes | In the official technical note | Elsewhere in the solaredge-modbus-multi `doc` folder |
-| --- | --- | --- | --- |
-| Inverter, SunSpec 101–103 (40000–) | Inverter sensors | Yes | n/a |
-| Multiple MPPT, model 160 (40121) | Diagnostics only | Yes | n/a |
-| Meters (40121– and later offsets) | Meter sensors | Yes | n/a |
-| Grid status extension (40113) | On-grid binary sensor | No match found | Not documented anywhere; found by reverse engineering (per the maintainer). Its register (40113) lies between the officially documented `I_Status_Vendor` (40108) and `I_Status_Vendor4` (40119), so the line between supported and unsupported is less clear than for the other blocks |
-| Batteries (0xE100, 57600) | Battery sensors | No match found | Power Control document (not from SolarEdge), where batteries are called StorEdge. It covers two batteries (0xE100 and 0xE200); the third battery block (58368, 0xE400) is not in it and was discovered by a community user. Both projects probe three battery slots |
-| Export control (0xE000, 57344) | Export limitation, limit type, site limit, external production controls | No match found | Power Control document (not from SolarEdge) |
-| Storage control (0xE004, 57348) | Storage mode selects, charge and discharge limits, backup reserve | No match found | Power Control document (not from SolarEdge), "StorEdge Control and Status Block" |
-| Power control (0xF000, 61440; commit at 0xF100) | Active power limit, power factor setpoint | No match found | Power Control document (not from SolarEdge) |
-| Advanced power control (0xF100 range, 61696) | Polled; no entities; in diagnostics | No match found | Not searched beyond the Power Control document |
-
-By solaredge-modbus-multi's definition, the grid status, battery, export, storage and power control blocks are outside the official note (grid status sits between the officially documented `I_Status_Vendor` and `I_Status_Vendor4` registers, which makes it a less clear case than the others), as are core's entities that read or write them.
+Core does not make this distinction between officially supported and unsupported registers. It creates its controls when the corresponding block answers, with no warning or confirmation step in the integration; its strings and code contain only log warnings. The core documentation page (beta) has an "Important Warning" section: register writes "must be used carefully", "An automation that writes one every few minutes will wear it out", and misconfigured settings may violate grid agreements. The warning is in the documentation, not in the setup flow.
 
 ### Control entities
 
