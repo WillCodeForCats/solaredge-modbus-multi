@@ -1,11 +1,11 @@
 # solaredge-modbus-multi and HA Core SolarEdge Modbus: Comparison
 
-*Created by Claude Code on 2026-10-04 from reading both codebases, with observations from the maintainer of solaredge-modbus-multi. Statements attributed to the maintainer are observations from the experience of writing and running solaredge-modbus-multi, not independent test results.*
+_Created by Claude Code on 2026-10-04 from reading both codebases, with observations from the maintainer of solaredge-modbus-multi. Statements attributed to the maintainer are observations from the experience of writing and running solaredge-modbus-multi, not independent test results._
 
-| | Repository | Version compared |
-| --- | --- | --- |
-| solaredge_modbus_multi (custom) | [WillCodeForCats/solaredge-modbus-multi](https://github.com/WillCodeForCats/solaredge-modbus-multi) | v4.0.4 plus 2 commits (a0ea615) |
-| solaredge_modbus (core) | [home-assistant/core](https://github.com/home-assistant/core), folder `homeassistant/components/solaredge_modbus` | tag `2026.10.0b0` (64ed916, 2026-09-30); documentation: [beta page](https://rc.home-assistant.io/integrations/solaredge_modbus) |
+|                                 | Repository                                                                                                        | Version compared                                                                                                                |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| solaredge_modbus_multi (custom) | [WillCodeForCats/solaredge-modbus-multi](https://github.com/WillCodeForCats/solaredge-modbus-multi)               | v4.0.4 plus 2 commits (a0ea615)                                                                                                 |
+| solaredge_modbus (core)         | [home-assistant/core](https://github.com/home-assistant/core), folder `homeassistant/components/solaredge_modbus` | tag `2026.10.0b0` (64ed916, 2026-09-30); documentation: [beta page](https://rc.home-assistant.io/integrations/solaredge_modbus) |
 
 In the tables, "Custom" means solaredge-modbus-multi and "Core" means the Home Assistant core `solaredge_modbus` integration.
 
@@ -13,30 +13,30 @@ In the tables, "Custom" means solaredge-modbus-multi and "Core" means the Home A
 
 The core integration uses one config entry per inverter and builds on the HA `modbus` integration. solaredge-modbus-multi uses one hub for a whole site, with more options and entities. Both use `_solaredge-modbus._tcp` mDNS discovery and local Modbus polling.
 
-| | solaredge_modbus_multi (custom) | solaredge_modbus (core) |
-| --- | --- | --- |
-| Version / quality scale | 4.0.4 | Platinum quality scale; library `solaredged` 0.4.0 |
-| Integration type | hub (one entry, many inverters) | device (one entry per inverter) |
-| Modbus layer | `modbus-connection` + `tmodbus`, owns its connection | borrows a shared unit from HA's `modbus` integration |
-| Codeowner | @WillCodeForCats | @frenck |
-| Poll interval | user option, default 300 s | fixed: 10 s readings, 5 min settings, 15 min attachment check |
-| Options flow | yes (polling, detection, power control, battery) | none |
-| Entity identity | host:port based | inverter serial number |
+|                         | solaredge_modbus_multi (custom)                      | solaredge_modbus (core)                                       |
+| ----------------------- | ---------------------------------------------------- | ------------------------------------------------------------- |
+| Version / quality scale | 4.0.4                                                | Platinum quality scale; library `solaredged` 0.4.0            |
+| Integration type        | hub (one entry, many inverters)                      | device (one entry per inverter)                               |
+| Modbus layer            | `modbus-connection` + `tmodbus`, owns its connection | borrows a shared unit from HA's `modbus` integration          |
+| Codeowner               | @WillCodeForCats                                     | @frenck                                                       |
+| Poll interval           | user option, default 300 s                           | fixed: 10 s readings, 5 min settings, 15 min attachment check |
+| Options flow            | yes (polling, detection, power control, battery)     | none                                                          |
+| Entity identity         | host:port based                                      | inverter serial number                                        |
 
 ## Setup and discovery
 
 solaredge-modbus-multi finds every inverter behind a gateway in one flow. Core sets up one inverter at a time and does not scan device IDs.
 
-| | Custom | Core |
-| --- | --- | --- |
-| Entry point | Menu: fast scan (IDs 1–32), full scan (1–247), or manual ID list | Menu: TCP or serial (RS485) |
-| mDNS discovery | Yes; confirms the gateway, then offers the scan | Yes; reads `MODBUS_ID` from the announcement, probes the inverter, offers it |
-| Multiple inverters on one bus | One entry; the device ID list covers all of them | One entry per device ID; each is added separately |
-| Serial / RS485 | TCP only | TCP and serial (baud rate field, default 115200) |
-| Default port / unit ID | 1502 / scanned | 1502 / 1, with unit ID in a collapsed "more options" section |
-| Validation | Checks each ID answers as an inverter; can be bypassed with "Skip Device ID validation" | Probes the device; rejects EV chargers, missing serial numbers and non-SolarEdge devices |
-| Reconfigure | Host, port, ID list | Host, port, unit ID, serial settings; aborts if the serial number differs (`wrong_device`) |
-| Unique ID | host:port based | Inverter serial number; a moved address is updated on rediscovery |
+|                               | Custom                                                                                  | Core                                                                                       |
+| ----------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Entry point                   | Menu: fast scan (IDs 1–32), full scan (1–247), or manual ID list                        | Menu: TCP or serial (RS485)                                                                |
+| mDNS discovery                | Yes; confirms the gateway, then offers the scan                                         | Yes; reads `MODBUS_ID` from the announcement, probes the inverter, offers it               |
+| Multiple inverters on one bus | One entry; the device ID list covers all of them                                        | One entry per device ID; each is added separately                                          |
+| Serial / RS485                | TCP only                                                                                | TCP and serial (baud rate field, default 115200)                                           |
+| Default port / unit ID        | 1502 / scanned                                                                          | 1502 / 1, with unit ID in a collapsed "more options" section                               |
+| Validation                    | Checks each ID answers as an inverter; can be bypassed with "Skip Device ID validation" | Probes the device; rejects EV chargers, missing serial numbers and non-SolarEdge devices   |
+| Reconfigure                   | Host, port, ID list                                                                     | Host, port, unit ID, serial settings; aborts if the serial number differs (`wrong_device`) |
+| Unique ID                     | host:port based                                                                         | Inverter serial number; a moved address is updated on rediscovery                          |
 
 Core checks the serial number on every poll and raises a config entry error if another inverter answers at the same address. No equivalent per-poll identity check was found in solaredge-modbus-multi; a replaced-inverter repair issue exists on an unmerged branch.
 
@@ -44,22 +44,22 @@ Core checks the serial number on every poll and raises a config entry error if a
 
 Both create an inverter device with meter and battery sub-devices. solaredge-modbus-multi exposes more diagnostic entities; core disables several secondary measurements by default.
 
-| Area | Custom | Core |
-| --- | --- | --- |
-| Inverter AC | Power, energy, current, voltage, frequency, apparent/reactive power, power factor | Same set; voltage, frequency, apparent/reactive power and power factor disabled by default |
-| Inverter DC | Power, current, voltage | Same |
-| Inverter status | Status and vendor status | Status |
-| Temperature | Heat sink temperature | Temperature |
-| Per-MPPT (Synergy) sensors | DC voltage, current, power, temperature and events per module | Not exposed as entities; present in diagnostics |
-| Meters | Power, energy, current, voltage, frequency, VA, var, power factor, VAh/varh import/export, events | Power, import/export energy (also per phase), per-phase power/current/voltage, frequency, VA, var, power factor; no events or VAh/varh |
-| Batteries | Power, energy in/out, SOE, SOH, temperature, voltage, current, max charge/discharge power, status | Same core set plus usable and rated capacity; no events |
-| Grid status | On-grid binary sensor | On-grid binary sensor |
-| Energy counters | Restores last value; options to allow battery energy reset and adjust rating | No equivalent options |
-| Diagnostic extras | Last-update sensor, write-count sensor, power-control-enabled binary sensor, refresh button | None |
-| Device layout | Inverter, meter and battery devices under the hub, plus a separate device for a DER battery (SunSpec model 713) linked to its inverter (when battery detection is enabled) | Inverter device; meters and batteries linked via device; stale ones removed; a Storage state of charge sensor on the inverter when a DER storage block reports charge and no battery block exists |
-| Attachment changes | Auto-detect options for meters, batteries, extras | Checks every 15 min; reloads the entry when meters, batteries, grid status or a control block appear or disappear |
-| Diagnostics download | Yes; includes the SunSpec model chain, power control, advanced power control and storage control data, DER battery and EV charger data, and dependency versions | Yes; includes the SunSpec model chain, settings polls and control block data |
-| Languages | 19 files in `translations/` (English plus 18 other languages), maintained by hand | English `strings.json`; other languages through HA's translation system |
+| Area                       | Custom                                                                                                                                                                     | Core                                                                                                                                                                                              |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inverter AC                | Power, energy, current, voltage, frequency, apparent/reactive power, power factor                                                                                          | Same set; voltage, frequency, apparent/reactive power and power factor disabled by default                                                                                                        |
+| Inverter DC                | Power, current, voltage                                                                                                                                                    | Same                                                                                                                                                                                              |
+| Inverter status            | Status and vendor status                                                                                                                                                   | Status                                                                                                                                                                                            |
+| Temperature                | Heat sink temperature                                                                                                                                                      | Temperature                                                                                                                                                                                       |
+| Per-MPPT (Synergy) sensors | DC voltage, current, power, temperature and events per module                                                                                                              | Not exposed as entities; present in diagnostics                                                                                                                                                   |
+| Meters                     | Power, energy, current, voltage, frequency, VA, var, power factor, VAh/varh import/export, events                                                                          | Power, import/export energy (also per phase), per-phase power/current/voltage, frequency, VA, var, power factor; no events or VAh/varh                                                            |
+| Batteries                  | Power, energy in/out, SOE, SOH, temperature, voltage, current, max charge/discharge power, status                                                                          | Same core set plus usable and rated capacity; no events                                                                                                                                           |
+| Grid status                | On-grid binary sensor                                                                                                                                                      | On-grid binary sensor                                                                                                                                                                             |
+| Energy counters            | Restores last value; options to allow battery energy reset and adjust rating                                                                                               | No equivalent options                                                                                                                                                                             |
+| Diagnostic extras          | Last-update sensor, write-count sensor, power-control-enabled binary sensor, refresh button                                                                                | None                                                                                                                                                                                              |
+| Device layout              | Inverter, meter and battery devices under the hub, plus a separate device for a DER battery (SunSpec model 713) linked to its inverter (when battery detection is enabled) | Inverter device; meters and batteries linked via device; stale ones removed; a Storage state of charge sensor on the inverter when a DER storage block reports charge and no battery block exists |
+| Attachment changes         | Auto-detect options for meters, batteries, extras                                                                                                                          | Checks every 15 min; reloads the entry when meters, batteries, grid status or a control block appear or disappear                                                                                 |
+| Diagnostics download       | Yes; includes the SunSpec model chain, power control, advanced power control and storage control data, DER battery and EV charger data, and dependency versions            | Yes; includes the SunSpec model chain, settings polls and control block data                                                                                                                      |
+| Languages                  | 19 files in `translations/` (English plus 18 other languages), maintained by hand                                                                                          | English `strings.json`; other languages through HA's translation system                                                                                                                           |
 
 The entity lists were compiled by reading entity key names in each codebase and have not been checked entry by entry.
 
@@ -81,30 +81,30 @@ Core does not make this distinction between officially supported and unsupported
 
 ### Control entities
 
-| Control | Custom | Core |
-| --- | --- | --- |
-| Enabling controls | Off by default. Setup states that only officially documented features (inverters, Synergy inverters, meters) are enabled; battery and control features are opt-in under Configure (Storage Control, Site Limit Control) | Created when the block answers; all are config-category entities; some are disabled by default |
-| Storage mode selects | Control mode, AC charge policy, default mode, command mode | Same four |
-| Storage numbers | AC charge limit, backup reserve, command timeout, charge limit, discharge limit | Backup reserve, charge limit, discharge limit |
-| Site export | Limit control mode and type selects, site limit, external production max, external production and negative site limit switches | Export limitation and limit type selects, site limit, external production max, external production and negative site limit switches (limit type and both switches disabled by default) |
-| Power control | Active power limit, cos phi, reactive power mode, power reduce, current limit | Active power limit, power factor setpoint (disabled by default) |
-| Commit / default buttons | Commit and restore-defaults buttons for advanced power control | None |
-| Write handling | Inverter command delay option; write counter sensor | Library errors are translated to HA errors; rejected values raise `rejected_value`; the earlier shared write lock was removed |
-| Polling options | Polling frequency, request timeout, close connection after polling | None; timing is handled by the shared `modbus` connection |
-| YAML Modbus conflict | Repair issues for deprecated YAML Modbus and keep-open settings | Not applicable |
-| Repairs | Check configuration, ID setup failures, detection timeouts | None defined |
+| Control                  | Custom                                                                                                                                                                                                                  | Core                                                                                                                                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Enabling controls        | Off by default. Setup states that only officially documented features (inverters, Synergy inverters, meters) are enabled; battery and control features are opt-in under Configure (Storage Control, Site Limit Control) | Created when the block answers; all are config-category entities; some are disabled by default                                                                                         |
+| Storage mode selects     | Control mode, AC charge policy, default mode, command mode                                                                                                                                                              | Same four                                                                                                                                                                              |
+| Storage numbers          | AC charge limit, backup reserve, command timeout, charge limit, discharge limit                                                                                                                                         | Backup reserve, charge limit, discharge limit                                                                                                                                          |
+| Site export              | Limit control mode and type selects, site limit, external production max, external production and negative site limit switches                                                                                          | Export limitation and limit type selects, site limit, external production max, external production and negative site limit switches (limit type and both switches disabled by default) |
+| Power control            | Active power limit, cos phi, reactive power mode, power reduce, current limit                                                                                                                                           | Active power limit, power factor setpoint (disabled by default)                                                                                                                        |
+| Commit / default buttons | Commit and restore-defaults buttons for advanced power control                                                                                                                                                          | None                                                                                                                                                                                   |
+| Write handling           | Inverter command delay option; write counter sensor                                                                                                                                                                     | Library errors are translated to HA errors; rejected values raise `rejected_value`; the earlier shared write lock was removed                                                          |
+| Polling options          | Polling frequency, request timeout, close connection after polling                                                                                                                                                      | None; timing is handled by the shared `modbus` connection                                                                                                                              |
+| YAML Modbus conflict     | Repair issues for deprecated YAML Modbus and keep-open settings                                                                                                                                                         | Not applicable                                                                                                                                                                         |
+| Repairs                  | Check configuration, ID setup failures, detection timeouts                                                                                                                                                              | None defined                                                                                                                                                                           |
 
 ## Leader and follower inverters
 
 The two integrations model a leader inverter with followers differently. solaredge-modbus-multi treats the bus as one system; core treats each device ID as a separate device. The observations below are the maintainer's, shared with the core team on 2026-09-30 and 2026-10-02. They have not been independently tested.
 
-| | Custom | Core |
-| --- | --- | --- |
-| Model | One hub; a loop over the list of device IDs for the leader and its followers | One config entry per device ID, each with its own coordinators |
-| Polling | One ID at a time, in a single loop | Separate polls per entry (10 s readings, 5 min settings) that can overlap on the same bus |
-| Reported behavior | n/a | Overlapping polls time out; the affected inverter alternates between available and unavailable |
-| Measurement consistency | All inverters and meters are read in the same loop | Entries are read at different times, so sums can differ, for example a meter that measures the aggregate of all inverter outputs |
-| Attached devices | Meters and batteries can attach to the leader or any follower and are part of one system | Attached to the inverter entry they were read from |
+|                         | Custom                                                                                   | Core                                                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Model                   | One hub; a loop over the list of device IDs for the leader and its followers             | One config entry per device ID, each with its own coordinators                                                                   |
+| Polling                 | One ID at a time, in a single loop                                                       | Separate polls per entry (10 s readings, 5 min settings) that can overlap on the same bus                                        |
+| Reported behavior       | n/a                                                                                      | Overlapping polls time out; the affected inverter alternates between available and unavailable                                   |
+| Measurement consistency | All inverters and meters are read in the same loop                                       | Entries are read at different times, so sums can differ, for example a meter that measures the aggregate of all inverter outputs |
+| Attached devices        | Meters and batteries can attach to the leader or any follower and are part of one system | Attached to the inverter entry they were read from                                                                               |
 
 Single-inverter installations are not affected, and are probably the majority.
 
@@ -118,14 +118,14 @@ The core documentation (beta) does not mention leader or follower inverters.
 
 A diagnostics file from one of the maintainer's inverters lists five entries in `unresponsive_blocks`: `advanced_power_control`, `batteries`, `export_control`, `power_control` and `storage_control`. The library records a block once when it times out, so the battery block counts once, not once per battery slot. That inverter does not support batteries, so according to the maintainer these blocks will not become available. Core's 15-minute check calls the full `async_probe` each time and does not skip blocks that were silent at the previous probe, so the same five timeouts recur. Using the 10 s timeout shown in the error messages in the issue above (the value is not set in core's or the library's code), the estimated effect per day is:
 
-| Item | Value |
-| --- | --- |
+| Item                          | Value                         |
+| ----------------------------- | ----------------------------- |
 | Silent blocks per probe cycle | 5 (from the diagnostics file) |
-| Timeout wait per probe cycle | 50 s (5 blocks at 10 s) |
-| Probe cycles per day | 96 (every 15 min) |
-| Missed 10 s polls per day | 96 × 5 = 480 |
-| Total 10 s polls per day | 8,640 |
-| Share of polling lost | about 5.6% |
+| Timeout wait per probe cycle  | 50 s (5 blocks at 10 s)       |
+| Probe cycles per day          | 96 (every 15 min)             |
+| Missed 10 s polls per day     | 96 × 5 = 480                  |
+| Total 10 s polls per day      | 8,640                         |
+| Share of polling lost         | about 5.6%                    |
 
 **5-minute settings poll.** Core reads control settings every 5 minutes. Settings can also change by other routes: a change in the SolarEdge app, a change pushed by SolarEdge, or a utility program the inverter is enrolled in. Home Assistant sees those changes after up to 5 minutes, and such changes can also revert a value written over Modbus.
 
