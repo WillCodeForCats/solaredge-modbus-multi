@@ -69,7 +69,7 @@ Both integrations can write to the inverter. solaredge-modbus-multi makes batter
 
 ### Warnings and register support
 
-solaredge-modbus-multi distinguishes officially supported from unsupported registers. It treats as officially supported only the registers in `doc/sunspec-implementation-technical-note.pdf`, obtained from SolarEdge's website (version 3.2, June 2025). That covers the inverter, multiple MPPT and meters. It treats the following as unsupported:
+solaredge-modbus-multi distinguishes officially supported from unsupported registers. It treats as officially supported only the registers in `doc/sunspec-implementation-technical-note.pdf`, obtained from SolarEdge's site (version 3.2, June 2025). That covers the inverter, multiple MPPT and meters. It treats the following as unsupported:
 
 - Grid status (40113), found by reverse engineering and not documented anywhere. Its register lies between the officially documented `I_Status_Vendor` (40108) and `I_Status_Vendor4` (40119), so the line is less clear than for the other blocks.
 - Batteries, storage control, export control and power control, which appear in `Power-Control-Open-Protocol-for-SolarEdge-Inverters.pdf` (where batteries are called StorEdge). That document was not obtained directly from SolarEdge.
@@ -77,22 +77,27 @@ solaredge-modbus-multi distinguishes officially supported from unsupported regis
 
 solaredge-modbus-multi enables only officially supported features by default. Battery and control features are turned on separately under Configure, behind a warning that such changes can violate utility agreements, alter billing, overwrite provisioning by SolarEdge or the installer, and wear flash memory.
 
-Core does not make this distinction between officially supported and unsupported registers. It creates its controls when the corresponding block answers, with no warning or confirmation step in the integration; its strings and code contain only log warnings. The core documentation page (beta) has an "Important Warning" section: register writes "must be used carefully", "An automation that writes one every few minutes will wear it out", and misconfigured settings may violate grid agreements. The warning is in the documentation, not in the setup flow.
+Core does not make this distinction between officially supported and unsupported registers. It
+creates its controls when the corresponding block answers, with no warning or confirmation step in
+the integration; its strings and code contain only log warnings. The core documentation page (beta)
+has an "Important Warning" section: register writes "must be used carefully", "An automation that
+writes one every few minutes will wear it out", and misconfigured settings may violate grid
+agreements. The warning is in the documentation, not in the setup flow.
 
 ### Control entities
 
-| Control                  | Custom                                                                                                                                                                                                                  | Core                                                                                                                                                                                   |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Enabling controls        | Off by default. Setup states that only officially documented features (inverters, Synergy inverters, meters) are enabled; battery and control features are opt-in under Configure (Storage Control, Site Limit Control) | Created when the block answers; all are config-category entities; some are disabled by default                                                                                         |
-| Storage mode selects     | Control mode, AC charge policy, default mode, command mode                                                                                                                                                              | Same four                                                                                                                                                                              |
-| Storage numbers          | AC charge limit, backup reserve, command timeout, charge limit, discharge limit                                                                                                                                         | Backup reserve, charge limit, discharge limit                                                                                                                                          |
-| Site export              | Limit control mode and type selects, site limit, external production max, external production and negative site limit switches                                                                                          | Export limitation and limit type selects, site limit, external production max, external production and negative site limit switches (limit type and both switches disabled by default) |
-| Power control            | Active power limit, cos phi, reactive power mode, power reduce, current limit                                                                                                                                           | Active power limit, power factor setpoint (disabled by default)                                                                                                                        |
-| Commit / default buttons | Commit and restore-defaults buttons for advanced power control                                                                                                                                                          | None                                                                                                                                                                                   |
-| Write handling           | Inverter command delay option; write counter sensor                                                                                                                                                                     | Library errors are translated to HA errors; rejected values raise `rejected_value`; the earlier shared write lock was removed                                                          |
-| Polling options          | Polling frequency, request timeout, close connection after polling                                                                                                                                                      | None; timing is handled by the shared `modbus` connection                                                                                                                              |
-| YAML Modbus conflict     | Repair issues for deprecated YAML Modbus and keep-open settings                                                                                                                                                         | Not applicable                                                                                                                                                                         |
-| Repairs                  | Check configuration, ID setup failures, detection timeouts                                                                                                                                                              | None defined                                                                                                                                                                           |
+| Control                  | Custom                                                                                                                         | Core                                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Enabling controls        | Off by default; battery and control features are opt-in under Configure (Storage Control, Site Limit Control)                  | Created when the block answers; config-category entities; some disabled by default                                                                                                     |
+| Storage mode selects     | Control mode, AC charge policy, default mode, command mode                                                                     | Same four                                                                                                                                                                              |
+| Storage numbers          | AC charge limit, backup reserve, command timeout, charge limit, discharge limit                                                | Backup reserve, charge limit, discharge limit                                                                                                                                          |
+| Site export              | Limit control mode and type selects, site limit, external production max, external production and negative site limit switches | Export limitation and limit type selects, site limit, external production max, external production and negative site limit switches (limit type and both switches disabled by default) |
+| Power control            | Active power limit, cos phi, reactive power mode, power reduce, current limit                                                  | Active power limit, power factor setpoint (disabled by default)                                                                                                                        |
+| Commit / default buttons | Commit and restore-defaults buttons for advanced power control                                                                 | None                                                                                                                                                                                   |
+| Write handling           | Inverter command delay option; write counter sensor                                                                            | Library errors are translated to HA errors; rejected values raise `rejected_value`; the earlier shared write lock was removed                                                          |
+| Polling options          | Polling frequency, request timeout, close connection after polling                                                             | None; timing is handled by the shared `modbus` connection                                                                                                                              |
+| YAML Modbus conflict     | Repair issues for deprecated YAML Modbus and keep-open settings                                                                | Not applicable                                                                                                                                                                         |
+| Repairs                  | Check configuration, ID setup failures, detection timeouts                                                                     | None defined                                                                                                                                                                           |
 
 ## Leader and follower inverters
 
@@ -112,11 +117,35 @@ The core documentation (beta) does not mention leader or follower inverters.
 
 **Leader and follower topology.** The inverter with the IP address is the parent (leader) and acts as a Modbus/TCP proxy. Followers are children on its internal RS485 chain, up to 32 per the specification. Communication with a follower goes through the leader, so one request to the leader can be in flight at a time.
 
-**Reported issue.** The maintainer filed [home-assistant/core#184259](https://github.com/home-assistant/core/issues/184259), "Too many solaredge-modbus timeouts with leader/follower and detection" (2026-10-04, open, assigned to frenck). It was filed against Home Assistant Core 2026.10.0b0 on Home Assistant OS with an SE7600H leader/follower setup, and covers both the polling overlap and the 15-minute detection. It reports repeated errors of the form `read_holding_registers(40004, 65): Response timeout after 10.0 seconds`, the inverter alternating between available and unavailable with its entities unavailable, and more than 683 occurrences logged within hours.
+**Reported issue.** The maintainer filed
+[home-assistant/core#184259](https://github.com/home-assistant/core/issues/184259), "Too many
+solaredge-modbus timeouts with leader/follower and detection" (2026-10-04, open, assigned to
+frenck). It was filed against Home Assistant Core 2026.10.0b0 on Home Assistant OS with an SE7600H
+leader/follower setup, and covers both the polling overlap and the 15-minute detection. It reports
+repeated errors of the form `read_holding_registers(40004, 65): Response timeout after 10.0
+seconds`, the inverter alternating between available and unavailable with its entities unavailable,
+and more than 683 occurrences logged within hours.
 
-**15-minute feature re-check.** Core re-probes for supported blocks every 15 minutes. The core documentation describes it: the device inventory is checked every 15 minutes, and the integration reloads if hardware changes. It lists as a known limitation that meter or battery additions and removals take up to 15 minutes to appear. Some SolarEdge inverters do not respond to registers they do not support, so each probe of an unsupported block lasts a full timeout. According to the maintainer, the other inverters cannot poll while one waits. On the maintainer's inverters the wait occurs every 15 minutes while core looks for blocks such as batteries that those inverters do not have, and no data is collected during it. solaredge-modbus-multi can be set to skip detection of meters, batteries and extra entities, after which it does not probe for them again. This requires the user to change those options. Core has no options flow, so the periodic probe cannot be turned off.
+**15-minute feature re-check.** Core re-probes for supported blocks every 15 minutes. The core
+documentation describes it: the device inventory is checked every 15 minutes, and the integration
+reloads if hardware changes. It lists as a known limitation that meter or battery additions and
+removals take up to 15 minutes to appear. Some SolarEdge inverters do not respond to registers they
+do not support, so each probe of an unsupported block lasts a full timeout. According to the
+maintainer, the other inverters cannot poll while one waits. On the maintainer's inverters the wait
+occurs every 15 minutes while core looks for blocks such as batteries that those inverters do not
+have, and no data is collected during it. solaredge-modbus-multi can be set to skip detection of
+meters, batteries and extra entities, after which it does not probe for them again. This requires
+the user to change those options. Core has no options flow, so the periodic probe cannot be turned
+off.
 
-A diagnostics file from one of the maintainer's inverters lists five entries in `unresponsive_blocks`: `advanced_power_control`, `batteries`, `export_control`, `power_control` and `storage_control`. The library records a block once when it times out, so the battery block counts once, not once per battery slot. That inverter does not support batteries, so according to the maintainer these blocks will not become available. Core's 15-minute check calls the full `async_probe` each time and does not skip blocks that were silent at the previous probe, so the same five timeouts recur. Using the 10 s timeout shown in the error messages in the issue above (the value is not set in core's or the library's code), the estimated effect per day is:
+A diagnostics file from one of the maintainer's inverters lists five entries in
+`unresponsive_blocks`: `advanced_power_control`, `batteries`, `export_control`, `power_control` and
+`storage_control`. The library records a block once when it times out, so the battery block counts
+once, not once per battery slot. That inverter does not support batteries, so according to the
+maintainer these blocks will not become available. Core's 15-minute check calls the full
+`async_probe` each time and does not skip blocks that were silent at the previous probe, so the same
+five timeouts recur. Using the 10 s timeout shown in the error messages in the issue above (the
+value is not set in core's or the library's code), the estimated effect per day is:
 
 | Item                          | Value                         |
 | ----------------------------- | ----------------------------- |
@@ -146,16 +175,26 @@ There is no automatic path between the two integrations. Entity IDs and unique I
 
 ## The python-solaredged library
 
-Core depends on [frenck/python-solaredged](https://github.com/frenck/python-solaredged). The source was read at tag v0.4.0, matching the `solaredged` 0.4.0 pin in the compared core commit. Its README credits `solaredge-modbus-multi` as a basis for its register map, and one of its tests cites the solaredge-modbus-multi issue #1055.
+Core depends on [frenck/python-solaredged](https://github.com/frenck/python-solaredged). The source was read at tag v0.4.0, matching the `solaredged` 0.4.0 pin in the compared core commit. Its readme credits `solaredge-modbus-multi` as a basis for its register map, and one of its tests cites the solaredge-modbus-multi issue #1055.
 
-- **One library object per device ID.** The README says a site with several inverters creates one `SolarEdge` object per unit, all sharing one connection. The library has no leader/follower concept.
-- **Probing is sequential.** `async_probe` checks MMPPT, meters, batteries, the SunSpec model chain, then grid status and four control blocks, in order. A block that times out is recorded in `unresponsive_blocks` and treated as absent. A code comment says some firmware stops answering unsupported registers instead of refusing them. Each silent block therefore takes a full timeout before the next probe starts. The timeout length comes from `modbus-connection`, not this library; the issue above shows 10.0 s in its error messages.
+- **One library object per device ID.** The readme says a site with several inverters creates one `SolarEdge` object per unit, all sharing one connection. The library has no leader/follower concept.
+- **Probing is sequential.** `async_probe` checks MMPPT, meters, batteries, the SunSpec model chain,
+  then grid status and four control blocks, in order. A block that times out is recorded in
+  `unresponsive_blocks` and treated as absent. A code comment says some firmware stops answering
+  unsupported registers instead of refusing them. Each silent block therefore takes a full timeout
+  before the next probe starts. The timeout length comes from `modbus-connection`, not this library;
+  the issue above shows 10.0 s in its error messages.
 - **The library does not schedule probes.** It probes when `async_probe` is called; the 15-minute re-probe is in core's code.
 - **Polling reads one block at a time.** Each sub-system is reported as updated or failed, so one failing block does not blank the others. If the first block times out and nothing has answered, the poll fails immediately.
 - **The library supports more than core exposes.** It reads per-string DC data (SunSpec 160), up to three meters and VAh/varh energy. Core creates no per-string entities and no VAh/varh sensors.
-- **Register sources.** Its README states that the register map is based on SolarEdge's public SunSpec documentation and `solaredge-modbus-multi`.
+- **Register sources.** Its readme states that the register map is based on SolarEdge's public SunSpec documentation and `solaredge-modbus-multi`.
 
-**Coupling.** Core's integration and the `solaredged` library are coupled. The library is under the same owner as the core codeowner (@frenck), and the integration is built directly on its API: the integration's structure (one object per device ID, probe then poll, a report of failed blocks) follows the library's API, and library bumps such as 0.2.3 to 0.4.0 come with integration changes. `solaredge-modbus-multi` has not split out a library; register handling and polling live in the integration and change together.
+**Coupling.** Core's integration and the `solaredged` library are coupled. The library is under the
+same owner as the core codeowner (@frenck), and the integration is built directly on its API: the
+integration's structure (one object per device ID, probe then poll, a report of failed blocks)
+follows the library's API, and library bumps such as 0.2.3 to 0.4.0 come with integration changes.
+`solaredge-modbus-multi` has not split out a library; register handling and polling live in the
+integration and change together.
 
 ## Strengths by area
 
