@@ -188,5 +188,4 @@ Core suits a single inverter, with or without a meter or battery, that needs a s
 ## Open items
 
 - Core's entity list in the final 2026.10.0 release; this comparison uses the 2026.10.0b0 beta tag
-- A check of the entity tables entry by entry
 - The core documentation page was read as a summary of the [beta page](https://rc.home-assistant.io/integrations/solaredge_modbus), so quotes from it come from that summary
