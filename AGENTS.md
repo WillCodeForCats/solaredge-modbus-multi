@@ -157,3 +157,18 @@ git fetch --no-tags upstream main
 git cherry-pick <sha>
 git remote remove upstream
 ```
+
+### Upstream reviewed to v4.0.4 (2026-10-05)
+
+WillCodeForCats shipped v4.0.0 (2026-09-14) through v4.0.4 (2026-09-25). Adopted into
+`4.0.0+cohenam.7`: the startup dependency check (v4.0.1, PR #1087/#1088 — ours runs in the
+executor from `async_setup_entry` and imports `.hub` only afterwards, because `hub.py`
+pulls in the modbus backend at import time), and the `SunSpecAccum.LIMIT32` guard fix
+(v4.0.0): the three accumulator sensors compared with `>`, which a uint32 can never satisfy.
+Not adopted, on purpose: the tmodbus backend, Close Connection After Polling, SunSpec
+Model 713 battery SoC (our batteries use the SolarEdge block), repairable APC/GPC issues,
+translations, the EVSE SunSpec scan, zeroconf autodiscovery, and `sleep_after_write` in
+the coordinator timeout (ours is 0). The coordinator-timeout/request-timeout unit mismatch
+(`hub.py` builds the budget from ms constants and ignores YAML `modbus.timeout`) is known
+and deferred: a correct fix normalises units and budgets reads per cycle without
+double-counting the write-settle wait; both are 3 s today.

@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.metadata
 import logging
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
@@ -20,20 +22,60 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import (
     CONFIGURABLE_POLL_GROUPS,
     DOMAIN,
+    MODBUS_CONNECTION_REQUIRED_VERSION,
     POLL_MULTIPLIER_MAX,
     POLL_MULTIPLIER_MIN,
+    PYMODBUS_REQUIRED_VERSION,
     ConfDefaultInt,
     ConfName,
     RetrySettings,
 )
-from .hub import (
-    DataUpdateFailed,
-    HubInitFailed,
-    SolarEdgeModbusMultiHub,
-    async_delete_entry_issues,
-)
+from .exceptions import DataUpdateFailed, HubInitFailed
+from .helpers import async_delete_entry_issues, safe_version_tuple
+
+if TYPE_CHECKING:
+    from .hub import SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
+
+# (display name, distribution name, minimum version)
+_REQUIRED_LIBRARIES = (
+    ("modbus-connection", "modbus_connection", MODBUS_CONNECTION_REQUIRED_VERSION),
+    ("pymodbus", "pymodbus", PYMODBUS_REQUIRED_VERSION),
+)
+
+
+def _check_dependency_versions() -> dict[str, str]:
+    """Fail setup, before the modbus backend is imported, on a missing or old library.
+
+    HA installs a custom integration's requirements only while they are
+    unsatisfied, so another integration pinning the same package can leave an
+    older copy in place unnoticed (both production containers ran
+    modbus-connection 4.4.0 for weeks that way). Blocking file I/O: run it in
+    the executor.
+    """
+    installed: dict[str, str] = {}
+
+    for display_name, distribution, required in _REQUIRED_LIBRARIES:
+        try:
+            version = importlib.metadata.version(distribution)
+        except importlib.metadata.PackageNotFoundError:
+            raise ConfigEntryError(
+                f"{display_name} is not installed. Restart Home Assistant so it "
+                "installs the integration's requirements; if that does not help, "
+                "look for a failed pip install in the log."
+            )
+
+        if safe_version_tuple(version) < safe_version_tuple(required):
+            raise ConfigEntryError(
+                f"{display_name} {version} is installed but at least {required} is "
+                "required. Another custom integration is pinning an older version; "
+                "remove or update it, then recreate the container."
+            )
+
+        installed[display_name] = version
+
+    return installed
 
 
 @dataclass
@@ -123,6 +165,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
+
+    installed = await hass.async_add_executor_job(_check_dependency_versions)
+    hass.data.setdefault(DOMAIN, {})["installed_versions"] = installed
+
+    # Imported only now: hub.py pulls in the modbus backend at import time, and
+    # the check above has to run before that happens.
+    from .hub import SolarEdgeModbusMultiHub
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options

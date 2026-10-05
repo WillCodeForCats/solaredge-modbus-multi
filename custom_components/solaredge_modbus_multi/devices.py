@@ -19,7 +19,7 @@ from awesomeversion.exceptions import (
     AwesomeVersionStrategyException,
 )
 from homeassistant.helpers import issue_registry as ir
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from modbus_connection.decode import (
     decode_float32,
     decode_int16,

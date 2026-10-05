@@ -39,6 +39,12 @@ DETECT_EVSE_REGEX = re.compile(
 
 STATUS_VENDOR4_VERSION = "3.20.0"  # solaredge firmware version
 
+# Installed-library floors enforced before the modbus backend is imported
+# (see __init__._check_dependency_versions). modbus-connection: the version HA
+# core ships and the fork is tested on; pymodbus: HA's own constraint pin.
+MODBUS_CONNECTION_REQUIRED_VERSION = "4.10.0"
+PYMODBUS_REQUIRED_VERSION = "3.13.1"
+
 
 class ModbusExceptions:
     """An enumeration of the valid modbus exceptions."""

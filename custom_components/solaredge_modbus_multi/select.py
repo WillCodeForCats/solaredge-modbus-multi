@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.select import SelectEntity
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from modbus_connection.encode import encode_int32, encode_uint16
 

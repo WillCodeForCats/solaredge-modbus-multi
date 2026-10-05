@@ -4,6 +4,7 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import (
+    EntityCategory,
     UnitOfElectricCurrent,
     UnitOfEnergy,
     UnitOfPower,
@@ -11,7 +12,6 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from modbus_connection.encode import encode_float32, encode_uint16, encode_uint32
 

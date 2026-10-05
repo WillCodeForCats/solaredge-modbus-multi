@@ -1,11 +1,46 @@
 from __future__ import annotations
 
 import ipaddress
+import re
 import struct
 
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import issue_registry as ir
 
-from .const import DOMAIN_REGEX, SunSpecNotImpl
+from .const import DOMAIN, DOMAIN_REGEX, SunSpecNotImpl, check_config_issue_id
+
+
+def safe_version_tuple(version: str) -> tuple[int, ...]:
+    """Comparable tuple from a dotted version; a pre-release suffix is dropped."""
+    match = re.match(r"\d+(?:\.\d+)*", version)
+    if match is None:
+        raise ValueError(f"Invalid version string: {version}")
+
+    return tuple(int(part) for part in match.group(0).split("."))
+
+
+def async_delete_entry_issues(hass, entry) -> None:
+    """Remove every repair issue belonging to a config entry.
+
+    Scans the issue registry by the entry-scoped id prefixes instead of
+    deriving ids from the entry's device list: a reconfigure rewrites
+    entry.data before the reload, so a removed inverter's issues would
+    otherwise be undiscoverable and orphan until the next restart.
+
+    Lives here, not in hub.py, because unload and removal need it without
+    importing the modbus backend.
+    """
+    per_unit_prefixes = tuple(
+        f"detect_timeout_{kind}_{entry.entry_id}_" for kind in ("gpc", "apc")
+    )
+    check_config_id = check_config_issue_id(entry.entry_id)
+
+    registry = ir.async_get(hass)
+    for domain, issue_id in list(registry.issues):
+        if domain != DOMAIN:
+            continue
+        if issue_id == check_config_id or issue_id.startswith(per_unit_prefixes):
+            ir.async_delete_issue(hass, DOMAIN, issue_id)
 
 
 def float_to_hex(f: float) -> str:

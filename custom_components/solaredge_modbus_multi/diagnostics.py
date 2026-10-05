@@ -45,6 +45,7 @@ async def async_get_config_entry_diagnostics(
 
     data: dict[str, Any] = {
         "pymodbus_version": hub.pymodbus_version,
+        "installed_versions": hass.data.get(DOMAIN, {}).get("installed_versions", {}),
         "hardware_writes_enabled": hub.option_allow_hardware_writes,
         "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
         "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
