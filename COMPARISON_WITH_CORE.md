@@ -13,15 +13,17 @@ In the tables, "Custom" means solaredge-modbus-multi and "Core" means the Home A
 
 The core integration uses one config entry per inverter and builds on the HA `modbus` integration. solaredge-modbus-multi uses one hub for a whole site, with more options and entities. Both use `_solaredge-modbus._tcp` mDNS discovery and local Modbus polling.
 
-|                         | solaredge_modbus_multi (custom)                      | solaredge_modbus (core)                                       |
-| ----------------------- | ---------------------------------------------------- | ------------------------------------------------------------- |
-| Version / quality scale | 4.0.4                                                | Platinum quality scale; library `solaredged` 0.4.0            |
-| Integration type        | hub (one entry, many inverters)                      | device (one entry per inverter)                               |
-| Modbus layer            | `modbus-connection` + `tmodbus`, owns its connection | borrows a shared unit from HA's `modbus` integration          |
-| Codeowner               | @WillCodeForCats                                     | @frenck                                                       |
-| Poll interval           | user option, default 300 s                           | fixed: 10 s readings, 5 min settings, 15 min attachment check |
-| Options flow            | yes (polling, detection, power control, battery)     | none                                                          |
-| Entity identity         | host:port based                                      | inverter serial number                                        |
+|                         | solaredge_modbus_multi (custom)                      | solaredge_modbus (core)                                                 |
+| ----------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------- |
+| Version / quality scale | 4.0.4                                                | Platinum quality scale; library `solaredged` 0.4.0                      |
+| First commit            | 2021-10-21 (tag v1.0 the same day)                   | 2026-08-29, added to HA core (#180508); first in release 2026.10.0b0    |
+| Age on 2026-10-04       | about 5 years (1,809 days)                           | 36 days since it was added to core; in the 2026.10.0b0 beta only so far |
+| Integration type        | hub (one entry, many inverters)                      | device (one entry per inverter)                                         |
+| Modbus layer            | `modbus-connection` + `tmodbus`, owns its connection | borrows a shared unit from HA's `modbus` integration                    |
+| Codeowner               | @WillCodeForCats                                     | @frenck                                                                 |
+| Poll interval           | user option, default 300 s                           | fixed: 10 s readings, 5 min settings, 15 min attachment check           |
+| Options flow            | yes (polling, detection, power control, battery)     | none                                                                    |
+| Entity identity         | host:port based                                      | inverter serial number                                                  |
 
 ## Setup and discovery
 
@@ -175,7 +177,11 @@ There is no automatic path between the two integrations. Entity IDs and unique I
 
 ## The python-solaredged library
 
-Core depends on [frenck/python-solaredged](https://github.com/frenck/python-solaredged). The source was read at tag v0.4.0, matching the `solaredged` 0.4.0 pin in the compared core commit. Its readme credits `solaredge-modbus-multi` as a basis for its register map, and one of its tests cites the solaredge-modbus-multi issue #1055.
+Core depends on [frenck/python-solaredged](https://github.com/frenck/python-solaredged). The
+library's first commit and first release (v0.1.0) are dated 2026-07-14, 82 days before 2026-10-04.
+The source was read at tag v0.4.0, matching the `solaredged` 0.4.0 pin in the compared core commit.
+Its readme credits `solaredge-modbus-multi` as a basis for its register map, and one of its tests
+cites the solaredge-modbus-multi issue #1055.
 
 - **One library object per device ID.** The readme says a site with several inverters creates one `SolarEdge` object per unit, all sharing one connection. The library has no leader/follower concept.
 - **Probing is sequential.** `async_probe` checks MMPPT, meters, batteries, the SunSpec model chain,
