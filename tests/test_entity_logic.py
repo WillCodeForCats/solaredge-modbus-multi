@@ -38,7 +38,10 @@ def _platform(mode=0):
 
 def _written_bits(platform):
     platform.write.assert_awaited_once()
-    return platform.write.await_args.args[2]
+    data, field, bits = platform.write.await_args.args
+    assert data is platform.site_limit_control_data
+    assert field == "E_Lim_Ctl_Mode"
+    return bits
 
 
 def _entity(cls, platform):
