@@ -38,13 +38,9 @@ from .scanner import SolarEdgeDeviceScanner
 class ScanOtherDeviceError(HomeAssistantError):
     """Device IDs that responded but aren't SolarEdge inverters."""
 
-    pass
-
 
 class ScanNoResponseError(HomeAssistantError):
     """Device IDs that didn't respond or timed out."""
-
-    pass
 
 
 def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
@@ -603,17 +599,20 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
         errors = {}
 
         if user_input is not None:
-            if user_input[CONF_SCAN_INTERVAL] < 1:
+            if (
+                user_input[CONF_SCAN_INTERVAL] < 1
+                or user_input[CONF_SCAN_INTERVAL] > 86400
+            ):
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
-            elif user_input[CONF_SCAN_INTERVAL] > 86400:
-                errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
-            elif user_input[ConfName.REQUEST_TIMEOUT] < 1:
+            elif (
+                user_input[ConfName.REQUEST_TIMEOUT] < 1
+                or user_input[ConfName.REQUEST_TIMEOUT] > 60
+            ):
                 errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
-            elif user_input[ConfName.REQUEST_TIMEOUT] > 60:
-                errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
-            elif user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
-                errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
-            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
+            elif (
+                user_input[ConfName.SLEEP_AFTER_WRITE] < 0
+                or user_input[ConfName.SLEEP_AFTER_WRITE] > 60
+            ):
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
             else:
                 if user_input[ConfName.DETECT_BATTERIES] is True:
@@ -704,9 +703,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
         errors = {}
 
         if user_input is not None:
-            if user_input[ConfName.BATTERY_RATING_ADJUST] < 0:
-                errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
-            elif user_input[ConfName.BATTERY_RATING_ADJUST] > 100:
+            if (
+                user_input[ConfName.BATTERY_RATING_ADJUST] < 0
+                or user_input[ConfName.BATTERY_RATING_ADJUST] > 100
+            ):
                 errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
             else:
                 if self.init_info[ConfName.ADV_PWR_CONTROL] is True:

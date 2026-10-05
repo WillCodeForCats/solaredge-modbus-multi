@@ -440,14 +440,16 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._phase is None:
-            return True
-
-        elif self._data.C_SunSpec_DID in [103, 203, 204] and self._phase in [
-            "A",
-            "B",
-            "C",
-        ]:
+        if (
+            self._phase is None
+            or self._data.C_SunSpec_DID in [103, 203, 204]
+            and self._phase
+            in [
+                "A",
+                "B",
+                "C",
+            ]
+        ):
             return True
 
         else:
@@ -530,16 +532,18 @@ class VoltageSensor(SolarEdgeSensorBase):
         if self._phase is None:
             raise NotImplementedError
 
-        elif self._phase in ["LN", "LL", "AB"]:
-            return True
-
-        elif self._data.C_SunSpec_DID in [103, 203, 204] and self._phase in [
-            "BC",
-            "CA",
-            "AN",
-            "BN",
-            "CN",
-        ]:
+        elif (
+            self._phase in ["LN", "LL", "AB"]
+            or self._data.C_SunSpec_DID in [103, 203, 204]
+            and self._phase
+            in [
+                "BC",
+                "CA",
+                "AN",
+                "BN",
+                "CN",
+            ]
+        ):
             return True
 
         else:
@@ -620,14 +624,16 @@ class ACPower(SolarEdgeSensorBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._phase is None:
-            return True
-
-        elif self._data.C_SunSpec_DID in [203, 204] and self._phase in [
-            "A",
-            "B",
-            "C",
-        ]:
+        if (
+            self._phase is None
+            or self._data.C_SunSpec_DID in [203, 204]
+            and self._phase
+            in [
+                "A",
+                "B",
+                "C",
+            ]
+        ):
             return True
 
         else:
@@ -1720,7 +1726,7 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
         rrcr_inputs = []
 
         if value != 0x0:
-            for i in range(0, 4):
+            for i in range(4):
                 if value & (1 << i):
                     rrcr_inputs.append(RRCR_STATUS[i])
 
@@ -1866,7 +1872,7 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
         mmppt_events_active = []
 
         if value != 0x0:
-            for i in range(0, 31):
+            for i in range(31):
                 try:
                     if value & (1 << i):
                         mmppt_events_active.append(MMPPT_EVENTS[i])

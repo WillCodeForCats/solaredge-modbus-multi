@@ -375,7 +375,6 @@ class SolarEdgeModbusMultiHub:
 
                     except DeviceInvalid as e:
                         _LOGGER.debug(f"I{inverter_unit_id}M{meter_id}: {e}")
-                        pass
 
             if self._detect_batteries:
                 # SolarEdge proprietary battery block for up to three batteries.
@@ -415,7 +414,6 @@ class SolarEdgeModbusMultiHub:
 
                     except DeviceInvalid as e:
                         _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
-                        pass
 
                 # DER Storage Capacity (SunSpec model 713)
                 for der_id, der_storage_model in enumerate(der_storage_models, 1):
@@ -445,7 +443,6 @@ class SolarEdgeModbusMultiHub:
 
                     except DeviceInvalid as e:
                         _LOGGER.debug(f"I{inverter_unit_id}DERB{der_id}: {e}")
-                        pass
 
             new_inverter.inverter_common.restrict_fields(["C_Version"])
 
