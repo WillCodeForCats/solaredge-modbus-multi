@@ -1,0 +1,14 @@
+# This extends our general Ruff rules specifically for tests
+extend = "../pyproject.toml"
+
+[lint]
+extend-ignore = [
+  "B904",   # Use raise from to specify exception cause
+  "N806",   # Variable {name} in function should be snake_case
+  "N815",   # Variable {name} in class scope should not be mixedCase
+  "SLF001", # Private member accessed: tests often test internals
+]
+
+[lint.isort]
+known-first-party = ["custom_components", "tests"]
+forced-separate = ["tests"]

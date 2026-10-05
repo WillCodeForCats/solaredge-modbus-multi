@@ -14,7 +14,7 @@ from custom_components.solaredge_modbus_multi.sensor import SolarEdgeSensorBase
 
 
 @pytest.mark.parametrize(
-    "value, sf, expected",
+    ("value", "sf", "expected"),
     [
         (100, -2, 1.0),
         (500, 1, 5000),
@@ -24,4 +24,5 @@ from custom_components.solaredge_modbus_multi.sensor import SolarEdgeSensorBase
     ],
 )
 def test_scale_factor(value, sf, expected):
+    """Test scale factor."""
     assert SolarEdgeSensorBase.scale_factor(None, value, sf) == expected
