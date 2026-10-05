@@ -181,7 +181,10 @@ split-on-trailing-comma = false
 
 # Relative imports within the integration
 "custom_components/*/*" = ["TID252"]
-"tests/*" = ["TID252"]
+"tests/*" = [
+  "SLF001", # Tests assert on internal probe counters and issue ids
+  "TID252",
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
