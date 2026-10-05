@@ -71,18 +71,30 @@ async def test_external_production_turn_off_clears_bit_10():
     entity.async_update.assert_awaited_once()
 
 
-async def test_negative_site_limit_turn_on_and_off_log_bits(caplog):
-    """Test negative site limit turn on and off log bits."""
-    platform = _platform(mode=0)
+async def test_negative_site_limit_turn_on_sets_bit_11(caplog):
+    """Test negative site limit turn on sets bit 11 and keeps other bits."""
+    platform = _platform(mode=0b101)
     entity = _entity(SolarEdgeNegativeSiteLimit, platform)
 
     with caplog.at_level(logging.DEBUG):
         await entity.async_turn_on()
+
+    assert _written_bits(platform) == 0b101 | (1 << 11)
+    assert "bits 0000100000000101" in caplog.text
+    entity.async_update.assert_awaited_once()
+
+
+async def test_negative_site_limit_turn_off_clears_bit_11(caplog):
+    """Test negative site limit turn off clears bit 11 and keeps other bits."""
+    platform = _platform(mode=(1 << 11) | 0b101)
+    entity = _entity(SolarEdgeNegativeSiteLimit, platform)
+
+    with caplog.at_level(logging.DEBUG):
         await entity.async_turn_off()
 
-    assert platform.write.await_count == 2
-    assert caplog.text.count("bits ") == 2
-    assert "bits 0000000000000000" in caplog.text
+    assert _written_bits(platform) == 0b101
+    assert "bits 0000000000000101" in caplog.text
+    entity.async_update.assert_awaited_once()
 
 
 @pytest.mark.parametrize(
