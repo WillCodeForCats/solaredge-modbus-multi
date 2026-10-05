@@ -21,6 +21,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -56,14 +57,17 @@ class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._platform.device_info
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     @callback
@@ -79,17 +83,21 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_refresh"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Refresh"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return True
 
     async def async_press(self) -> None:
+        """Press."""
         await self.async_update()
 
 
@@ -101,18 +109,22 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}bt_commit_pwr_settings"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Commit Power Settings"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return super().available and self._platform.has_advanced_power_control
 
     async def async_press(self) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to 1")
+        """Press."""
+        _LOGGER.debug("set %s to 1", self.unique_id)
 
         await self._platform.write(
             self._platform.advanced_power_control_data, "CommitPwrCtlSettings", 1
@@ -128,22 +140,27 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}bt_default_pwr_settings"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Default Power Settings"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return super().available and self._platform.has_advanced_power_control
 
     async def async_press(self) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to 1")
+        """Press."""
+        _LOGGER.debug("set %s to 1", self.unique_id)
 
         await self._platform.write(
             self._platform.advanced_power_control_data, "RestorePwrCtlDefaults", 1

@@ -122,7 +122,7 @@ class InverterData(Component):
 
 
 class GlobalDynamicPowerControl(Component):
-    """Global Dynamic Power Control and Status"""
+    """Global Dynamic Power Control and Status."""
 
     I_RRCR = integer(61440, signed=False)
     I_Power_Limit = integer(61441, signed=False, unit="%", writable=True)
@@ -272,9 +272,10 @@ class MmpptCommon(Component):
 
 
 class MmpptUnit(Component):
-    """Sub-component of MmpptData.units; modbus-connection builds
-    one instance per unit (2 or 3, per mmppt_Units) itself, each shifted by
-    stride * unit_index
+    """Sub-component of MmpptData.units.
+
+    modbus-connection builds one instance per unit (2 or 3, per mmppt_Units)
+    itself, each shifted by stride * unit_index.
     """
 
     ID = integer(40131, signed=False)
@@ -301,8 +302,8 @@ class MmpptData(Component):
 
 
 class EvseCommon(InverterCommon):
-    """
-    EVSE common block is only read once at setup.
+    """EVSE common block is only read once at setup.
+
     SolarEdge EVSE devices present as an inverter, reuse InverterCommon.
     """
 
@@ -411,6 +412,7 @@ class BatteryInfo(Component):
 
     @property
     def B_Manufacturer(self) -> str | None:
+        """Return the B Manufacturer."""
         manufacturer = self._B_Manufacturer
         if manufacturer is None:
             return None
@@ -421,6 +423,7 @@ class BatteryInfo(Component):
 
     @property
     def B_Model(self) -> str | None:
+        """Return the B Model."""
         model = self._B_Model
         if model is None:
             return None
@@ -431,6 +434,7 @@ class BatteryInfo(Component):
 
     @property
     def B_SerialNumber(self) -> str | None:
+        """Return the B Serial Number."""
         serial = self._B_SerialNumber
         if serial is None:
             return None
@@ -438,14 +442,17 @@ class BatteryInfo(Component):
 
     @property
     def B_Version(self) -> str | None:
+        """Return the B Version."""
         return self._B_Version
 
     @property
     def B_Device_Address(self) -> int | None:
+        """Return the B Device Address."""
         return self._B_Device_Address
 
     @property
     def B_RatedEnergy(self) -> float | None:
+        """Return the B Rated Energy."""
         return self._B_RatedEnergy
 
 
@@ -489,6 +496,7 @@ class BatteryData(Component):
 
 class DERStorageCapacity(SunSpecComponent):
     """DER Storage Capacity (SunSpec model 713), read every polling cycle.
+
     base_offset is supplied by modbus-connection SunSpec scan
     (modbus_connection.model.sunspec.scan) at setup.
 

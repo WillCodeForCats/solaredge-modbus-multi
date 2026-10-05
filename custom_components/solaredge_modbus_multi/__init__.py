@@ -3,19 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import timedelta
 import importlib.metadata
 import logging
-from datetime import timedelta
 from typing import TYPE_CHECKING
 
-import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-    Platform,
-)
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import issue_registry as ir
@@ -25,6 +19,7 @@ from homeassistant.helpers.update_coordinator import (
     TimestampDataUpdateCoordinator,
     UpdateFailed,
 )
+import voluptuous as vol
 
 from .const import (
     DOMAIN,
@@ -44,8 +39,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _check_dependency_versions() -> dict[str, str]:
-    """Fail early if tmodbus/modbus-connection are missing or older than required.
-    Must be called from async_setup_entry via hass.async_add_executor_job
+    """Fail early if tmodbus/modbus-connection are missing or too old.
+
+    Must be called from async_setup_entry via hass.async_add_executor_job.
     """
 
     installed_versions = {}
@@ -56,7 +52,7 @@ def _check_dependency_versions() -> dict[str, str]:
     ):
         try:
             installed = importlib.metadata.version(distribution_name)
-        except importlib.metadata.PackageNotFoundError:
+        except importlib.metadata.PackageNotFoundError as err:
             raise ConfigEntryError(
                 f"{display_name} is not installed. Restart Home Assistant to let "
                 "it install dependencies automatically. If it still doesn't "
@@ -64,7 +60,7 @@ def _check_dependency_versions() -> dict[str, str]:
                 "confirm HACS isn't set to skip requirement installation for "
                 "this integration, and check whether another custom integration "
                 f"or manual environment change removed {display_name}."
-            )
+            ) from err
 
         if safe_version_tuple(installed) < safe_version_tuple(required):
             raise ConfigEntryError(
@@ -76,8 +72,8 @@ def _check_dependency_versions() -> dict[str, str]:
         installed_versions[display_name] = installed
 
     _LOGGER.debug(
-        "Installed versions: "
-        + ", ".join(f"{name} {version}" for name, version in installed_versions.items())
+        "Installed versions: %s",
+        ", ".join(f"{name} {version}" for name, version in installed_versions.items()),
     )
 
     return installed_versions
@@ -141,10 +137,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # _check_dependency_versions()'s docstring.
     installed_versions = await hass.async_add_executor_job(_check_dependency_versions)
 
-    from modbus_connection import ModbusTcpParams
-    from modbus_connection.tmodbus import ModbusConnection
+    from modbus_connection import ModbusTcpParams  # noqa: PLC0415
+    from modbus_connection.tmodbus import ModbusConnection  # noqa: PLC0415
 
-    from .hub import SolarEdgeModbusMultiHub
+    from .hub import SolarEdgeModbusMultiHub  # noqa: PLC0415
 
     request_timeout = entry.options.get(
         ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
@@ -209,8 +205,7 @@ async def async_remove_config_entry_device(
             for dev_id in inverter.device_info["identifiers"]
             if dev_id[0] == DOMAIN
         }
-        for dev_id in inverter_device_ids:
-            known_devices.append(dev_id)
+        known_devices.extend(inverter_device_ids)
 
     for meter in solaredge_hub.meters:
         meter_device_ids = {
@@ -218,8 +213,7 @@ async def async_remove_config_entry_device(
             for dev_id in meter.device_info["identifiers"]
             if dev_id[0] == DOMAIN
         }
-        for dev_id in meter_device_ids:
-            known_devices.append(dev_id)
+        known_devices.extend(meter_device_ids)
 
     for battery in solaredge_hub.batteries:
         battery_device_ids = {
@@ -227,8 +221,7 @@ async def async_remove_config_entry_device(
             for dev_id in battery.device_info["identifiers"]
             if dev_id[0] == DOMAIN
         }
-        for dev_id in battery_device_ids:
-            known_devices.append(dev_id)
+        known_devices.extend(battery_device_ids)
 
     this_device_ids = {
         dev_id[1] for dev_id in device_entry.identifiers if dev_id[0] == DOMAIN
@@ -236,7 +229,7 @@ async def async_remove_config_entry_device(
 
     for device_id in this_device_ids:
         if device_id in known_devices:
-            _LOGGER.error(f"Unable to remove entry: device {device_id} is in use")
+            _LOGGER.error("Unable to remove entry: device %s is in use", device_id)
             return False
 
     return True
@@ -245,8 +238,9 @@ async def async_remove_config_entry_device(
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
     _LOGGER.debug(
-        "Migrating from config version "
-        f"{config_entry.version}.{config_entry.minor_version}"
+        "Migrating from config version %s.%s",
+        config_entry.version,
+        config_entry.minor_version,
     )
 
     if config_entry.version > 2:
@@ -341,20 +335,24 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         hass.config_entries.async_update_entry(config_entry, version=2, minor_version=3)
 
     _LOGGER.warning(
-        "Migrated to config version "
-        f"{config_entry.version}.{config_entry.minor_version}"
+        "Migrated to config version %s.%s",
+        config_entry.version,
+        config_entry.minor_version,
     )
 
     return True
 
 
 class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
+    """Solar edge coordinator."""
+
     def __init__(
         self,
         hass: HomeAssistant,
         hub: SolarEdgeModbusMultiHub,
         scan_interval: int,
     ):
+        """Initialize the solar edge coordinator."""
         super().__init__(
             hass,
             _LOGGER,
@@ -365,7 +363,7 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
         self._yaml_config = hass.data[DOMAIN]["yaml"]
 
     async def _async_update_data(self) -> bool:
-        from .hub import DataUpdateFailed, HubInitFailed
+        from .hub import DataUpdateFailed, HubInitFailed  # noqa: PLC0415
 
         try:
             return await self._refresh_modbus_data_with_retry(
@@ -382,10 +380,10 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
             )
 
         except HubInitFailed as e:
-            raise UpdateFailed(f"{e}")
+            raise UpdateFailed(f"{e}") from e
 
         except DataUpdateFailed as e:
-            raise UpdateFailed(f"{e}")
+            raise UpdateFailed(f"{e}") from e
 
     async def _refresh_modbus_data_with_retry(
         self,
@@ -394,8 +392,8 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
         wait_ms: int = 100,
         wait_ratio: int = 2,
     ) -> bool:
-        """
-        Retry refresh until no exception occurs or retries exhaust
+        """Retry refresh until no exception occurs or retries exhaust.
+
         :param ex_type: retry only if exception is subclass of this type
         :param limit: maximum number of invocation attempts
         :param wait_ms: initial wait time after each attempt in milliseconds.
@@ -403,25 +401,26 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
         :return: result of first successful invocation
         :raises: last invocation exception if attempts exhausted
                  or exception is not an instance of ex_type
+
         Credit: https://gist.github.com/davidohana/c0518ff6a6b95139e905c8a8caef9995
         """
-        _LOGGER.debug(f"Retry limit={limit} time={wait_ms} ratio={wait_ratio}")
+        _LOGGER.debug("Retry limit=%s time=%s ratio=%s", limit, wait_ms, wait_ratio)
         attempt = 1
         while True:
             try:
                 return await self._hub.async_refresh_modbus_data()
-            except Exception as ex:
+            except Exception as ex:  # noqa: PERF203
                 if not isinstance(ex, ex_type):
-                    raise ex
+                    raise
                 if 0 < limit <= attempt:
-                    _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
-                    raise ex
+                    _LOGGER.debug("No more data refresh attempts (maximum %s)", limit)
+                    raise
 
-                _LOGGER.debug(f"Failed data refresh attempt {attempt}")
+                _LOGGER.debug("Failed data refresh attempt %s", attempt)
 
                 attempt += 1
                 _LOGGER.debug(
-                    f"Waiting {wait_ms} ms before data refresh attempt {attempt}"
+                    "Waiting %s ms before data refresh attempt %s", wait_ms, attempt
                 )
                 await asyncio.sleep(wait_ms / 1000)
                 wait_ms *= wait_ratio

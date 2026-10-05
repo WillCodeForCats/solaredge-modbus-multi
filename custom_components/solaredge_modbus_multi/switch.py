@@ -22,6 +22,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -45,6 +46,8 @@ async def async_setup_entry(
 
 
 class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
+    """Representation of a solar edge switch base."""
+
     should_poll = False
     _attr_has_entity_name = True
 
@@ -57,14 +60,17 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._platform.device_info
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     @callback
@@ -79,6 +85,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         return (
             super().available
@@ -89,18 +96,22 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_external_production"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "External Production"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return False
 
     @property
     def is_on(self) -> bool:
+        """Return True if on."""
         return (self._platform.site_limit_control_data.E_Lim_Ctl_Mode >> 10) & 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -108,7 +119,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits | (1 << 10)
 
-        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
 
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
@@ -120,7 +131,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits & ~(1 << 10)
 
-        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
 
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
@@ -135,6 +146,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         value = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         return (
             super().available
@@ -145,14 +157,17 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_negative_site_limit"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Negative Site Limit"
 
     @property
     def is_on(self) -> bool:
+        """Return True if on."""
         return (self._platform.site_limit_control_data.E_Lim_Ctl_Mode >> 11) & 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -160,7 +175,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits | (1 << 11)
 
-        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
 
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
@@ -172,7 +187,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         set_bits = set_bits & ~(1 << 11)
 
-        _LOGGER.debug(f"set {self.unique_id} bits {set_bits:016b}")
+        _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
 
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
@@ -187,6 +202,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return (
             super().available
             and self._platform.has_advanced_power_control
@@ -195,18 +211,22 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_adv_pwr_ctrl"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Advanced Power Control"
 
     @property
     def is_on(self) -> bool:
+        """Return True if on."""
         return self._platform.advanced_power_control_data.AdvPwrCtrlEn == 0x1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to 0x1")
+        """Turn on."""
+        _LOGGER.debug("set %s to 0x1", self.unique_id)
 
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x1
@@ -214,7 +234,8 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self.async_update()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to 0x0")
+        """Turn off."""
+        _LOGGER.debug("set %s to 0x0", self.unique_id)
 
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x0
