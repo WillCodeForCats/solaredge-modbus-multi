@@ -8,8 +8,8 @@ with a ConfigEntryError message we can define.
 import importlib.metadata
 from unittest.mock import patch
 
-from homeassistant.exceptions import ConfigEntryError
 import pytest
+from homeassistant.exceptions import ConfigEntryError
 
 from custom_components.solaredge_modbus_multi import _check_dependency_versions
 

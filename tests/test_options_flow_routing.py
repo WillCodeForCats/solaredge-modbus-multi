@@ -1,7 +1,7 @@
 """Tests for the step routing and defaults of the options flow in config_flow.py."""
 
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 import pytest
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName

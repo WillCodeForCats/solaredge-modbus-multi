@@ -1,5 +1,6 @@
 """Tests for SolarEdgeModbusMultiHub.component_write()'s exception mapping."""
 
+import pytest
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.exceptions import HomeAssistantError
 from modbus_connection.exceptions import (
@@ -9,7 +10,6 @@ from modbus_connection.exceptions import (
     ModbusExceptionError,
 )
 from modbus_connection.mock import MockModbusConnection
-import pytest
 
 from custom_components.solaredge_modbus_multi.components import (
     GlobalDynamicPowerControl,
