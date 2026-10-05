@@ -16,8 +16,9 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     Platform,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
@@ -133,6 +134,35 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+@callback
+def _async_remove_legacy_der_devices(
+    hass: HomeAssistant, entry: ConfigEntry, solaredge_hub: SolarEdgeModbusMultiHub
+) -> None:
+    """Remove the separate DER battery devices from earlier versions.
+
+    DER battery sensors are now on the inverter device. Only devices for DER
+    blocks found in this run are removed, after the sensor platform has moved
+    their entities to the inverter device, so a failed scan never deletes an
+    entity. Removing a device also removes the entities still registered to it.
+    """
+    legacy_ids = {
+        f"{inverter.uid_base}_DERB{der_id}"
+        for inverter in solaredge_hub.inverters
+        for der_id in range(1, len(inverter.der_storage) + 1)
+    }
+    if not legacy_ids:
+        return
+
+    device_registry = dr.async_get(hass)
+    for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id):
+        if any(
+            ident[0] == DOMAIN and ident[1] in legacy_ids
+            for ident in device.identifiers
+        ):
+            _LOGGER.debug(f"Removing legacy DER battery device {device.name}")
+            device_registry.async_remove_device(device.id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
@@ -175,6 +205,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    _async_remove_legacy_der_devices(hass, entry, solaredge_hub)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
