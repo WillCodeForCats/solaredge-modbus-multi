@@ -200,7 +200,6 @@ class SolarEdgeModbusMultiHub:
         self.inverters = []
         self.meters = []
         self.batteries = []
-        self.der_batteries = []
         self.evses = []
         self.inverter_common = {}
         self.mmppt_common = {}
@@ -417,35 +416,10 @@ class SolarEdgeModbusMultiHub:
                         _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
                         pass
 
-                # DER Storage Capacity (SunSpec model 713)
-                for der_id, der_storage_model in enumerate(der_storage_models, 1):
-                    try:
-                        _LOGGER.debug(
-                            "Looking for DER Storage Capacity "
-                            f"I{inverter_unit_id}DERB{der_id}"
-                        )
-                        new_der_battery = SolarEdgeDERBattery(
-                            inverter_unit_id, der_id, self, der_storage_model
-                        )
-                        await new_der_battery.init_device()
-
-                        new_der_battery.via_device = new_inverter.uid_base
-                        self.der_batteries.append(new_der_battery)
-                        _LOGGER.debug(
-                            f"Found I{inverter_unit_id} DER Storage Capacity "
-                            f"battery {der_id}"
-                        )
-
-                    except (
-                        ModbusConnectionError,
-                        ModbusProtocolError,
-                        ModbusTimeoutError,
-                    ) as e:
-                        raise HubInitFailed(f"{e}")
-
-                    except DeviceInvalid as e:
-                        _LOGGER.debug(f"I{inverter_unit_id}DERB{der_id}: {e}")
-                        pass
+            # DER Storage Capacity (SunSpec model 713). Independent of battery
+            # detection: it is read from the SunSpec chain and reported on the
+            # inverter device.
+            await new_inverter.init_der_storage(der_storage_models)
 
             new_inverter.inverter_common.restrict_fields(["C_Version"])
 
@@ -463,8 +437,6 @@ class SolarEdgeModbusMultiHub:
                 await meter.read_modbus_data()
             for battery in self.batteries:
                 await battery.read_modbus_data()
-            for der_battery in self.der_batteries:
-                await der_battery.read_modbus_data()
             for evse in self.evses:
                 await evse.read_modbus_data()
 
@@ -513,8 +485,6 @@ class SolarEdgeModbusMultiHub:
                     await meter.read_modbus_data()
                 for battery in self.batteries:
                     await battery.read_modbus_data()
-                for der_battery in self.der_batteries:
-                    await der_battery.read_modbus_data()
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
@@ -757,6 +727,8 @@ class SolarEdgeInverter:
         self.advanced_power_control = None
         self.site_limit_control = None
         self.storage_control = None
+        self.der_storage = []
+        self.der_storage_listeners = set()
         self._gpc_timeouts_count = 0
         self._apc_timeouts_count = 0
         self._use_status_vendor4 = False
@@ -921,6 +893,76 @@ class SolarEdgeInverter:
                 self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
                 _LOGGER.debug(f"I{self.inverter_unit_id} MMPPT Unit {unit_index}")
 
+    async def init_der_storage(self, der_storage_models) -> None:
+        """Set up DER Storage Capacity (SunSpec model 713) blocks.
+
+        Not documented by SolarEdge. Reported in
+        https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/1055
+        Independent of the proprietary battery block; both can be present on the
+        same inverter. Every model 713 block found is kept, in scan order.
+        """
+        for der_id, der_storage_model in enumerate(der_storage_models, 1):
+            der = DERStorageCapacity(
+                self.hub.connection.for_unit(self.inverter_unit_id),
+                der_storage_model,
+            )
+            try:
+                _LOGGER.debug(
+                    f"Reading component DERStorageCapacity"
+                    f"(for_unit({self.inverter_unit_id}))"
+                )
+                await self.hub.component_update(self.inverter_unit_id, der)
+
+            except (ModbusError, SunSpecError) as e:
+                _LOGGER.debug(f"I{self.inverter_unit_id}DERB{der_id}: {e}")
+                continue
+
+            _log_component_fields(f"I{self.inverter_unit_id}DERB{der_id}", der)
+            self.der_storage.append(der)
+            _LOGGER.debug(
+                f"Found I{self.inverter_unit_id} DER Storage Capacity {der_id}"
+            )
+
+    async def read_der_storage(self) -> None:
+        # Entities register as listeners only when enabled; skip the read if
+        # every DER sensor is disabled.
+        if not self.der_storage_listeners:
+            return
+
+        for der_id, der in enumerate(self.der_storage, 1):
+            try:
+                _LOGGER.debug(
+                    f"Reading component DERStorageCapacity"
+                    f"(for_unit({self.inverter_unit_id}))"
+                )
+                await self.hub.component_update(self.inverter_unit_id, der)
+
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} "
+                    f"at DERStorageCapacity: {e}"
+                ) from e
+
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} "
+                    f"at DERStorageCapacity: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} "
+                    f"at DERStorageCapacity: {e}"
+                ) from e
+
+            except SunSpecError as e:
+                raise ModbusProtocolError(
+                    "DER Storage Capacity model shifted or invalid reading "
+                    f"inverter ID {self.inverter_unit_id} at DERStorageCapacity: {e}"
+                ) from e
+
+            _log_component_fields(f"I{self.inverter_unit_id}DERB{der_id}", der)
+
     async def read_modbus_data(self) -> None:
         """Read and update dynamic modbus registers."""
 
@@ -958,6 +1000,8 @@ class SolarEdgeInverter:
             raise ModbusTimeoutError(
                 f"Timeout error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
             ) from e
+
+        await self.read_der_storage()
 
         """ Multiple MPPT Extension """
         if (
@@ -1454,55 +1498,6 @@ class SolarEdgeMeter:
         self._via_device = (DOMAIN, device)
 
 
-class _DERStorageBatteryInfo:
-    """Battery identity for a DER Storage Capacity (SunSpec model 713).
-
-    Model 713 identity is the inverter manufacturer/model/serial. Used by SolarEdgeDERBattery.
-    """
-
-    def __init__(self, der: DERStorageCapacity, inverter_common, battery_id: int):
-        self._der = der
-        self.B_Manufacturer = inverter_common.C_Manufacturer
-        self.B_Model = f"{inverter_common.C_Model}"
-        self.B_Version = None
-        self.B_Option = None
-        self.B_SerialNumber = f"{inverter_common.C_SerialNumber}"
-        self.B_Device_Address = inverter_common.C_Device_address
-
-    @property
-    def B_RatedEnergy(self):
-        return self._der.WHRtg
-
-    def __getattr__(self, name):
-        return None
-
-
-class _DERStorageBatteryData:
-    """Adapts DER Storage Capacity (SunSpec model 713) component to the
-    BatteryData attributes that sensor.py expects.
-
-    Only SoC/SoH/energy/status are in model 713; every other BatteryData
-    field (temps, voltage, current, power, event logs) will be None.
-    Sta is not currently populated by SolarEdge devices, but is mapped so
-    the status sensor is ready if that changes.
-    """
-
-    _MAPPED = {
-        "B_SOE": "SoC",
-        "B_SOH": "SoH",
-        "B_Energy_Available": "WHAvail",
-        "B_Energy_Max": "WHRtg",
-        "B_Status": "Sta",
-    }
-
-    def __init__(self, der: DERStorageCapacity):
-        self._der = der
-
-    def __getattr__(self, name):
-        mapped = self._MAPPED.get(name)
-        return getattr(self._der, mapped) if mapped else None
-
-
 class SolarEdgeBattery:
     """Defines a SolarEdge battery."""
 
@@ -1605,178 +1600,6 @@ class SolarEdgeBattery:
 
         _log_component_fields(
             f"I{self.inverter_unit_id}B{self.battery_id}", self.battery_data
-        )
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self.uid_base)},
-            name=self.name,
-            manufacturer=self.manufacturer,
-            model=self.model,
-            serial_number=self.serial,
-            sw_version=self.fw_version,
-            via_device=self.via_device,
-        )
-
-    @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
-
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
-
-    @property
-    def allow_battery_energy_reset(self) -> bool:
-        return self.hub.allow_battery_energy_reset
-
-    @property
-    def battery_rating_adjust(self) -> int:
-        return self.hub.battery_rating_adjust
-
-    @property
-    def battery_energy_reset_cycles(self) -> int:
-        return self.hub.battery_energy_reset_cycles
-
-
-class SolarEdgeDERBattery:
-    """SunSpec model 713 (DER Storage Capacity).
-
-    Independent of SolarEdgeBattery (proprietary battery block, not a fallback).
-    Both can be present on the same inverter at once. Any model-713 blocks the SunS scan
-    finds each become one of these. Not documented by SolarEdge. Reported in
-    https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/1055
-
-    Exposes the same battery_info/battery_data attributes with _DERStorage* adapters.
-    """
-
-    def __init__(
-        self,
-        device_id: int,
-        battery_id: int,
-        hub: SolarEdgeModbusMultiHub,
-        der_storage_model,
-    ) -> None:
-        self.inverter_unit_id = device_id
-        self.hub = hub
-        self.battery_id = battery_id
-        self.has_parent = True
-        self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self._via_device = None
-
-        self.der_storage_capacity_data = DERStorageCapacity(
-            self.hub.connection.for_unit(self.inverter_unit_id), der_storage_model
-        )
-
-    async def init_device(self) -> None:
-        try:
-            _LOGGER.debug(
-                "Reading component "
-                f"DERStorageCapacity(for_unit({self.inverter_unit_id}))"
-            )
-            await self.hub.component_update(
-                self.inverter_unit_id, self.der_storage_capacity_data
-            )
-
-            _log_component_fields(
-                f"I{self.inverter_unit_id}DERB{self.battery_id}",
-                self.der_storage_capacity_data,
-            )
-
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise DeviceInvalid(
-                "Error reading DERStorageCapacity"
-                f"(for_unit({self.inverter_unit_id})): {e}"
-            )
-
-        except ModbusExceptionError:
-            raise DeviceInvalid(
-                f"Battery I{self.inverter_unit_id}DERB{self.battery_id}: "
-                "DER Storage Capacity unsupported address"
-            )
-
-        except SunSpecError as e:
-            raise DeviceInvalid(
-                f"Battery I{self.inverter_unit_id}DERB{self.battery_id}: "
-                f"DER Storage Capacity model shifted or invalid: {e}"
-            )
-
-        # WHRtg does not appear to be supported, but if it was then we could check the
-        # capacity and skip adding it on systems with no battery
-        # if (
-        #    self.der_storage_capacity_data.WHRtg is None
-        #    or self.der_storage_capacity_data.WHRtg <= 0
-        # ):
-        #    raise DeviceInvalid(
-        #        f"DER Storage Capacity battery {self.battery_id} not usable "
-        #        "(rating <=0)"
-        #    )
-
-        self.battery_info = _DERStorageBatteryInfo(
-            self.der_storage_capacity_data, self.inverter_common, self.battery_id
-        )
-        self.battery_data = _DERStorageBatteryData(self.der_storage_capacity_data)
-
-        self.manufacturer = self.battery_info.B_Manufacturer
-        self.model = self.battery_info.B_Model
-        self.option = "SunSpec Model 713"
-        self.fw_version = self.battery_info.B_Version
-        self.serial = self.battery_info.B_SerialNumber
-        self.device_address = self.battery_info.B_Device_Address
-        self.name = (
-            f"{self.hub.hub_id.capitalize()} "
-            f"I{self.inverter_unit_id} DERB{self.battery_id}"
-        )
-
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_DERB{self.battery_id}"
-
-    async def read_modbus_data(self) -> None:
-        """Refresh from DER Storage Capacity (SunSpec model 713).
-
-        self.battery_data is a _DERStorageBatteryData adapter wrapping the
-        same der_storage_capacity_data instance refreshed here, so it picks up
-        the new values automatically -- no need to rebuild it every poll.
-        """
-        try:
-            _LOGGER.debug(
-                "Reading component "
-                f"DERStorageCapacity(for_unit({self.inverter_unit_id}))"
-            )
-            await self.hub.component_update(
-                self.inverter_unit_id, self.der_storage_capacity_data
-            )
-
-        except ModbusConnectionError as e:
-            raise ModbusConnectionError(
-                "Connection error reading inverter ID "
-                f"{self.inverter_unit_id} at DERStorageCapacity: {e}"
-            ) from e
-
-        except ModbusProtocolError as e:
-            raise ModbusProtocolError(
-                "Protocol error reading inverter ID "
-                f"{self.inverter_unit_id} at DERStorageCapacity: {e}"
-            ) from e
-
-        except ModbusTimeoutError as e:
-            raise ModbusTimeoutError(
-                "Timeout error reading inverter ID "
-                f"{self.inverter_unit_id} at DERStorageCapacity: {e}"
-            ) from e
-
-        except SunSpecError as e:
-            raise ModbusProtocolError(
-                "DER Storage Capacity model shifted or invalid reading "
-                f"inverter ID {self.inverter_unit_id} at DERStorageCapacity: {e}"
-            ) from e
-
-        _log_component_fields(
-            f"I{self.inverter_unit_id}DERB{self.battery_id}",
-            self.der_storage_capacity_data,
         )
 
     @property
