@@ -2,9 +2,9 @@
 
 from unittest.mock import AsyncMock
 
-import pytest
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from modbus_connection.mock import MockModbusConnection
+import pytest
 
 from custom_components.solaredge_modbus_multi.const import (
     DOMAIN,
@@ -37,6 +37,7 @@ def _make_hub(hass, entry_data=None, entry_options=None):
 
 
 async def test_options_default_to_int(hass):
+    """Test options default to int."""
     hub = _make_hub(hass)
 
     for attr in (
@@ -52,6 +53,7 @@ async def test_options_default_to_int(hass):
 
 
 async def test_option_override_is_stored(hass):
+    """Test option override is stored."""
     hub = _make_hub(hass, entry_options={ConfName.SLEEP_AFTER_WRITE: 5})
 
     assert hub._sleep_after_write == 5
@@ -60,6 +62,7 @@ async def test_option_override_is_stored(hass):
 
 
 async def test_options_default_to_bool(hass):
+    """Test options default to bool."""
     hub = _make_hub(hass)
 
     for attr in (
@@ -71,6 +74,7 @@ async def test_options_default_to_bool(hass):
 
 
 async def test_device_list_defaults(hass):
+    """Test device list defaults."""
     entry_data = dict(ENTRY_DATA)
     hub = _make_hub(hass, entry_data=entry_data)
 
@@ -80,12 +84,14 @@ async def test_device_list_defaults(hass):
 async def test_close_after_polling_defaults_to_false(hass):
     # Default must not disconnect, so upgrading from a pre-release that
     # always kept the connection open sees no behavior change.
+    """Test close after polling defaults to false."""
     hub = _make_hub(hass)
 
     assert hub.close_after_polling is False
 
 
 async def test_close_after_polling_true_disconnects_after_successful_poll(hass):
+    """Test close after polling true disconnects after successful poll."""
     hub = _make_hub(hass, entry_options={ConfName.CLOSE_AFTER_POLLING: True})
     hub.initalized = True
     hub.connection.disconnect = AsyncMock()
@@ -96,6 +102,7 @@ async def test_close_after_polling_true_disconnects_after_successful_poll(hass):
 
 
 async def test_close_after_polling_false_keeps_connection_open(hass):
+    """Test close after polling false keeps connection open."""
     hub = _make_hub(hass)
     hub.initalized = True
     hub.connection.disconnect = AsyncMock()
@@ -106,6 +113,7 @@ async def test_close_after_polling_false_keeps_connection_open(hass):
 
 
 async def test_request_timeout_defaults_to_int(hass):
+    """Test request timeout defaults to int."""
     hub = _make_hub(hass)
 
     assert hub._request_timeout == ConfDefaultInt.REQUEST_TIMEOUT
@@ -114,6 +122,7 @@ async def test_request_timeout_defaults_to_int(hass):
 
 
 async def test_request_timeout_override_is_stored(hass):
+    """Test request timeout override is stored."""
     hub = _make_hub(hass, entry_options={ConfName.REQUEST_TIMEOUT: 10})
 
     assert hub._request_timeout == 10
@@ -123,6 +132,7 @@ async def test_request_timeout_override_is_stored(hass):
 
 async def test_coordinator_timeout_unchanged_at_default_request_timeout(hass):
     # default value of request_timeout makes scaling ratio is 1.0
+    """Test coordinator timeout unchanged at default request timeout."""
     default_hub = _make_hub(hass)
     explicit_default_hub = _make_hub(
         hass, entry_options={ConfName.REQUEST_TIMEOUT: ConfDefaultInt.REQUEST_TIMEOUT}
@@ -134,6 +144,7 @@ async def test_coordinator_timeout_unchanged_at_default_request_timeout(hass):
 
 
 async def test_coordinator_timeout_scales_with_request_timeout(hass):
+    """Test coordinator timeout scales with request timeout."""
     default_hub = _make_hub(hass)
 
     doubled_hub = _make_hub(
@@ -147,6 +158,7 @@ async def test_coordinator_timeout_scales_with_request_timeout(hass):
 
 
 async def test_coordinator_timeout_with_sleep_after_write(hass):
+    """Test coordinator timeout with sleep after write."""
     hub = _make_hub(hass, entry_options={ConfName.SLEEP_AFTER_WRITE: 5})
     baseline_hub = _make_hub(hass)
 
@@ -157,6 +169,7 @@ async def test_coordinator_timeout_with_sleep_after_write(hass):
 
 async def test_coordinator_timeout_default_sleep_after_write(hass):
     # sleep_after_write defaults to 0
+    """Test coordinator timeout default sleep after write."""
     hub = _make_hub(hass)
     baseline_hub = _make_hub(hass)
 

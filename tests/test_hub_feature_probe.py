@@ -2,7 +2,6 @@
 
 from types import SimpleNamespace
 
-import pytest
 from homeassistant.helpers import issue_registry as ir
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
@@ -12,6 +11,7 @@ from modbus_connection.exceptions import (
     ModbusTimeoutError,
 )
 from modbus_connection.mock import MockModbusConnection
+import pytest
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN, RetrySettings
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeInverter
@@ -53,6 +53,7 @@ def _make_inverter(hass):
 
 @pytest.mark.parametrize("error", TRANSIENT_ERRORS)
 async def test_gpc_never_detected_transient_failure_is_tolerated(hass, error):
+    """Test gpc never detected transient failure is tolerated."""
     inverter, mock_unit = _make_inverter(hass)
     mock_unit.fail_read(GPC_ADDRESS, error)
 
@@ -70,6 +71,7 @@ async def test_gpc_never_detected_transient_failure_is_tolerated(hass, error):
 async def test_gpc_illegal_rejection_disables_immediately_even_if_working(
     hass, error_cls
 ):
+    """Test gpc illegal rejection disables immediately even if working."""
     inverter, mock_unit = _make_inverter(hass)
     await inverter.read_modbus_data()
     assert inverter.global_power_control is True
@@ -83,6 +85,7 @@ async def test_gpc_illegal_rejection_disables_immediately_even_if_working(
 
 @pytest.mark.parametrize("error", TRANSIENT_ERRORS)
 async def test_gpc_transient_failure_after_success_is_tolerated(hass, error):
+    """Test gpc transient failure after success is tolerated."""
     inverter, mock_unit = _make_inverter(hass)
     await inverter.read_modbus_data()
     assert inverter.global_power_control is True
@@ -99,6 +102,7 @@ async def test_gpc_transient_failure_after_success_is_tolerated(hass, error):
 
 
 async def test_gpc_success_resets_failure_counter_mid_window(hass):
+    """Test gpc success resets failure counter mid window."""
     inverter, mock_unit = _make_inverter(hass)
     await inverter.read_modbus_data()
 
@@ -114,6 +118,7 @@ async def test_gpc_success_resets_failure_counter_mid_window(hass):
 
 
 async def test_gpc_repair_flow_reset_gets_the_same_leeway_as_a_fresh_probe(hass):
+    """Test gpc repair flow reset gets the same leeway as a fresh probe."""
     inverter, mock_unit = _make_inverter(hass)
     mock_unit.fail_read(GPC_ADDRESS, ModbusTimeoutError("no response"))
 
@@ -129,6 +134,7 @@ async def test_gpc_repair_flow_reset_gets_the_same_leeway_as_a_fresh_probe(hass)
 
 
 async def test_gpc_give_up_creates_fixable_issue_then_clears_on_recovery(hass):
+    """Test gpc give up creates fixable issue then clears on recovery."""
     inverter, mock_unit = _make_inverter(hass)
     mock_unit.fail_read(GPC_ADDRESS, ModbusTimeoutError("no response"))
 
@@ -150,6 +156,7 @@ async def test_gpc_give_up_creates_fixable_issue_then_clears_on_recovery(hass):
 
 
 async def test_gpc_illegal_rejection_does_not_create_an_issue(hass):
+    """Test gpc illegal rejection does not create an issue."""
     inverter, mock_unit = _make_inverter(hass)
     mock_unit.fail_read(GPC_ADDRESS, IllegalDataAddressError())
 
@@ -161,6 +168,7 @@ async def test_gpc_illegal_rejection_does_not_create_an_issue(hass):
 
 
 async def test_apc_illegal_rejection_disables_immediately_even_if_working(hass):
+    """Test apc illegal rejection disables immediately even if working."""
     inverter, mock_unit = _make_inverter(hass)
     await inverter.read_modbus_data()
     assert inverter.advanced_power_control is True
@@ -173,6 +181,7 @@ async def test_apc_illegal_rejection_disables_immediately_even_if_working(hass):
 
 
 async def test_apc_never_detected_transient_failure_is_tolerated(hass):
+    """Test apc never detected transient failure is tolerated."""
     inverter, mock_unit = _make_inverter(hass)
     mock_unit.fail_read(APC_ADDRESS, ModbusTimeoutError("no response"))
 
@@ -187,6 +196,7 @@ async def test_apc_never_detected_transient_failure_is_tolerated(hass):
 
 
 async def test_apc_transient_failure_after_success_is_tolerated_then_gives_up(hass):
+    """Test apc transient failure after success is tolerated then gives up."""
     inverter, mock_unit = _make_inverter(hass)
     await inverter.read_modbus_data()
     assert inverter.advanced_power_control is True

@@ -9,12 +9,12 @@ https://www.hacs.xyz/docs/publish/start/
 import json
 from pathlib import Path
 
-import pytest
 from awesomeversion import (
     AwesomeVersion,
     AwesomeVersionException,
     AwesomeVersionStrategy,
 )
+import pytest
 
 HACS_JSON_PATH = Path(__file__).parent.parent / "hacs.json"
 
@@ -34,16 +34,19 @@ OPTIONAL_KEY_TYPES = {
 
 @pytest.fixture(scope="module")
 def hacs_manifest() -> dict:
+    """Hacs manifest."""
     return json.loads(HACS_JSON_PATH.read_text())
 
 
 def test_hacs_json_has_name(hacs_manifest):
+    """Test hacs json has name."""
     assert isinstance(hacs_manifest.get("name"), str) and hacs_manifest["name"], (
         "hacs.json must have a non-empty 'name' string"
     )
 
 
 def test_hacs_json_optional_key_types(hacs_manifest):
+    """Test hacs json optional key types."""
     for key, expected_type in OPTIONAL_KEY_TYPES.items():
         if key in hacs_manifest:
             assert isinstance(hacs_manifest[key], expected_type), (
