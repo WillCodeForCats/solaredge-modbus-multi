@@ -38,8 +38,8 @@ def _make_inverter(hass):
         option_detect_extras=True,
         option_storage_control=False,
         option_site_limit_control=False,
-        hass=hass,
-        entry_id="test_entry",
+        _hass=hass,
+        _entry_id="test_entry",
         hub_host="127.0.0.1",
     )
     inverter = SolarEdgeInverter(1, stub_hub)
