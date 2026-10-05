@@ -269,14 +269,14 @@ async def async_setup_entry(
         entities.append(SolarEdgeBatterySOE(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryStatus(battery, config_entry, coordinator))
 
-    for der_battery in hub.der_batteries:
-        entities.append(SolarEdgeLastUpdate(der_battery, config_entry, coordinator))
-        entities.append(SolarEdgeBatteryDevice(der_battery, config_entry, coordinator))
-        entities.append(SolarEdgeBatterySOH(der_battery, config_entry, coordinator))
-        entities.append(SolarEdgeBatterySOE(der_battery, config_entry, coordinator))
-        entities.append(
-            SolarEdgeDERBatteryStatus(der_battery, config_entry, coordinator)
-        )
+    for inverter in hub.inverters:
+        for der_id in range(1, len(inverter.der_storage) + 1):
+            entities.append(
+                SolarEdgeDERBatterySOE(inverter, config_entry, coordinator, der_id)
+            )
+            # SolarEdgeDERBatterySOH and SolarEdgeDERBatteryStatus are not added:
+            # SolarEdge is not known to report State of Health or Status in
+            # model 713. Add them here if that changes.
 
     for evse in hub.evses:
         entities.append(Version(evse, config_entry, coordinator))
