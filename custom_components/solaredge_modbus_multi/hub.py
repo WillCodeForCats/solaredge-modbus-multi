@@ -227,25 +227,23 @@ class SolarEdgeModbusMultiHub:
         self.connection = connection
 
         _LOGGER.debug(
-            (
-                "%s configuration: inverter_list=%s, detect_meters=%s, "
-                "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
-                "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
-                "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
-                "close_after_polling=%s, ",
-                DOMAIN,
-                self._inverter_list,
-                self._detect_meters,
-                self._detect_batteries,
-                self._detect_extras,
-                self._adv_storage_control,
-                self._adv_site_limit_control,
-                self._allow_battery_energy_reset,
-                self._request_timeout,
-                self._sleep_after_write,
-                self._battery_rating_adjust,
-                self._close_after_polling,
-            ),
+            "%s configuration: inverter_list=%s, detect_meters=%s, "
+            "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
+            "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
+            "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
+            "close_after_polling=%s, ",
+            DOMAIN,
+            self._inverter_list,
+            self._detect_meters,
+            self._detect_batteries,
+            self._detect_extras,
+            self._adv_storage_control,
+            self._adv_site_limit_control,
+            self._allow_battery_energy_reset,
+            self._request_timeout,
+            self._sleep_after_write,
+            self._battery_rating_adjust,
+            self._close_after_polling,
         )
 
     async def _async_init_solaredge(self) -> None:  # noqa: C901
@@ -388,12 +386,10 @@ class SolarEdgeModbusMultiHub:
                             # Allow duplicate serial number on meters PR#412
                             if new_meter.serial == meter.serial:
                                 _LOGGER.warning(
-                                    (
-                                        "Duplicate serial %s on I%sM%s",
-                                        new_meter.serial,
-                                        inverter_unit_id,
-                                        meter_id,
-                                    ),
+                                    "Duplicate serial %s on I%sM%s",
+                                    new_meter.serial,
+                                    inverter_unit_id,
+                                    meter_id,
                                 )
 
                         new_meter.via_device = new_inverter.uid_base
@@ -425,12 +421,10 @@ class SolarEdgeModbusMultiHub:
                         for battery in self.batteries:
                             if new_battery.serial == battery.serial:
                                 _LOGGER.warning(
-                                    (
-                                        "Duplicate serial %s on I%sB%s",
-                                        new_battery.serial,
-                                        inverter_unit_id,
-                                        battery_id,
-                                    ),
+                                    "Duplicate serial %s on I%sB%s",
+                                    new_battery.serial,
+                                    inverter_unit_id,
+                                    battery_id,
                                 )
                                 raise DeviceInvalid(  # noqa: TRY301
                                     f"Duplicate B{battery_id} serial "
