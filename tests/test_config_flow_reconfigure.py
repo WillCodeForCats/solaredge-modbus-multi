@@ -1,8 +1,8 @@
 """Tests for the reconfigure flow's unique_id handling in config_flow.py."""
 
+import pytest
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
-import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName

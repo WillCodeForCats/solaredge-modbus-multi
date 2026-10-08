@@ -1,13 +1,13 @@
 """Tests for zeroconf/mDNS discovery in config_flow.py."""
 
-from ipaddress import ip_address
 import socket
+from ipaddress import ip_address
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
-import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN

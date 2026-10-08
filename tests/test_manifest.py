@@ -9,12 +9,12 @@ https://developers.home-assistant.io/blog/2021/01/29/custom-integration-changes#
 import json
 from pathlib import Path
 
+import pytest
 from awesomeversion import (
     AwesomeVersion,
     AwesomeVersionException,
     AwesomeVersionStrategy,
 )
-import pytest
 
 MANIFEST_PATH = (
     Path(__file__).parent.parent
