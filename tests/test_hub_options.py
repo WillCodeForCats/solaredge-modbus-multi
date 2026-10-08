@@ -2,9 +2,9 @@
 
 from unittest.mock import AsyncMock
 
+import pytest
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from modbus_connection.mock import MockModbusConnection
-import pytest
 
 from custom_components.solaredge_modbus_multi.const import (
     DOMAIN,

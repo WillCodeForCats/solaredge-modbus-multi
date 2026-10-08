@@ -1,7 +1,7 @@
 """Decode round-trip test for the AdvancedPowerControl fields sensor.py uses."""
 
-from modbus_connection.mock import MockModbusUnit
 import pytest
+from modbus_connection.mock import MockModbusUnit
 
 from custom_components.solaredge_modbus_multi.components import AdvancedPowerControl
 
