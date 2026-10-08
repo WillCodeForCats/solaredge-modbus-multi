@@ -9,12 +9,12 @@ https://www.hacs.xyz/docs/publish/start/
 import json
 from pathlib import Path
 
-import pytest
 from awesomeversion import (
     AwesomeVersion,
     AwesomeVersionException,
     AwesomeVersionStrategy,
 )
+import pytest
 
 HACS_JSON_PATH = Path(__file__).parent.parent / "hacs.json"
 

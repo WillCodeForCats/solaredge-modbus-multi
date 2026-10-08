@@ -1,7 +1,7 @@
 """Tests for custom_components/solaredge_modbus_multi/helpers.py."""
 
-import pytest
 from homeassistant.exceptions import HomeAssistantError
+import pytest
 
 from custom_components.solaredge_modbus_multi.helpers import (
     check_device_id,

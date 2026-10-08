@@ -1,7 +1,7 @@
 """Component write tests."""
 
-import pytest
 from modbus_connection.mock import MockModbusUnit, WriteEvent
+import pytest
 
 from custom_components.solaredge_modbus_multi.components import AdvancedPowerControl
 

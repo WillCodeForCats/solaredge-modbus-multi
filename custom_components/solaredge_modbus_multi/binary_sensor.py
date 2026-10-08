@@ -24,6 +24,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -53,14 +54,17 @@ class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._platform.device_info
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     @callback
@@ -75,6 +79,7 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return (
             super().available
             and self._platform.has_advanced_power_control
@@ -83,14 +88,17 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_adv_pwr_ctrl_en"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Advanced Power Control"
 
     @property
     def is_on(self) -> bool:
+        """Return True if on."""
         return self._platform.advanced_power_control_data.AdvPwrCtrlEn == 0x1
 
 
@@ -102,22 +110,27 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return (
             super().available and self._platform.inverter_data.I_Grid_Status is not None
         )
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_grid_status_on_off"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Grid Status"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._platform.inverter_data.I_Grid_Status is not None
 
     @property
     def is_on(self) -> bool:
+        """Return True if on."""
         return self._platform.inverter_data.I_Grid_Status == 0x0
