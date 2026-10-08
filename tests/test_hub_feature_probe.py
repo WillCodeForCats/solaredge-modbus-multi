@@ -2,7 +2,6 @@
 
 from types import SimpleNamespace
 
-import pytest
 from homeassistant.helpers import issue_registry as ir
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
@@ -12,6 +11,7 @@ from modbus_connection.exceptions import (
     ModbusTimeoutError,
 )
 from modbus_connection.mock import MockModbusConnection
+import pytest
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN, RetrySettings
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeInverter

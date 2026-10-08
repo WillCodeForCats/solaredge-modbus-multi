@@ -3,8 +3,8 @@
 import inspect
 import itertools
 
-import pytest
 from modbus_connection.model import Component, RegisterField
+import pytest
 
 from custom_components.solaredge_modbus_multi import components
 

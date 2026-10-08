@@ -12,11 +12,11 @@ import logging
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
-import pytest
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import State
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from modbus_connection.mock import MockModbusConnection
+import pytest
 from pytest_homeassistant_custom_component.common import mock_restore_cache
 
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeInverter
