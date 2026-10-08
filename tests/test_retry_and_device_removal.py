@@ -8,9 +8,9 @@ __init__.py.
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from modbus_connection.exceptions import ModbusConnectionError, ModbusTimeoutError
+import pytest
 
 from custom_components.solaredge_modbus_multi import (
     SolarEdgeCoordinator,

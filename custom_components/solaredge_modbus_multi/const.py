@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import re
 from enum import IntEnum, StrEnum
+import re
 from typing import Final
 
 DOMAIN = "solaredge_modbus_multi"
@@ -124,6 +124,8 @@ class ConfDefaultStr(StrEnum):
 
 
 class ConfName(StrEnum):
+    """Conf name."""
+
     DEVICE_LIST = "device_list"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
@@ -144,6 +146,8 @@ class ConfName(StrEnum):
 
 
 class SunSpecAccum(IntEnum):
+    """Sun spec accum."""
+
     NA16 = 0x0000
     NA32 = 0x00000000
     LIMIT16 = 0xFFFF
@@ -151,6 +155,8 @@ class SunSpecAccum(IntEnum):
 
 
 class SunSpecNotImpl(IntEnum):
+    """Sun spec not impl."""
+
     INT16 = 0x8000
     UINT16 = 0xFFFF
     INT32 = 0x80000000
