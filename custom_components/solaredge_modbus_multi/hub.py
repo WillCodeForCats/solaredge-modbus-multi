@@ -13,8 +13,7 @@ from awesomeversion.exceptions import (
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
@@ -1544,6 +1543,7 @@ class SolarEdgeMeter:
 
     @property
     def via_device_id(self) -> str | None:
+        """Return the device registry ID of the parent device."""
         return self._via_device_id
 
     @via_device_id.setter
@@ -1727,6 +1727,7 @@ class SolarEdgeBattery:
 
     @property
     def via_device_id(self) -> str | None:
+        """Return the device registry ID of the parent device."""
         return self._via_device_id
 
     @via_device_id.setter
@@ -1904,6 +1905,7 @@ class SolarEdgeDERBattery:
 
     @property
     def via_device_id(self) -> str | None:
+        """Return the device registry ID of the parent device."""
         return self._via_device_id
 
     @via_device_id.setter
