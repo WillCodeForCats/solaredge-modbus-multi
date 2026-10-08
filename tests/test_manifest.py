@@ -35,23 +35,28 @@ ALLOWED_VERSION_STRATEGIES = [
 
 @pytest.fixture(scope="module")
 def manifest() -> dict:
+    """Manifest."""
     return json.loads(MANIFEST_PATH.read_text())
 
 
 def test_manifest_has_required_keys(manifest):
+    """Test manifest has required keys."""
     for key in ("domain", "name", "version", "requirements"):
         assert key in manifest, f"manifest.json is missing required key {key!r}"
 
 
 def test_manifest_domain_matches_folder(manifest):
+    """Test manifest domain matches folder."""
     assert manifest["domain"] == MANIFEST_PATH.parent.name
 
 
 def test_manifest_requirements_is_list(manifest):
+    """Test manifest requirements is list."""
     assert isinstance(manifest["requirements"], list)
 
 
 def test_manifest_version_is_valid(manifest):
+    """Test manifest version is valid."""
     version = manifest["version"]
     try:
         AwesomeVersion(version, ensure_strategy=ALLOWED_VERSION_STRATEGIES)

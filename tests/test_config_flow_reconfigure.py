@@ -20,8 +20,10 @@ async def _start_reconfigure(hass, entry):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_reconfigure_updates_unique_id_when_still_host_port(hass):
-    """A unique_id still matches its own stored host:port
-    (the default scheme) gets it recomputed when the host changes."""
+    """A unique_id matching its stored host:port is recomputed on host change.
+
+    This is the default scheme.
+    """
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id="192.168.1.50:1502",
@@ -51,8 +53,10 @@ async def test_reconfigure_updates_unique_id_when_still_host_port(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_reconfigure_preserves_non_host_port_unique_id(hass):
-    """A unique_id that no longer matches its stored host:port must not be
-    silently reset back to host:port by a routine host/port change."""
+    """A custom unique_id is not reset to host:port by a host/port change.
+
+    It no longer matches its stored host:port.
+    """
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id="730663bc",
@@ -83,8 +87,10 @@ async def test_reconfigure_preserves_non_host_port_unique_id(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_reconfigure_aborts_on_host_port_collision(hass):
-    """Reconfiguring a host:port entry to another entry's existing
-    host:port must be rejected as a duplicate."""
+    """Reconfiguring to another entry's existing host:port is a duplicate.
+
+    The reconfigure must be rejected.
+    """
     MockConfigEntry(
         domain=DOMAIN,
         unique_id="192.168.1.99:1502",
@@ -123,7 +129,7 @@ async def test_reconfigure_aborts_on_host_port_collision(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_reconfigure_with_unchanged_host_port_succeeds(hass):
-    """Reconfiguring without changing host/port"""
+    """Reconfiguring without changing host/port."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id="192.168.1.50:1502",

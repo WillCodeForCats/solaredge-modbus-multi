@@ -1,6 +1,7 @@
 """Structural checks on Component fields."""
 
 import inspect
+import itertools
 
 import pytest
 from modbus_connection.model import Component, RegisterField
@@ -38,9 +39,7 @@ def test_no_overlapping_registers(component_class: type[Component]) -> None:
         spans.append((start, end, name))
 
     spans.sort()
-    for (start_a, end_a, name_a), (start_b, end_b, name_b) in zip(
-        spans, spans[1:], strict=False
-    ):
+    for (start_a, end_a, name_a), (start_b, end_b, name_b) in itertools.pairwise(spans):
         assert end_a <= start_b, (
             f"{component_class.__name__}.{name_a} ({start_a}-{end_a - 1}) overlaps "
             f"{component_class.__name__}.{name_b} ({start_b}-{end_b - 1})"

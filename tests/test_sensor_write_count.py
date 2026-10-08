@@ -49,26 +49,31 @@ def _make_entity(hass, platform):
 
 
 def test_unique_id():
+    """Test unique id."""
     entity = SolarEdgeWriteCount(_make_platform(), None, None)
     assert entity.unique_id == "inverter_1_write_count"
 
 
 def test_name():
+    """Test name."""
     entity = SolarEdgeWriteCount(_make_platform(), None, None)
     assert entity.name == "Write Count"
 
 
 def test_always_available():
+    """Test always available."""
     entity = SolarEdgeWriteCount(_make_platform(), None, None)
     assert entity.available is True
 
 
 def test_native_value_reads_from_platform():
+    """Test native value reads from platform."""
     entity = SolarEdgeWriteCount(_make_platform(write_count=7), None, None)
     assert entity.native_value == 7
 
 
 def test_write_count_updated_writes_ha_state(monkeypatch):
+    """Test write count updated writes ha state."""
     entity = SolarEdgeWriteCount(_make_platform(), None, None)
     calls = []
     monkeypatch.setattr(entity, "async_write_ha_state", lambda: calls.append(True))
@@ -79,6 +84,7 @@ def test_write_count_updated_writes_ha_state(monkeypatch):
 
 
 async def test_restores_last_state_on_add(hass):
+    """Test restores last state on add."""
     platform = _make_platform(write_count=0)
     entity = _make_entity(hass, platform)
     mock_restore_cache(hass, [State(entity.entity_id, "42")])
@@ -91,6 +97,7 @@ async def test_restores_last_state_on_add(hass):
 
 @pytest.mark.parametrize("last_state", [STATE_UNAVAILABLE, STATE_UNKNOWN])
 async def test_does_not_restore_unavailable_or_unknown(hass, last_state):
+    """Test does not restore unavailable or unknown."""
     platform = _make_platform(write_count=3)
     entity = _make_entity(hass, platform)
     mock_restore_cache(hass, [State(entity.entity_id, last_state)])
@@ -102,6 +109,7 @@ async def test_does_not_restore_unavailable_or_unknown(hass, last_state):
 
 async def test_does_not_restore_non_numeric_state(hass):
     # Checks the `except ValueError: pass` condition
+    """Test does not restore non numeric state."""
     platform = _make_platform(write_count=3)
     entity = _make_entity(hass, platform)
     mock_restore_cache(hass, [State(entity.entity_id, "not-a-number")])
@@ -112,6 +120,7 @@ async def test_does_not_restore_non_numeric_state(hass):
 
 
 async def test_removes_listener_on_remove(hass):
+    """Test removes listener on remove."""
     platform = _make_platform()
     entity = _make_entity(hass, platform)
     mock_restore_cache(hass, [])
@@ -124,6 +133,7 @@ async def test_removes_listener_on_remove(hass):
 
 
 async def test_write_counts_by_default():
+    """Test write counts by default."""
     inverter = _make_inverter()
     calls = []
     inverter.write_count_listeners.add(lambda: calls.append(True))
@@ -139,6 +149,7 @@ async def test_write_counts_by_default():
 async def test_write_count_write_false_skips_counting():
     # 95b9d9e "Add a flag to not track a write" - the write itself must still
     # happen, only the counter/listener side is skipped.
+    """Test write count write false skips counting."""
     inverter = _make_inverter()
     calls = []
     inverter.write_count_listeners.add(lambda: calls.append(True))

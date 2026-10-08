@@ -11,12 +11,14 @@ class _FakeInverter:
 
 
 def test_sunspec_scan_none_when_scan_never_succeeded():
+    """Test sunspec scan none when scan never succeeded."""
     inverter = _FakeInverter(None)
 
     assert _sunspec_scan(inverter) is None
 
 
 def test_sunspec_scan_orders_by_address_not_insertion_order():
+    """Test sunspec scan orders by address not insertion order."""
     models = SunSpecModels()
     models[713] = [SunSpecModel(model_id=713, address=40054, length=8)]
     models[103] = [SunSpecModel(model_id=103, address=40002, length=50)]
@@ -31,6 +33,7 @@ def test_sunspec_scan_orders_by_address_not_insertion_order():
 
 
 def test_sunspec_scan_includes_repeated_model_ids():
+    """Test sunspec scan includes repeated model ids."""
     models = SunSpecModels()
     models[203] = [
         SunSpecModel(model_id=203, address=40070, length=105),

@@ -22,6 +22,7 @@ class _FakeInverter:
 
 
 def test_inverter_model_merges_every_component():
+    """Test inverter model merges every component."""
     unit = MockModbusConnection().for_unit(1)
     inverter = _FakeInverter(unit)
 
@@ -34,6 +35,7 @@ def test_inverter_model_merges_every_component():
 
 
 def test_inverter_model_defaults_to_none_for_never_read_components():
+    """Test inverter model defaults to none for never read components."""
     unit = MockModbusConnection().for_unit(1)
     inverter = _FakeInverter(unit)
 
@@ -46,6 +48,7 @@ def test_inverter_model_defaults_to_none_for_never_read_components():
 
 
 async def test_inverter_model_reflects_a_successful_read():
+    """Test inverter model reflects a successful read."""
     unit = MockModbusConnection().for_unit(1)
     unit.load_raw({"holding": {61441: 42}})
     inverter = _FakeInverter(unit)

@@ -33,7 +33,7 @@ def _make_hub(hass):
 
 
 @pytest.mark.parametrize(
-    "error, expected_message",
+    ("error", "expected_message"),
     [
         (IllegalFunctionError(), "Function not supported by device at ID 1."),
         (IllegalDataAddressError(), "Address not supported at device at ID 1."),
@@ -43,6 +43,7 @@ def _make_hub(hass):
 async def test_component_write_maps_specific_typed_exception(
     hass, error, expected_message
 ):
+    """Test component write maps specific typed exception."""
     hub, connection = _make_hub(hass)
     connection.for_unit(1).fail_write(I_POWER_LIMIT_ADDRESS, error)
     component = GlobalDynamicPowerControl(connection.for_unit(1))
@@ -54,6 +55,7 @@ async def test_component_write_maps_specific_typed_exception(
 
 
 async def test_component_write_falls_back_to_generic_message_for_other_codes(hass):
+    """Test component write falls back to generic message for other codes."""
     hub, connection = _make_hub(hass)
     connection.for_unit(1).fail_write(
         I_POWER_LIMIT_ADDRESS, ModbusExceptionError(4, "device failure")

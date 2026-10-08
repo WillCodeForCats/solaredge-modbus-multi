@@ -10,6 +10,7 @@ from custom_components.solaredge_modbus_multi.components import AdvancedPowerCon
 
 @pytest.mark.asyncio
 async def test_advanced_power_control_decode(mock_modbus_unit: MockModbusUnit) -> None:
+    """Test advanced power control decode."""
     mock_modbus_unit.load_raw(
         {
             "holding": {

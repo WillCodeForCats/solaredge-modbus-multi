@@ -15,6 +15,7 @@ def _unit():
 
 
 async def test_component_to_dict_plain_component_uses_declared_fields():
+    """Test component to dict plain component uses declared fields."""
     mock_unit = _unit()
     mock_unit.load_raw({"holding": {61440: 3, 61441: 50}})
     component = GlobalDynamicPowerControl(mock_unit)
@@ -28,6 +29,7 @@ async def test_component_to_dict_plain_component_uses_declared_fields():
 
 
 def test_component_to_dict_after_restrict_fields_shows_none_not_missing():
+    """Test component to dict after restrict fields shows none not missing."""
     component = GlobalDynamicPowerControl(_unit())
     component.restrict_fields(["I_RRCR"])
 
@@ -38,6 +40,7 @@ def test_component_to_dict_after_restrict_fields_shows_none_not_missing():
 
 
 def test_component_field_names_battery_info_excludes_private_raw_fields():
+    """Test component field names battery info excludes private raw fields."""
     component = BatteryInfo(_unit())
 
     names = component_field_names(component)
@@ -51,6 +54,7 @@ def test_component_field_names_battery_info_excludes_private_raw_fields():
 
 
 def test_component_to_dict_battery_info_uses_cleaned_properties_not_raw_fields():
+    """Test component to dict battery info uses cleaned properties not raw fields."""
     component = BatteryInfo(_unit())
     component._values["_B_Manufacturer"] = "LG Chem\x00\x00SERIAL123"
     component._values["_B_Model"] = "RESU10H\x00\x00SERIAL123"
