@@ -55,22 +55,6 @@ def test_soc_enabled_default_depends_on_first_value(value, expected):
     assert entity.entity_registry_enabled_default is expected
 
 
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [(None, False), (0, False), (0.0, False), (1, True), (97.0, True)],
-)
-def test_soh_enabled_default_depends_on_first_value(value, expected):
-    """Test soh enabled default depends on first value."""
-    entity = SolarEdgeDERStorageSOH(_platform(_der(soh=value)), None, None, 1)
-    assert entity.entity_registry_enabled_default is expected
-
-
-def test_status_disabled_by_default():
-    """Test status disabled by default."""
-    entity = SolarEdgeDERStorageStatus(_platform(_der(sta=3)), None, None, 1)
-    assert entity.entity_registry_enabled_default is False
-
-
 def test_soc_not_implemented_value_disables_by_default():
     """Test soc not implemented value disables by default."""
     # modbus-connection decodes a not-implemented uint16 (0xFFFF) to None

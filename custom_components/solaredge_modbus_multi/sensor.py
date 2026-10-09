@@ -1766,16 +1766,6 @@ class SolarEdgeDERStorageBase(SolarEdgeSensorBase):
     def _unique_id(self, suffix: str) -> str:
         return f"{self._platform.uid_base}_storage_{self._der_id}_{suffix}"
 
-    @staticmethod
-    def _enabled_default_for(value) -> bool:
-        """Enable by default only for a value other than 0% or not-implemented.
-
-        SolarEdge reports 0% both for an empty battery and for no battery
-        installed, so the default is decided once, from the first value seen.
-        Users can enable the entity manually.
-        """
-        return value is not None and value != 0x0
-
     async def async_added_to_hass(self) -> None:
         """Register as a DER listener when added."""
         # Only enabled entities are added; the inverter skips reading the DER
@@ -1810,18 +1800,16 @@ class SolarEdgeDERStorageSOC(SolarEdgeDERStorageBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return the entity registry enabled default."""
-        return self._enabled_default_for(self._der.SoC)
+        # SolarEdge reports 0% both for an empty battery and for no battery
+        # installed, so the default is decided once, from the first value seen.
+        value = self._der.SoC
+        return value is not None and value != 0x0
 
     @property
     def available(self) -> bool:
         """Return the available."""
         value = self._der.SoC
-        return (
-            super().available
-            and value is not None
-            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
-            and 0 <= value <= 100
-        )
+        return super().available and value is not None and 0 <= value <= 100
 
     @property
     def native_value(self):
@@ -1849,20 +1837,10 @@ class SolarEdgeDERStorageSOH(SolarEdgeDERStorageBase):
         return f"{self._name_prefix} State of Health"
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return self._enabled_default_for(self._der.SoH)
-
-    @property
     def available(self) -> bool:
         """Return the available."""
         value = self._der.SoH
-        return (
-            super().available
-            and value is not None
-            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
-            and 0 <= value <= 100
-        )
+        return super().available and value is not None and 0 <= value <= 100
 
     @property
     def native_value(self):
@@ -1890,11 +1868,6 @@ class SolarEdgeDERStorageStatus(SolarEdgeDERStorageBase):
     def name(self) -> str:
         """Return the name."""
         return f"{self._name_prefix} Status"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
 
     @property
     def available(self) -> bool:
