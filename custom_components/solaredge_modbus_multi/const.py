@@ -96,7 +96,7 @@ class BatteryLimit(IntEnum):
 class ConfDefaultInt(IntEnum):
     """Defaults for options that are integers."""
 
-    SCAN_INTERVAL = 300
+    SCAN_INTERVAL = 10
     PORT = 1502
     REQUEST_TIMEOUT = 3
     SLEEP_AFTER_WRITE = 0
