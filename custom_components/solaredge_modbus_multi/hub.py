@@ -351,7 +351,7 @@ class SolarEdgeModbusMultiHub:
                         self.hub_host,
                         inverter_unit_id,
                     )
-                    new_evse.sunspec_models = await suns_scan(
+                    new_evse.sunspec_models = await async_suns_scan_with_retry(
                         self.connection.for_unit(inverter_unit_id), 40000
                     )
 
@@ -376,7 +376,7 @@ class SolarEdgeModbusMultiHub:
                 _LOGGER.debug(
                     "Scanning SunS models at %s ID %s", self.hub_host, inverter_unit_id
                 )
-                suns_models = await suns_scan(
+                suns_models = await async_suns_scan_with_retry(
                     self.connection.for_unit(inverter_unit_id), 40000
                 )
                 new_inverter.sunspec_models = suns_models
