@@ -13,7 +13,10 @@ already covered for SolarEdgeWriteCount and are not re-tested here.
 """
 
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
+from homeassistant.components.sensor import RestoreSensor
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import pytest
 
 from custom_components.solaredge_modbus_multi.const import SunSpecAccum
@@ -217,19 +220,14 @@ BATTERY_ENERGY_CLASSES = [
 ]
 
 
-def _make_battery_energy(
-    cls, attr, value, allow_reset=False, reset_cycles=3, last=None, count=0
-):
+def _make_battery_energy(cls, attr, value, total=None, prev_raw=None):
     platform = SimpleNamespace(
         uid_base="battery_1",
         battery_data=SimpleNamespace(**{attr: value}),
-        allow_battery_energy_reset=allow_reset,
-        battery_energy_reset_cycles=reset_cycles,
     )
     entity = cls(platform, None, None)
-    entity._last = last
-    entity._attr_native_value = last
-    entity._count = count
+    entity._attr_native_value = total
+    entity._prev_raw = prev_raw
     return entity
 
 
@@ -237,89 +235,86 @@ def _make_battery_energy(
 class TestBatteryEnergyAccumulators:
     """Test battery energy accumulators."""
 
-    def test_first_value_is_accepted(self, cls, attr):
-        """Test first value is accepted."""
+    def test_first_value_becomes_total_and_reference(self, cls, attr):
+        """Test first value becomes total and reference."""
         entity = _make_battery_energy(cls, attr, value=100)
         entity._process_data()
         assert entity._attr_native_value == 100
-        assert entity._last == 100
+        assert entity._prev_raw == 100
 
-    def test_none_value_is_skipped(self, cls, attr):
-        """Test none value is skipped."""
-        entity = _make_battery_energy(cls, attr, value=None, last=100)
+    @pytest.mark.parametrize("value", [None, 0xFFFFFFFFFFFFFFFF, 0])
+    def test_unusable_values_are_skipped(self, cls, attr, value):
+        """Test unusable values are skipped."""
+        entity = _make_battery_energy(cls, attr, value=value, total=500, prev_raw=100)
         entity._process_data()
-        assert entity._attr_native_value == 100
+        assert entity._attr_native_value == 500
+        assert entity._prev_raw == 100
 
-    def test_uint64_not_implemented_sentinel_is_skipped(self, cls, attr):
-        """Test uint64 not implemented sentinel is skipped."""
-        entity = _make_battery_energy(cls, attr, value=0xFFFFFFFFFFFFFFFF, last=100)
+    def test_zero_is_not_accepted_as_first_reading(self, cls, attr):
+        """Test zero is not accepted as first reading."""
+        entity = _make_battery_energy(cls, attr, value=0)
         entity._process_data()
-        assert entity._attr_native_value == 100
+        assert entity._attr_native_value is None
+        assert entity._prev_raw is None
 
-    def test_zero_is_skipped_when_reset_not_allowed(self, cls, attr):
-        # A bare 0 usually means "not yet available" rather than a real reset,
-        # unless the user has explicitly opted in to battery energy resets.
-        """Test zero is skipped when reset not allowed."""
-        entity = _make_battery_energy(cls, attr, value=0, allow_reset=False, last=100)
+    def test_increase_adds_delta_to_total(self, cls, attr):
+        """Test increase adds delta to total."""
+        entity = _make_battery_energy(cls, attr, value=150, total=500, prev_raw=100)
         entity._process_data()
-        assert entity._attr_native_value == 100
+        assert entity._attr_native_value == 550
+        assert entity._prev_raw == 150
 
-    def test_zero_is_accepted_as_first_reading_when_reset_allowed(self, cls, attr):
-        """Test zero is accepted as first reading when reset allowed."""
-        entity = _make_battery_energy(cls, attr, value=0, allow_reset=True, last=None)
+    def test_unchanged_value_adds_nothing(self, cls, attr):
+        """Test unchanged value adds nothing."""
+        entity = _make_battery_energy(cls, attr, value=100, total=500, prev_raw=100)
         entity._process_data()
-        assert entity._attr_native_value == 0
-        assert entity._last == 0
+        assert entity._attr_native_value == 500
+        assert entity._prev_raw == 100
 
-    def test_increasing_value_updates_and_resets_count(self, cls, attr):
-        """Test increasing value updates and resets count."""
-        entity = _make_battery_energy(
-            cls, attr, value=150, allow_reset=True, last=100, count=2
+    def test_decrease_keeps_total_and_rebaselines(self, cls, attr):
+        """Test decrease keeps total and rebaselines."""
+        entity = _make_battery_energy(cls, attr, value=50, total=500, prev_raw=100)
+        entity._process_data()
+        assert entity._attr_native_value == 500
+        assert entity._prev_raw == 50
+
+    def test_counting_resumes_after_decrease(self, cls, attr):
+        """Test counting resumes after decrease."""
+        entity = _make_battery_energy(cls, attr, value=50, total=500, prev_raw=100)
+        entity._process_data()
+        setattr(entity._platform.battery_data, attr, 70)
+        entity._process_data()
+        assert entity._attr_native_value == 520
+        assert entity._prev_raw == 70
+
+    def test_restored_total_without_reference_only_sets_reference(self, cls, attr):
+        """Test restored total without reference only sets reference."""
+        entity = _make_battery_energy(cls, attr, value=900, total=500)
+        entity._process_data()
+        assert entity._attr_native_value == 500
+        assert entity._prev_raw == 900
+
+    def test_stored_data_includes_reference_reading(self, cls, attr):
+        """Test stored data includes reference reading."""
+        entity = _make_battery_energy(cls, attr, value=150, total=500, prev_raw=100)
+        stored = entity.extra_restore_state_data.as_dict()
+        assert stored["native_value"] == 500
+        assert stored["prev_raw"] == 100
+
+    async def test_restore_loads_total_and_reference(self, cls, attr):
+        """Test restore loads total and reference."""
+        entity = _make_battery_energy(cls, attr, value=150)
+        restored = SimpleNamespace(
+            as_dict=lambda: {"native_value": 500, "prev_raw": 100}
         )
-        entity._process_data()
-        assert entity._attr_native_value == 150
-        assert entity._last == 150
-        assert entity._count == 0
-
-    def test_decrease_without_reset_allowed_is_logged_and_ignored(self, cls, attr):
-        """Test decrease without reset allowed is logged and ignored."""
-        entity = _make_battery_energy(cls, attr, value=50, allow_reset=False, last=100)
-        entity._process_data()
-        assert entity._attr_native_value == 100
-        assert entity._last == 100
-        assert entity._log_once is True
-
-    def test_decrease_with_reset_allowed_increments_count_without_resetting_yet(
-        self, cls, attr
-    ):
-        """Test decrease with reset allowed increments count without resetting yet."""
-        entity = _make_battery_energy(
-            cls, attr, value=50, allow_reset=True, reset_cycles=2, last=100, count=0
-        )
-        entity._process_data()
-        assert entity._count == 1
-        assert entity._last == 100
-        assert entity._attr_native_value == 100
-
-    def test_decrease_confirmed_over_reset_cycles_clears_last(self, cls, attr):
-        # battery_energy_reset_cycles=2: the count must exceed the cycle limit
-        # (not just reach it) before the drop is trusted as a real reset.
-        """Test decrease confirmed over reset cycles clears last."""
-        entity = _make_battery_energy(
-            cls, attr, value=50, allow_reset=True, reset_cycles=2, last=100, count=2
-        )
-        entity._process_data()
-        assert entity._count == 0
-        assert entity._last is None
-        # native_value is left at its old (now stale) value until the next
-        # coordinator update re-runs _process_data with _last reset to None.
-        assert entity._attr_native_value == 100
-
-    def test_next_update_after_confirmed_reset_accepts_new_baseline(self, cls, attr):
-        """Test next update after confirmed reset accepts new baseline."""
-        entity = _make_battery_energy(
-            cls, attr, value=50, allow_reset=True, reset_cycles=2, last=None, count=0
-        )
-        entity._process_data()
-        assert entity._attr_native_value == 50
-        assert entity._last == 50
+        with (
+            patch.object(
+                RestoreSensor,
+                "async_get_last_extra_data",
+                AsyncMock(return_value=restored),
+            ),
+            patch.object(CoordinatorEntity, "async_added_to_hass", AsyncMock()),
+        ):
+            await entity.async_added_to_hass()
+        assert entity._attr_native_value == 550
+        assert entity._prev_raw == 150
