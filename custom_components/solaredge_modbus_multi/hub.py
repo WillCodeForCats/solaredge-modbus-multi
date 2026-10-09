@@ -137,6 +137,32 @@ async def async_write_with_retry(component, field: str, value) -> None:
             return
 
 
+async def async_suns_scan_with_retry(connection, base_address: int):
+    """Call suns_scan(), retrying connection/timeout errors.
+
+    Like async_update_with_retry() but for the SunSpec model scan.
+    """
+    for attempt in range(1, RetrySettings.RequestRetries + 1):
+        try:
+            models = await suns_scan(connection, base_address)
+
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+            _LOGGER.debug(
+                "suns_scan() attempt %s of %s failed: %s",
+                attempt,
+                RetrySettings.RequestRetries,
+                e,
+            )
+
+            if attempt >= RetrySettings.RequestRetries:
+                raise
+
+        else:
+            return models
+
+    return None
+
+
 def _parse_se_version(version_str: str) -> AwesomeVersion:
     """Strip zero-padding from SolarEdge firmware version strings."""
     stripped = ".".join(str(int(p)) for p in version_str.split("."))
