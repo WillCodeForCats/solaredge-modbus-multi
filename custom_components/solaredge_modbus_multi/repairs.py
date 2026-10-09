@@ -308,6 +308,7 @@ class DeviceReplacedRepairFlow(RepairsFlow):
         refresh_targets.extend(
             (
                 device.anchor,
+                (DOMAIN, device.uid_base),
                 {"model": device.model, "serial_number": device.serial},
             )
             for device in (*hub.meters, *hub.batteries, *hub.der_batteries)
