@@ -274,13 +274,13 @@ async def async_setup_entry(
         entities.append(SolarEdgeBatteryStatus(battery, config_entry, coordinator))
 
     for inverter in hub.inverters:
-        for der_id in range(1, len(inverter.der_storage) + 1):
-            entities.append(
-                SolarEdgeDERBatterySOE(inverter, config_entry, coordinator, der_id)
-            )
-            # SolarEdgeDERBatterySOH and SolarEdgeDERBatteryStatus are not added:
-            # SolarEdge is not known to report State of Health or Status in
-            # model 713. Add them here if that changes.
+        entities.extend(
+            SolarEdgeDERBatterySOE(inverter, config_entry, coordinator, der_id)
+            for der_id in range(1, len(inverter.der_storage) + 1)
+        )
+        # SolarEdgeDERBatterySOH and SolarEdgeDERBatteryStatus are not added:
+        # SolarEdge is not known to report State of Health or Status in
+        # model 713. Add them here if that changes.
 
     entities.extend(Version(evse, config_entry, coordinator) for evse in hub.evses)
 
@@ -1743,6 +1743,7 @@ class SolarEdgeDERBatteryBase(SolarEdgeSensorBase):
     """
 
     def __init__(self, platform, config_entry, coordinator, der_id: int):
+        """Initialize the DER battery sensor."""
         super().__init__(platform, config_entry, coordinator)
         self._der_id = der_id
 
@@ -1774,12 +1775,14 @@ class SolarEdgeDERBatteryBase(SolarEdgeSensorBase):
         )
 
     async def async_added_to_hass(self) -> None:
+        """Register as a DER listener when added."""
         # Only enabled entities are added; the inverter skips reading the DER
         # Storage Capacity block when none are.
         await super().async_added_to_hass()
         self._platform.der_storage_listeners.add(self)
 
     async def async_will_remove_from_hass(self) -> None:
+        """Remove the DER listener when removed."""
         self._platform.der_storage_listeners.discard(self)
         await super().async_will_remove_from_hass()
 
@@ -1794,18 +1797,22 @@ class SolarEdgeDERBatterySOE(SolarEdgeDERBatteryBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return self._unique_id("battery_soe")
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._name_prefix} State of Energy"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._enabled_default_for(self._der.SoC)
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         value = self._der.SoC
         return (
             super().available
@@ -1816,10 +1823,13 @@ class SolarEdgeDERBatterySOE(SolarEdgeDERBatteryBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         return self._der.SoC
 
 
 class SolarEdgeDERBatterySOH(SolarEdgeDERBatteryBase):
+    """State of Health from DER Storage Capacity (SunSpec model 713)."""
+
     state_class = SensorStateClass.MEASUREMENT
     entity_category = EntityCategory.DIAGNOSTIC
     native_unit_of_measurement = PERCENTAGE
@@ -1828,18 +1838,22 @@ class SolarEdgeDERBatterySOH(SolarEdgeDERBatteryBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return self._unique_id("battery_soh")
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._name_prefix} State of Health"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._enabled_default_for(self._der.SoH)
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         value = self._der.SoH
         return (
             super().available
@@ -1850,6 +1864,7 @@ class SolarEdgeDERBatterySOH(SolarEdgeDERBatteryBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         return self._der.SoH
 
 
@@ -1866,10 +1881,12 @@ class SolarEdgeDERBatteryStatus(SolarEdgeDERBatteryBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return self._unique_id("status")
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._name_prefix} Status"
 
     @property

@@ -9,16 +9,10 @@ import logging
 from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-    Platform,
-)
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import (
@@ -160,7 +154,7 @@ def _async_remove_legacy_der_devices(
             ident[0] == DOMAIN and ident[1] in legacy_ids
             for ident in device.identifiers
         ):
-            _LOGGER.debug(f"Removing legacy DER battery device {device.name}")
+            _LOGGER.debug("Removing legacy DER battery device %s", device.name)
             device_registry.async_remove_device(device.id)
 
 
