@@ -442,7 +442,15 @@ class SolarEdgeModbusMultiHub:
 
             # DER Storage Capacity (SunSpec model 713). Independent of battery
             # detection: it is read from the SunSpec chain and reported on the
-            # inverter device.
+            # inverter device. Unlike HA core's solaredge_modbus, which only
+            # uses this block when no proprietary battery was found and SoC is
+            # above 0%, both are kept so they can coexist on the same inverter.
+            # They are also different values: the proprietary block is per
+            # battery (State of Energy), while model 713 is inverter level
+            # (State of Charge) and may cover one or more batteries.
+            # The block is served with SoC fixed at 0% when no battery is
+            # attached, so the SoC sensor is disabled by default for a 0% first
+            # value instead of being left out.
             await new_inverter.init_der_storage(der_storage_models)
 
             new_inverter.inverter_common.restrict_fields(["C_Version"])

@@ -273,6 +273,12 @@ async def async_setup_entry(
         entities.append(SolarEdgeBatterySOE(battery, config_entry, coordinator))
         entities.append(SolarEdgeBatteryStatus(battery, config_entry, coordinator))
 
+    # DER Storage Capacity (model 713) coexists with the proprietary battery
+    # block above; it is not a fallback for it. HA core only creates this
+    # sensor when no proprietary battery exists and SoC is above 0%. Here it is
+    # always created, and disabled by default if the first SoC is 0%.
+    # The values differ: proprietary State of Energy is per battery, while
+    # model 713 State of Charge is inverter level and may cover several batteries.
     for inverter in hub.inverters:
         entities.extend(
             SolarEdgeDERStorageSOC(inverter, config_entry, coordinator, der_id)
