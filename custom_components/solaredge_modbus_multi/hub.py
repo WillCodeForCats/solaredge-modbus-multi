@@ -137,6 +137,32 @@ async def async_write_with_retry(component, field: str, value) -> None:
             return
 
 
+async def async_suns_scan_with_retry(connection, base_address: int):
+    """Call suns_scan(), retrying connection/timeout errors.
+
+    Like async_update_with_retry() but for the SunSpec model scan.
+    """
+    for attempt in range(1, RetrySettings.RequestRetries + 1):
+        try:
+            models = await suns_scan(connection, base_address)
+
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+            _LOGGER.debug(
+                "suns_scan() attempt %s of %s failed: %s",
+                attempt,
+                RetrySettings.RequestRetries,
+                e,
+            )
+
+            if attempt >= RetrySettings.RequestRetries:
+                raise
+
+        else:
+            return models
+
+    return None
+
+
 def _parse_se_version(version_str: str) -> AwesomeVersion:
     """Strip zero-padding from SolarEdge firmware version strings."""
     stripped = ".".join(str(int(p)) for p in version_str.split("."))
@@ -324,7 +350,7 @@ class SolarEdgeModbusMultiHub:
                         self.hub_host,
                         inverter_unit_id,
                     )
-                    new_evse.sunspec_models = await suns_scan(
+                    new_evse.sunspec_models = await async_suns_scan_with_retry(
                         self.connection.for_unit(inverter_unit_id), 40000
                     )
 
@@ -349,7 +375,7 @@ class SolarEdgeModbusMultiHub:
                 _LOGGER.debug(
                     "Scanning SunS models at %s ID %s", self.hub_host, inverter_unit_id
                 )
-                suns_models = await suns_scan(
+                suns_models = await async_suns_scan_with_retry(
                     self.connection.for_unit(inverter_unit_id), 40000
                 )
                 new_inverter.sunspec_models = suns_models
@@ -757,7 +783,11 @@ class SolarEdgeModbusMultiHub:
             if self.option_detect_extras:
                 this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
             # SunS model-chain scan runs unconditionally, once per inverter at setup
-            this_timeout += SolarEdgeTimeouts.Read * self.number_of_inverters
+            this_timeout += (
+                SolarEdgeTimeouts.Read
+                * RetrySettings.RequestRetries
+                * self.number_of_inverters
+            )
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
