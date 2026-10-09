@@ -11,6 +11,8 @@ from custom_components.solaredge_modbus_multi.const import (
     WRITE_SETTLE_CYCLES,
     ConfDefaultInt,
     ConfName,
+    RetrySettings,
+    SolarEdgeTimeouts,
 )
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
 
@@ -174,3 +176,19 @@ async def test_coordinator_timeout_default_sleep_after_write(hass):
     baseline_hub = _make_hub(hass)
 
     assert hub.coordinator_timeout == pytest.approx(baseline_hub.coordinator_timeout)
+
+
+async def test_coordinator_timeout_init_budgets_every_scan_attempt(hass):
+    """Test init timeout covers a slow failed SunS scan followed by retries."""
+    hub = _make_hub(hass)
+    hub._inverter_list = [1, 2]
+    hub._detect_extras = False
+
+    non_scan_ms = (
+        (SolarEdgeTimeouts.Inverter + SolarEdgeTimeouts.Init) * 2
+        + (SolarEdgeTimeouts.Device * 2) * 3
+        + (SolarEdgeTimeouts.Battery * 2) * 3
+    )
+    scan_ms = SolarEdgeTimeouts.Read * RetrySettings.RequestRetries * 2
+
+    assert hub.coordinator_timeout == pytest.approx((non_scan_ms + scan_ms) / 1000)
