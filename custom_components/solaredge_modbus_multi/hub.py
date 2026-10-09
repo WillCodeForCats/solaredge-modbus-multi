@@ -1424,10 +1424,18 @@ class SolarEdgeInverter:
         return getattr(self.inverter_common, "C_Version", None)
 
     @property
+    def anchor(self) -> str:
+        """Stable identifier for this Modbus device ID, independent of uid_base.
+
+        See _device_anchor() and SolarEdgeModbusMultiHub._check_inverter_replaced().
+        """
+        return _device_anchor(self.hub._entry_id, "inverter", self.inverter_unit_id)
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.uid_base)},
+            identifiers={(DOMAIN, self.uid_base), (DOMAIN, self.anchor)},
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
@@ -1485,10 +1493,24 @@ class SolarEdgeMMPPTUnit:
         self.mmppt_key = f"mmppt_{self.unit}"
 
     @property
+    def anchor(self) -> str:
+        """Stable identifier for this MMPPT unit, independent of uid_base."""
+        return _device_anchor(
+            self.hub._entry_id,
+            "inverter",
+            self.inverter.inverter_unit_id,
+            "mmppt",
+            self.unit,
+        )
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.inverter.uid_base, self.mmppt_key)},
+            identifiers={
+                (DOMAIN, self.inverter.uid_base, self.mmppt_key),
+                (DOMAIN, self.anchor),
+            },
             name=f"{self.inverter.name} MPPT{self.unit}",
             manufacturer=self.inverter.manufacturer,
             model=self.inverter.model,
@@ -1635,10 +1657,21 @@ class SolarEdgeMeter:
             )
 
     @property
+    def anchor(self) -> str:
+        """Stable identifier for this meter, independent of uid_base."""
+        return _device_anchor(
+            self.hub._entry_id,
+            "inverter",
+            self.inverter_unit_id,
+            "meter",
+            self.meter_id,
+        )
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.uid_base)},
+            identifiers={(DOMAIN, self.uid_base), (DOMAIN, self.anchor)},
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
@@ -1820,10 +1853,21 @@ class SolarEdgeBattery:
         )
 
     @property
+    def anchor(self) -> str:
+        """Stable identifier for this battery, independent of uid_base."""
+        return _device_anchor(
+            self.hub._entry_id,
+            "inverter",
+            self.inverter_unit_id,
+            "battery",
+            self.battery_id,
+        )
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.uid_base)},
+            identifiers={(DOMAIN, self.uid_base), (DOMAIN, self.anchor)},
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
@@ -1998,10 +2042,21 @@ class SolarEdgeDERBattery:
         )
 
     @property
+    def anchor(self) -> str:
+        """Stable identifier for this DER battery, independent of uid_base."""
+        return _device_anchor(
+            self.hub._entry_id,
+            "inverter",
+            self.inverter_unit_id,
+            "derbattery",
+            self.battery_id,
+        )
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.uid_base)},
+            identifiers={(DOMAIN, self.uid_base), (DOMAIN, self.anchor)},
             name=self.name,
             manufacturer=self.manufacturer,
             model=self.model,
