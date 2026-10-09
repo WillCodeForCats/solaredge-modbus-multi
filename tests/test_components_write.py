@@ -1,7 +1,7 @@
 """Component write tests."""
 
-import pytest
 from modbus_connection.mock import MockModbusUnit, WriteEvent
+import pytest
 
 from custom_components.solaredge_modbus_multi.components import AdvancedPowerControl
 
@@ -9,7 +9,7 @@ from custom_components.solaredge_modbus_multi.components import AdvancedPowerCon
 
 
 @pytest.mark.parametrize(
-    "field, address",
+    ("field", "address"),
     [
         ("CommitPwrCtlSettings", 61696),
         ("RestorePwrCtlDefaults", 61697),
@@ -19,6 +19,7 @@ from custom_components.solaredge_modbus_multi.components import AdvancedPowerCon
 async def test_advanced_power_control_buttons_write(
     mock_modbus_unit: MockModbusUnit, field: str, address: int
 ) -> None:
+    """Test advanced power control buttons write."""
     events: list[WriteEvent] = []
     mock_modbus_unit.on_write(events.append)
 

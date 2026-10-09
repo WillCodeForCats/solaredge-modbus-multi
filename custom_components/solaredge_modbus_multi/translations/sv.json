@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Värd och port är redan konfigurerade i en annan hubb.",
+      "cannot_connect": "Det gick inte att ansluta till den upptäckta enheten.",
       "reconfigure_successful": "Omkonfigurationen lyckades"
     },
     "progress": {

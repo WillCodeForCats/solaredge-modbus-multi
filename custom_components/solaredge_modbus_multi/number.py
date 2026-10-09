@@ -1,3 +1,5 @@
+"""The SolarEdge Modbus Multi number module."""
+
 from __future__ import annotations
 
 import logging
@@ -27,6 +29,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -62,6 +65,8 @@ async def async_setup_entry(
 
 
 class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
+    """Representation of a solar edge number base."""
+
     should_poll = False
     _attr_has_entity_name = True
     entity_category = EntityCategory.CONFIG
@@ -75,14 +80,17 @@ class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._platform.device_info
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     @callback
@@ -91,22 +99,28 @@ class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
 
 
 class StorageACChargeLimit(SolarEdgeNumberBase):
+    """Representation of a storage ac charge limit."""
+
     icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_storage_ac_charge_limit"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "AC Charge Limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._platform.has_battery is True
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         ac_charge_limit = self._platform.storage_control_data.ac_charge_limit
         return (
             super().available
@@ -121,33 +135,36 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
     @property
     def native_unit_of_measurement(self) -> str | None:
         # kWh in AC policy "Fixed Energy Limit", % in AC policy "Percent of Production"
+        """Return the native unit of measurement."""
         if self._platform.storage_control_data.ac_charge_policy == 2:
             return UnitOfEnergy.KILO_WATT_HOUR
-        elif self._platform.storage_control_data.ac_charge_policy == 3:
+        if self._platform.storage_control_data.ac_charge_policy == 3:
             return PERCENTAGE
-        else:
-            return None
+        return None
 
     @property
     def native_min_value(self) -> int:
+        """Return the native min value."""
         return 0
 
     @property
     def native_max_value(self) -> int:
         # 100MWh in AC policy "Fixed Energy Limit"
+        """Return the native max value."""
         if self._platform.storage_control_data.ac_charge_policy == 2:
             return 100000000
-        elif self._platform.storage_control_data.ac_charge_policy == 3:
+        if self._platform.storage_control_data.ac_charge_policy == 3:
             return 100
-        else:
-            return 0
+        return 0
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return int(self._platform.storage_control_data.ac_charge_limit)
 
     async def async_set_native_value(self, value: float) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.storage_control_data, "ac_charge_limit", float(value)
         )
@@ -155,6 +172,8 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 
 
 class StorageBackupReserve(SolarEdgeNumberBase):
+    """Representation of a storage backup reserve."""
+
     native_unit_of_measurement = PERCENTAGE
     native_min_value = 0
     native_max_value = 100
@@ -162,18 +181,22 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_storage_backup_reserve"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Backup Reserve"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._platform.has_battery is True
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         backup_reserve = self._platform.storage_control_data.backup_reserve
         return (
             super().available
@@ -185,10 +208,12 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return int(self._platform.storage_control_data.backup_reserve)
 
     async def async_set_native_value(self, value: int) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.storage_control_data, "backup_reserve", int(value)
         )
@@ -196,6 +221,8 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 
 
 class StorageCommandTimeout(SolarEdgeNumberBase):
+    """Representation of a storage command timeout."""
+
     native_min_value = 0
     native_max_value = 86400  # 24h
     native_unit_of_measurement = UnitOfTime.SECONDS
@@ -203,18 +230,22 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_storage_command_timeout"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Storage Command Timeout"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._platform.has_battery is True
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         command_timeout = self._platform.storage_control_data.command_timeout
         return (
             super().available
@@ -228,10 +259,12 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return int(self._platform.storage_control_data.command_timeout)
 
     async def async_set_native_value(self, value: int) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.storage_control_data, "command_timeout", int(value)
         )
@@ -239,6 +272,8 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 
 
 class StorageChargeLimit(SolarEdgeNumberBase):
+    """Representation of a storage charge limit."""
+
     native_min_value = 0
     native_step = 1.0
     native_unit_of_measurement = UnitOfPower.WATT
@@ -246,18 +281,22 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_storage_charge_limit"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Storage Charge Limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._platform.has_battery is True
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         charge_limit = self._platform.storage_control_data.charge_limit
         return (
             super().available
@@ -271,14 +310,17 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_max_value(self) -> int:
+        """Return the native max value."""
         return BatteryLimit.ChargeMax
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return int(self._platform.storage_control_data.charge_limit)
 
     async def async_set_native_value(self, value: int) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.storage_control_data, "charge_limit", int(value)
         )
@@ -286,6 +328,8 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 
 
 class StorageDischargeLimit(SolarEdgeNumberBase):
+    """Representation of a storage discharge limit."""
+
     native_min_value = 0
     native_step = 1.0
     native_unit_of_measurement = UnitOfPower.WATT
@@ -293,18 +337,22 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_storage_discharge_limit"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Storage Discharge Limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._platform.has_battery is True
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         discharge_limit = self._platform.storage_control_data.discharge_limit
         return (
             super().available
@@ -318,14 +366,17 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
     @property
     def native_max_value(self) -> int:
+        """Return the native max value."""
         return BatteryLimit.DischargeMax
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return int(self._platform.storage_control_data.discharge_limit)
 
     async def async_set_native_value(self, value: int) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.storage_control_data, "discharge_limit", int(value)
         )
@@ -333,6 +384,8 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 
 
 class SolarEdgeSiteLimit(SolarEdgeNumberBase):
+    """Representation of a solar edge site limit."""
+
     native_min_value = 0
     native_max_value = 1000000
     native_unit_of_measurement = UnitOfPower.WATT
@@ -340,14 +393,17 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_site_limit"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Site Limit"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         e_site_limit = self._platform.site_limit_control_data.E_Site_Limit
         e_lim_ctl_mode = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         return (
@@ -365,13 +421,15 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         if self._platform.site_limit_control_data.E_Site_Limit < 0:
             return 0
 
         return int(self._platform.site_limit_control_data.E_Site_Limit)
 
     async def async_set_native_value(self, value: int) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Site_Limit", int(value)
         )
@@ -379,6 +437,8 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 
 
 class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
+    """Representation of a solar edge external production max."""
+
     native_min_value = 0
     native_max_value = 1000000
     native_unit_of_measurement = UnitOfPower.WATT
@@ -386,14 +446,17 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_external_production_max"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "External Production Max"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         ext_prod_max = self._platform.site_limit_control_data.Ext_Prod_Max
         e_lim_ctl_mode = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         return (
@@ -408,14 +471,17 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return False
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return int(self._platform.site_limit_control_data.Ext_Prod_Max)
 
     async def async_set_native_value(self, value: int) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.site_limit_control_data, "Ext_Prod_Max", int(value)
         )
@@ -423,7 +489,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 
 
 class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
-    """Global Dynamic Power Control: Set Inverter Active Power Limit"""
+    """Global Dynamic Power Control: Set Inverter Active Power Limit."""
 
     native_unit_of_measurement = PERCENTAGE
     native_min_value = 0
@@ -433,18 +499,22 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_active_power_limit_set"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Active Power Limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._platform.has_global_power_control is True
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         i_power_limit = self._platform.global_power_control_data.I_Power_Limit
         return (
             super().available
@@ -456,10 +526,12 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return self._platform.global_power_control_data.I_Power_Limit
 
     async def async_set_native_value(self, value: int) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.global_power_control_data,
             "I_Power_Limit",
@@ -470,7 +542,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 
 
 class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
-    """Global Dynamic Power Control: Set Inverter CosPhi"""
+    """Global Dynamic Power Control: Set Inverter CosPhi."""
 
     native_min_value = -1.0
     native_max_value = 1.0
@@ -480,18 +552,22 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_cosphi_set"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "CosPhi"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         i_cosphi = self._platform.global_power_control_data.I_CosPhi
         return (
             super().available
@@ -503,10 +579,12 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> float:
+        """Return the native value."""
         return round(self._platform.global_power_control_data.I_CosPhi, 1)
 
     async def async_set_native_value(self, value: float) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.global_power_control_data,
             "I_CosPhi",
@@ -517,7 +595,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 
 
 class SolarEdgePowerReduce(SolarEdgeNumberBase):
-    """Limits the inverter's maximum output power from 0-100%"""
+    """Limits the inverter's maximum output power from 0-100%."""
 
     native_unit_of_measurement = PERCENTAGE
     native_min_value = 0
@@ -527,18 +605,22 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_power_reduce"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Power Reduce"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         power_reduce = self._platform.advanced_power_control_data.PowerReduce
         return (
             super().available
@@ -550,10 +632,12 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return round(self._platform.advanced_power_control_data.PowerReduce, 0)
 
     async def async_set_native_value(self, value: float) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.advanced_power_control_data, "PowerReduce", float(value)
         )
@@ -570,18 +654,22 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_max_current"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Current Limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         max_current = self._platform.advanced_power_control_data.MaxCurrent
         return (
             super().available
@@ -593,10 +681,12 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
 
     @property
     def native_value(self) -> int:
+        """Return the native value."""
         return round(self._platform.advanced_power_control_data.MaxCurrent, 0)
 
     async def async_set_native_value(self, value: float) -> None:
-        _LOGGER.debug(f"set {self.unique_id} to {value}")
+        """Set native value."""
+        _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
             self._platform.advanced_power_control_data, "MaxCurrent", float(value)
         )

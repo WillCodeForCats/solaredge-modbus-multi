@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from typing import cast
 
-import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.config_entries import ConfigEntry
@@ -13,6 +12,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
+import voluptuous as vol
 
 from .config_flow import generate_config_schema
 from .const import DOMAIN, ConfDefaultStr, ConfName
@@ -176,3 +176,4 @@ async def async_create_fix_flow(
             return RetryFeatureDetectionRepairFlow(
                 entry_id, cast(int, data["inverter_unit_id"]), "advanced_power_control"
             )
+    return None

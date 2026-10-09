@@ -1,5 +1,6 @@
-"""Tests for the RestoreSensor-based total increasing energy sensors:
-SolarEdgeACEnergy (its Inverter/Meter subclasses), MeterVAhIE, MetervarhIE,
+"""Tests for the RestoreSensor-based total increasing energy sensors.
+
+Covers SolarEdgeACEnergy (its Inverter/Meter subclasses), MeterVAhIE, MetervarhIE,
 SolarEdgeBatteryEnergyExport, and SolarEdgeBatteryEnergyImport.
 
 5193006 "Remove update_accum helper"
@@ -38,27 +39,34 @@ def _make_ac_energy(raw_value, sf, phase=None, last=None):
 
 
 class TestSolarEdgeACEnergy:
+    """Test solar edge ac energy."""
+
     def test_first_value_is_accepted(self):
+        """Test first value is accepted."""
         entity = _make_ac_energy(raw_value=1000, sf=0)
         entity._process_data()
         assert entity._attr_native_value == 1000
 
     def test_applies_scale_factor(self):
+        """Test applies scale factor."""
         entity = _make_ac_energy(raw_value=1000, sf=-1)
         entity._process_data()
         assert entity._attr_native_value == 100.0
 
     def test_increasing_value_updates(self):
+        """Test increasing value updates."""
         entity = _make_ac_energy(raw_value=1100, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1100
 
     def test_raw_value_none_is_skipped(self):
+        """Test raw value none is skipped."""
         entity = _make_ac_energy(raw_value=None, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1000
 
     def test_na32_sentinel_is_skipped(self):
+        """Test na32 sentinel is skipped."""
         entity = _make_ac_energy(raw_value=SunSpecAccum.NA32, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1000
@@ -66,17 +74,20 @@ class TestSolarEdgeACEnergy:
     def test_limit32_saturation_is_skipped(self):
         # PR #1040: a fully saturated accumulator (all-1s) must be detected,
         # not accepted as a legitimate value.
+        """Test limit32 saturation is skipped."""
         entity = _make_ac_energy(raw_value=SunSpecAccum.LIMIT32, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1000
 
     def test_scale_factor_out_of_range_is_skipped(self):
+        """Test scale factor out of range is skipped."""
         entity = _make_ac_energy(raw_value=1000, sf=99, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1000
 
     def test_minor_decrease_within_one_percent_is_ignored(self):
         # 995 is within [990, 1000) - the SolarEdge firmware glitch band.
+        """Test minor decrease within one percent is ignored."""
         entity = _make_ac_energy(raw_value=995, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1000
@@ -85,12 +96,15 @@ class TestSolarEdgeACEnergy:
     def test_large_decrease_is_accepted(self):
         # Below the 1% tolerance band (e.g. a device swap) is treated as
         # legitimate rather than a glitch, and falls through to update.
+        """Test large decrease is accepted."""
         entity = _make_ac_energy(raw_value=500, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 500
 
 
 class TestSolarEdgeACEnergyEnabledByDefault:
+    """Test solar edge ac energy enabled by default."""
+
     def _make_meter(self, phase, did=201):
         platform = SimpleNamespace(
             uid_base="meter_1",
@@ -99,17 +113,20 @@ class TestSolarEdgeACEnergyEnabledByDefault:
         return SolarEdgeACEnergyMeter(platform, None, None, phase=phase)
 
     def test_total_phase_none_is_enabled(self):
+        """Test total phase none is enabled."""
         assert self._make_meter(phase=None).entity_registry_enabled_default is True
 
     @pytest.mark.parametrize(
         "phase", ["Exported", "Imported", "Exported_A", "Imported_A"]
     )
     def test_common_phases_are_enabled(self, phase):
+        """Test common phases are enabled."""
         assert self._make_meter(phase=phase).entity_registry_enabled_default is True
 
     @pytest.mark.parametrize("phase", ["Exported_B", "Exported_C"])
     def test_per_phase_bc_only_enabled_for_three_phase_meters(self, phase):
         # DIDs 203/204 are 3-phase meters; other DIDs don't have B/C legs.
+        """Test per phase bc only enabled for three phase meters."""
         three_phase = self._make_meter(phase=phase, did=203)
         single_phase = self._make_meter(phase=phase, did=201)
 
@@ -132,14 +149,18 @@ def _make_meter_energy(cls, prefix, raw_value, sf, phase="Exported", last=None):
     return entity
 
 
-@pytest.mark.parametrize("cls, prefix", METER_ENERGY_CLASSES)
+@pytest.mark.parametrize(("cls", "prefix"), METER_ENERGY_CLASSES)
 class TestMeterEnergyAccumulators:
+    """Test meter energy accumulators."""
+
     def test_first_value_is_accepted(self, cls, prefix):
+        """Test first value is accepted."""
         entity = _make_meter_energy(cls, prefix, raw_value=1000, sf=0)
         entity._process_data()
         assert entity._attr_native_value == 1000
 
     def test_na32_sentinel_is_skipped(self, cls, prefix):
+        """Test na32 sentinel is skipped."""
         entity = _make_meter_energy(
             cls, prefix, raw_value=SunSpecAccum.NA32, sf=0, last=1000
         )
@@ -149,6 +170,7 @@ class TestMeterEnergyAccumulators:
     def test_limit32_saturation_is_skipped(self, cls, prefix):
         # PR #1040: a fully saturated accumulator (all-1s) must be detected,
         # not accepted as a legitimate value.
+        """Test limit32 saturation is skipped."""
         entity = _make_meter_energy(
             cls, prefix, raw_value=SunSpecAccum.LIMIT32, sf=0, last=1000
         )
@@ -156,21 +178,25 @@ class TestMeterEnergyAccumulators:
         assert entity._attr_native_value == 1000
 
     def test_scale_factor_out_of_range_is_skipped(self, cls, prefix):
+        """Test scale factor out of range is skipped."""
         entity = _make_meter_energy(cls, prefix, raw_value=1000, sf=99, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1000
 
     def test_minor_decrease_within_one_percent_is_ignored(self, cls, prefix):
+        """Test minor decrease within one percent is ignored."""
         entity = _make_meter_energy(cls, prefix, raw_value=995, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 1000
 
     def test_large_decrease_is_accepted(self, cls, prefix):
+        """Test large decrease is accepted."""
         entity = _make_meter_energy(cls, prefix, raw_value=500, sf=0, last=1000)
         entity._process_data()
         assert entity._attr_native_value == 500
 
     def test_unique_id_and_name_require_a_phase(self, cls, prefix):
+        """Test unique id and name require a phase."""
         entity = cls(SimpleNamespace(uid_base="meter_1"), None, None, phase=None)
 
         with pytest.raises(NotImplementedError):
@@ -180,6 +206,7 @@ class TestMeterEnergyAccumulators:
             _ = entity.name
 
     def test_disabled_by_default(self, cls, prefix):
+        """Test disabled by default."""
         entity = cls(SimpleNamespace(uid_base="meter_1"), None, None, phase="Exported")
         assert entity.entity_registry_enabled_default is False
 
@@ -206,20 +233,25 @@ def _make_battery_energy(
     return entity
 
 
-@pytest.mark.parametrize("cls, attr", BATTERY_ENERGY_CLASSES)
+@pytest.mark.parametrize(("cls", "attr"), BATTERY_ENERGY_CLASSES)
 class TestBatteryEnergyAccumulators:
+    """Test battery energy accumulators."""
+
     def test_first_value_is_accepted(self, cls, attr):
+        """Test first value is accepted."""
         entity = _make_battery_energy(cls, attr, value=100)
         entity._process_data()
         assert entity._attr_native_value == 100
         assert entity._last == 100
 
     def test_none_value_is_skipped(self, cls, attr):
+        """Test none value is skipped."""
         entity = _make_battery_energy(cls, attr, value=None, last=100)
         entity._process_data()
         assert entity._attr_native_value == 100
 
     def test_uint64_not_implemented_sentinel_is_skipped(self, cls, attr):
+        """Test uint64 not implemented sentinel is skipped."""
         entity = _make_battery_energy(cls, attr, value=0xFFFFFFFFFFFFFFFF, last=100)
         entity._process_data()
         assert entity._attr_native_value == 100
@@ -227,17 +259,20 @@ class TestBatteryEnergyAccumulators:
     def test_zero_is_skipped_when_reset_not_allowed(self, cls, attr):
         # A bare 0 usually means "not yet available" rather than a real reset,
         # unless the user has explicitly opted in to battery energy resets.
+        """Test zero is skipped when reset not allowed."""
         entity = _make_battery_energy(cls, attr, value=0, allow_reset=False, last=100)
         entity._process_data()
         assert entity._attr_native_value == 100
 
     def test_zero_is_accepted_as_first_reading_when_reset_allowed(self, cls, attr):
+        """Test zero is accepted as first reading when reset allowed."""
         entity = _make_battery_energy(cls, attr, value=0, allow_reset=True, last=None)
         entity._process_data()
         assert entity._attr_native_value == 0
         assert entity._last == 0
 
     def test_increasing_value_updates_and_resets_count(self, cls, attr):
+        """Test increasing value updates and resets count."""
         entity = _make_battery_energy(
             cls, attr, value=150, allow_reset=True, last=100, count=2
         )
@@ -247,6 +282,7 @@ class TestBatteryEnergyAccumulators:
         assert entity._count == 0
 
     def test_decrease_without_reset_allowed_is_logged_and_ignored(self, cls, attr):
+        """Test decrease without reset allowed is logged and ignored."""
         entity = _make_battery_energy(cls, attr, value=50, allow_reset=False, last=100)
         entity._process_data()
         assert entity._attr_native_value == 100
@@ -256,6 +292,7 @@ class TestBatteryEnergyAccumulators:
     def test_decrease_with_reset_allowed_increments_count_without_resetting_yet(
         self, cls, attr
     ):
+        """Test decrease with reset allowed increments count without resetting yet."""
         entity = _make_battery_energy(
             cls, attr, value=50, allow_reset=True, reset_cycles=2, last=100, count=0
         )
@@ -267,6 +304,7 @@ class TestBatteryEnergyAccumulators:
     def test_decrease_confirmed_over_reset_cycles_clears_last(self, cls, attr):
         # battery_energy_reset_cycles=2: the count must exceed the cycle limit
         # (not just reach it) before the drop is trusted as a real reset.
+        """Test decrease confirmed over reset cycles clears last."""
         entity = _make_battery_energy(
             cls, attr, value=50, allow_reset=True, reset_cycles=2, last=100, count=2
         )
@@ -278,6 +316,7 @@ class TestBatteryEnergyAccumulators:
         assert entity._attr_native_value == 100
 
     def test_next_update_after_confirmed_reset_accepts_new_baseline(self, cls, attr):
+        """Test next update after confirmed reset accepts new baseline."""
         entity = _make_battery_energy(
             cls, attr, value=50, allow_reset=True, reset_cycles=2, last=None, count=0
         )

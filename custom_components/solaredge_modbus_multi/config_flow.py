@@ -7,15 +7,15 @@ import ipaddress
 import re
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
+import voluptuous as vol
 
 from .const import (
     BYPASS_DEVICE_CHECK,
@@ -25,6 +25,7 @@ from .const import (
     SETUP_SCAN_FAST,
     SETUP_SCAN_FULL,
     SETUP_TYPE,
+    ZEROCONF_PROBE_TIMEOUT,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -37,13 +38,9 @@ from .scanner import SolarEdgeDeviceScanner
 class ScanOtherDeviceError(HomeAssistantError):
     """Device IDs that responded but aren't SolarEdge inverters."""
 
-    pass
-
 
 class ScanNoResponseError(HomeAssistantError):
     """Device IDs that didn't respond or timed out."""
-
-    pass
 
 
 def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
@@ -87,6 +84,31 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
 
+    @staticmethod
+    async def _async_port_open(
+        host: str, port: int, timeout: float = ZEROCONF_PROBE_TIMEOUT
+    ) -> bool:
+        """Check if a TCP port actually accepts connections.
+
+        mDNS only confirms a device advertised itself, not that its Modbus TCP
+        port is actually reachable.
+        """
+        try:
+            _reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(host, port), timeout=timeout
+            )
+        except (OSError, asyncio.TimeoutError):
+            return False
+
+        try:
+            writer.close()
+            await writer.wait_closed()
+        except OSError:
+            pass
+
+        await asyncio.sleep(1.0)
+        return True
+
     async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
         try:
             progress = scanned / total if total > 0 else 0
@@ -95,7 +117,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             pass
 
     async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
-        """Scanner job for async_create_task"""
+        """Scanner job for async_create_task."""
         scanner = SolarEdgeDeviceScanner(
             host=user_input[CONF_HOST],
             port=user_input[CONF_PORT],
@@ -111,7 +133,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif self.init_info[SETUP_TYPE] == SETUP_SCAN_FULL:
                 device_range = list(range(1, 248))
             else:
-                raise HomeAssistantError(
+                raise HomeAssistantError(  # noqa: TRY301
                     f"Unknown setup type: {self.init_info[SETUP_TYPE]}"
                 )
 
@@ -120,7 +142,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 progress_callback=self._async_update_progress_bar,
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             scan_return = e
 
         finally:
@@ -177,6 +199,9 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if {info[4][0].lower() for info in addr_info} & discovered_ips:
                 return self.async_abort(reason="already_configured")
 
+        if not await self._async_port_open(host, port):
+            return self.async_abort(reason="cannot_connect")
+
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
 
@@ -214,18 +239,21 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_scan_fast(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Step scan fast."""
         self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
         return await self.async_step_scan_ask_host()
 
     async def async_step_scan_full(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Step scan full."""
         self.init_info = {SETUP_TYPE: SETUP_SCAN_FULL}
         return await self.async_step_scan_ask_host()
 
     async def async_step_manual_list(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Step manual list."""
         return await self.async_step_manual()
 
     async def async_step_scan_ask_host(
@@ -305,10 +333,10 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         try:
             if isinstance(self._scan_task_result, Exception):
-                raise self._scan_task_result
+                raise self._scan_task_result  # noqa: TRY301
 
             if not self._scan_task_result:
-                raise HomeAssistantError(
+                raise HomeAssistantError(  # noqa: TRY301
                     "No SolarEdge devices were detected at "
                     f"{self._scan_user_input[CONF_HOST]}:{self._scan_user_input[CONF_PORT]}"
                 )
@@ -316,7 +344,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
 
             if self._scan_user_input is None:
-                raise AbortFlow("No scan data available")
+                raise AbortFlow("No scan data available")  # noqa: TRY301
 
             self._pending_entry = {
                 "title": self._scan_user_input[CONF_NAME],
@@ -326,7 +354,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return await self.async_step_features_info()
 
         except Exception as e:
-            raise AbortFlow(f"Scan failed: {e}")
+            raise AbortFlow(f"Scan failed: {e}") from e
 
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
@@ -389,17 +417,17 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     scan_return = await scanner.check_list(device_list)
 
                     if scan_return["other_devices"]:
-                        raise ScanOtherDeviceError(
+                        raise ScanOtherDeviceError(  # noqa: TRY301
                             f"Invalid devices found at ID(s): {scan_return['other_devices']}"
                         )
 
                     if scan_return["no_response"]:
-                        raise ScanNoResponseError(
+                        raise ScanNoResponseError(  # noqa: TRY301
                             f"No response from ID(s): {scan_return['no_response']}"
                         )
 
                     if not scan_return["inverters"]:
-                        raise HomeAssistantError(
+                        raise HomeAssistantError(  # noqa: TRY301
                             "No inverter devices found in ID list."
                         )
 
@@ -576,29 +604,30 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
         errors = {}
 
         if user_input is not None:
-            if user_input[CONF_SCAN_INTERVAL] < 1:
+            if (
+                user_input[CONF_SCAN_INTERVAL] < 1
+                or user_input[CONF_SCAN_INTERVAL] > 86400
+            ):
                 errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
-            elif user_input[CONF_SCAN_INTERVAL] > 86400:
-                errors[CONF_SCAN_INTERVAL] = "invalid_scan_interval"
-            elif user_input[ConfName.REQUEST_TIMEOUT] < 1:
+            elif (
+                user_input[ConfName.REQUEST_TIMEOUT] < 1
+                or user_input[ConfName.REQUEST_TIMEOUT] > 60
+            ):
                 errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
-            elif user_input[ConfName.REQUEST_TIMEOUT] > 60:
-                errors[ConfName.REQUEST_TIMEOUT] = "invalid_request_timeout"
-            elif user_input[ConfName.SLEEP_AFTER_WRITE] < 0:
+            elif (
+                user_input[ConfName.SLEEP_AFTER_WRITE] < 0
+                or user_input[ConfName.SLEEP_AFTER_WRITE] > 60
+            ):
                 errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
-            elif user_input[ConfName.SLEEP_AFTER_WRITE] > 60:
-                errors[ConfName.SLEEP_AFTER_WRITE] = "invalid_sleep_interval"
-            else:
-                if user_input[ConfName.DETECT_BATTERIES] is True:
-                    self.init_info = user_input
-                    return await self.async_step_battery_options()
-                else:
-                    if user_input[ConfName.ADV_PWR_CONTROL] is True:
-                        self.init_info = user_input
-                        return await self.async_step_adv_pwr_ctl()
+            elif user_input[ConfName.DETECT_BATTERIES] is True:
+                self.init_info = user_input
+                return await self.async_step_battery_options()
+            elif user_input[ConfName.ADV_PWR_CONTROL] is True:
+                self.init_info = user_input
+                return await self.async_step_adv_pwr_ctl()
 
-                    else:
-                        return self.async_create_entry(title="", data=user_input)
+            else:
+                return self.async_create_entry(title="", data=user_input)
 
         else:
             user_input = {
@@ -673,13 +702,14 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
     async def async_step_battery_options(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Battery Options"""
+        """Battery Options."""
         errors = {}
 
         if user_input is not None:
-            if user_input[ConfName.BATTERY_RATING_ADJUST] < 0:
-                errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
-            elif user_input[ConfName.BATTERY_RATING_ADJUST] > 100:
+            if (
+                user_input[ConfName.BATTERY_RATING_ADJUST] < 0
+                or user_input[ConfName.BATTERY_RATING_ADJUST] > 100
+            ):
                 errors[ConfName.BATTERY_RATING_ADJUST] = "invalid_percent"
             else:
                 if self.init_info[ConfName.ADV_PWR_CONTROL] is True:
@@ -730,7 +760,7 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
     async def async_step_adv_pwr_ctl(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Power Control Options"""
+        """Power Control Options."""
         errors = {}
 
         if user_input is not None:
@@ -738,17 +768,16 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 title="", data={**self.init_info, **user_input}
             )
 
-        else:
-            user_input = {
-                ConfName.ADV_STORAGE_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_STORAGE_CONTROL,
-                    bool(ConfDefaultFlag.ADV_STORAGE_CONTROL),
-                ),
-                ConfName.ADV_SITE_LIMIT_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_SITE_LIMIT_CONTROL,
-                    bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
-                ),
-            }
+        user_input = {
+            ConfName.ADV_STORAGE_CONTROL: self.config_entry.options.get(
+                ConfName.ADV_STORAGE_CONTROL,
+                bool(ConfDefaultFlag.ADV_STORAGE_CONTROL),
+            ),
+            ConfName.ADV_SITE_LIMIT_CONTROL: self.config_entry.options.get(
+                ConfName.ADV_SITE_LIMIT_CONTROL,
+                bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
+            ),
+        }
 
         return self.async_show_form(
             step_id="adv_pwr_ctl",

@@ -30,6 +30,7 @@ REDACT_EVSE = {"identifiers", "C_SerialNumber", "serial_number"}
 
 
 def format_values(format_input) -> Any:
+    """Format values."""
     if isinstance(format_input, dict):
         formatted_dict = {}
         for name, value in iter(format_input.items()):

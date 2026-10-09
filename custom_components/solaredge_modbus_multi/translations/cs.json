@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Hostitel a port jsou již nakonfigurovány v jiném hubu.",
+      "cannot_connect": "Nepodařilo se připojit k nalezenému zařízení.",
       "reconfigure_successful": "Rekonfigurace byla úspěšná"
     },
     "progress": {

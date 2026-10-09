@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import re
 from enum import IntEnum, StrEnum
+import re
 from typing import Final
 
 DOMAIN = "solaredge_modbus_multi"
@@ -14,6 +14,9 @@ SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
 SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
 SETUP_MANUAL = "manual_list"
 BYPASS_DEVICE_CHECK = "bypass_device_check"
+
+# Seconds to wait for a TCP connection when probing a discovered inverter
+ZEROCONF_PROBE_TIMEOUT = 3.0
 
 # Number of read-only poll cycles to keep a unit's post-write message
 # spacing active before clearing it back to 0.
@@ -121,6 +124,8 @@ class ConfDefaultStr(StrEnum):
 
 
 class ConfName(StrEnum):
+    """Conf name."""
+
     DEVICE_LIST = "device_list"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
@@ -141,6 +146,8 @@ class ConfName(StrEnum):
 
 
 class SunSpecAccum(IntEnum):
+    """Sun spec accum."""
+
     NA16 = 0x0000
     NA32 = 0x00000000
     LIMIT16 = 0xFFFF
@@ -148,6 +155,8 @@ class SunSpecAccum(IntEnum):
 
 
 class SunSpecNotImpl(IntEnum):
+    """Sun spec not impl."""
+
     INT16 = 0x8000
     UINT16 = 0xFFFF
     INT32 = 0x80000000

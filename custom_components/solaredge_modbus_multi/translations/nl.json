@@ -71,6 +71,7 @@
     },
     "abort": {
       "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
+      "cannot_connect": "Kan geen verbinding maken met het gevonden apparaat.",
       "reconfigure_successful": "De herconfiguratie was succesvol"
     },
     "progress": {

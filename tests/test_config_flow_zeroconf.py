@@ -1,13 +1,13 @@
 """Tests for zeroconf/mDNS discovery in config_flow.py."""
 
-import socket
 from ipaddress import ip_address
-from unittest.mock import AsyncMock
+import socket
+from unittest.mock import AsyncMock, patch
 
-import pytest
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN
@@ -23,8 +23,23 @@ DISCOVERY_INFO = ZeroconfServiceInfo(
 )
 
 
+@pytest.fixture(autouse=True)
+def mock_port_open():
+    """Assume the discovered port is reachable unless a test overrides this.
+
+    Real discovery checks the port before offering the device up for setup.
+    """
+    with patch(
+        "custom_components.solaredge_modbus_multi.config_flow."
+        "SolaredgeModbusMultiConfigFlow._async_port_open",
+        AsyncMock(return_value=True),
+    ) as mock:
+        yield mock
+
+
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_zeroconf_discovery_shows_confirm_form(hass):
+    """Test zeroconf discovery shows confirm form."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_ZEROCONF},
@@ -45,6 +60,7 @@ async def test_zeroconf_discovery_shows_confirm_form(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_zeroconf_discovery_aborts_if_already_configured(hass):
+    """Test zeroconf discovery aborts if already configured."""
     MockConfigEntry(
         domain=DOMAIN,
         unique_id="192.168.1.50:1502",
@@ -63,8 +79,9 @@ async def test_zeroconf_discovery_aborts_if_already_configured(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_zeroconf_discovery_aborts_if_configured_by_mdns_hostname(hass):
-    """A manual entry using the raw mDNS hostname instead of the IP
-    should still be treated as the same device.
+    """A manual entry using the raw mDNS hostname is the same device.
+
+    The entry uses the hostname instead of the IP.
 
     discovery_info.hostname is "solaredge-gateway.local." - only the
     trailing FQDN dot is stripped, so ".local" remains part of the host
@@ -88,8 +105,10 @@ async def test_zeroconf_discovery_aborts_if_configured_by_mdns_hostname(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_zeroconf_discovery_aborts_if_configured_by_dns_name(hass, monkeypatch):
-    """A manual entry using a DNS name that resolves to the
-    discovered IP should be treated as the same device."""
+    """A manual entry using a DNS name resolving to the discovered IP matches.
+
+    It is treated as the same device.
+    """
     MockConfigEntry(
         domain=DOMAIN,
         unique_id="inverter.example.com:1502",
@@ -187,8 +206,10 @@ async def test_zeroconf_discovery_does_not_abort_for_different_port(hass):
 async def test_zeroconf_discovery_does_not_resolve_dns_for_mismatched_ip(
     hass, monkeypatch
 ):
-    """A manually configured entry using a different IP is
-    a different host and shouldn't trigger a DNS lookup."""
+    """A manual entry using a different IP is a different host.
+
+    It shouldn't trigger a DNS lookup.
+    """
     MockConfigEntry(
         domain=DOMAIN,
         unique_id="192.168.1.99:1502",
@@ -207,3 +228,36 @@ async def test_zeroconf_discovery_does_not_resolve_dns_for_mismatched_ip(
     assert result["type"] == "form"
     assert result["step_id"] == "zeroconf_confirm"
     resolve.assert_not_awaited()
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_discovery_aborts_if_port_not_open(hass, mock_port_open):
+    """A follower inverter may advertise mDNS without a reachable port.
+
+    It may not expose its own Modbus/TCP port - see issue #1084.
+    """
+    mock_port_open.return_value = False
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_ZEROCONF},
+        data=DISCOVERY_INFO,
+    )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "cannot_connect"
+    mock_port_open.assert_awaited_once_with("192.168.1.50", 1502)
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_discovery_probes_before_confirm(hass, mock_port_open):
+    """The port probe should run before the device is offered for setup."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_ZEROCONF},
+        data=DISCOVERY_INFO,
+    )
+
+    mock_port_open.assert_awaited_once_with("192.168.1.50", 1502)
+    assert result["type"] == "form"
+    assert result["step_id"] == "zeroconf_confirm"
