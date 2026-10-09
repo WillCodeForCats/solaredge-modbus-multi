@@ -29,9 +29,7 @@ NEW_SERIAL = "BBBB2222"
 
 
 def _make_entry(hass) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        domain=DOMAIN, unique_id="127.0.0.1:1502", data=ENTRY_DATA
-    )
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="127.0.0.1:1502", data=ENTRY_DATA)
     entry.add_to_hass(hass)
     return entry
 
