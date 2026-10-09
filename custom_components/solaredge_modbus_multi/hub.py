@@ -1016,6 +1016,8 @@ class SolarEdgeInverter:
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
+        self.hub._check_inverter_replaced(self)
+
         try:
             this_ver = _parse_se_version(self.inverter_common.C_Version)
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
