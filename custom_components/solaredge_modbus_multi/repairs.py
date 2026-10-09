@@ -163,7 +163,7 @@ class DeviceReplacedRepairFlow(RepairsFlow):
 
     A different inverter (different model/serial) answered at a Modbus device
     ID that previously belonged to another one -- see
-    SolarEdgeModbusMultiHub._check_inverter_replaced() in hub.py
+    SolarEdgeModbusMultiHub.check_inverter_replaced() in hub.py
     Offers to migrate entities/history onto the replacement or ignore it.
 
     self.issue_id/self.data are populated by RepairsFlowManager after this

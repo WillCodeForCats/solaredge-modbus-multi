@@ -189,7 +189,7 @@ def _device_anchor(entry_id: str, *parts: str | int) -> str:
     Unlike uid_base (model_serial), this never changes when hardware at a given
     Modbus device ID is replaced. It lets us find "whatever device previously
     occupied this Modbus ID" in the device registry so we can detect the swap
-    and offer a repair. See SolarEdgeModbusMultiHub._check_inverter_replaced().
+    and offer a repair. See SolarEdgeModbusMultiHub.check_inverter_replaced().
     """
     return "_".join([entry_id, *(str(part) for part in parts)])
 
@@ -707,7 +707,7 @@ class SolarEdgeModbusMultiHub:
     def _device_replaced_issue(self, unit_id: int) -> str:
         return f"device_replaced_{self._entry_id}_{unit_id}"
 
-    def _check_inverter_replaced(self, inverter: SolarEdgeInverter) -> None:
+    def check_inverter_replaced(self, inverter: SolarEdgeInverter) -> None:
         """Detect a different inverter now answering at this Modbus device ID.
 
         Compares against the device registry, keyed by a stable identifier
@@ -1021,7 +1021,7 @@ class SolarEdgeInverter:
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
-        self.hub._check_inverter_replaced(self)
+        self.hub.check_inverter_replaced(self)
 
         try:
             this_ver = _parse_se_version(self.inverter_common.C_Version)
@@ -1434,9 +1434,9 @@ class SolarEdgeInverter:
     def anchor(self) -> str:
         """Stable identifier for this Modbus device ID, independent of uid_base.
 
-        See _device_anchor() and SolarEdgeModbusMultiHub._check_inverter_replaced().
+        See _device_anchor() and SolarEdgeModbusMultiHub.check_inverter_replaced().
         """
-        return _device_anchor(self.hub._entry_id, "inverter", self.inverter_unit_id)
+        return _device_anchor(self.hub.entry_id, "inverter", self.inverter_unit_id)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1503,7 +1503,7 @@ class SolarEdgeMMPPTUnit:
     def anchor(self) -> str:
         """Stable identifier for this MMPPT unit, independent of uid_base."""
         return _device_anchor(
-            self.hub._entry_id,
+            self.hub.entry_id,
             "inverter",
             self.inverter.inverter_unit_id,
             "mmppt",
@@ -1667,7 +1667,7 @@ class SolarEdgeMeter:
     def anchor(self) -> str:
         """Stable identifier for this meter, independent of uid_base."""
         return _device_anchor(
-            self.hub._entry_id,
+            self.hub.entry_id,
             "inverter",
             self.inverter_unit_id,
             "meter",
@@ -1863,7 +1863,7 @@ class SolarEdgeBattery:
     def anchor(self) -> str:
         """Stable identifier for this battery, independent of uid_base."""
         return _device_anchor(
-            self.hub._entry_id,
+            self.hub.entry_id,
             "inverter",
             self.inverter_unit_id,
             "battery",
@@ -2052,7 +2052,7 @@ class SolarEdgeDERBattery:
     def anchor(self) -> str:
         """Stable identifier for this DER battery, independent of uid_base."""
         return _device_anchor(
-            self.hub._entry_id,
+            self.hub.entry_id,
             "inverter",
             self.inverter_unit_id,
             "derbattery",

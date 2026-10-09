@@ -44,8 +44,9 @@ def _make_hub(hass, entry: MockConfigEntry) -> SolarEdgeModbusMultiHub:
 
 
 def _mock_inverter(unit_id: int, model: str, serial: str) -> SimpleNamespace:
-    """A minimal stand-in for SolarEdgeInverter -- _check_inverter_replaced()
-    only reads inverter_unit_id/model/serial/uid_base.
+    """Build a minimal stand-in for SolarEdgeInverter.
+
+    check_inverter_replaced() only reads inverter_unit_id/model/serial/uid_base.
     """
     return SimpleNamespace(
         inverter_unit_id=unit_id,
@@ -90,7 +91,7 @@ async def test_no_issue_on_first_boot(hass):
     entry = _make_entry(hass)
     hub = _make_hub(hass, entry)
 
-    hub._check_inverter_replaced(_mock_inverter(1, NEW_MODEL, NEW_SERIAL))
+    hub.check_inverter_replaced(_mock_inverter(1, NEW_MODEL, NEW_SERIAL))
 
     issue_id = f"device_replaced_{entry.entry_id}_1"
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
@@ -103,7 +104,7 @@ async def test_no_issue_when_unchanged(hass):
     hub = _make_hub(hass, entry)
     _seed_existing_device(hass, entry, 1)
 
-    hub._check_inverter_replaced(_mock_inverter(1, OLD_MODEL, OLD_SERIAL))
+    hub.check_inverter_replaced(_mock_inverter(1, OLD_MODEL, OLD_SERIAL))
 
     issue_id = f"device_replaced_{entry.entry_id}_1"
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
@@ -115,7 +116,7 @@ async def test_issue_created_on_replacement(hass):
     hub = _make_hub(hass, entry)
     _seed_existing_device(hass, entry, 1)
 
-    hub._check_inverter_replaced(_mock_inverter(1, NEW_MODEL, NEW_SERIAL))
+    hub.check_inverter_replaced(_mock_inverter(1, NEW_MODEL, NEW_SERIAL))
 
     issue_id = f"device_replaced_{entry.entry_id}_1"
     issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
