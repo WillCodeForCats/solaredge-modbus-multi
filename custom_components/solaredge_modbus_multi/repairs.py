@@ -11,7 +11,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import (
+    device_registry as dr,
+    entity_registry as er,
+    issue_registry as ir,
+)
 import voluptuous as vol
 
 from .config_flow import generate_config_schema
@@ -154,12 +158,206 @@ class RetryFeatureDetectionRepairFlow(RepairsFlow):
         )
 
 
+class DeviceReplacedRepairFlow(RepairsFlow):
+    """Handler for a replaced-inverter repair.
+
+    A different inverter (different model/serial) answered at a Modbus device
+    ID that previously belonged to another one -- see
+    SolarEdgeModbusMultiHub._check_inverter_replaced() in hub.py
+    Offers to migrate entities/history onto the replacement or ignore it.
+
+    self.issue_id/self.data are populated by RepairsFlowManager after this
+    flow is created (see homeassistant.components.repairs.issue_handler), and
+    it deletes the issue itself once a step returns create_entry -- no need
+    to do either here, matching CheckConfigurationRepairFlow above.
+    """
+
+    async def async_step_init(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Offer to migrate existing entities/history, or ignore the change."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["migrate", "ignore"],
+            description_placeholders={
+                "device_id": str(self.data["device_id"]),
+                "old_model": str(self.data["old_model"]),
+                "old_serial": str(self.data["old_serial"]),
+                "new_model": str(self.data["new_model"]),
+                "new_serial": str(self.data["new_serial"]),
+            },
+        )
+
+    async def async_step_migrate(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Move existing entities/history onto the replacement inverter.
+
+        Covers the inverter and everything derived from it (meters,
+        batteries, DER batteries, MMPPT units), since all of their
+        unique_ids literally start with the inverter's uid_base.
+        """
+        entry_id = cast(str, self.data["entry_id"])
+        unit_id = cast(int, self.data["device_id"])
+
+        hub = self._get_hub(entry_id)
+        if hub is None:
+            return self.async_abort(reason="reload_required")
+
+        inverter = self._find_inverter(hub, unit_id)
+        if inverter is None:
+            return self.async_abort(reason="device_not_found")
+
+        device_registry = dr.async_get(self.hass)
+        device = device_registry.async_get_device(
+            identifiers={(DOMAIN, inverter.anchor)}
+        )
+        if device is None:
+            return self.async_abort(reason="device_not_found")
+
+        old_uid_base = next(
+            (
+                identifier[1]
+                for identifier in device.identifiers
+                if identifier[0] == DOMAIN and identifier[1] != inverter.anchor
+            ),
+            None,
+        )
+
+        if old_uid_base is not None and old_uid_base != inverter.uid_base:
+            self._migrate_entities(entry_id, old_uid_base, inverter.uid_base)
+
+        self._refresh_devices(hub, unit_id)
+
+        return self.async_create_entry(title="", data={})
+
+    async def async_step_ignore(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Dismiss the repair without migrating entities."""
+        unit_id = cast(int, self.data["device_id"])
+
+        hub = self._get_hub(cast(str, self.data["entry_id"]))
+        if hub is not None:
+            self._refresh_devices(hub, unit_id)
+
+        return self.async_create_entry(title="", data={})
+
+    def _get_hub(self, entry_id: str):
+        entry_data = self.hass.data.get(DOMAIN, {}).get(entry_id)
+        return entry_data["hub"] if entry_data is not None else None
+
+    @staticmethod
+    def _find_inverter(hub, unit_id: int):
+        return next((i for i in hub.inverters if i.inverter_unit_id == unit_id), None)
+
+    def _migrate_entities(
+        self, entry_id: str, old_uid_base: str, new_uid_base: str
+    ) -> None:
+        """Rename unique_ids so existing entity_ids/history follow the new hardware."""
+        entity_registry = er.async_get(self.hass)
+        old_prefix = f"{old_uid_base}_"
+        new_prefix = f"{new_uid_base}_"
+
+        entries = er.async_entries_for_config_entry(entity_registry, entry_id)
+        by_unique_id = {entry.unique_id: entry for entry in entries}
+
+        for entry in entries:
+            if not entry.unique_id.startswith(old_prefix):
+                continue
+
+            new_unique_id = new_prefix + entry.unique_id[len(old_prefix) :]
+
+            duplicate = by_unique_id.get(new_unique_id)
+            if duplicate is not None:
+                entity_registry.async_remove(duplicate.entity_id)
+
+            entity_registry.async_update_entity(
+                entry.entity_id, new_unique_id=new_unique_id
+            )
+
+    def _refresh_devices(self, hub, unit_id: int) -> None:
+        """Drop stale identifiers on the inverter and its child devices.
+
+        Otherwise a device row keeps accumulating every uid_base it has ever
+        had, and the next replacement can't tell which one is current.
+        """
+        device_registry = dr.async_get(self.hass)
+
+        # (anchor, current identifier tuple, update kwargs)
+        refresh_targets: list[tuple[str, tuple, dict]] = []
+
+        inverter = self._find_inverter(hub, unit_id)
+        if inverter is not None:
+            refresh_targets.append(
+                (
+                    inverter.anchor,
+                    (DOMAIN, inverter.uid_base),
+                    {"model": inverter.model, "serial_number": inverter.serial},
+                )
+            )
+            for mmppt_unit in inverter.mmppt_units:
+                refresh_targets.append(
+                    (
+                        mmppt_unit.anchor,
+                        (DOMAIN, inverter.uid_base, mmppt_unit.mmppt_key),
+                        {"model": inverter.model},
+                    )
+                )
+
+        for meter in hub.meters:
+            if meter.inverter_unit_id == unit_id:
+                refresh_targets.append(
+                    (
+                        meter.anchor,
+                        (DOMAIN, meter.uid_base),
+                        {"model": meter.model, "serial_number": meter.serial},
+                    )
+                )
+
+        for battery in hub.batteries:
+            if battery.inverter_unit_id == unit_id:
+                refresh_targets.append(
+                    (
+                        battery.anchor,
+                        (DOMAIN, battery.uid_base),
+                        {"model": battery.model, "serial_number": battery.serial},
+                    )
+                )
+
+        for der_battery in hub.der_batteries:
+            if der_battery.inverter_unit_id == unit_id:
+                refresh_targets.append(
+                    (
+                        der_battery.anchor,
+                        (DOMAIN, der_battery.uid_base),
+                        {
+                            "model": der_battery.model,
+                            "serial_number": der_battery.serial,
+                        },
+                    )
+                )
+
+        for anchor, current_identifier, update_kwargs in refresh_targets:
+            device = device_registry.async_get_device(identifiers={(DOMAIN, anchor)})
+            if device is None:
+                continue
+            device_registry.async_update_device(
+                device.id,
+                new_identifiers={(DOMAIN, anchor), current_identifier},
+                **update_kwargs,
+            )
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
     data: dict[str, str | int | float | None] | None,
 ) -> RepairsFlow:
     """Create flow."""
+
+    if issue_id.startswith("device_replaced_"):
+        return DeviceReplacedRepairFlow()
 
     entry_id = cast(str, data["entry_id"])
 
