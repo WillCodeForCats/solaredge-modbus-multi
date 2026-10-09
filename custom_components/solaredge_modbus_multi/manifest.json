@@ -8,7 +8,8 @@
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
-  "loggers": ["custom_components.solaredge_modbus_multi"],
-  "requirements": ["pymodbus>=3.5.4"],
-  "version": "2.4.7"
+  "loggers": ["custom_components.solaredge_modbus_multi", "tmodbus"],
+  "requirements": ["modbus-connection[tmodbus]>=4.10.0", "tmodbus>=0.6.1"],
+  "version": "4.0.4",
+  "zeroconf": ["_solaredge-modbus._tcp.local."]
 }

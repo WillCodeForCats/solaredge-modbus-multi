@@ -2,17 +2,23 @@ name: HACS Action
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
   schedule:
     - cron: "0 0 * * *"
-
+permissions: read-all
 jobs:
   hacs:
     name: HACS Action
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v4"
+      - uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+        with:
+          persist-credentials: false
       - name: HACS Action
-        uses: "hacs/action@main"
+        uses: "hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa"
         with:
           category: "integration"

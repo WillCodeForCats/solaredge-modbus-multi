@@ -3,27 +3,79 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-Konfiguration",
+        "menu_options": {
+          "scan_fast": "Schnell-Scan nach Wechselrichtern",
+          "scan_full": "Vollständiger Scan nach Wechselrichtern",
+          "manual_list": "Manuelle Einrichtung"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan der ersten 32 Modbus-Geräte-IDs (1-32)",
+          "scan_full": "Scan aller Modbus-Geräte-IDs (1-247)",
+          "manual_list": "Manuelle Eingabe einer Liste von Wechselrichter-Geräte-IDs"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Entdeckter SolarEdge-Wechselrichter",
+        "description": "Ein SolarEdge Modbus/TCP-Gateway wurde unter {host}:{port} gefunden. Jetzt einrichten?",
+        "data": {
+          "name": "Sensorpräfix"
+        }
+      },
+      "manual": {
+        "title": "Manuelle Modbus-Konfiguration",
         "data": {
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
-          "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
-          "number_of_inverters": "Anzahl Wechselrichter"
+          "device_list": "Liste der Wechselrichter-Geräte-IDs",
+          "bypass_device_check": "Geräte-ID-Prüfung überspringen"
+        },
+        "data_description": {
+          "bypass_device_check": "Fügen Sie die Geräte-ID-Liste hinzu, ohne zu prüfen, ob jede ID als SolarEdge-Wechselrichter antwortet. Verwenden Sie dies nur, wenn die Prüfung für ein Gerät fehlschlägt, von dem Sie wissen, dass es korrekt ist, z. B. eines, das während der Einrichtung offline ist."
+        }
+      },
+      "scan_ask_host": {
+        "title": "Nach SolarEdge-Wechselrichtern suchen",
+        "data": {
+          "name": "Sensorpräfix",
+          "host": "Wechselrichter-IP-Adresse",
+          "port": "Modbus/TCP-Port"
+        }
+      },
+      "scan_complete": {
+        "title": "Scan abgeschlossen"
+      },
+      "features_info": {
+        "title": "Batterien und Steuerungen sind noch nicht aktiviert",
+        "description": "Standardmäßig sind nur offiziell von SolarEdge dokumentierte Funktionen aktiviert: Wechselrichter, Synergy-Wechselrichter und Zähler.\n\nDie Batterieüberwachung und alle Lese-/Schreibsteuerungsfunktionen (Batteriesteuerung, Standortlimitsteuerung) basieren auf Dokumentation, die SolarEdge nicht veröffentlicht. Diese sind standardmäßig deaktiviert und müssen nach dem Hinzufügen dieses Hubs separat über die Konfigurationsoptionen der Integration aktiviert werden.\n\nNicht alle Wechselrichter unterstützen diese Funktionen über Modbus. Sie müssen sich möglicherweise an den SolarEdge-Support wenden, um den Zugriff auf Batterie- und Steuerungsfunktionen für Ihre Anlage freischalten zu lassen."
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-Konfiguration",
+        "data": {
+          "host": "Wechselrichter-IP-Adresse",
+          "port": "Modbus/TCP-Port",
+          "device_list": "Liste der Wechselrichter-Geräte-IDs"
         }
       }
     },
     "error": {
       "already_configured": "Der Wechselrichter ist bereits konfiguriert.",
-      "max_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-      "min_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-      "max_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-      "min_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-      "too_many_inverters": "Anzahl Wechselrichter zu hoch für Geräte-ID.",
+      "invalid_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
+      "invalid_inverter_count": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
       "invalid_host": "Ungültige IP-Adresse.",
-      "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535."
+      "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
+      "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
+      "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
+      "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
+      "scan_failed": "Suche nach Wechselrichtern fehlgeschlagen. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     },
     "abort": {
-      "already_configured": "Der Wechselrichter ist bereits konfiguriert."
+      "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert.",
+      "cannot_connect": "Verbindung zum gefundenen Gerät konnte nicht hergestellt werden.",
+      "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
+    },
+    "progress": {
+      "scanning_for_inverters": "Suche nach SolarEdge-Wechselrichtern..."
     }
   },
   "options": {
@@ -32,11 +84,12 @@
         "title": "SolarEdge Modbus Optionen",
         "data": {
           "scan_interval": "Abfragehäufigkeit (Sekunden)",
-          "keep_modbus_open": "Modbus-Verbindung geöffnet lassen",
+          "close_after_polling": "Verbindung nach Abfrage schließen",
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
-          "advanced_power_control": "Erweiterte Leistungssteuerung",
+          "advanced_power_control": "Optionen zur Leistungssteuerung",
+          "request_timeout": "Modbus-Anfrage-Zeitüberschreitung (Sekunden)",
           "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
         }
       },
@@ -46,7 +99,7 @@
           "adv_storage_control": "Speichersteuerung aktivieren",
           "adv_site_limit_control": "Site-Limit-Kontrolle aktivieren"
         },
-        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr!"
+        "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr! Einstellbare Parameter in Modbus-Registern sind für die Langzeitspeicherung vorgesehen. Regelmäßige Änderungen können den Flash-Speicher beschädigen."
       },
       "battery_options": {
         "title": "Batterieoptionen",
@@ -59,6 +112,7 @@
     },
     "error": {
       "invalid_scan_interval": "Gültiges Intervall ist 1 bis 86400 Sekunden.",
+      "invalid_request_timeout": "Gültiges Intervall ist 1 bis 60 Sekunden.",
       "invalid_sleep_interval": "Gültiges Intervall ist 0 bis 60 Sekunden.",
       "invalid_percent": "Gültiges Bereich ist 0 bis 100 Prozent."
     }
@@ -74,21 +128,55 @@
             "data": {
               "host": "Wechselrichter-IP-Adresse",
               "port": "Modbus/TCP-Port",
-              "device_id": "Wechselrichter-Modbus-Adresse (Geräte-ID)",
-              "number_of_inverters": "Anzahl Wechselrichter"
+              "device_list": "Liste der Wechselrichter-Geräte-IDs"
             }
           }
         },
         "error": {
-          "max_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-          "min_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
-          "max_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-          "min_inverters": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
-          "too_many_inverters": "Anzahl Wechselrichter zu hoch für Geräte-ID.",
+          "invalid_device_id": "Die Geräte-ID muss zwischen 1 und 247 liegen.",
+          "invalid_inverter_count": "Muss zwischen 1 und 32 Wechselrichtern liegen.",
           "invalid_host": "Ungültige IP-Adresse.",
-          "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535."
+          "invalid_tcp_port": "Der gültige Portbereich ist 1 bis 65535.",
+          "invalid_range_format": "Der Eintrag sieht aus wie ein Bereich, es ist jedoch nur ein „-“ pro Bereich zulässig.",
+          "invalid_range_lte": "Die Start-ID in einem Bereich muss kleiner oder gleich der End-ID sein.",
+          "empty_device_id": "Die ID-Liste enthält einen leeren oder undefinierten Wert.",
+          "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert."
         }
       }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Ungültige Wechselrichter-Geräte-ID",
+      "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
+    },
+    "detect_timeout_gpc": {
+      "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Global Dynamic Power Control Timeout",
+            "description": "Wechselrichter-Geräte-ID {device_id} bei {host} reagierte nach mehreren Versuchen nicht beim Lesen von Daten für Global Dynamic Power Controls. Diese Entitäten sind nicht verfügbar, bis dies behoben ist.\n\nBestätigen, um die Erkennung dieser Funktion beim nächsten Abruf erneut zu versuchen. Deaktivieren Sie die Option zur automatischen Erkennung zusätzlicher Entitäten, wenn der Wechselrichter Probleme beim Lesen dieser Sensoren hat."
+          }
+        }
+      }
+    },
+    "detect_timeout_apc": {
+      "title": "Fortgeschrittene Leistungssteuerung Zeitlimit (Wechselrichter {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Fortgeschrittene Leistungssteuerung Zeitlimit",
+            "description": "Wechselrichter-Geräte-ID {device_id} bei {host} reagierte nach mehreren Versuchen nicht beim Lesen von Daten für fortgeschrittene Stromversorgungssteuerungen. Diese Entitäten sind nicht verfügbar, bis dies behoben ist.\n\nBestätigen, um die Erkennung dieser Funktion beim nächsten Abruf erneut zu versuchen. Deaktivieren Sie die Option zur automatischen Erkennung zusätzlicher Entitäten, wenn der Wechselrichter Probleme beim Lesen dieser Sensoren hat."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus-YAML-Konfiguration wird nicht mehr unterstützt",
+      "description": "Der Abschnitt `modbus` unter `solaredge_modbus_multi` in der `configuration.yaml` wird nicht mehr unterstützt und wird ignoriert. Bitte entfernen Sie ihn aus Ihrer YAML-Konfiguration."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",
+      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wurde in der Konfiguration dieser Integration durch \"Verbindung nach Abfrage schließen\" ersetzt. Prüfen Sie die neue Option, wenn Sie das gleiche Verhalten benötigen."
     }
   }
 }

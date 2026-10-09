@@ -3,27 +3,79 @@
     "step": {
       "user": {
         "title": "SolarEdge Modbus-konfigurasjon",
+        "menu_options": {
+          "scan_fast": "Rask skanning etter vekselrettere",
+          "scan_full": "Komplett skanning etter vekselrettere",
+          "manual_list": "Manuell oppsett"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Skann de første 32 Modbus-enhets-IDer (1-32)",
+          "scan_full": "Skann alle Modbus-enhets-IDer (1-247)",
+          "manual_list": "Skriv inn en liste over vekselretter-enhets-IDer manuelt"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Oppdaget SolarEdge-vekselretter",
+        "description": "En SolarEdge Modbus/TCP-gateway ble funnet på {host}:{port}. Sette den opp nå?",
+        "data": {
+          "name": "Sensorprefiks"
+        }
+      },
+      "manual": {
+        "title": "Manuell Modbus-konfigurasjon",
         "data": {
           "name": "Sensorvoorvoegsel",
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",
-          "device_id": "Inverter Modbus-adresse (enhets-ID)",
-          "number_of_inverters": "Antall omformere koblet sammen"
+          "device_list": "Inverter-enhetsliste",
+          "bypass_device_check": "Hopp over validering av enhets-ID"
+        },
+        "data_description": {
+          "bypass_device_check": "Legg til enhets-ID-listen uten å koble til for å sjekke at hver ID svarer som en SolarEdge-vekselretter. Bruk dette bare hvis kontrollen mislykkes for en enhet du vet er riktig, for eksempel en som er frakoblet under oppsettet."
+        }
+      },
+      "scan_ask_host": {
+        "title": "Søk etter SolarEdge-invertere",
+        "data": {
+          "name": "Sensorvoorvoegsel",
+          "host": "IP-adres van omvormer",
+          "port": "Modbus/TCP-poort"
+        }
+      },
+      "scan_complete": {
+        "title": "Skanning fullført"
+      },
+      "features_info": {
+        "title": "Batterier og kontroller er ikke aktivert ennå",
+        "description": "Som standard er kun offisielt dokumenterte SolarEdge-funksjoner aktivert: vekselrettere, Synergy-vekselrettere og målere.\n\nBatteriovervåking og alle lese-/skrivekontrollfunksjoner (batterikontroll, stedsgrensekontroll) er basert på dokumentasjon som SolarEdge ikke publiserer. Disse er deaktivert som standard og må aktiveres separat fra integrasjonens konfigurasjonsalternativer etter at denne huben er lagt til.\n\nIkke alle vekselrettere støtter dette over Modbus. Du må kanskje kontakte SolarEdge-support for å få tilgang til batteri- og kontrollfunksjoner aktivert på anlegget ditt."
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus-konfigurasjon",
+        "data": {
+          "host": "IP-adres van omvormer",
+          "port": "Modbus/TCP-poort",
+          "device_list": "Inverter-enhetsliste"
         }
       }
     },
     "error": {
       "already_configured": "Enheten er allerede konfigurert",
-      "max_device_id": "Enhets-ID må være mellom 1 og 247.",
-      "min_device_id": "Enhets-ID må være mellom 1 og 247.",
-      "max_inverters": "Må være mellom 1 og 32 omformere.",
-      "min_inverters": "Må være mellom 1 og 32 omformere.",
-      "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+      "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
+      "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",
       "invalid_host": "Ugyldig IP-adresse.",
-      "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
+      "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
+      "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
+      "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
+      "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
+      "scan_failed": "Klarte ikke å skanne etter vekselrettere. Kontroller tilkoblingen og prøv igjen."
     },
     "abort": {
-      "already_configured": "Enheten er allerede konfigurert"
+      "already_configured": "Vert og port er allerede konfigurert i en annen hub.",
+      "cannot_connect": "Kunne ikke koble til den oppdagede enheten.",
+      "reconfigure_successful": "Omkonfigureringen var vellykket"
+    },
+    "progress": {
+      "scanning_for_inverters": "Søker etter SolarEdge-vekselrettere..."
     }
   },
   "options": {
@@ -32,11 +84,12 @@
         "title": "SolarEdge Modbus-alternativer",
         "data": {
           "scan_interval": "Avstemningsfrekvens (sekunder)",
-          "keep_modbus_open": "Hold Modbus-tilkoblingen åpen",
+          "close_after_polling": "Lukk tilkoblingen etter avstemning",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
           "detect_extras": "Automatisk oppdage flere enheter",
-          "advanced_power_control": "Avansert strømkontroll",
+          "advanced_power_control": "Strømkontrollalternativer",
+          "request_timeout": "Tidsavbrudd for Modbus-forespørsel (sekunder)",
           "sleep_after_write": "Inverter Command Delay (sekunder)"
         }
       },
@@ -46,7 +99,7 @@
           "adv_storage_control": "Aktiver lagringskontroll",
           "adv_site_limit_control": "Aktiver Site Limit Control"
         },
-        "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar!"
+        "description": "Advarsel: Disse alternativene kan bryte forsyningsavtaler, endre forbruksfaktureringen, kan kreve spesialutstyr og overskrive klargjøring av SolarEdge eller installatøren. Bruk på eget ansvar! Justerbare parametere i Modbus-registre er beregnet for langtidslagring. Periodiske endringer kan skade flashminnet."
       },
       "battery_options": {
         "title": "Batterialternativer",
@@ -59,6 +112,7 @@
     },
     "error": {
       "invalid_scan_interval": "Gyldig intervall er 1 til 86400 sekunder.",
+      "invalid_request_timeout": "Gyldig intervall er 1 til 60 sekunder.",
       "invalid_sleep_interval": "Gyldig intervall er 0 til 60 sekunder.",
       "invalid_percent": "Gyldig område er 0 til 100 prosent."
     }
@@ -74,21 +128,55 @@
             "data": {
               "host": "IP-adres van omvormer",
               "port": "Modbus/TCP-poort",
-              "device_id": "Inverter Modbus-adresse (enhets-ID)",
-              "number_of_inverters": "Antall omformere koblet sammen"
+              "device_list": "Inverter-enhetsliste"
             }
           }
         },
         "error": {
-          "max_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "min_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "max_inverters": "Må være mellom 1 og 32 omformere.",
-          "min_inverters": "Må være mellom 1 og 32 omformere.",
-          "too_many_inverters": "Antall invertere for høyt for enhets-ID.",
+          "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
+          "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",
           "invalid_host": "Ugyldig IP-adresse.",
-          "invalid_tcp_port": "Gyldig portområde er 1 til 65535."
+          "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
+          "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
+          "invalid_range_lte": "Start-ID i et område må være mindre enn eller lik slutt-ID.",
+          "empty_device_id": "ID-listen inneholder en tom eller udefinert verdi.",
+          "already_configured": "Vert og port er allerede konfigurert i en annen hub."
         }
       }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Ugyldig omformer-enhets-ID",
+      "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."
+    },
+    "detect_timeout_gpc": {
+      "title": "Global dynamisk kraftkontroll timeout (Omformer {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Global dynamisk kraftkontroll timeout",
+            "description": "Omformer-enhets-ID {device_id} på {host} svarte ikke etter flere forsøk under lesing av data for global dynamisk kraftkontroll. Disse enhetene er utilgjengelige til dette er løst.\n\nBekreft for å prøve å oppdage denne funksjonen igjen ved neste avlesning. Deaktiver alternativet for automatisk oppdagelse av flere enheter hvis omformeren har problemer med å lese disse sensorene."
+          }
+        }
+      }
+    },
+    "detect_timeout_apc": {
+      "title": "Avansert timeout for strømkontroll (Omformer {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Avansert timeout for strømkontroll",
+            "description": "Omformer-enhets-ID {device_id} på {host} svarte ikke etter flere forsøk under lesing av data for avanserte strømkontroller. Disse enhetene er utilgjengelige til dette er løst.\n\nBekreft for å prøve å oppdage denne funksjonen igjen ved neste avlesning. Deaktiver alternativet for automatisk oppdagelse av flere enheter hvis omformeren har problemer med å lese disse sensorene."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Modbus YAML-konfigurasjon støttes ikke lenger",
+      "description": "Seksjonen `modbus` under `solaredge_modbus_multi` i `configuration.yaml` støttes ikke lenger og blir ignorert. Fjern den fra YAML-konfigurasjonen din."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet",
+      "description": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet av «Lukk tilkoblingen etter avstemning» i konfigurasjonen til denne integrasjonen. Se på det nye alternativet hvis du trenger samme oppførsel."
     }
   }
 }

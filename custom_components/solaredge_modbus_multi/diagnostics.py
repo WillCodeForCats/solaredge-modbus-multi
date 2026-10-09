@@ -1,4 +1,5 @@
 """Diagnostics support for SolarEdge Modbus Multi Device."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -7,36 +8,81 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
+from .components import component_to_dict
 from .const import DOMAIN
 from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
-REDACT_INVERTER = {"identifiers", "C_SerialNumber"}
-REDACT_METER = {"identifiers", "C_SerialNumber"}
-REDACT_BATTERY = {"identifiers", "B_SerialNumber"}
+REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
+REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
+REDACT_BATTERY = {
+    "identifiers",
+    "B_SerialNumber",
+    "serial_number",
+    "via_device",
+}
+REDACT_DER_BATTERY = {
+    "identifiers",
+    "serial_number",
+    "via_device",
+}
+REDACT_EVSE = {"identifiers", "C_SerialNumber", "serial_number"}
 
 
 def format_values(format_input) -> Any:
+    """Format values."""
     if isinstance(format_input, dict):
+        formatted_dict = {}
         for name, value in iter(format_input.items()):
-            if isinstance(value, float):
+            if isinstance(value, dict):
+                display_value = format_values(value)
+            elif isinstance(value, float):
                 display_value = float_to_hex(value)
             else:
                 display_value = hex(value) if isinstance(value, int) else value
 
-            format_input[name] = display_value
+            formatted_dict[name] = display_value
+
+        return formatted_dict
 
     return format_input
+
+
+def _sunspec_scan(inverter) -> list[dict[str, Any]] | None:
+    """The inverter's SunSpec model scan."""
+    if inverter.sunspec_models is None:
+        return None
+    return [
+        {"model_id": model.model_id, "address": model.address, "length": model.length}
+        for model in inverter.sunspec_models.chain
+    ]
+
+
+def _inverter_model(inverter) -> dict[str, Any]:
+    """Build the inverter's model dict fresh from its live components."""
+    model: dict[str, Any] = component_to_dict(inverter.inverter_data)
+    model.update(component_to_dict(inverter.mmppt_data))
+    for unit_index, mmppt_unit_data in enumerate(inverter.mmppt_data.units):
+        model[f"mmppt_{unit_index}"] = component_to_dict(mmppt_unit_data)
+    model.update(component_to_dict(inverter.global_power_control_data))
+    model.update(component_to_dict(inverter.advanced_power_control_data))
+    model.update(component_to_dict(inverter.site_limit_control_data))
+    return model
 
 
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    hub = entry_data["hub"]
+    dependency_versions = entry_data["dependency_versions"]
 
     data: dict[str, Any] = {
-        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG)
+        "tmodbus_version": dependency_versions["tmodbus"],
+        "modbus_connection_version": dependency_versions["modbus-connection"],
+        "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
+        "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }
 
     for inverter in hub.inverters:
@@ -46,12 +92,20 @@ async def async_get_config_entry_diagnostics(
                 "global_power_control": inverter.global_power_control,
                 "advanced_power_control": inverter.advanced_power_control,
                 "site_limit_control": inverter.site_limit_control,
-                "common": inverter.decoded_common,
-                "model": format_values(inverter.decoded_model),
-                "is_mmppt": inverter.is_mmppt,
-                "mmppt": format_values(inverter.decoded_mmppt),
+                "common": component_to_dict(inverter.inverter_common),
+                "model": format_values(_inverter_model(inverter)),
+                "mmppt": format_values(component_to_dict(inverter.mmppt_common)),
+                "storage_control": format_values(
+                    component_to_dict(inverter.storage_control_data)
+                ),
+                "sunspec_models": _sunspec_scan(inverter),
+                "use_status_vendor4": inverter.use_status_vendor4,
+                "use_mmppt_units": inverter.use_mmppt_units,
                 "has_battery": inverter.has_battery,
-                "storage_control": format_values(inverter.decoded_storage_control),
+                "has_storage_control": inverter.has_storage_control,
+                "has_global_power_control": inverter.has_global_power_control,
+                "has_advanced_power_control": inverter.has_advanced_power_control,
+                "has_site_limit_control": inverter.has_site_limit_control,
             }
         }
 
@@ -59,24 +113,47 @@ async def async_get_config_entry_diagnostics(
 
     for meter in hub.meters:
         meter: dict[str, Any] = {
-            f"meter_id_{meter.meter_id}": {
+            f"meter_id_I{meter.inverter_unit_id}_M{meter.meter_id}": {
                 "device_info": meter.device_info,
                 "inverter_unit_id": meter.inverter_unit_id,
-                "common": meter.decoded_common,
-                "model": format_values(meter.decoded_model),
+                "common": component_to_dict(meter.meter_info),
+                "model": format_values(component_to_dict(meter.meter_data)),
             }
         }
         data.update(async_redact_data(meter, REDACT_METER))
 
     for battery in hub.batteries:
         battery: dict[str, Any] = {
-            f"battery_id_{battery.battery_id}": {
+            f"battery_id_I{battery.inverter_unit_id}_B{battery.battery_id}": {
                 "device_info": battery.device_info,
                 "inverter_unit_id": battery.inverter_unit_id,
-                "common": battery.decoded_common,
-                "model": format_values(battery.decoded_model),
+                "common": component_to_dict(battery.battery_info),
+                "model": format_values(component_to_dict(battery.battery_data)),
             }
         }
         data.update(async_redact_data(battery, REDACT_BATTERY))
+
+    for der_battery in hub.der_batteries:
+        der_battery: dict[str, Any] = {
+            f"der_battery_id_I{der_battery.inverter_unit_id}"
+            f"_DERB{der_battery.battery_id}": {
+                "device_info": der_battery.device_info,
+                "inverter_unit_id": der_battery.inverter_unit_id,
+                "model": format_values(
+                    component_to_dict(der_battery.der_storage_capacity_data)
+                ),
+            }
+        }
+        data.update(async_redact_data(der_battery, REDACT_DER_BATTERY))
+
+    for evse in hub.evses:
+        evse: dict[str, Any] = {
+            f"evse_unit_id_{evse.evse_unit_id}": {
+                "device_info": evse.device_info,
+                "model": format_values(component_to_dict(evse.evse_common)),
+                "sunspec_models": _sunspec_scan(evse),
+            }
+        }
+        data.update(async_redact_data(evse, REDACT_EVSE))
 
     return data

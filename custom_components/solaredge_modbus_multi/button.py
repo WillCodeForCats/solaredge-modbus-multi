@@ -1,4 +1,5 @@
 """Component to interface with binary sensors."""
+
 from __future__ import annotations
 
 import logging
@@ -20,6 +21,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
@@ -28,11 +30,22 @@ async def async_setup_entry(
     for inverter in hub.inverters:
         entities.append(SolarEdgeRefreshButton(inverter, config_entry, coordinator))
 
+        """ Power Control Block """
+        if hub.option_detect_extras:
+            entities.append(
+                SolarEdgeCommitControlSettings(inverter, config_entry, coordinator)
+            )
+            entities.append(
+                SolarEdgeDefaultControlSettings(inverter, config_entry, coordinator)
+            )
+
     if entities:
         async_add_entities(entities)
 
 
 class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
+    """Base class for SolarEdge button entities."""
+
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -44,19 +57,18 @@ class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._platform.device_info
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
-
-    @property
-    def available(self) -> bool:
-        return super().available and self._platform.online
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -64,23 +76,93 @@ class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
 
 
 class SolarEdgeRefreshButton(SolarEdgeButtonBase):
-    entity_category = EntityCategory.CONFIG
+    """Button to request an immediate device data update."""
 
-    def __init__(self, platform, config_entry, coordinator):
-        super().__init__(platform, config_entry, coordinator)
-        """Initialize the sensor."""
+    entity_category = EntityCategory.CONFIG
+    icon = "mdi:refresh"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self._platform.uid_base}_refresh"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return "Refresh"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return True
 
     async def async_press(self) -> None:
+        """Press."""
+        await self.async_update()
+
+
+class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
+    """Button to Commit Power Control Settings."""
+
+    entity_category = EntityCategory.CONFIG
+    icon = "mdi:content-save-cog-outline"
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique id."""
+        return f"{self._platform.uid_base}bt_commit_pwr_settings"
+
+    @property
+    def name(self) -> str:
+        """Return the name."""
+        return "Commit Power Settings"
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return super().available and self._platform.has_advanced_power_control
+
+    async def async_press(self) -> None:
+        """Press."""
+        _LOGGER.debug("set %s to 1", self.unique_id)
+
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "CommitPwrCtlSettings", 1
+        )
+        await self.async_update()
+
+
+class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
+    """Button to Restore Power Control Default Settings."""
+
+    entity_category = EntityCategory.CONFIG
+    icon = "mdi:restore-alert"
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique id."""
+        return f"{self._platform.uid_base}bt_default_pwr_settings"
+
+    @property
+    def name(self) -> str:
+        """Return the name."""
+        return "Default Power Settings"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
+        return False
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return super().available and self._platform.has_advanced_power_control
+
+    async def async_press(self) -> None:
+        """Press."""
+        _LOGGER.debug("set %s to 1", self.unique_id)
+
+        await self._platform.write(
+            self._platform.advanced_power_control_data, "RestorePwrCtlDefaults", 1
+        )
         await self.async_update()

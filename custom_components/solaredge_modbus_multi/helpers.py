@@ -1,52 +1,107 @@
+"""The SolarEdge Modbus Multi helpers module."""
+
 from __future__ import annotations
 
 import ipaddress
 import struct
 
+from homeassistant.exceptions import HomeAssistantError
+
 from .const import DOMAIN_REGEX
 
 
-def scale_factor(value: int, sf: int):
-    try:
-        return value * (10**sf)
-    except ZeroDivisionError:
-        return 0
+def float_to_hex(f: float) -> str:
+    """Convert a float number to a hex string for display."""
+    if not isinstance(f, (float, int)):
+        raise TypeError(f"Expected float or int, got {type(f).__name__}")
 
-
-def float_to_hex(f):
     try:
-        return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+        return hex(struct.unpack("<I", struct.pack("<f", float(f)))[0])
     except struct.error as e:
-        raise TypeError(e)
-
-
-def parse_modbus_string(s: str) -> str:
-    s = s.decode(encoding="utf-8", errors="ignore")
-    s = s.replace("\x00", "").rstrip()
-    return str(s)
-
-
-def update_accum(self, accum_value: int) -> None:
-    if self.last is None:
-        self.last = 0
-
-    if not accum_value > 0:
-        raise ValueError("update_accum must be non-zero value.")
-
-    if accum_value >= self.last:
-        # doesn't check accumulator rollover, but it would probably take
-        # several decades to roll over to 0 so we'll worry about it later
-        self.last = accum_value
-        return accum_value
-    else:
-        raise ValueError("update_accum must be an increasing value.")
+        raise ValueError(f"Error converting {f} to hex: {e}") from e
 
 
 def host_valid(host):
     """Return True if hostname or IP address is valid."""
     try:
-        if ipaddress.ip_address(host).version == (4 or 6):
-            return True
-
+        return ipaddress.ip_address(host).version in (4, 6)
     except ValueError:
         return DOMAIN_REGEX.match(host)
+
+
+def device_list_from_string(value: str) -> list[int]:
+    """Convert a string of device IDs and ID ranges into a list of device IDs.
+
+    The input can be a single ID or a range of IDs separated by commas.
+
+    Args:
+        value: A string that represents a list of device IDs. The device IDs
+            can be specified as individual IDs or as ranges separated by a
+            hyphen. For example, the string "1,3-5,7" represents the device
+            IDs 1, 3, 4, 5 and 7.
+
+    Returns:
+        A sorted list of device IDs.
+
+    Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
+    """
+
+    parts = [p.strip() for p in value.split(",")]
+    ids = []
+    for p in parts:
+        r = [i.strip() for i in p.split("-")]
+        if len(r) < 2:
+            # We have a single id
+            ids.append(check_device_id(r[0]))
+
+        elif len(r) > 2:
+            # Invalid range, multiple '-'s
+            raise HomeAssistantError("invalid_range_format")
+
+        else:
+            # Looks like a range
+            start = check_device_id(r[0])
+            end = check_device_id(r[1])
+            if end < start:
+                raise HomeAssistantError("invalid_range_lte")
+
+            ids.extend(range(start, end + 1))
+
+    return sorted(set(ids))
+
+
+def safe_version_tuple(version_str: str) -> tuple[int, ...]:
+    """Parse a dotted version string like '4.10.0' into a comparable tuple."""
+    try:
+        return tuple(int(part) for part in version_str.split("."))
+    except ValueError as err:
+        raise ValueError(f"Invalid version string: {version_str}") from err
+
+
+def check_device_id(value: str | int) -> int:
+    """Check that a value is a valid device ID between 1 and 247.
+
+    Raises an error if it is not.
+
+    Args:
+        value: The input value being checked for validity as a device ID.
+
+    Returns:
+        The device ID as an integer.
+
+    Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
+    """
+
+    if len(value) == 0:
+        raise HomeAssistantError("empty_device_id")
+
+    try:
+        device_id = int(value)
+
+        if (device_id < 1) or device_id > 247:
+            raise HomeAssistantError("invalid_device_id")
+
+    except ValueError as err:
+        raise HomeAssistantError("invalid_device_id") from err
+
+    return device_id

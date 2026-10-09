@@ -3,27 +3,79 @@
     "step": {
       "user": {
         "title": "Configuration SolarEdge Modbus",
+        "menu_options": {
+          "scan_fast": "Scan rapide des onduleurs",
+          "scan_full": "Scan complet des onduleurs",
+          "manual_list": "Configuration manuelle"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "Scan des 32 premiers ID d'appareils Modbus (1-32)",
+          "scan_full": "Scan de tous les ID d'appareils Modbus (1-247)",
+          "manual_list": "Entrer manuellement une liste d'ID d'appareils onduleurs"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Onduleur SolarEdge détecté",
+        "description": "Une passerelle SolarEdge Modbus/TCP a été trouvée à {host}:{port}. La configurer maintenant ?",
+        "data": {
+          "name": "Prefix du capteur"
+        }
+      },
+      "manual": {
+        "title": "Configuration Modbus manuelle",
         "data": {
           "name": "Prefix du capteur",
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
-          "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
-          "number_of_inverters": "Nombre d'onduleurs"
+          "device_list": "Liste des ID des appareils de l'onduleur",
+          "bypass_device_check": "Ignorer la validation des ID d'appareil"
+        },
+        "data_description": {
+          "bypass_device_check": "Ajoutez la liste des ID d'appareil sans vérifier que chaque ID répond en tant qu'onduleur SolarEdge. Utilisez cette option uniquement si la vérification échoue pour un appareil que vous savez correct, comme un appareil hors ligne pendant la configuration."
+        }
+      },
+      "scan_ask_host": {
+        "title": "Rechercher des onduleurs SolarEdge",
+        "data": {
+          "name": "Prefix du capteur",
+          "host": "Adresse IP de l'onduleur",
+          "port": "Port Modbus/TCP"
+        }
+      },
+      "scan_complete": {
+        "title": "Scan terminé"
+      },
+      "features_info": {
+        "title": "Les batteries et les contrôles ne sont pas encore activés",
+        "description": "Par défaut, seules les fonctionnalités officiellement documentées par SolarEdge sont activées : onduleurs, onduleurs Synergy et compteurs.\n\nLa surveillance des batteries et toutes les fonctionnalités de contrôle en lecture/écriture (contrôle des batteries, contrôle de la limite du site) reposent sur une documentation que SolarEdge ne publie pas. Elles sont désactivées par défaut et doivent être activées séparément depuis les options de configuration de l'intégration après l'ajout de ce hub.\n\nTous les onduleurs ne prennent pas en charge ces fonctionnalités via Modbus. Vous devrez peut-être contacter le support SolarEdge pour faire activer l'accès aux batteries et aux contrôles sur votre installation."
+      },
+      "reconfigure": {
+        "title": "Configuration SolarEdge Modbus",
+        "data": {
+          "host": "Adresse IP de l'onduleur",
+          "port": "Port Modbus/TCP",
+          "device_list": "Liste des ID des appareils de l'onduleur"
         }
       }
     },
     "error": {
       "already_configured": "L'appareil est déjà configuré!",
-      "max_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-      "min_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-      "max_inverters": "Doit être entre 1 et 32 onduleurs.",
-      "min_inverters": "Doit être entre 1 et 32 onduleurs.",
-      "too_many_inverters": "Nombre d'onduleurs trop important pour l'adresse Modbus.",
+      "invalid_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+      "invalid_inverter_count": "Doit être entre 1 et 32 onduleurs.",
       "invalid_host": "Adresse IP invalide.",
-      "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
+      "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535.",
+      "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
+      "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
+      "empty_device_id": "La liste d'ID contient une valeur vide ou non définie.",
+      "scan_failed": "Échec du scan des onduleurs. Veuillez vérifier votre connexion et réessayer."
     },
     "abort": {
-      "already_configured": "L'appareil est déjà configuré!"
+      "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub.",
+      "cannot_connect": "Impossible de se connecter à l'appareil découvert.",
+      "reconfigure_successful": "La reconfiguration a réussi"
+    },
+    "progress": {
+      "scanning_for_inverters": "Recherche des onduleurs SolarEdge en cours..."
     }
   },
   "options": {
@@ -32,11 +84,12 @@
         "title": "Options SolarEdge Modbus",
         "data": {
           "scan_interval": "Fréquence de rafraichissement (en secondes)",
-          "keep_modbus_open": "Garder la connection Modbus ouverte",
+          "close_after_polling": "Fermer la connexion après le rafraichissement",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
           "advanced_power_control": "Options de contrôle de l'alimentation",
+          "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
           "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
         }
       },
@@ -46,7 +99,7 @@
           "adv_storage_control": "Activer le contrôle du stockage",
           "adv_site_limit_control": "Activer le contrôle des limites du site"
         },
-        "description": "Avertissement : Ces options peuvent enfreindre l'accord d'utilisation, modifier la facturation de vos services, nécessiter un équipement spécial et écraser le provisionnement par SolarEdge ou votre installateur. À utiliser à vos risques et périls!"
+        "description": "Avertissement : Ces options peuvent enfreindre l'accord d'utilisation, modifier la facturation de vos services, nécessiter un équipement spécial et écraser le provisionnement par SolarEdge ou votre installateur. À utiliser à vos risques et périls! Les paramètres réglables dans les registres Modbus sont destinés au stockage à long terme. Des modifications périodiques peuvent endommager la mémoire flash."
       },
       "battery_options": {
         "title": "Options de batterie",
@@ -59,6 +112,7 @@
     },
     "error": {
       "invalid_scan_interval": "L'intervalle valide est de 1 à 86 400 secondes.",
+      "invalid_request_timeout": "L'intervalle valide est de 1 à 60 secondes.",
       "invalid_sleep_interval": "L'intervalle valide est de 0 à 60 secondes.",
       "invalid_percent": "La plage valide est de 0 à 100 %."
     }
@@ -74,21 +128,55 @@
             "data": {
               "host": "Adresse IP de l'onduleur",
               "port": "Port Modbus/TCP",
-              "device_id": "L'adresse Modbus de l'onduleur (Device ID)",
-              "number_of_inverters": "Nombre d'onduleurs"
+              "device_list": "Liste des ID des appareils de l'onduleur"
             }
           }
         },
         "error": {
-          "max_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-          "min_device_id": "L'adresse Modbus doit être entre 1 et 247.",
-          "max_inverters": "Doit être entre 1 et 32 onduleurs.",
-          "min_inverters": "Doit être entre 1 et 32 onduleurs.",
-          "too_many_inverters": "Nombre d'onduleurs trop important pour l'adresse Modbus.",
+          "invalid_device_id": "L'adresse Modbus doit être entre 1 et 247.",
+          "invalid_inverter_count": "Doit être entre 1 et 32 onduleurs.",
           "invalid_host": "Adresse IP invalide.",
-          "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535."
+          "invalid_tcp_port": "La plage de ports valide est comprise entre 1 et 65535.",
+          "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
+          "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
+          "empty_device_id": "La liste d'ID contient une valeur vide ou non définie.",
+          "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub."
         }
       }
+    },
+    "setup_inverter_id_failed": {
+      "title": "ID d'appareil onduleur invalide",
+      "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
+    },
+    "detect_timeout_gpc": {
+      "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Délai d'attente du contrôle de puissance dynamique global",
+            "description": "L'ID d'appareil onduleur {device_id} sur {host} n'a pas répondu après plusieurs tentatives lors de la lecture des données pour les contrôles de puissance dynamique globaux. Ces entités sont indisponibles jusqu'à ce que ce problème soit résolu.\n\nConfirmez pour réessayer de détecter cette fonctionnalité lors du prochain sondage. Désactivez l'option de détection automatique des entités supplémentaires si l'onduleur a des difficultés à lire ces capteurs."
+          }
+        }
+      }
+    },
+    "detect_timeout_apc": {
+      "title": "Délai d'attente du contrôle de puissance avancé (Onduleur {device_id})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Délai d'attente du contrôle de puissance avancé",
+            "description": "L'ID d'appareil onduleur {device_id} sur {host} n'a pas répondu après plusieurs tentatives lors de la lecture des données pour les contrôles de puissance avancés. Ces entités sont indisponibles jusqu'à ce que ce problème soit résolu.\n\nConfirmez pour réessayer de détecter cette fonctionnalité lors du prochain sondage. Désactivez l'option de détection automatique des entités supplémentaires si l'onduleur a des difficultés à lire ces capteurs."
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "Configuration YAML Modbus non prise en charge",
+      "description": "La section `modbus` sous `solaredge_modbus_multi` dans `configuration.yaml` n'est plus prise en charge et est ignorée. Veuillez la supprimer de votre configuration YAML."
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "Option « Garder la connexion Modbus ouverte » remplacée",
+      "description": "L'option « Garder la connexion Modbus ouverte » a été remplacée par « Fermer la connexion après le rafraichissement » dans la configuration de cette intégration. Consultez la nouvelle option si vous avez besoin du même comportement."
     }
   }
 }
