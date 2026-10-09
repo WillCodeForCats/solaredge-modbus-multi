@@ -14,17 +14,15 @@ from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
 REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
-REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
+REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number"}
 REDACT_BATTERY = {
     "identifiers",
     "B_SerialNumber",
     "serial_number",
-    "via_device",
 }
 REDACT_DER_BATTERY = {
     "identifiers",
     "serial_number",
-    "via_device",
 }
 REDACT_EVSE = {"identifiers", "C_SerialNumber", "serial_number"}
 
