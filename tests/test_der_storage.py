@@ -1,6 +1,6 @@
 """Tests for DER Storage Capacity (SunSpec model 713) on the inverter device.
 
-The DER battery has no device of its own: its sensors are on the inverter
+The DER storage has no device of its own: its sensors are on the inverter
 device, enabled by default only for a non-zero first value, and the inverter
 skips reading the block when none of them are enabled. Devices created by
 earlier versions are removed on setup.
@@ -18,14 +18,17 @@ from modbus_connection.model.sunspec import SunSpecModel
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi import _async_remove_legacy_der_devices
+from custom_components.solaredge_modbus_multi import (
+    _async_migrate_legacy_der_entities,
+    _async_remove_legacy_der_devices,
+)
 from custom_components.solaredge_modbus_multi.components import DERStorageCapacity
 from custom_components.solaredge_modbus_multi.const import DOMAIN
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeInverter
 from custom_components.solaredge_modbus_multi.sensor import (
-    SolarEdgeDERBatterySOE,
-    SolarEdgeDERBatterySOH,
-    SolarEdgeDERBatteryStatus,
+    SolarEdgeDERStorageSOC,
+    SolarEdgeDERStorageSOH,
+    SolarEdgeDERStorageStatus,
 )
 
 
@@ -46,9 +49,9 @@ def _der(soc=None, soh=None, sta=None):
     ("value", "expected"),
     [(None, False), (0, False), (0.0, False), (1, True), (55.5, True), (100, True)],
 )
-def test_soe_enabled_default_depends_on_first_value(value, expected):
-    """Test soe enabled default depends on first value."""
-    entity = SolarEdgeDERBatterySOE(_platform(_der(soc=value)), None, None, 1)
+def test_soc_enabled_default_depends_on_first_value(value, expected):
+    """Test soc enabled default depends on first value."""
+    entity = SolarEdgeDERStorageSOC(_platform(_der(soc=value)), None, None, 1)
     assert entity.entity_registry_enabled_default is expected
 
 
@@ -58,20 +61,20 @@ def test_soe_enabled_default_depends_on_first_value(value, expected):
 )
 def test_soh_enabled_default_depends_on_first_value(value, expected):
     """Test soh enabled default depends on first value."""
-    entity = SolarEdgeDERBatterySOH(_platform(_der(soh=value)), None, None, 1)
+    entity = SolarEdgeDERStorageSOH(_platform(_der(soh=value)), None, None, 1)
     assert entity.entity_registry_enabled_default is expected
 
 
 def test_status_disabled_by_default():
     """Test status disabled by default."""
-    entity = SolarEdgeDERBatteryStatus(_platform(_der(sta=3)), None, None, 1)
+    entity = SolarEdgeDERStorageStatus(_platform(_der(sta=3)), None, None, 1)
     assert entity.entity_registry_enabled_default is False
 
 
-def test_soe_not_implemented_value_disables_by_default():
-    """Test soe not implemented value disables by default."""
+def test_soc_not_implemented_value_disables_by_default():
+    """Test soc not implemented value disables by default."""
     # SunSpecNotImpl.FLOAT32 is 0x7FC00000, a NaN
-    entity = SolarEdgeDERBatterySOE(_platform(_der(soc=float("nan"))), None, None, 1)
+    entity = SolarEdgeDERStorageSOC(_platform(_der(soc=float("nan"))), None, None, 1)
     assert entity.entity_registry_enabled_default is False
 
 
@@ -80,17 +83,26 @@ def test_soe_not_implemented_value_disables_by_default():
 
 def test_single_block_name_and_unique_id():
     """Test single block name and unique id."""
-    soe = SolarEdgeDERBatterySOE(_platform(_der()), None, None, 1)
-    assert soe.name == "Battery State of Energy"
-    assert soe.unique_id == "inv_DERB1_battery_soe"
+    soc = SolarEdgeDERStorageSOC(_platform(_der()), None, None, 1)
+    assert soc.name == "Storage State of Charge"
+    assert soc.unique_id == "inv_storage_1_soc"
+
+
+def test_soh_and_status_unique_ids():
+    """Test soh and status unique ids."""
+    platform = _platform(_der())
+    soh = SolarEdgeDERStorageSOH(platform, None, None, 1)
+    status = SolarEdgeDERStorageStatus(platform, None, None, 1)
+    assert soh.unique_id == "inv_storage_1_soh"
+    assert status.unique_id == "inv_storage_1_status"
 
 
 def test_multiple_blocks_are_numbered_and_keep_unique_ids():
     """Test multiple blocks are numbered and keep unique ids."""
     platform = _platform(_der(), _der())
-    second = SolarEdgeDERBatterySOE(platform, None, None, 2)
-    assert second.name == "Battery 2 State of Energy"
-    assert second.unique_id == "inv_DERB2_battery_soe"
+    second = SolarEdgeDERStorageSOC(platform, None, None, 2)
+    assert second.name == "Storage 2 State of Charge"
+    assert second.unique_id == "inv_storage_2_soc"
 
 
 # --- listener registration ---------------------------------------------------
@@ -102,7 +114,7 @@ async def test_entity_registers_as_listener_only_while_added(hass):
     coordinator = DataUpdateCoordinator(
         hass, logging.getLogger(__name__), config_entry=None, name="test"
     )
-    entity = SolarEdgeDERBatterySOE(platform, None, coordinator, 1)
+    entity = SolarEdgeDERStorageSOC(platform, None, coordinator, 1)
     entity.hass = hass
     entity.entity_id = "sensor.inv_battery_state_of_energy"
 
@@ -181,9 +193,9 @@ def _setup_registry(hass, legacy_identifier="inv_DERB1"):
     legacy_device = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id, identifiers={(DOMAIN, legacy_identifier)}
     )
-    # State of Energy was re-registered on the inverter device; the old
+    # State of Charge was re-registered on the inverter device; the old
     # model sensor is still on the legacy device
-    soe = entity_registry.async_get_or_create(
+    soc = entity_registry.async_get_or_create(
         "sensor",
         DOMAIN,
         "inv_DERB1_battery_soe",
@@ -197,12 +209,12 @@ def _setup_registry(hass, legacy_identifier="inv_DERB1"):
         config_entry=entry,
         device_id=legacy_device.id,
     )
-    return entry, device_registry, entity_registry, soe, model_sensor, legacy_device
+    return entry, device_registry, entity_registry, soc, model_sensor, legacy_device
 
 
 async def test_legacy_der_device_and_its_entities_removed(hass):
     """Test legacy der device and its entities removed."""
-    entry, device_registry, entity_registry, soe, model_sensor, legacy = (
+    entry, device_registry, entity_registry, soc, model_sensor, legacy = (
         _setup_registry(hass)
     )
     hub = SimpleNamespace(inverters=[_platform(_der())])
@@ -212,13 +224,13 @@ async def test_legacy_der_device_and_its_entities_removed(hass):
     assert device_registry.async_get(legacy.id) is None
     assert entity_registry.async_get(model_sensor.entity_id) is None
     # the entity on the inverter device and the inverter device survive
-    assert entity_registry.async_get(soe.entity_id) is not None
+    assert entity_registry.async_get(soc.entity_id) is not None
     assert device_registry.async_get_device(identifiers={(DOMAIN, "inv")})
 
 
 async def test_legacy_device_kept_when_no_der_block_found(hass):
     """Test legacy device kept when no der block found."""
-    entry, device_registry, entity_registry, _soe, model_sensor, legacy = (
+    entry, device_registry, entity_registry, _soc, model_sensor, legacy = (
         _setup_registry(hass)
     )
     hub = SimpleNamespace(inverters=[_platform()])
@@ -241,3 +253,46 @@ async def test_other_devices_not_removed(hass):
     # DERB2 is not one of the blocks found, so it is left alone
     assert device_registry.async_get_device(identifiers={(DOMAIN, "inv_DERB2")})
     assert device_registry.async_get_device(identifiers={(DOMAIN, "inv")})
+
+
+async def test_legacy_der_soc_keeps_entity_id_and_unsupported_removed(hass):
+    """Test legacy der soc keeps entity id and unsupported removed."""
+    entry, _, entity_registry, soc, _model, legacy = _setup_registry(hass)
+    unsupported = [
+        entity_registry.async_get_or_create(
+            "sensor",
+            DOMAIN,
+            f"inv_DERB1_{suffix}",
+            config_entry=entry,
+            device_id=legacy.id,
+        )
+        for suffix in ("battery_soh", "status")
+    ]
+    hub = SimpleNamespace(inverters=[_platform(_der())])
+
+    _async_migrate_legacy_der_entities(hass, hub)
+
+    assert entity_registry.async_get(soc.entity_id).unique_id == "inv_storage_1_soc"
+    for entity in unsupported:
+        assert entity_registry.async_get(entity.entity_id) is None
+
+
+async def test_legacy_der_entity_not_migrated_when_new_one_exists(hass):
+    """Test legacy der entity not migrated when new one exists."""
+    entry, _, entity_registry, _soc, _model, legacy = _setup_registry(hass)
+    old = entity_registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "inv_DERB1_battery_soe",
+        config_entry=entry,
+        device_id=legacy.id,
+    )
+    new = entity_registry.async_get_or_create(
+        "sensor", DOMAIN, "inv_storage_1_soc", config_entry=entry
+    )
+    hub = SimpleNamespace(inverters=[_platform(_der())])
+
+    _async_migrate_legacy_der_entities(hass, hub)
+
+    assert entity_registry.async_get(old.entity_id).unique_id == "inv_DERB1_battery_soe"
+    assert entity_registry.async_get(new.entity_id).unique_id == "inv_storage_1_soc"

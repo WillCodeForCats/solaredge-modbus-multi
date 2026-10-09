@@ -39,8 +39,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     BATTERY_STATUS,
     BATTERY_STATUS_TEXT,
-    DER_BATTERY_STATUS,
-    DER_BATTERY_STATUS_TEXT,
+    DER_STORAGE_STATUS,
+    DER_STORAGE_STATUS_TEXT,
     DEVICE_STATUS,
     DEVICE_STATUS_TEXT,
     DOMAIN,
@@ -275,10 +275,10 @@ async def async_setup_entry(
 
     for inverter in hub.inverters:
         entities.extend(
-            SolarEdgeDERBatterySOE(inverter, config_entry, coordinator, der_id)
+            SolarEdgeDERStorageSOC(inverter, config_entry, coordinator, der_id)
             for der_id in range(1, len(inverter.der_storage) + 1)
         )
-        # SolarEdgeDERBatterySOH and SolarEdgeDERBatteryStatus are not added:
+        # SolarEdgeDERStorageSOH and SolarEdgeDERStorageStatus are not added:
         # SolarEdge is not known to report State of Health or Status in
         # model 713. Add them here if that changes.
 
@@ -1735,7 +1735,7 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
         return attrs
 
 
-class SolarEdgeDERBatteryBase(SolarEdgeSensorBase):
+class SolarEdgeDERStorageBase(SolarEdgeSensorBase):
     """Base for DER Storage Capacity (SunSpec model 713) sensors.
 
     The platform is the inverter; its entities are reported on the inverter
@@ -1743,7 +1743,7 @@ class SolarEdgeDERBatteryBase(SolarEdgeSensorBase):
     """
 
     def __init__(self, platform, config_entry, coordinator, der_id: int):
-        """Initialize the DER battery sensor."""
+        """Initialize the DER storage sensor."""
         super().__init__(platform, config_entry, coordinator)
         self._der_id = der_id
 
@@ -1754,11 +1754,11 @@ class SolarEdgeDERBatteryBase(SolarEdgeSensorBase):
     @property
     def _name_prefix(self) -> str:
         if len(self._platform.der_storage) > 1:
-            return f"Battery {self._der_id}"
-        return "Battery"
+            return f"Storage {self._der_id}"
+        return "Storage"
 
     def _unique_id(self, suffix: str) -> str:
-        return f"{self._platform.uid_base}_DERB{self._der_id}_{suffix}"
+        return f"{self._platform.uid_base}_storage_{self._der_id}_{suffix}"
 
     @staticmethod
     def _enabled_default_for(value) -> bool:
@@ -1787,8 +1787,8 @@ class SolarEdgeDERBatteryBase(SolarEdgeSensorBase):
         await super().async_will_remove_from_hass()
 
 
-class SolarEdgeDERBatterySOE(SolarEdgeDERBatteryBase):
-    """State of Energy from DER Storage Capacity (SunSpec model 713)."""
+class SolarEdgeDERStorageSOC(SolarEdgeDERStorageBase):
+    """State of Charge from DER Storage Capacity (SunSpec model 713)."""
 
     device_class = SensorDeviceClass.BATTERY
     state_class = SensorStateClass.MEASUREMENT
@@ -1798,12 +1798,12 @@ class SolarEdgeDERBatterySOE(SolarEdgeDERBatteryBase):
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
-        return self._unique_id("battery_soe")
+        return self._unique_id("soc")
 
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._name_prefix} State of Energy"
+        return f"{self._name_prefix} State of Charge"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1827,7 +1827,7 @@ class SolarEdgeDERBatterySOE(SolarEdgeDERBatteryBase):
         return self._der.SoC
 
 
-class SolarEdgeDERBatterySOH(SolarEdgeDERBatteryBase):
+class SolarEdgeDERStorageSOH(SolarEdgeDERStorageBase):
     """State of Health from DER Storage Capacity (SunSpec model 713)."""
 
     state_class = SensorStateClass.MEASUREMENT
@@ -1839,7 +1839,7 @@ class SolarEdgeDERBatterySOH(SolarEdgeDERBatteryBase):
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
-        return self._unique_id("battery_soh")
+        return self._unique_id("soh")
 
     @property
     def name(self) -> str:
@@ -1868,7 +1868,7 @@ class SolarEdgeDERBatterySOH(SolarEdgeDERBatteryBase):
         return self._der.SoH
 
 
-class SolarEdgeDERBatteryStatus(SolarEdgeDERBatteryBase):
+class SolarEdgeDERStorageStatus(SolarEdgeDERStorageBase):
     """Status for DER Storage Capacity (SunSpec model 713).
 
     This doesn't appear to be currently supported by SolarEdge devices;
@@ -1877,7 +1877,7 @@ class SolarEdgeDERBatteryStatus(SolarEdgeDERBatteryBase):
 
     device_class = SensorDeviceClass.ENUM
     entity_category = EntityCategory.DIAGNOSTIC
-    options = list(DER_BATTERY_STATUS.values())
+    options = list(DER_STORAGE_STATUS.values())
 
     @property
     def unique_id(self) -> str:
@@ -1898,12 +1898,12 @@ class SolarEdgeDERBatteryStatus(SolarEdgeDERBatteryBase):
     def available(self) -> bool:
         """Return the available."""
         value = self._der.Sta
-        return super().available and value is not None and value in DER_BATTERY_STATUS
+        return super().available and value is not None and value in DER_STORAGE_STATUS
 
     @property
     def native_value(self):
         """Return the native value."""
-        return str(DER_BATTERY_STATUS[self._der.Sta])
+        return str(DER_STORAGE_STATUS[self._der.Sta])
 
     @property
     def extra_state_attributes(self):
@@ -1911,8 +1911,8 @@ class SolarEdgeDERBatteryStatus(SolarEdgeDERBatteryBase):
         value = self._der.Sta
         attrs = {"status_value": value}
 
-        if value in DER_BATTERY_STATUS_TEXT:
-            attrs["status_text"] = DER_BATTERY_STATUS_TEXT[value]
+        if value in DER_STORAGE_STATUS_TEXT:
+            attrs["status_text"] = DER_STORAGE_STATUS_TEXT[value]
 
         return attrs
 

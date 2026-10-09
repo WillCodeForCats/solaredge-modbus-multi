@@ -130,13 +130,13 @@ async def async_get_config_entry_diagnostics(
 
     for inverter in hub.inverters:
         for der_id, der in enumerate(inverter.der_storage, 1):
-            der_battery: dict[str, Any] = {
-                f"der_battery_id_I{inverter.inverter_unit_id}_DERB{der_id}": {
+            der_storage: dict[str, Any] = {
+                f"der_storage_id_I{inverter.inverter_unit_id}_storage_{der_id}": {
                     "inverter_unit_id": inverter.inverter_unit_id,
                     "model": format_values(component_to_dict(der)),
                 }
             }
-            data.update(der_battery)
+            data.update(der_storage)
 
     for evse in hub.evses:
         evse: dict[str, Any] = {

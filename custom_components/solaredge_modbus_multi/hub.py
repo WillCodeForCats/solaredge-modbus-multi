@@ -976,10 +976,10 @@ class SolarEdgeInverter:
                 await self.hub.component_update(self.inverter_unit_id, der)
 
             except (ModbusError, SunSpecError) as e:
-                _LOGGER.debug("I%sDERB%s: %s", self.inverter_unit_id, der_id, e)
+                _LOGGER.debug("I%s_storage_%s: %s", self.inverter_unit_id, der_id, e)
                 continue
 
-            _log_component_fields(f"I{self.inverter_unit_id}DERB{der_id}", der)
+            _log_component_fields(f"I{self.inverter_unit_id}_storage_{der_id}", der)
             self.der_storage.append(der)
             _LOGGER.debug(
                 "Found I%s DER Storage Capacity %s", self.inverter_unit_id, der_id
@@ -1024,7 +1024,7 @@ class SolarEdgeInverter:
                     f"inverter ID {self.inverter_unit_id} at DERStorageCapacity: {e}"
                 ) from e
 
-            _log_component_fields(f"I{self.inverter_unit_id}DERB{der_id}", der)
+            _log_component_fields(f"I{self.inverter_unit_id}_storage_{der_id}", der)
 
     async def read_modbus_data(self) -> None:  # noqa: C901
         """Read and update dynamic modbus registers."""

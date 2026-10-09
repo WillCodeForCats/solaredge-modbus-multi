@@ -143,10 +143,10 @@ async def test_der_storage_on_different_inverters_get_distinct_keys(hass):
 
     data = await _get_diagnostics(hass, hub)
 
-    der_keys = [k for k in data if k.startswith("der_battery_id_")]
+    der_keys = [k for k in data if k.startswith("der_storage_id_")]
     assert len(der_keys) == 2
-    assert "der_battery_id_I1_DERB1" in data
-    assert "der_battery_id_I2_DERB1" in data
+    assert "der_storage_id_I1_storage_1" in data
+    assert "der_storage_id_I2_storage_1" in data
 
 
 async def test_der_storage_and_regular_battery_keys_do_not_collide(hass):
@@ -159,7 +159,7 @@ async def test_der_storage_and_regular_battery_keys_do_not_collide(hass):
     data = await _get_diagnostics(hass, hub)
 
     assert "battery_id_I1_B1" in data
-    assert "der_battery_id_I1_DERB1" in data
+    assert "der_storage_id_I1_storage_1" in data
 
 
 async def test_evse_includes_sunspec_scan_results(hass):
