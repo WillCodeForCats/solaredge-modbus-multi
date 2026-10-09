@@ -296,47 +296,23 @@ class DeviceReplacedRepairFlow(RepairsFlow):
                     {"model": inverter.model, "serial_number": inverter.serial},
                 )
             )
-            for mmppt_unit in inverter.mmppt_units:
-                refresh_targets.append(
-                    (
-                        mmppt_unit.anchor,
-                        (DOMAIN, inverter.uid_base, mmppt_unit.mmppt_key),
-                        {"model": inverter.model},
-                    )
+            refresh_targets.extend(
+                (
+                    mmppt_unit.anchor,
+                    (DOMAIN, inverter.uid_base, mmppt_unit.mmppt_key),
+                    {"model": inverter.model},
                 )
+                for mmppt_unit in inverter.mmppt_units
+            )
 
-        for meter in hub.meters:
-            if meter.inverter_unit_id == unit_id:
-                refresh_targets.append(
-                    (
-                        meter.anchor,
-                        (DOMAIN, meter.uid_base),
-                        {"model": meter.model, "serial_number": meter.serial},
-                    )
-                )
-
-        for battery in hub.batteries:
-            if battery.inverter_unit_id == unit_id:
-                refresh_targets.append(
-                    (
-                        battery.anchor,
-                        (DOMAIN, battery.uid_base),
-                        {"model": battery.model, "serial_number": battery.serial},
-                    )
-                )
-
-        for der_battery in hub.der_batteries:
-            if der_battery.inverter_unit_id == unit_id:
-                refresh_targets.append(
-                    (
-                        der_battery.anchor,
-                        (DOMAIN, der_battery.uid_base),
-                        {
-                            "model": der_battery.model,
-                            "serial_number": der_battery.serial,
-                        },
-                    )
-                )
+        refresh_targets.extend(
+            (
+                device.anchor,
+                {"model": device.model, "serial_number": device.serial},
+            )
+            for device in (*hub.meters, *hub.batteries, *hub.der_batteries)
+            if device.inverter_unit_id == unit_id
+        )
 
         for anchor, current_identifier, update_kwargs in refresh_targets:
             device = device_registry.async_get_device(identifiers={(DOMAIN, anchor)})
