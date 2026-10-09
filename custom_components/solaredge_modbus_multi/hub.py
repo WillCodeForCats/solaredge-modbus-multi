@@ -806,7 +806,11 @@ class SolarEdgeModbusMultiHub:
             if self.option_detect_extras:
                 this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
             # SunS model-chain scan runs unconditionally, once per inverter at setup
-            this_timeout += SolarEdgeTimeouts.Read * self.number_of_inverters
+            this_timeout += (
+                SolarEdgeTimeouts.Read
+                * RetrySettings.RequestRetries
+                * self.number_of_inverters
+            )
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
