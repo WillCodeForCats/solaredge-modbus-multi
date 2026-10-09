@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Invertor înlocuit la ID-ul de dispozitiv {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Invertor înlocuit la ID-ul de dispozitiv {device_id}",
+            "description": "Invertorul identificat anterior ca {old_model} (număr de serie {old_serial}) nu mai răspunde la {host}, ID dispozitiv {device_id}. În locul lui a fost găsit un alt invertor, {new_model} (număr de serie {new_serial}).\n\nDacă este o înlocuire hardware, efectuați migrarea pentru a muta entitățile și istoricul existente pe invertorul de înlocuire. Dacă ați schimbat ID-urile dispozitivelor invertoarelor fără o schimbare hardware, ignorați acest lucru pentru a-l trata ca pe un dispozitiv separat.",
+            "menu_options": {
+              "migrate": "Migrează entitățile pe invertorul de înlocuire",
+              "ignore": "Ignoră, acesta este un alt invertor"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Integrarea trebuie să termine încărcarea înainte ca această reparație să poată rula. Reîncărcați integrarea și încercați din nou.",
+          "device_not_found": "Invertorul cu acest ID de dispozitiv nu mai există. Este posibil să fi fost eliminat din lista de ID-uri de dispozitiv ale invertoarelor."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "ID de Dispozitiv al Invertorului Nevalid",
       "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu răspunde sau nu este un invertor SolarEdge valid. A fost omis. Dacă dispozitivul a fost înlocuit sau ID-ul acestuia s-a schimbat, actualizați Lista de ID-uri de Dispozitiv ale Invertoarelor din configurația hub-ului. În caz contrar, verificați dispozitivul și conexiunea Modbus/TCP."

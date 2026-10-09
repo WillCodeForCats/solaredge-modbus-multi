@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "设备 ID {device_id} 处的逆变器已更换",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "设备 ID {device_id} 处的逆变器已更换",
+            "description": "之前识别为 {old_model}(序列号 {old_serial})的逆变器在 {host} 设备 ID {device_id} 处不再响应，而该处发现了另一台逆变器 {new_model}(序列号 {new_serial})。\n\n如果这是硬件更换，请执行迁移，将现有实体和历史记录转移到更换后的逆变器。如果您只是更改了逆变器的设备 ID 而没有更换硬件，请忽略此项，将其视为单独的设备。",
+            "menu_options": {
+              "migrate": "将实体迁移到更换后的逆变器",
+              "ignore": "忽略，这是另一台逆变器"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "集成必须先完成加载，才能运行此修复。请重新加载集成后重试。",
+          "device_not_found": "此设备 ID 处的逆变器已不存在。它可能已从逆变器设备 ID 列表中移除。"
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "逆变器设备 ID 无效",
       "description": "{host} 上的逆变器设备 ID {device_id} 无响应，或不是有效的 SolarEdge 逆变器，已被跳过。如果设备已更换或其 ID 已更改，请在集线器配置中更新逆变器设备 ID 列表。否则，请检查设备和 Modbus/TCP 连接。"

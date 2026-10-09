@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Střídač vyměněn u ID zařízení {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Střídač vyměněn u ID zařízení {device_id}",
+            "description": "Střídač dříve identifikovaný jako {old_model} (sériové číslo {old_serial}) již neodpovídá na {host}, ID zařízení {device_id}. Místo něj byl nalezen jiný střídač, {new_model} (sériové číslo {new_serial}).\n\nPokud jde o výměnu hardwaru, proveďte migraci, která přesune stávající entity a historii na náhradní střídač. Pokud jste změnili ID zařízení svých střídačů bez výměny hardwaru, tuto výzvu ignorujte a zařízení bude považováno za samostatné.",
+            "menu_options": {
+              "migrate": "Migrovat entity na náhradní střídač",
+              "ignore": "Ignorovat, jde o jiný střídač"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Integrace musí být před spuštěním této opravy plně načtena. Načtěte integraci znovu a zkuste to znovu.",
+          "device_not_found": "Střídač s tímto ID zařízení již neexistuje. Mohl být odstraněn ze seznamu ID zařízení střídačů."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Neplatné ID zařízení střídače",
       "description": "ID zařízení střídače {device_id} na {host} neodpovídá nebo se nejedná o platný střídač SolarEdge. Bylo přeskočeno. Pokud bylo zařízení vyměněno nebo se změnilo jeho ID, aktualizujte seznam ID zařízení střídačů v konfiguraci hubu. V opačném případě zkontrolujte zařízení a připojení Modbus/TCP."

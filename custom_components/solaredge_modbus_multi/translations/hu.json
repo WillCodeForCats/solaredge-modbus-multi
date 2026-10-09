@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Inverter cseréje a(z) {device_id} eszközazonosítónál",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Inverter cseréje a(z) {device_id} eszközazonosítónál",
+            "description": "A korábban {old_model} típusúként (sorozatszám: {old_serial}) azonosított inverter már nem válaszol itt: {host}, eszközazonosító: {device_id}. Helyette egy másik inverter, {new_model} (sorozatszám: {new_serial}) található ott.\n\nHa hardvercseréről van szó, végezze el a migrációt, hogy a meglévő entitások és az előzmények átkerüljenek a cserélt inverterre. Ha az inverterek eszközazonosítóját hardvercsere nélkül módosította, hagyja figyelmen kívül, így külön eszközként lesz kezelve.",
+            "menu_options": {
+              "migrate": "Entitások áttelepítése a cserélt inverterre",
+              "ignore": "Figyelmen kívül hagyás, ez egy másik inverter"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Az integrációnak be kell fejeznie a betöltést, mielőtt ez a javítás futtatható. Töltse újra az integrációt, és próbálja meg ismét.",
+          "device_not_found": "Az ezzel az eszközazonosítóval rendelkező inverter már nem található. Lehet, hogy eltávolították az inverterek eszközazonosító-listájáról."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Érvénytelen Inverter Eszközazonosító",
       "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen nem válaszol, vagy nem érvényes SolarEdge inverter. Ki lett hagyva. Ha az eszközt kicserélték, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. Ellenkező esetben ellenőrizze az eszközt és a Modbus/TCP kapcsolatot."

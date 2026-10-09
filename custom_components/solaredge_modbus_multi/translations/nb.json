@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Inverter byttet ut ved enhets-ID {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Inverter byttet ut ved enhets-ID {device_id}",
+            "description": "Inverteren som tidligere ble identifisert som {old_model} (serienummer {old_serial}) svarer ikke lenger på {host} enhets-ID {device_id}. En annen inverter, {new_model} (serienummer {new_serial}), ble funnet der i stedet.\n\nHvis dette er en maskinvareutskifting, kan du migrere for å flytte eksisterende entiteter og historikk over til den nye inverteren. Hvis du har endret enhets-ID på inverterne dine uten maskinvareendring, ignorer dette for å behandle den som en egen enhet.",
+            "menu_options": {
+              "migrate": "Migrer entiteter til den nye inverteren",
+              "ignore": "Ignorer, dette er en annen inverter"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Integrasjonen må være ferdig lastet før denne reparasjonen kan kjøres. Last integrasjonen på nytt og prøv igjen.",
+          "device_not_found": "Inverteren med denne enhets-IDen finnes ikke lenger. Den kan ha blitt fjernet fra listen over inverterenes enhets-ID-er."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Ugyldig omformer-enhets-ID",
       "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."

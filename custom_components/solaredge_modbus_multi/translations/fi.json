@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Invertteri vaihdettu laitetunnukseen {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Invertteri vaihdettu laitetunnukseen {device_id}",
+            "description": "Aiemmin mallina {old_model} (sarjanumero {old_serial}) tunnistettu invertteri ei enää vastaa osoitteessa {host}, laitetunnus {device_id}. Sen sijaan sieltä löytyi eri invertteri, {new_model} (sarjanumero {new_serial}).\n\nJos kyseessä on laitteen vaihto, siirrä nykyiset entiteetit ja historia uuteen inverttereeseen migraatiolla. Jos olet muuttanut inverttereidesi laitetunnuksia ilman laitteiston vaihtoa, ohita tämä, jolloin se käsitellään erillisenä laitteena.",
+            "menu_options": {
+              "migrate": "Siirrä entiteetit uuteen inverttereeseen",
+              "ignore": "Ohita, tämä on eri invertteri"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Integraation latauksen on valmistuttava, ennen kuin tämä korjaus voidaan suorittaa. Lataa integraatio uudelleen ja yritä uudelleen.",
+          "device_not_found": "Invertteriä tällä laitetunnuksella ei enää ole. Se on voitu poistaa inverttereiden laitetunnusluettelosta."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Virheellinen vaihtosuuntaajan laitetunnus",
       "description": "Vaihtosuuntaajan laitetunnus {device_id} osoitteessa {host} ei vastaa tai ei ole kelvollinen SolarEdge-vaihtosuuntaaja. Se on ohitettu. Jos laite vaihdettiin tai sen tunnus muuttui, päivitä vaihtosuuntaajien laitetunnusluettelo keskittimen asetuksissa. Muussa tapauksessa tarkista laite ja Modbus/TCP-yhteys."

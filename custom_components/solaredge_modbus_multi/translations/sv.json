@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Växelriktare utbytt vid enhets-ID {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Växelriktare utbytt vid enhets-ID {device_id}",
+            "description": "Växelriktaren som tidigare identifierades som {old_model} (serienummer {old_serial}) svarar inte längre på {host} enhets-ID {device_id}. En annan växelriktare, {new_model} (serienummer {new_serial}), hittades där i stället.\n\nOm det rör sig om ett hårdvarubyte kan du migrera för att flytta befintliga entiteter och historik till den nya växelriktaren. Om du har ändrat enhets-ID på dina växelriktare utan något hårdvarubyte, ignorera detta för att behandla den som en separat enhet.",
+            "menu_options": {
+              "migrate": "Migrera entiteter till den nya växelriktaren",
+              "ignore": "Ignorera, det här är en annan växelriktare"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Integrationen måste ha laddats klart innan den här reparationen kan köras. Ladda om integrationen och försök igen.",
+          "device_not_found": "Växelriktaren med detta enhets-ID finns inte längre. Den kan ha tagits bort från listan över växelriktarnas enhets-ID."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Ogiltigt enhets-ID för växelriktare",
       "description": "Växelriktarens enhets-ID {device_id} på {host} svarar inte eller är inte en giltig SolarEdge-växelriktare. Den har hoppats över. Om enheten byttes ut eller dess ID ändrades, uppdatera listan över växelriktarnas enhets-ID i hubbens konfiguration. Kontrollera annars enheten och Modbus/TCP-anslutningen."

@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Wechselrichter ersetzt bei Geräte-ID {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Wechselrichter ersetzt bei Geräte-ID {device_id}",
+            "description": "Der zuvor als {old_model} (Seriennummer {old_serial}) erkannte Wechselrichter antwortet bei {host} Geräte-ID {device_id} nicht mehr. Stattdessen wurde dort ein anderer Wechselrichter, {new_model} (Seriennummer {new_serial}), gefunden.\n\nWenn es sich um einen Hardwaretausch handelt, führen Sie eine Migration durch, um die vorhandenen Entitäten und den Verlauf auf den Ersatzwechselrichter zu übertragen. Wenn Sie die Geräte-IDs Ihrer Wechselrichter ohne Hardwaretausch geändert hast, ignorieren Sie dies, um ihn als separates Gerät zu behandeln.",
+            "menu_options": {
+              "migrate": "Entitäten auf den Ersatzwechselrichter migrieren",
+              "ignore": "Ignorieren, dies ist ein anderer Wechselrichter"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Die Integration muss zuerst vollständig geladen sein, bevor diese Reparatur ausgeführt werden kann. Laden Sie die Integration neu und versuchen Sie es erneut.",
+          "device_not_found": "Der Wechselrichter mit dieser Geräte-ID ist nicht mehr vorhanden. Er wurde möglicherweise aus der Liste der Wechselrichter-Geräte-IDs entfernt."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Ungültige Wechselrichter-Geräte-ID",
       "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."

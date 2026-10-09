@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Omvormer vervangen bij apparaat-ID {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Omvormer vervangen bij apparaat-ID {device_id}",
+            "description": "De omvormer die eerder werd herkend als {old_model} (serienummer {old_serial}) reageert niet meer op {host} apparaat-ID {device_id}. In plaats daarvan is daar een andere omvormer, {new_model} (serienummer {new_serial}), gevonden.\n\nAls dit een hardwarevervanging is, migreer dan om de bestaande entiteiten en geschiedenis naar de vervangende omvormer te verplaatsen. Als je de apparaat-ID's van je omvormers hebt gewijzigd zonder hardwarewijziging, negeer dit dan om het als een apart apparaat te behandelen.",
+            "menu_options": {
+              "migrate": "Entiteiten migreren naar de vervangende omvormer",
+              "ignore": "Negeren, dit is een andere omvormer"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "De integratie moet eerst volledig geladen zijn voordat deze reparatie kan worden uitgevoerd. Laad de integratie opnieuw en probeer het nogmaals.",
+          "device_not_found": "De omvormer met dit apparaat-ID is niet meer aanwezig. Mogelijk is deze verwijderd uit de lijst met omvormer-apparaat-ID's."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Ongeldige omvormer-apparaat-ID",
       "description": "Omvormer-apparaat-ID {device_id} op {host} reageert niet of is geen geldige SolarEdge-omvormer. Deze is overgeslagen. Als het apparaat is vervangen of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Controleer anders het apparaat en de Modbus/TCP-verbinding."

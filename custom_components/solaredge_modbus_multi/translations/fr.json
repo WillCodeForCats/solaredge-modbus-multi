@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Onduleur remplacé à l'ID d'appareil {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Onduleur remplacé à l'ID d'appareil {device_id}",
+            "description": "L'onduleur précédemment identifié comme {old_model} (numéro de série {old_serial}) ne répond plus à {host} ID d'appareil {device_id}. Un onduleur différent, {new_model} (numéro de série {new_serial}), a été trouvé à la place.\n\nSi c'est un remplacement matériel, lancez la migration pour transférer les entités et l'historique existants vers l'onduleur de remplacement. Si vous avez modifié les ID d'appareil de vos onduleurs sans changement matériel, ignorez ceci pour le traiter comme un appareil distinct.",
+            "menu_options": {
+              "migrate": "Migrer les entités vers l'onduleur de remplacement",
+              "ignore": "Ignorer, il s'agit d'un autre onduleur"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "L'intégration doit finir de se charger avant que cette réparation puisse s'exécuter. Rechargez l'intégration et réessayez.",
+          "device_not_found": "L'onduleur à cet ID d'appareil n'est plus présent. Il a peut-être été retiré de la liste des ID d'appareil des onduleurs."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "ID d'appareil onduleur invalide",
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."

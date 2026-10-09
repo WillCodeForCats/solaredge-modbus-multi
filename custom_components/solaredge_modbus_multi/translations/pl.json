@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Wymieniono falownik przy ID urządzenia {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Wymieniono falownik przy ID urządzenia {device_id}",
+            "description": "Falownik wcześniej zidentyfikowany jako {old_model} (numer seryjny {old_serial}) nie odpowiada już pod adresem {host}, ID urządzenia {device_id}. Zamiast niego znaleziono tam inny falownik, {new_model} (numer seryjny {new_serial}).\n\nJeśli to wymiana sprzętu, wykonaj migrację, aby przenieść istniejące encje i historię na falownik zastępczy. Jeśli zmieniono ID urządzeń falowników bez wymiany sprzętu, zignoruj to, aby traktować go jako osobne urządzenie.",
+            "menu_options": {
+              "migrate": "Przenieś encje na falownik zastępczy",
+              "ignore": "Zignoruj, to inny falownik"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Integracja musi zakończyć ładowanie, zanim ta naprawa będzie mogła zostać uruchomiona. Przeładuj integrację i spróbuj ponownie.",
+          "device_not_found": "Falownik o tym ID urządzenia nie istnieje już. Mógł zostać usunięty z listy ID urządzeń falowników."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Nieprawidłowy identyfikator falownika",
       "description": "Identyfikator falownika {device_id} na {host} nie odpowiada lub nie jest prawidłowym falownikiem SolarEdge. Został pominięty. Jeśli urządzenie zostało wymienione lub jego identyfikator się zmienił, zaktualizuj listę identyfikatorów falowników w konfiguracji huba. W przeciwnym razie sprawdź urządzenie i połączenie Modbus/TCP."

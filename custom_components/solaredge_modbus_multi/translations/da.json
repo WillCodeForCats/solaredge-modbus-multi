@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Inverter udskiftet ved enheds-ID {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Inverter udskiftet ved enheds-ID {device_id}",
+            "description": "Inverteren, der tidligere blev identificeret som {old_model} (serienummer {old_serial}), svarer ikke længere på {host} enheds-ID {device_id}. En anden inverter, {new_model} (serienummer {new_serial}), blev fundet dér i stedet.\n\nHvis det er en hardwareudskiftning, kan du migrere for at flytte de eksisterende entiteter og historik over på den nye inverter. Hvis du har ændret enheds-ID'er på dine invertere uden en hardwareændring, skal du ignorere dette for at behandle den som en separat enhed.",
+            "menu_options": {
+              "migrate": "Migrer entiteter til den nye inverter",
+              "ignore": "Ignorer, dette er en anden inverter"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "Integrationen skal være færdig med at indlæse, før denne reparation kan køres. Genindlæs integrationen, og prøv igen.",
+          "device_not_found": "Inverteren med dette enheds-ID findes ikke længere. Den er muligvis blevet fjernet fra listen over inverter-enheds-ID'er."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "Ugyldigt enheds-ID for inverter",
       "description": "Inverterens enheds-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-inverter. Den er blevet sprunget over. Hvis enheden er blevet udskiftet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Kontrollér ellers enheden og Modbus/TCP-forbindelsen."

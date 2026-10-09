@@ -144,6 +144,25 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "Inversor reemplazado en el ID de dispositivo {device_id}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Inversor reemplazado en el ID de dispositivo {device_id}",
+            "description": "El inversor identificado anteriormente como {old_model} (número de serie {old_serial}) ya no responde en {host} ID de dispositivo {device_id}. En su lugar se encontró un inversor diferente, {new_model} (número de serie {new_serial}).\n\nSi se trata de un reemplazo de hardware, migra para mover las entidades y el historial existentes al inversor de reemplazo. Si cambiaste los ID de dispositivo de tus inversores sin cambiar el hardware, ignora esto para tratarlo como un dispositivo separado.",
+            "menu_options": {
+              "migrate": "Migrar las entidades al inversor de reemplazo",
+              "ignore": "Ignorar, es un inversor diferente"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "La integración debe terminar de cargarse antes de que se pueda ejecutar esta reparación. Recarga la integración e inténtalo de nuevo.",
+          "device_not_found": "El inversor con este ID de dispositivo ya no está presente. Puede haberse eliminado de la lista de ID de dispositivo de inversores."
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "ID de dispositivo del inversor no válido",
       "description": "El ID de dispositivo del inversor {device_id} en {host} no responde o no es un inversor SolarEdge válido. Se ha omitido. Si el dispositivo fue reemplazado o su ID cambió, actualice la Lista de ID de dispositivo de los inversores en la configuración del hub. De lo contrario, verifique el dispositivo y la conexión Modbus/TCP."
