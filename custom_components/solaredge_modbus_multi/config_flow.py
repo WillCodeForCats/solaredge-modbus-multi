@@ -722,14 +722,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
 
         else:
             user_input = {
-                ConfName.ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
-                    ConfName.ALLOW_BATTERY_ENERGY_RESET,
-                    bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
-                ),
-                ConfName.BATTERY_ENERGY_RESET_CYCLES: self.config_entry.options.get(
-                    ConfName.BATTERY_ENERGY_RESET_CYCLES,
-                    ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
-                ),
                 ConfName.BATTERY_RATING_ADJUST: self.config_entry.options.get(
                     ConfName.BATTERY_RATING_ADJUST,
                     ConfDefaultInt.BATTERY_RATING_ADJUST,
@@ -740,14 +732,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
             step_id="battery_options",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        f"{ConfName.ALLOW_BATTERY_ENERGY_RESET}",
-                        default=user_input[ConfName.ALLOW_BATTERY_ENERGY_RESET],
-                    ): cv.boolean,
-                    vol.Optional(
-                        f"{ConfName.BATTERY_ENERGY_RESET_CYCLES}",
-                        default=user_input[ConfName.BATTERY_ENERGY_RESET_CYCLES],
-                    ): vol.Coerce(int),
                     vol.Optional(
                         f"{ConfName.BATTERY_RATING_ADJUST}",
                         default=user_input[ConfName.BATTERY_RATING_ADJUST],

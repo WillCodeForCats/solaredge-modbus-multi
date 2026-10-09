@@ -56,7 +56,7 @@ Both create an inverter device with meter and battery sub-devices. solaredge-mod
 | Meters                     | Power, energy, current, voltage, frequency, VA, var, power factor, VAh/varh import/export, events                                                                          | Power, import/export energy (also per phase), per-phase power/current/voltage, frequency, VA, var, power factor; no events or VAh/varh                                                            |
 | Batteries                  | Power, energy in/out, SOE, SOH, temperature, voltage, current, max charge/discharge power, status                                                                          | Same core set plus usable and rated capacity; no events                                                                                                                                           |
 | Grid status                | On-grid binary sensor                                                                                                                                                      | On-grid binary sensor                                                                                                                                                                             |
-| Energy counters            | Restores last value; options to allow battery energy reset and adjust rating                                                                                               | No equivalent options                                                                                                                                                                             |
+| Energy counters            | Restores last value; battery energy is aggregated from deltas; option to adjust rating                                                                                               | No equivalent options                                                                                                                                                                             |
 | Diagnostic extras          | Last-update sensor, write-count sensor, power-control-enabled binary sensor, refresh button                                                                                | None                                                                                                                                                                                              |
 | Device layout              | Inverter, meter and battery devices under the hub, plus a separate device for a DER battery (SunSpec model 713) linked to its inverter (when battery detection is enabled) | Inverter device; meters and batteries linked via device; stale ones removed; a Storage state of charge sensor on the inverter when a DER storage block reports charge and no battery block exists |
 | Attachment changes         | Auto-detect options for meters, batteries, extras                                                                                                                          | Checks every 15 min; reloads the entry when meters, batteries, grid status or a control block appear or disappear                                                                                 |
@@ -172,7 +172,7 @@ There is no automatic path between the two integrations. Entity IDs and unique I
 - **Device IDs.** Core creates one entry per inverter; a multi-inverter site needs one entry for each.
 - **Shared connection.** Core uses HA's `modbus` integration. The maintainer reports it running alongside solaredge-modbus-multi without contention; other setups have not been tested. The core documentation lists as a known limitation that inverters accept a limited number of simultaneous Modbus TCP connections.
 - **Dashboards and the Energy panel.** Entity names change (core names inverters `SolarEdge <model>`), and Energy dashboard sources must be selected again.
-- **Features without a core equivalent.** Per-MPPT sensors, meter events, VAh/varh, write counter, refresh and commit buttons, polling options and the battery energy reset options.
+- **Features without a core equivalent.** Per-MPPT sensors, meter events, VAh/varh, write counter, refresh and commit buttons, polling options and the battery rating adjustment option.
 - **Both installed together.** The domains differ (`solaredge_modbus_multi` and `solaredge_modbus`), so both can be installed at once.
 
 ## The python-solaredged library
@@ -220,7 +220,7 @@ Core suits a single inverter, with or without a meter or battery, that needs a s
 - Per-MPPT sensors and meter/MMPPT event sensors
 - Options flow: polling interval, timeouts, command delay, and detection toggles. Switching detection off stops all probing for that hardware, which avoids repeated timeouts on inverters that lack it. The trade-off is that the user must change the option
 - Commit and restore-defaults buttons, write counter, refresh button
-- Battery energy reset and rating adjustment options
+- Battery rating adjustment option and delta-aggregated battery energy
 - A warning is shown before enabling features outside SolarEdge's official documentation
 
 **Ideas for solaredge-modbus-multi**

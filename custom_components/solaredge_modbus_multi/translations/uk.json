@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "Параметри батареї",
         "data": {
-          "allow_battery_energy_reset": "Дозволити скидання енергії батареї",
-          "battery_energy_reset_cycles": "Цикли оновлення для скидання енергії батареї",
           "battery_rating_adjust": "Коригування ємності батареї (відсотки)"
         }
       }

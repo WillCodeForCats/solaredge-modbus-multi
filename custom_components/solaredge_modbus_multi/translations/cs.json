@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "Možnosti baterie",
         "data": {
-          "allow_battery_energy_reset": "Povolit reset energie baterie",
-          "battery_energy_reset_cycles": "Aktualizační cykly pro reset energie baterie",
           "battery_rating_adjust": "Úprava kapacity baterie (procenta)"
         }
       }

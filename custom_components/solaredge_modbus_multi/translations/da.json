@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "Batteriindstillinger",
         "data": {
-          "allow_battery_energy_reset": "Tillad nulstilling af batterienergi",
-          "battery_energy_reset_cycles": "Opdateringscyklusser til nulstilling af batterienergi",
           "battery_rating_adjust": "Justering af batterikapacitet (procent)"
         }
       }

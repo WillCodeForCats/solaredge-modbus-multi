@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "电池选项",
         "data": {
-          "allow_battery_energy_reset": "允许重置电池能量",
-          "battery_energy_reset_cycles": "重置电池能量的更新周期数",
           "battery_rating_adjust": "电池容量调整（百分比）"
         }
       }

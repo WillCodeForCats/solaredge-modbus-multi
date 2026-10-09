@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import contextlib
+from dataclasses import dataclass
 import datetime
 import logging
 import re
+from typing import Any
 
 from awesomeversion import AwesomeVersion
 from homeassistant.components.sensor import (
     RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
+    SensorExtraStoredData,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -2518,14 +2521,37 @@ class SolarEdgeBatteryPowerInverted(SolarEdgeBatteryPower):
         return -value
 
 
-class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase, RestoreSensor):
-    """A long-term statistic that holds its last value.
+@dataclass
+class _BatteryEnergyStoredData(SensorExtraStoredData):
+    """Restored total plus the last raw register reading it was built from."""
+
+    prev_raw: int | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        """Return a dict representation of the stored data."""
+        return {**super().as_dict(), "prev_raw": self.prev_raw}
+
+
+class SolarEdgeBatteryEnergyBase(SolarEdgeSensorBase, RestoreSensor):
+    """Battery lifetime energy as an aggregate of register deltas.
+
+    Some batteries (LG, BYD) do not have lifetime energy counters. SolarEdge's
+    cloud platform appears to simulate lifetime values by summing delta energy,
+    so lost telemetry leaves the totals incomplete. This is not revenue grade
+    metering.
+
+    This sensor will try to do the same: it adds each increase in the register to
+    its own running total, so the total never goes down. A register that goes
+    backwards is treated as a new reference point and adds nothing. This also
+    works for batteries with true lifetime counters.
+
+    This replaces a previous approach where we would still treat the sensor as
+    lifetime and give the user an option to allow resetting, but did not alter the
+    values modbus returned. The delta values for energy counters hide the actual
+    values read over modbus.
 
     Devices legitimately go offline. Follows the TOTAL_INCREASING pattern from
     https://home-assistant-libs.github.io/modbus-connection/home-assistant/integration/#the-coordinator
-
-    A sustained decrease here can be expected behavior.
-    See allow_battery_energy_reset/battery_energy_reset_cycles.
     """
 
     device_class = SensorDeviceClass.ENERGY
@@ -2533,15 +2559,78 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase, RestoreSensor):
     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
     suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     suggested_display_precision = 3
-    icon = "mdi:battery-charging-20"
+
+    _data_attr: str
+    _label: str
 
     def __init__(self, platform, config_entry, coordinator):
-        """Initialize the solar edge battery energy export."""
+        """Initialize the solar edge battery energy sensor."""
         super().__init__(platform, config_entry, coordinator)
 
-        self._last = None
-        self._count = 0
-        self._log_once = False
+        self._prev_raw = None
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return True
+
+    @property
+    def extra_restore_state_data(self) -> _BatteryEnergyStoredData:
+        """Return the total and the raw reading it is based on."""
+        return _BatteryEnergyStoredData(
+            self.native_value, self.native_unit_of_measurement, self._prev_raw
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Added to hass."""
+        await super().async_added_to_hass()
+        if (last_extra := await self.async_get_last_extra_data()) is not None:
+            restored = last_extra.as_dict()
+            self._attr_native_value = restored.get("native_value")
+            self._prev_raw = restored.get("prev_raw")
+        self._process_data()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._process_data()
+        super()._handle_coordinator_update()
+
+    def _process_data(self) -> None:
+        value = getattr(self._platform.battery_data, self._data_attr)
+
+        # A raw zero is not trusted as a reading. If it is a real reset, the
+        # next non-zero reading will be lower than the reference point.
+        if value is None or value in {0xFFFFFFFFFFFFFFFF, 0}:
+            return
+
+        if self._prev_raw is None:
+            # No reference point: start from the register, or from the
+            # restored total if one exists.
+            if self._attr_native_value is None:
+                self._attr_native_value = value
+            self._prev_raw = value
+            return
+
+        if value < self._prev_raw:
+            _LOGGER.warning(
+                "Battery %s Energy went backwards: current value %s is "
+                "less than last value of %s; continuing from the new value",
+                self._label,
+                value,
+                self._prev_raw,
+            )
+        else:
+            self._attr_native_value += value - self._prev_raw
+
+        self._prev_raw = value
+
+
+class SolarEdgeBatteryEnergyExport(SolarEdgeBatteryEnergyBase):
+    """Battery energy export."""
+
+    icon = "mdi:battery-charging-20"
+    _data_attr = "B_Export_Energy_WH"
+    _label = "Export"
 
     @property
     def unique_id(self) -> str:
@@ -2553,101 +2642,13 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase, RestoreSensor):
         """Return the name."""
         return "Energy Export"
 
-    @property
-    def available(self) -> bool:
-        """Return the available."""
-        return True
 
-    async def async_added_to_hass(self) -> None:
-        """Added to hass."""
-        await super().async_added_to_hass()
-        if (last_data := await self.async_get_last_sensor_data()) is not None:
-            self._attr_native_value = last_data.native_value
-            self._last = last_data.native_value
-        self._process_data()
+class SolarEdgeBatteryEnergyImport(SolarEdgeBatteryEnergyBase):
+    """Battery energy import."""
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self._process_data()
-        super()._handle_coordinator_update()
-
-    def _process_data(self) -> None:
-        value = self._platform.battery_data.B_Export_Energy_WH
-
-        if (
-            value is None
-            or value == 0xFFFFFFFFFFFFFFFF
-            or (value == 0x0 and not self._platform.allow_battery_energy_reset)
-        ):
-            return
-
-        if self._last is None:
-            self._last = 0
-
-        try:
-            if value >= self._last:
-                self._last = value
-                self._attr_native_value = value
-                self._log_once = False
-
-                if self._platform.allow_battery_energy_reset:
-                    self._count = 0
-
-                return
-
-            if not self._platform.allow_battery_energy_reset:
-                if not self._log_once:
-                    _LOGGER.warning(
-                        "Battery Export Energy went backwards: Current value %s is "
-                        "less than last value of %s",
-                        value,
-                        self._last,
-                    )
-                    self._log_once = True
-                return
-
-            self._count += 1
-            _LOGGER.debug(
-                "B_Export_Energy went backwards: %s < %s cycle %s of %s",
-                value,
-                self._last,
-                self._count,
-                self._platform.battery_energy_reset_cycles,
-            )
-
-            if self._count > self._platform.battery_energy_reset_cycles:
-                _LOGGER.debug("B_Export_Energy reset at cycle %s", self._count)
-                self._last = None
-                self._count = 0
-
-        except OverflowError:
-            return
-
-
-class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase, RestoreSensor):
-    """A long-term statistic that holds its last value.
-
-    Devices legitimately go offline. Follows the TOTAL_INCREASING pattern from
-    https://home-assistant-libs.github.io/modbus-connection/home-assistant/integration/#the-coordinator
-
-    A sustained decrease here can be expected behavior.
-    See allow_battery_energy_reset/battery_energy_reset_cycles.
-    """
-
-    device_class = SensorDeviceClass.ENERGY
-    state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    suggested_display_precision = 3
     icon = "mdi:battery-charging-100"
-
-    def __init__(self, platform, config_entry, coordinator):
-        """Initialize the solar edge battery energy import."""
-        super().__init__(platform, config_entry, coordinator)
-
-        self._last = None
-        self._count = 0
-        self._log_once = False
+    _data_attr = "B_Import_Energy_WH"
+    _label = "Import"
 
     @property
     def unique_id(self) -> str:
@@ -2658,76 +2659,6 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase, RestoreSensor):
     def name(self) -> str:
         """Return the name."""
         return "Energy Import"
-
-    @property
-    def available(self) -> bool:
-        """Return the available."""
-        return True
-
-    async def async_added_to_hass(self) -> None:
-        """Added to hass."""
-        await super().async_added_to_hass()
-        if (last_data := await self.async_get_last_sensor_data()) is not None:
-            self._attr_native_value = last_data.native_value
-            self._last = last_data.native_value
-        self._process_data()
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self._process_data()
-        super()._handle_coordinator_update()
-
-    def _process_data(self) -> None:
-        value = self._platform.battery_data.B_Import_Energy_WH
-
-        if (
-            value is None
-            or value == 0xFFFFFFFFFFFFFFFF
-            or (value == 0x0 and not self._platform.allow_battery_energy_reset)
-        ):
-            return
-
-        if self._last is None:
-            self._last = 0
-
-        try:
-            if value >= self._last:
-                self._last = value
-                self._attr_native_value = value
-                self._log_once = False
-
-                if self._platform.allow_battery_energy_reset:
-                    self._count = 0
-
-                return
-
-            if not self._platform.allow_battery_energy_reset:
-                if not self._log_once:
-                    _LOGGER.warning(
-                        "Battery Import Energy went backwards: Current value %s is "
-                        "less than last value of %s",
-                        value,
-                        self._last,
-                    )
-                    self._log_once = True
-                return
-
-            self._count += 1
-            _LOGGER.debug(
-                "B_Import_Energy went backwards: %s < %s cycle %s of %s",
-                value,
-                self._last,
-                self._count,
-                self._platform.battery_energy_reset_cycles,
-            )
-
-            if self._count > self._platform.battery_energy_reset_cycles:
-                _LOGGER.debug("B_Import_Energy reset at cycle %s", self._count)
-                self._last = None
-                self._count = 0
-
-        except OverflowError:
-            return
 
 
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):

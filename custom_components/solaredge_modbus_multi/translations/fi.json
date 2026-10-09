@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "Akkuvalinnat",
         "data": {
-          "allow_battery_energy_reset": "Salli akun energian nollaus",
-          "battery_energy_reset_cycles": "Päivityssyklit akun energian nollaamiseksi",
           "battery_rating_adjust": "Akun kapasiteetin säätö (prosenttia)"
         }
       }
