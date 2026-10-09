@@ -747,9 +747,14 @@ class SolarEdgeModbusMultiHub:
             return
 
         _LOGGER.warning(
-            f"Inverter at {self.hub_host} ID {inverter.inverter_unit_id} appears "
-            f"to have been replaced: was {existing.model} ({existing.serial_number}), "
-            f"now {inverter.model} ({inverter.serial})."
+            "Inverter at %s ID %s appears to have been replaced: "
+            "was %s (%s), now %s (%s).",
+            self.hub_host,
+            inverter.inverter_unit_id,
+            existing.model,
+            existing.serial_number,
+            inverter.model,
+            inverter.serial,
         )
 
         ir.async_create_issue(
