@@ -417,6 +417,7 @@ LIMIT_CONTROL_MODE = {
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
 
 VENDOR4_STATUS: dict[int, dict[int, str]] = {
+    0x0: {0x0: "No Error"},
     0x3: {
         0x0: "Reset",
         0x1: "Set Real Time Clock",
