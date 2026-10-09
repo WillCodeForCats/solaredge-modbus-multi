@@ -13,7 +13,7 @@ from awesomeversion.exceptions import (
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
@@ -181,6 +181,17 @@ def _log_component_fields(prefix: str, component) -> None:
         else:
             display_value = hex(value) if isinstance(value, int) else value
         _LOGGER.debug("%s: %s %s %s", prefix, name, display_value, type(value))
+
+
+def _device_anchor(entry_id: str, *parts: str | int) -> str:
+    """Build a stable device_registry identifier independent of model/serial.
+
+    Unlike uid_base (model_serial), this never changes when hardware at a given
+    Modbus device ID is replaced. It lets us find "whatever device previously
+    occupied this Modbus ID" in the device registry so we can detect the swap
+    and offer a repair. See SolarEdgeModbusMultiHub._check_inverter_replaced().
+    """
+    return "_".join([entry_id, *(str(part) for part in parts)])
 
 
 class SolarEdgeModbusMultiHub:
@@ -692,6 +703,81 @@ class SolarEdgeModbusMultiHub:
 
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
+
+    def _device_replaced_issue(self, unit_id: int) -> str:
+        return f"device_replaced_{self._entry_id}_{unit_id}"
+
+    def _check_inverter_replaced(self, inverter: SolarEdgeInverter) -> None:
+        """Detect a different inverter now answering at this Modbus device ID.
+
+        Compares against the device registry, keyed by a stable identifier
+        independent of model/serial (see _device_anchor()), so a hardware
+        swap at the same Modbus ID is detected even though uid_base -- and
+        therefore every entity unique_id under it -- changed. Raises a
+        fixable repair issue offering to migrate the old entities/history
+        onto the replacement, or ignore it.
+        """
+        anchor = _device_anchor(self._entry_id, "inverter", inverter.inverter_unit_id)
+        device_registry = dr.async_get(self._hass)
+        existing = device_registry.async_get_device(identifiers={(DOMAIN, anchor)})
+
+        if existing is None:
+            # Never seen before at this Modbus ID -- nothing to compare against.
+            return
+
+        issue_id = self._device_replaced_issue(inverter.inverter_unit_id)
+
+        if (
+            existing.model == inverter.model
+            and existing.serial_number == inverter.serial
+        ):
+            ir.async_delete_issue(self._hass, DOMAIN, issue_id)
+            return
+
+        old_uid_base = next(
+            (
+                identifier[1]
+                for identifier in existing.identifiers
+                if identifier[0] == DOMAIN and identifier[1] != anchor
+            ),
+            None,
+        )
+        if old_uid_base is None:
+            # No prior uid_base recorded to compare/migrate from; treat as new.
+            return
+
+        _LOGGER.warning(
+            f"Inverter at {self.hub_host} ID {inverter.inverter_unit_id} appears "
+            f"to have been replaced: was {existing.model} ({existing.serial_number}), "
+            f"now {inverter.model} ({inverter.serial})."
+        )
+
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="device_replaced",
+            translation_placeholders={
+                "device_id": str(inverter.inverter_unit_id),
+                "host": self.hub_host,
+                "old_model": existing.model or "unknown",
+                "old_serial": existing.serial_number or "unknown",
+                "new_model": inverter.model,
+                "new_serial": inverter.serial,
+            },
+            data={
+                "entry_id": self._entry_id,
+                "device_id": inverter.inverter_unit_id,
+                "old_uid_base": old_uid_base,
+                "new_uid_base": inverter.uid_base,
+                "old_model": existing.model or "unknown",
+                "old_serial": existing.serial_number or "unknown",
+                "new_model": inverter.model,
+                "new_serial": inverter.serial,
+            },
+        )
 
     @property
     def initalized(self):
