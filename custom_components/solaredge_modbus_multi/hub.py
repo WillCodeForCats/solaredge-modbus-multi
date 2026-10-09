@@ -1,3 +1,5 @@
+"""The SolarEdge Modbus Multi hub module."""
+
 from __future__ import annotations
 
 import asyncio
@@ -23,8 +25,7 @@ from modbus_connection.exceptions import (
     ModbusProtocolError,
     ModbusTimeoutError,
 )
-from modbus_connection.model.sunspec import SunSpecError
-from modbus_connection.model.sunspec import scan as suns_scan
+from modbus_connection.model.sunspec import SunSpecError, scan as suns_scan
 
 from .components import (
     AdvancedPowerControl,
@@ -65,23 +66,23 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SolarEdgeException(Exception):
-    """Base class for other exceptions"""
+    """Base class for other exceptions."""
 
 
 class HubInitFailed(SolarEdgeException):
-    """Raised when an error happens during init"""
+    """Raised when an error happens during init."""
 
 
 class DeviceIsEVSE(SolarEdgeException):
-    """Raised when an inverter device matches a EVSE model"""
+    """Raised when an inverter device matches a EVSE model."""
 
 
 class DataUpdateFailed(SolarEdgeException):
-    """Raised when an update cycle fails"""
+    """Raised when an update cycle fails."""
 
 
 class DeviceInvalid(SolarEdgeException):
-    """Raised when a device is not usable or invalid"""
+    """Raised when a device is not usable or invalid."""
 
 
 async def async_update_with_retry(component) -> None:
@@ -93,16 +94,21 @@ async def async_update_with_retry(component) -> None:
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
             await component.async_update()
-            return
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
             _LOGGER.debug(
-                f"{type(component).__name__}.async_update() attempt {attempt} "
-                f"of {RetrySettings.RequestRetries} failed: {e}"
+                "%s.async_update() attempt %s of %s failed: %s",
+                type(component).__name__,
+                attempt,
+                RetrySettings.RequestRetries,
+                e,
             )
 
             if attempt >= RetrySettings.RequestRetries:
                 raise
+
+        else:
+            return
 
 
 async def async_write_with_retry(component, field: str, value) -> None:
@@ -113,16 +119,22 @@ async def async_write_with_retry(component, field: str, value) -> None:
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
             await component.write(field, value)
-            return
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
             _LOGGER.debug(
-                f"{type(component).__name__}.write({field!r}) attempt {attempt} "
-                f"of {RetrySettings.RequestRetries} failed: {e}"
+                "%s.write(%r) attempt %s of %s failed: %s",
+                type(component).__name__,
+                field,
+                attempt,
+                RetrySettings.RequestRetries,
+                e,
             )
 
             if attempt >= RetrySettings.RequestRetries:
                 raise
+
+        else:
+            return
 
 
 def _parse_se_version(version_str: str) -> AwesomeVersion:
@@ -142,10 +154,12 @@ def _log_component_fields(prefix: str, component) -> None:
             display_value = float_to_hex(value)
         else:
             display_value = hex(value) if isinstance(value, int) else value
-        _LOGGER.debug(f"{prefix}: {name} {display_value} {type(value)}")
+        _LOGGER.debug("%s: %s %s %s", prefix, name, display_value, type(value))
 
 
 class SolarEdgeModbusMultiHub:
+    """Solar edge modbus multi hub."""
+
     def __init__(
         self, hass: HomeAssistant, entry_id: str, entry_data, entry_options, connection
     ):
@@ -212,49 +226,48 @@ class SolarEdgeModbusMultiHub:
         self.connection = connection
 
         _LOGGER.debug(
-            (
-                f"{DOMAIN} configuration: "
-                f"inverter_list={self._inverter_list}, "
-                f"detect_meters={self._detect_meters}, "
-                f"detect_batteries={self._detect_batteries}, "
-                f"detect_extras={self._detect_extras}, "
-                f"adv_storage_control={self._adv_storage_control}, "
-                f"adv_site_limit_control={self._adv_site_limit_control}, "
-                f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
-                f"request_timeout={self._request_timeout}, "
-                f"sleep_after_write={self._sleep_after_write}, "
-                f"battery_rating_adjust={self._battery_rating_adjust}, "
-                f"close_after_polling={self._close_after_polling}, "
-            ),
+            "%s configuration: inverter_list=%s, detect_meters=%s, "
+            "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
+            "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
+            "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
+            "close_after_polling=%s, ",
+            DOMAIN,
+            self._inverter_list,
+            self._detect_meters,
+            self._detect_batteries,
+            self._detect_extras,
+            self._adv_storage_control,
+            self._adv_site_limit_control,
+            self._allow_battery_energy_reset,
+            self._request_timeout,
+            self._sleep_after_write,
+            self._battery_rating_adjust,
+            self._close_after_polling,
         )
 
-    async def _async_init_solaredge(self) -> None:
+    async def _async_init_solaredge(self) -> None:  # noqa: C901
         """Detect devices and load initial modbus data from inverters."""
 
         if self.option_storage_control:
             _LOGGER.warning(
-                (
-                    "Power Control Options: Storage Control is enabled. "
-                    "Use at your own risk! "
-                    "Adjustable parameters in Modbus registers are intended for "
-                    "long-term storage. Periodic changes may damage the flash memory."
-                ),
+                "Power Control Options: Storage Control is enabled. "
+                "Use at your own risk! "
+                "Adjustable parameters in Modbus registers are intended for "
+                "long-term storage. Periodic changes may damage the flash memory."
             )
 
         if self.option_site_limit_control:
             _LOGGER.warning(
-                (
-                    "Power Control Options: Site Limit Control is enabled. "
-                    "Use at your own risk! "
-                    "Adjustable parameters in Modbus registers are intended for "
-                    "long-term storage. Periodic changes may damage the flash memory."
-                ),
+                "Power Control Options: Site Limit Control is enabled. "
+                "Use at your own risk! "
+                "Adjustable parameters in Modbus registers are intended for "
+                "long-term storage. Periodic changes may damage the flash memory."
             )
 
         for inverter_unit_id in self._inverter_list:
             try:
                 _LOGGER.debug(
-                    f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
+                    "Looking for inverter at %s ID %s", self.hub_host, inverter_unit_id
                 )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
@@ -271,12 +284,14 @@ class SolarEdgeModbusMultiHub:
                 ModbusProtocolError,
                 ModbusTimeoutError,
             ) as e:
-                raise HubInitFailed(f"{e}")
+                raise HubInitFailed(f"{e}") from e
 
             except DeviceInvalid as e:
                 # Inverters are mandatory, but if the Device ID is invalid or not responding
                 # skip it and warn the user instead of failing the entire hub setup
-                _LOGGER.error(f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}")
+                _LOGGER.error(
+                    "Inverter at %s ID %s: %s", self.hub_host, inverter_unit_id, e
+                )
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -294,7 +309,10 @@ class SolarEdgeModbusMultiHub:
 
             except DeviceIsEVSE as e:
                 _LOGGER.debug(
-                    f"Device model matches EVSE at {self.hub_host} ID {inverter_unit_id}: {e}"
+                    "Device model matches EVSE at %s ID %s: %s",
+                    self.hub_host,
+                    inverter_unit_id,
+                    e,
                 )
                 new_evse = SolarEdgeEVSE(inverter_unit_id, self)
                 await new_evse.init_device()
@@ -302,7 +320,9 @@ class SolarEdgeModbusMultiHub:
 
                 try:
                     _LOGGER.debug(
-                        f"Scanning SunS models at {self.hub_host} ID {inverter_unit_id}"
+                        "Scanning SunS models at %s ID %s",
+                        self.hub_host,
+                        inverter_unit_id,
                     )
                     new_evse.sunspec_models = await suns_scan(
                         self.connection.for_unit(inverter_unit_id), 40000
@@ -310,12 +330,16 @@ class SolarEdgeModbusMultiHub:
 
                     for model in new_evse.sunspec_models.chain:
                         _LOGGER.debug(
-                            f"E{inverter_unit_id}: found SunS model {model.model_id} "
-                            f"(length {model.length})"
+                            "E%s: found SunS model %s (length %s)",
+                            inverter_unit_id,
+                            model.model_id,
+                            model.length,
                         )
 
                 except (ModbusError, SunSpecError) as e:
-                    _LOGGER.debug(f"E{inverter_unit_id}: SunS model scan failed: {e}")
+                    _LOGGER.debug(
+                        "E%s: SunS model scan failed: %s", inverter_unit_id, e
+                    )
 
                 # Skip meter and battery detection if DeviceIsEVSE
                 new_evse.evse_common.restrict_fields(["C_Version"])
@@ -323,7 +347,7 @@ class SolarEdgeModbusMultiHub:
 
             try:
                 _LOGGER.debug(
-                    f"Scanning SunS models at {self.hub_host} ID {inverter_unit_id}"
+                    "Scanning SunS models at %s ID %s", self.hub_host, inverter_unit_id
                 )
                 suns_models = await suns_scan(
                     self.connection.for_unit(inverter_unit_id), 40000
@@ -334,19 +358,21 @@ class SolarEdgeModbusMultiHub:
 
                 for model in suns_models.chain:
                     _LOGGER.debug(
-                        f"I{inverter_unit_id}: found SunS model {model.model_id} "
-                        f"(length {model.length})"
+                        "I%s: found SunS model %s (length %s)",
+                        inverter_unit_id,
+                        model.model_id,
+                        model.length,
                     )
 
             except (ModbusError, SunSpecError) as e:
-                _LOGGER.debug(f"I{inverter_unit_id}: SunS model scan failed: {e}")
+                _LOGGER.debug("I%s: SunS model scan failed: %s", inverter_unit_id, e)
                 der_storage_models = []
 
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
                     try:
                         _LOGGER.debug(
-                            f"Looking for meter I{inverter_unit_id}M{meter_id}"
+                            "Looking for meter I%sM%s", inverter_unit_id, meter_id
                         )
                         new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
                         await new_meter.init_device()
@@ -355,33 +381,32 @@ class SolarEdgeModbusMultiHub:
                             # Allow duplicate serial number on meters PR#412
                             if new_meter.serial == meter.serial:
                                 _LOGGER.warning(
-                                    (
-                                        f"Duplicate serial {new_meter.serial} "
-                                        f"on I{inverter_unit_id}M{meter_id}"
-                                    ),
+                                    "Duplicate serial %s on I%sM%s",
+                                    new_meter.serial,
+                                    inverter_unit_id,
+                                    meter_id,
                                 )
 
                         new_meter.via_device = new_inverter.uid_base
                         self.meters.append(new_meter)
-                        _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
+                        _LOGGER.debug("Found I%sM%s", inverter_unit_id, meter_id)
 
-                    except (
+                    except (  # noqa: PERF203
                         ModbusConnectionError,
                         ModbusProtocolError,
                         ModbusTimeoutError,
                     ) as e:
-                        raise HubInitFailed(f"{e}")
+                        raise HubInitFailed(f"{e}") from e
 
                     except DeviceInvalid as e:
-                        _LOGGER.debug(f"I{inverter_unit_id}M{meter_id}: {e}")
-                        pass
+                        _LOGGER.debug("I%sM%s: %s", inverter_unit_id, meter_id, e)
 
             if self._detect_batteries:
                 # SolarEdge proprietary battery block for up to three batteries.
                 for battery_id in BATTERY_REG_BASE:
                     try:
                         _LOGGER.debug(
-                            f"Looking for battery I{inverter_unit_id}B{battery_id}"
+                            "Looking for battery I%sB%s", inverter_unit_id, battery_id
                         )
                         new_battery = SolarEdgeBattery(
                             inverter_unit_id, battery_id, self
@@ -391,30 +416,29 @@ class SolarEdgeModbusMultiHub:
                         for battery in self.batteries:
                             if new_battery.serial == battery.serial:
                                 _LOGGER.warning(
-                                    (
-                                        f"Duplicate serial {new_battery.serial} "
-                                        f"on I{inverter_unit_id}B{battery_id}"
-                                    ),
+                                    "Duplicate serial %s on I%sB%s",
+                                    new_battery.serial,
+                                    inverter_unit_id,
+                                    battery_id,
                                 )
-                                raise DeviceInvalid(
+                                raise DeviceInvalid(  # noqa: TRY301
                                     f"Duplicate B{battery_id} serial "
                                     f"{new_battery.serial}"
                                 )
 
                         new_battery.via_device = new_inverter.uid_base
                         self.batteries.append(new_battery)
-                        _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
+                        _LOGGER.debug("Found I%sB%s", inverter_unit_id, battery_id)
 
-                    except (
+                    except (  # noqa: PERF203
                         ModbusConnectionError,
                         ModbusProtocolError,
                         ModbusTimeoutError,
                     ) as e:
-                        raise HubInitFailed(f"{e}")
+                        raise HubInitFailed(f"{e}") from e
 
                     except DeviceInvalid as e:
-                        _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
-                        pass
+                        _LOGGER.debug("I%sB%s: %s", inverter_unit_id, battery_id, e)
 
             # DER Storage Capacity (SunSpec model 713). Independent of battery
             # detection: it is read from the SunSpec chain and reported on the
@@ -441,13 +465,13 @@ class SolarEdgeModbusMultiHub:
                 await evse.read_modbus_data()
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise HubInitFailed(f"Read error: {e}")
+            raise HubInitFailed(f"Read error: {e}") from e
 
         except DeviceInvalid as e:
-            raise HubInitFailed(f"Invalid device: {e}")
+            raise HubInitFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            raise HubInitFailed(f"Timeout error: {e}")
+            raise HubInitFailed(f"Timeout error: {e}") from e
 
         self.initalized = True
 
@@ -459,7 +483,7 @@ class SolarEdgeModbusMultiHub:
                 async with asyncio.timeout(self.coordinator_timeout):
                     await self._async_init_solaredge()
 
-            except TimeoutError:
+            except TimeoutError as err:
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -471,7 +495,7 @@ class SolarEdgeModbusMultiHub:
                 )
                 raise HubInitFailed(
                     f"Coordinator setup timed out after {self.coordinator_timeout} seconds."
-                )
+                ) from err
 
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
@@ -490,11 +514,11 @@ class SolarEdgeModbusMultiHub:
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             await self.connection.disconnect()
-            raise DataUpdateFailed(f"Update failed: {e}")
+            raise DataUpdateFailed(f"Update failed: {e}") from e
 
         except DeviceInvalid as e:
             await self.connection.disconnect()
-            raise DataUpdateFailed(f"Invalid device: {e}")
+            raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
             await self.connection.disconnect()
@@ -502,21 +526,25 @@ class SolarEdgeModbusMultiHub:
             self._coordinator_timeouts_count += 1
 
             _LOGGER.debug(
-                f"Coordinator timeout {self._coordinator_timeouts_count} limit {self._coordinator_timeouts_limit}"
+                "Coordinator timeout %s limit %s",
+                self._coordinator_timeouts_count,
+                self._coordinator_timeouts_limit,
             )
 
             if self._coordinator_timeouts_count >= self._coordinator_timeouts_limit:
                 _LOGGER.warning(
-                    f"Coordinator has timed out "
-                    f"{self._coordinator_timeouts_limit} times in a row."
+                    "Coordinator has timed out %s times in a row.",
+                    self._coordinator_timeouts_limit,
                 )
                 self._coordinator_timeouts_count = 0
 
-            raise DataUpdateFailed(f"Timeout error: {e}")
+            raise DataUpdateFailed(f"Timeout error: {e}") from e
 
         if self._coordinator_timeouts_count > 0:
             _LOGGER.debug(
-                f"Coordinator timeout count {self._coordinator_timeouts_count} limit {self._coordinator_timeouts_limit}"
+                "Coordinator timeout count %s limit %s",
+                self._coordinator_timeouts_count,
+                self._coordinator_timeouts_limit,
             )
             self._coordinator_timeouts_count = 0
 
@@ -541,12 +569,12 @@ class SolarEdgeModbusMultiHub:
             return
 
         if cycles_remaining <= 1:
-            _LOGGER.debug(f"Clearing unit {unit} request spacing.")
+            _LOGGER.debug("Clearing unit %s request spacing.", unit)
             self.connection.for_unit(unit).set_message_spacing(0)
             del self._write_settle_cycles[unit]
         else:
             _LOGGER.debug(
-                f"Unit {unit} has {cycles_remaining - 1} refreshes until clearing."
+                "Unit %s has %s refreshes until clearing.", unit, cycles_remaining - 1
             )
             self._write_settle_cycles[unit] = cycles_remaining - 1
 
@@ -562,8 +590,10 @@ class SolarEdgeModbusMultiHub:
 
         if self.sleep_after_write > 0:
             _LOGGER.debug(
-                f"Spacing requests to unit {unit} for {self.sleep_after_write} "
-                f"seconds after write to field {field}."
+                "Spacing requests to unit %s for %s seconds after write to field %s.",
+                unit,
+                self.sleep_after_write,
+                field,
             )
             self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
             self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
@@ -572,38 +602,43 @@ class SolarEdgeModbusMultiHub:
             await async_write_with_retry(component, field, value)
 
         except IllegalFunctionError as e:
-            _LOGGER.debug(f"Unit {unit} Write IllegalFunction: {e}")
-            raise HomeAssistantError(f"Function not supported by device at ID {unit}.")
+            _LOGGER.debug("Unit %s Write IllegalFunction: %s", unit, e)
+            raise HomeAssistantError(
+                f"Function not supported by device at ID {unit}."
+            ) from e
 
         except IllegalDataAddressError as e:
-            _LOGGER.debug(f"Unit {unit} Write IllegalAddress: {e}")
-            raise HomeAssistantError(f"Address not supported at device at ID {unit}.")
+            _LOGGER.debug("Unit %s Write IllegalAddress: %s", unit, e)
+            raise HomeAssistantError(
+                f"Address not supported at device at ID {unit}."
+            ) from e
 
         except IllegalDataValueError as e:
-            _LOGGER.debug(f"Unit {unit} Write IllegalValue: {e}")
-            raise HomeAssistantError(f"Value invalid for device at ID {unit}.")
+            _LOGGER.debug("Unit %s Write IllegalValue: %s", unit, e)
+            raise HomeAssistantError(f"Value invalid for device at ID {unit}.") from e
 
         except ModbusExceptionError as e:
-            _LOGGER.debug(f"Unit {unit} Write rejected: {e}")
+            _LOGGER.debug("Unit %s Write rejected: %s", unit, e)
             raise HomeAssistantError(
                 f"Write rejected by device at ID {unit}: {e}"
             ) from e
 
         except ModbusTimeoutError as e:
-            _LOGGER.error(f"Write failed: No response from inverter ID {unit}.")
+            _LOGGER.error("Write failed: No response from inverter ID %s.", unit)
             raise HomeAssistantError(f"No response from inverter ID {unit}.") from e
 
         except (ModbusConnectionError, ModbusProtocolError) as e:
-            _LOGGER.error(f"Connection failed: {e}")
-            raise HomeAssistantError(f"Connection to inverter ID {unit} failed.")
+            _LOGGER.error("Connection failed: %s", e)
+            raise HomeAssistantError(f"Connection to inverter ID {unit} failed.") from e
 
-        _LOGGER.debug(f"Finished with write {field}.")
+        _LOGGER.debug("Finished with write %s.", field)
 
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
 
     @property
     def initalized(self):
+        """Return the initalized."""
         return self._initalized
 
     @initalized.setter
@@ -624,6 +659,16 @@ class SolarEdgeModbusMultiHub:
         return self._id
 
     @property
+    def hass(self) -> HomeAssistant:
+        """Return the Home Assistant instance."""
+        return self._hass
+
+    @property
+    def entry_id(self) -> str:
+        """Return the config entry ID."""
+        return self._entry_id
+
+    @property
     def hub_host(self) -> str:
         """Return the modbus client host."""
         return self._host
@@ -635,54 +680,67 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def option_storage_control(self) -> bool:
+        """Return the option storage control."""
         return self._adv_storage_control
 
     @property
     def option_site_limit_control(self) -> bool:
+        """Return the option site limit control."""
         return self._adv_site_limit_control
 
     @property
     def option_detect_extras(self) -> bool:
+        """Return the option detect extras."""
         return self._detect_extras
 
     @property
     def allow_battery_energy_reset(self) -> bool:
+        """Return the allow battery energy reset."""
         return self._allow_battery_energy_reset
 
     @property
     def battery_rating_adjust(self) -> int:
+        """Return the battery rating adjust."""
         return (self._battery_rating_adjust + 100) / 100
 
     @property
     def battery_energy_reset_cycles(self) -> int:
+        """Return the battery energy reset cycles."""
         return self._battery_energy_reset_cycles
 
     @property
     def close_after_polling(self) -> bool:
+        """Return the close after polling."""
         return self._close_after_polling
 
     @property
     def number_of_meters(self) -> int:
+        """Return the number of meters."""
         return len(self.meters)
 
     @property
     def number_of_batteries(self) -> int:
+        """Return the number of batteries."""
         return len(self.batteries)
 
     @property
     def number_of_inverters(self) -> int:
+        """Return the number of inverters."""
         return len(self._inverter_list)
 
     @property
     def request_timeout(self) -> int:
+        """Return the request timeout."""
         return self._request_timeout
 
     @property
     def sleep_after_write(self) -> int:
+        """Return the sleep after write."""
         return self._sleep_after_write
 
     @property
     def coordinator_timeout(self) -> int:
+        """Return the coordinator timeout."""
         if not self.initalized:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
@@ -709,7 +767,7 @@ class SolarEdgeModbusMultiHub:
         # Add the sleep_after_write value to the coordinator timeout
         this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES
 
-        _LOGGER.debug(f"coordinator timeout is {this_timeout}")
+        _LOGGER.debug("coordinator timeout is %s", this_timeout)
         return this_timeout
 
 
@@ -717,6 +775,7 @@ class SolarEdgeInverter:
     """Defines a SolarEdge inverter."""
 
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
+        """Initialize the solar edge inverter."""
         self.inverter_unit_id = device_id
         self.hub = hub
         self.mmppt_units = []
@@ -760,14 +819,14 @@ class SolarEdgeInverter:
         )
 
     def _feature_timeout_issue_id(self, feature: str) -> str:
-        return f"detect_timeout_{feature}_{self.hub._entry_id}_{self.inverter_unit_id}"
+        return f"detect_timeout_{feature}_{self.hub.entry_id}_{self.inverter_unit_id}"
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
 
         try:
             _LOGGER.debug(
-                f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
+                "Reading component InverterCommon(for_unit(%s))", self.inverter_unit_id
             )
             await self.hub.component_update(self.inverter_unit_id, self.inverter_common)
 
@@ -778,15 +837,17 @@ class SolarEdgeInverter:
         except (ModbusConnectionError, ModbusProtocolError) as e:
             raise DeviceInvalid(
                 f"Error reading inverter ID {self.inverter_unit_id} at InverterCommon: {e}"
-            )
+            ) from e
 
-        except ModbusTimeoutError:
-            raise DeviceInvalid(f"No response from Device ID {self.inverter_unit_id}")
+        except ModbusTimeoutError as err:
+            raise DeviceInvalid(
+                f"No response from Device ID {self.inverter_unit_id}"
+            ) from err
 
-        except ModbusExceptionError:
+        except ModbusExceptionError as err:
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
-            )
+            ) from err
 
         if DETECT_EVSE_REGEX.match(self.inverter_common.C_Model):
             raise DeviceIsEVSE(f"Model {self.inverter_common.C_Model}")
@@ -826,8 +887,9 @@ class SolarEdgeInverter:
             ValueError,
         ) as e:
             _LOGGER.warning(
-                f"Could not parse inverter version "
-                f"{self.inverter_common.C_Version!r}: {e}"
+                "Could not parse inverter version %r: %s",
+                self.inverter_common.C_Version,
+                e,
             )
             self._use_status_vendor4 = False
             self._use_mmppt_units = False
@@ -839,7 +901,7 @@ class SolarEdgeInverter:
         if self.use_mmppt_units:
             try:
                 _LOGGER.debug(
-                    f"Reading component MmpptCommon(for_unit({self.inverter_unit_id}))"
+                    "Reading component MmpptCommon(for_unit(%s))", self.inverter_unit_id
                 )
                 await self.hub.component_update(
                     self.inverter_unit_id, self.mmppt_common
@@ -850,15 +912,15 @@ class SolarEdgeInverter:
                 )
 
                 if (
-                    self.mmppt_common.mmppt_DID == SunSpecNotImpl.UINT16
-                    or self.mmppt_common.mmppt_Units == SunSpecNotImpl.UINT16
-                    or self.mmppt_common.mmppt_DID not in [160]
+                    SunSpecNotImpl.UINT16
+                    in (self.mmppt_common.mmppt_DID, self.mmppt_common.mmppt_Units)
+                    or self.mmppt_common.mmppt_DID != 160
                     or self.mmppt_common.mmppt_Units not in [2, 3]
                 ):
-                    _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
+                    _LOGGER.debug("I%s is NOT Multiple MPPT", self.inverter_unit_id)
 
                 else:
-                    _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
+                    _LOGGER.debug("I%s is Multiple MPPT", self.inverter_unit_id)
                     is_multi_mppt = True
 
             except ModbusConnectionError as e:
@@ -877,11 +939,11 @@ class SolarEdgeInverter:
                 ) from e
 
             except ModbusExceptionError:
-                _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
+                _LOGGER.debug("I%s is NOT Multiple MPPT", self.inverter_unit_id)
         else:
             _LOGGER.debug(
-                f"I{self.inverter_unit_id} is NOT Multiple MPPT "
-                "(firmware does not support MMPPT units)"
+                "I%s is NOT Multiple MPPT (firmware does not support MMPPT units)",
+                self.inverter_unit_id,
             )
 
         self.hub.mmppt_common[self.inverter_unit_id] = (
@@ -891,7 +953,7 @@ class SolarEdgeInverter:
         if is_multi_mppt:
             for unit_index in range(self.mmppt_common.mmppt_Units):
                 self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
-                _LOGGER.debug(f"I{self.inverter_unit_id} MMPPT Unit {unit_index}")
+                _LOGGER.debug("I%s MMPPT Unit %s", self.inverter_unit_id, unit_index)
 
     async def init_der_storage(self, der_storage_models) -> None:
         """Set up DER Storage Capacity (SunSpec model 713) blocks.
@@ -908,22 +970,23 @@ class SolarEdgeInverter:
             )
             try:
                 _LOGGER.debug(
-                    f"Reading component DERStorageCapacity"
-                    f"(for_unit({self.inverter_unit_id}))"
+                    "Reading component DERStorageCapacity(for_unit(%s))",
+                    self.inverter_unit_id,
                 )
                 await self.hub.component_update(self.inverter_unit_id, der)
 
             except (ModbusError, SunSpecError) as e:
-                _LOGGER.debug(f"I{self.inverter_unit_id}DERB{der_id}: {e}")
+                _LOGGER.debug("I%sDERB%s: %s", self.inverter_unit_id, der_id, e)
                 continue
 
             _log_component_fields(f"I{self.inverter_unit_id}DERB{der_id}", der)
             self.der_storage.append(der)
             _LOGGER.debug(
-                f"Found I{self.inverter_unit_id} DER Storage Capacity {der_id}"
+                "Found I%s DER Storage Capacity %s", self.inverter_unit_id, der_id
             )
 
     async def read_der_storage(self) -> None:
+        """Refresh DER Storage Capacity blocks if any DER sensor is enabled."""
         # Entities register as listeners only when enabled; skip the read if
         # every DER sensor is disabled.
         if not self.der_storage_listeners:
@@ -932,8 +995,8 @@ class SolarEdgeInverter:
         for der_id, der in enumerate(self.der_storage, 1):
             try:
                 _LOGGER.debug(
-                    f"Reading component DERStorageCapacity"
-                    f"(for_unit({self.inverter_unit_id}))"
+                    "Reading component DERStorageCapacity(for_unit(%s))",
+                    self.inverter_unit_id,
                 )
                 await self.hub.component_update(self.inverter_unit_id, der)
 
@@ -963,17 +1026,17 @@ class SolarEdgeInverter:
 
             _log_component_fields(f"I{self.inverter_unit_id}DERB{der_id}", der)
 
-    async def read_modbus_data(self) -> None:
+    async def read_modbus_data(self) -> None:  # noqa: C901
         """Read and update dynamic modbus registers."""
 
         try:
             _LOGGER.debug(
-                f"Reading component InverterCommon(for_unit({self.inverter_unit_id}))"
+                "Reading component InverterCommon(for_unit(%s))", self.inverter_unit_id
             )
             await self.hub.component_update(self.inverter_unit_id, self.inverter_common)
 
             _LOGGER.debug(
-                f"Reading component InverterData(for_unit({self.inverter_unit_id}))"
+                "Reading component InverterData(for_unit(%s))", self.inverter_unit_id
             )
             await self.hub.component_update(self.inverter_unit_id, self.inverter_data)
 
@@ -1010,7 +1073,7 @@ class SolarEdgeInverter:
         ):
             try:
                 _LOGGER.debug(
-                    f"Reading component MmpptData(for_unit({self.inverter_unit_id}))"
+                    "Reading component MmpptData(for_unit(%s))", self.inverter_unit_id
                 )
                 await self.hub.component_update(self.inverter_unit_id, self.mmppt_data)
 
@@ -1040,7 +1103,8 @@ class SolarEdgeInverter:
         if self.hub.option_detect_extras and self.global_power_control is not False:
             try:
                 _LOGGER.debug(
-                    f"Reading component GlobalDynamicPowerControl(for_unit({self.inverter_unit_id}))"
+                    "Reading component GlobalDynamicPowerControl(for_unit(%s))",
+                    self.inverter_unit_id,
                 )
                 await self.hub.component_update(
                     self.inverter_unit_id, self.global_power_control_data
@@ -1053,14 +1117,14 @@ class SolarEdgeInverter:
                 )
 
                 ir.async_delete_issue(
-                    self.hub._hass, DOMAIN, self._feature_timeout_issue_id("gpc")
+                    self.hub.hass, DOMAIN, self._feature_timeout_issue_id("gpc")
                 )
 
             except (IllegalDataAddressError, IllegalFunctionError):
                 self.global_power_control = False
                 self._gpc_timeouts_count = 0
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: global power control NOT available"
+                    "I%s: global power control NOT available", self.inverter_unit_id
                 )
 
             except (
@@ -1077,7 +1141,7 @@ class SolarEdgeInverter:
                     self.global_power_control = False
                     self._gpc_timeouts_count = 0
                     ir.async_create_issue(
-                        self.hub._hass,
+                        self.hub.hass,
                         DOMAIN,
                         self._feature_timeout_issue_id("gpc"),
                         is_fixable=True,
@@ -1088,28 +1152,31 @@ class SolarEdgeInverter:
                             "host": self.hub.hub_host,
                         },
                         data={
-                            "entry_id": self.hub._entry_id,
+                            "entry_id": self.hub.entry_id,
                             "inverter_unit_id": self.inverter_unit_id,
                         },
                     )
                     _LOGGER.debug(
-                        f"I{self.inverter_unit_id}: The inverter did not respond "
-                        "while reading data for Global Dynamic Power Controls. "
-                        "These entities will be unavailable."
+                        "I%s: The inverter did not respond while reading data for "
+                        "Global Dynamic Power Controls. These entities will be "
+                        "unavailable.",
+                        self.inverter_unit_id,
                     )
                 else:
                     _LOGGER.debug(
-                        f"I{self.inverter_unit_id}: global power control read "
-                        f"failed ({self._gpc_timeouts_count} of "
-                        f"{RetrySettings.FeatureProbeTimeouts} times) before disabling."
+                        "I%s: global power control read failed (%s of %s times) before "
+                        "disabling.",
+                        self.inverter_unit_id,
+                        self._gpc_timeouts_count,
+                        RetrySettings.FeatureProbeTimeouts,
                     )
 
         """ Advanced Power Control: Power Control Block """
         if self.hub.option_detect_extras and self.advanced_power_control is not False:
             try:
                 _LOGGER.debug(
-                    "Reading component "
-                    f"AdvancedPowerControl(for_unit({self.inverter_unit_id}))"
+                    "Reading component AdvancedPowerControl(for_unit(%s))",
+                    self.inverter_unit_id,
                 )
                 await self.hub.component_update(
                     self.inverter_unit_id, self.advanced_power_control_data
@@ -1122,14 +1189,14 @@ class SolarEdgeInverter:
                 )
 
                 ir.async_delete_issue(
-                    self.hub._hass, DOMAIN, self._feature_timeout_issue_id("apc")
+                    self.hub.hass, DOMAIN, self._feature_timeout_issue_id("apc")
                 )
 
             except (IllegalDataAddressError, IllegalFunctionError):
                 self.advanced_power_control = False
                 self._apc_timeouts_count = 0
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: advanced power control NOT available"
+                    "I%s: advanced power control NOT available", self.inverter_unit_id
                 )
 
             except (
@@ -1145,7 +1212,7 @@ class SolarEdgeInverter:
                     self.advanced_power_control = False
                     self._apc_timeouts_count = 0
                     ir.async_create_issue(
-                        self.hub._hass,
+                        self.hub.hass,
                         DOMAIN,
                         self._feature_timeout_issue_id("apc"),
                         is_fixable=True,
@@ -1156,28 +1223,30 @@ class SolarEdgeInverter:
                             "host": self.hub.hub_host,
                         },
                         data={
-                            "entry_id": self.hub._entry_id,
+                            "entry_id": self.hub.entry_id,
                             "inverter_unit_id": self.inverter_unit_id,
                         },
                     )
                     _LOGGER.debug(
-                        f"I{self.inverter_unit_id}: The inverter did not respond "
-                        "while reading data for Advanced Power Controls. These "
-                        "entities will be unavailable."
+                        "I%s: The inverter did not respond while reading data for "
+                        "Advanced Power Controls. These entities will be unavailable.",
+                        self.inverter_unit_id,
                     )
                 else:
                     _LOGGER.debug(
-                        f"I{self.inverter_unit_id}: advanced power control read "
-                        f"failed ({self._apc_timeouts_count} of "
-                        f"{RetrySettings.FeatureProbeTimeouts} times) before disabling."
+                        "I%s: advanced power control read failed (%s of %s times) "
+                        "before disabling.",
+                        self.inverter_unit_id,
+                        self._apc_timeouts_count,
+                        RetrySettings.FeatureProbeTimeouts,
                     )
 
         """ Power Control Options: Site Limit Control """
         if self.hub.option_site_limit_control and self.site_limit_control is not False:
             try:
                 _LOGGER.debug(
-                    "Reading component "
-                    f"SiteLimitControl(for_unit({self.inverter_unit_id}))"
+                    "Reading component SiteLimitControl(for_unit(%s))",
+                    self.inverter_unit_id,
                 )
                 await self.hub.component_update(
                     self.inverter_unit_id, self.site_limit_control_data
@@ -1193,7 +1262,7 @@ class SolarEdgeInverter:
                 # revisit with own block or exclude Ext_Prod_Max and retry
                 self.site_limit_control = False
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: site limit control NOT available"
+                    "I%s: site limit control NOT available", self.inverter_unit_id
                 )
 
             except ModbusConnectionError as e:
@@ -1224,8 +1293,8 @@ class SolarEdgeInverter:
 
             try:
                 _LOGGER.debug(
-                    "Reading component "
-                    f"StorageControl(for_unit({self.inverter_unit_id}))"
+                    "Reading component StorageControl(for_unit(%s))",
+                    self.inverter_unit_id,
                 )
                 await self.hub.component_update(
                     self.inverter_unit_id, self.storage_control_data
@@ -1239,7 +1308,7 @@ class SolarEdgeInverter:
             except ModbusExceptionError:
                 self.storage_control = False
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: storage control NOT available"
+                    "I%s: storage control NOT available", self.inverter_unit_id
                 )
 
             except ModbusConnectionError as e:
@@ -1279,6 +1348,7 @@ class SolarEdgeInverter:
 
     @property
     def fw_version(self) -> str | None:
+        """Return the fw version."""
         return getattr(self.inverter_common, "C_Version", None)
 
     @property
@@ -1296,30 +1366,37 @@ class SolarEdgeInverter:
 
     @property
     def is_mmppt(self) -> bool:
+        """Return True if mmppt."""
         return self.hub.mmppt_common[self.inverter_unit_id] is not None
 
     @property
     def use_status_vendor4(self) -> bool:
+        """Return the use status vendor4."""
         return self._use_status_vendor4
 
     @property
     def use_mmppt_units(self) -> bool:
+        """Return the use mmppt units."""
         return self._use_mmppt_units
 
     @property
     def has_storage_control(self) -> bool | None:
+        """Return True if storage control."""
         return self.storage_control
 
     @property
     def has_global_power_control(self) -> bool | None:
+        """Return True if global power control."""
         return self.global_power_control
 
     @property
     def has_advanced_power_control(self) -> bool | None:
+        """Return True if advanced power control."""
         return self.advanced_power_control
 
     @property
     def has_site_limit_control(self) -> bool | None:
+        """Return True if site limit control."""
         return self.site_limit_control
 
 
@@ -1329,6 +1406,7 @@ class SolarEdgeMMPPTUnit:
     def __init__(
         self, inverter: SolarEdgeInverter, hub: SolarEdgeModbusMultiHub, unit: int
     ) -> None:
+        """Initialize the solar edge mmppt unit."""
         self.inverter = inverter
         self.hub = hub
         self.unit = unit
@@ -1349,10 +1427,12 @@ class SolarEdgeMMPPTUnit:
 
     @property
     def mmppt_id(self) -> str:
+        """Return the mmppt id."""
         return self.inverter.mmppt_data.units[self.unit].ID
 
     @property
     def mmppt_idstr(self) -> str:
+        """Return the mmppt idstr."""
         return self.inverter.mmppt_data.units[self.unit].IDStr
 
 
@@ -1362,6 +1442,7 @@ class SolarEdgeMeter:
     def __init__(
         self, device_id: int, meter_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
+        """Initialize the solar edge meter."""
         self.inverter_unit_id = device_id
         self.hub = hub
         self.meter_id = meter_id
@@ -1372,8 +1453,8 @@ class SolarEdgeMeter:
 
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
-        except KeyError:
-            raise DeviceInvalid(f"Invalid meter_id {self.meter_id}")
+        except KeyError as err:
+            raise DeviceInvalid(f"Invalid meter_id {self.meter_id}") from err
 
         if self.mmppt_common is not None:
             if self.mmppt_common.mmppt_Units == 2:
@@ -1397,9 +1478,12 @@ class SolarEdgeMeter:
         )
 
     async def init_device(self) -> None:
+        """Init device."""
         try:
             _LOGGER.debug(
-                f"Reading component MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+                "Reading component MeterInfo(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
             await self.hub.component_update(self.inverter_unit_id, self.meter_info)
 
@@ -1419,12 +1503,12 @@ class SolarEdgeMeter:
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise DeviceInvalid(
                 f"Error reading MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
-            )
+            ) from e
 
-        except ModbusExceptionError:
+        except ModbusExceptionError as err:
             raise DeviceInvalid(
                 f"Meter I{self.inverter_unit_id}M{self.meter_id}: unsupported address"
-            )
+            ) from err
 
         self.manufacturer = self.meter_info.C_Manufacturer
         self.model = self.meter_info.C_Model
@@ -1441,9 +1525,12 @@ class SolarEdgeMeter:
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
     async def read_modbus_data(self) -> None:
+        """Read modbus data."""
         try:
             _LOGGER.debug(
-                f"Reading component MeterData(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+                "Reading component MeterData(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
             await self.hub.component_update(self.inverter_unit_id, self.meter_data)
 
@@ -1491,6 +1578,7 @@ class SolarEdgeMeter:
 
     @property
     def via_device(self) -> tuple[str, str]:
+        """Return the via device."""
         return self._via_device
 
     @via_device.setter
@@ -1504,6 +1592,7 @@ class SolarEdgeBattery:
     def __init__(
         self, device_id: int, battery_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
+        """Initialize the solar edge battery."""
         self.inverter_unit_id = device_id
         self.hub = hub
         self.battery_id = battery_id
@@ -1513,8 +1602,8 @@ class SolarEdgeBattery:
 
         try:
             self.base_offset = BATTERY_REG_BASE[self.battery_id] - BATTERY_REG_BASE[1]
-        except KeyError:
-            raise DeviceInvalid(f"Invalid battery_id {self.battery_id}")
+        except KeyError as err:
+            raise DeviceInvalid(f"Invalid battery_id {self.battery_id}") from err
 
         self.battery_info = BatteryInfo(
             self.hub.connection.for_unit(self.inverter_unit_id),
@@ -1526,9 +1615,12 @@ class SolarEdgeBattery:
         )
 
     async def init_device(self) -> None:
+        """Init device."""
         try:
             _LOGGER.debug(
-                f"Reading component BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+                "Reading component BatteryInfo(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
             async with asyncio.timeout(self.hub.request_timeout):
                 # only try battery once during init, otherwise this takes too long
@@ -1540,20 +1632,20 @@ class SolarEdgeBattery:
                 f"I{self.inverter_unit_id}B{self.battery_id}", self.battery_info
             )
 
-        except TimeoutError:
+        except TimeoutError as err:
             raise DeviceInvalid(
                 f"Timeout BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
-            )
+            ) from err
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise DeviceInvalid(
                 f"Error reading BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
-            )
+            ) from e
 
-        except ModbusExceptionError:
+        except ModbusExceptionError as err:
             raise DeviceInvalid(
                 f"Battery I{self.inverter_unit_id}B{self.battery_id}: unsupported address"
-            )
+            ) from err
 
         if (
             float_to_hex(self.battery_info.B_RatedEnergy) == hex(SunSpecNotImpl.FLOAT32)
@@ -1577,9 +1669,12 @@ class SolarEdgeBattery:
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
     async def read_modbus_data(self) -> None:
+        """Read modbus data."""
         try:
             _LOGGER.debug(
-                f"Reading component BatteryData(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+                "Reading component BatteryData(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
             await self.hub.component_update(self.inverter_unit_id, self.battery_data)
 
@@ -1617,6 +1712,7 @@ class SolarEdgeBattery:
 
     @property
     def via_device(self) -> tuple[str, str]:
+        """Return the via device."""
         return self._via_device
 
     @via_device.setter
@@ -1625,14 +1721,17 @@ class SolarEdgeBattery:
 
     @property
     def allow_battery_energy_reset(self) -> bool:
+        """Return the allow battery energy reset."""
         return self.hub.allow_battery_energy_reset
 
     @property
     def battery_rating_adjust(self) -> int:
+        """Return the battery rating adjust."""
         return self.hub.battery_rating_adjust
 
     @property
     def battery_energy_reset_cycles(self) -> int:
+        """Return the battery energy reset cycles."""
         return self.hub.battery_energy_reset_cycles
 
 
@@ -1640,6 +1739,7 @@ class SolarEdgeEVSE:
     """Class that defines a SolarEdge EVSE."""
 
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
+        """Initialize the solar edge evse."""
         self.evse_unit_id = device_id
         self.hub = hub
         self.has_parent = False
@@ -1652,7 +1752,7 @@ class SolarEdgeEVSE:
 
         try:
             _LOGGER.debug(
-                f"Reading component EvseCommon(for_unit({self.evse_unit_id}))"
+                "Reading component EvseCommon(for_unit(%s))", self.evse_unit_id
             )
             await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
@@ -1661,10 +1761,10 @@ class SolarEdgeEVSE:
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             raise DeviceInvalid(
                 f"Error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
-            )
+            ) from e
 
-        except ModbusExceptionError:
-            raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
+        except ModbusExceptionError as err:
+            raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.") from err
 
         if (
             self.evse_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
@@ -1688,14 +1788,14 @@ class SolarEdgeEVSE:
 
         try:
             _LOGGER.debug(
-                f"Reading component EvseCommon(for_unit({self.evse_unit_id}))"
+                "Reading component EvseCommon(for_unit(%s))", self.evse_unit_id
             )
             await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
             _log_component_fields(f"E{self.evse_unit_id}", self.evse_common)
 
         except ModbusExceptionError:
-            _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
+            _LOGGER.error("E%s: EVSE register(s) NOT available", self.evse_unit_id)
 
         except ModbusConnectionError as e:
             raise ModbusConnectionError(
@@ -1714,6 +1814,7 @@ class SolarEdgeEVSE:
 
     @property
     def fw_version(self) -> str | None:
+        """Return the fw version."""
         return getattr(self.evse_common, "C_Version", None)
 
     @property

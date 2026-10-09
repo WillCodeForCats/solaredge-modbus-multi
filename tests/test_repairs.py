@@ -22,6 +22,7 @@ def _make_flow(hass, entry_id, inverter, attr):
 
 
 async def test_confirm_step_shows_form_first(hass):
+    """Test confirm step shows form first."""
     inverter = SimpleNamespace(inverter_unit_id=1, global_power_control=False)
     flow = _make_flow(hass, "test_entry", inverter, "global_power_control")
 
@@ -33,6 +34,7 @@ async def test_confirm_step_shows_form_first(hass):
 
 
 async def test_submitting_resets_the_flag_to_none(hass):
+    """Test submitting resets the flag to none."""
     inverter = SimpleNamespace(inverter_unit_id=1, global_power_control=False)
     flow = _make_flow(hass, "test_entry", inverter, "global_power_control")
 
@@ -43,6 +45,7 @@ async def test_submitting_resets_the_flag_to_none(hass):
 
 
 async def test_resets_the_right_inverter_and_attribute(hass):
+    """Test resets the right inverter and attribute."""
     inverter_1 = SimpleNamespace(inverter_unit_id=1, advanced_power_control=False)
     inverter_2 = SimpleNamespace(inverter_unit_id=2, advanced_power_control=False)
     hub = SimpleNamespace(inverters=[inverter_1, inverter_2])
@@ -58,6 +61,7 @@ async def test_resets_the_right_inverter_and_attribute(hass):
 
 
 async def test_unknown_inverter_unit_id_is_a_no_op(hass):
+    """Test unknown inverter unit id is a no op."""
     inverter = SimpleNamespace(inverter_unit_id=1, global_power_control=False)
     flow = _make_flow(hass, "test_entry", inverter, "global_power_control")
     flow._inverter_unit_id = 99

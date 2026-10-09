@@ -114,6 +114,7 @@ async def _get_diagnostics(hass, hub):
 
 
 async def test_meters_on_different_inverters_get_distinct_keys(hass):
+    """Test meters on different inverters get distinct keys."""
     hub = _fake_hub(meters=[_fake_meter(1, 1), _fake_meter(2, 1)])
 
     data = await _get_diagnostics(hass, hub)
@@ -125,6 +126,7 @@ async def test_meters_on_different_inverters_get_distinct_keys(hass):
 
 
 async def test_batteries_on_different_inverters_get_distinct_keys(hass):
+    """Test batteries on different inverters get distinct keys."""
     hub = _fake_hub(batteries=[_fake_battery(1, 1), _fake_battery(2, 1)])
 
     data = await _get_diagnostics(hass, hub)
@@ -136,6 +138,7 @@ async def test_batteries_on_different_inverters_get_distinct_keys(hass):
 
 
 async def test_der_storage_on_different_inverters_get_distinct_keys(hass):
+    """Test der batteries on different inverters get distinct keys."""
     hub = _fake_hub(inverters=[_fake_inverter(1, 1), _fake_inverter(2, 1)])
 
     data = await _get_diagnostics(hass, hub)
@@ -147,6 +150,7 @@ async def test_der_storage_on_different_inverters_get_distinct_keys(hass):
 
 
 async def test_der_storage_and_regular_battery_keys_do_not_collide(hass):
+    """Test der storage and regular battery keys do not collide."""
     hub = _fake_hub(
         batteries=[_fake_battery(1, 1)],
         inverters=[_fake_inverter(1, 1)],
@@ -159,6 +163,7 @@ async def test_der_storage_and_regular_battery_keys_do_not_collide(hass):
 
 
 async def test_evse_includes_sunspec_scan_results(hass):
+    """Test evse includes sunspec scan results."""
     models = SunSpecModels()
     models[1] = [SunSpecModel(model_id=1, address=40002, length=65)]
     hub = _fake_hub(evses=[_fake_evse(1, sunspec_models=models)])
@@ -171,6 +176,7 @@ async def test_evse_includes_sunspec_scan_results(hass):
 
 
 async def test_evse_sunspec_scan_defaults_to_none(hass):
+    """Test evse sunspec scan defaults to none."""
     hub = _fake_hub(evses=[_fake_evse(1)])
 
     data = await _get_diagnostics(hass, hub)

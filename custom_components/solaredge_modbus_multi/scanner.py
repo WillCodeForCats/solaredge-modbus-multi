@@ -6,6 +6,7 @@ Based on work by thargy: https://github.com/thargy/modbus-scanner
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import logging
 
 from homeassistant.exceptions import HomeAssistantError
@@ -15,6 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class SolarEdgeDeviceScanner:
     # Device scanning request
+    """Solar edge device scanner."""
+
     REQUEST = [0x0, 0x0, 0x0, 0x0, 0x0, 0x6, 0x0, 0x3, 0x9C, 0x40, 0x0, 0x09]
 
     # Device scanning response (inverter signature)
@@ -71,6 +74,7 @@ class SolarEdgeDeviceScanner:
             port: Target port number.
             timeout: Connection timeout in seconds.
             scan_retries: Number of retry attempts for failed scans.
+
         """
         self._connect_timeout = connect_timeout
         self._scan_retries = scan_retries
@@ -86,7 +90,7 @@ class SolarEdgeDeviceScanner:
     async def scan_list(
         self,
         device_list: list[int],
-        progress_callback: callable = None,
+        progress_callback: Callable | None = None,
     ) -> list[int]:
         """Scan a list of device IDs for SolarEdge inverters.
 
@@ -97,6 +101,7 @@ class SolarEdgeDeviceScanner:
 
         Returns:
             List of device IDs that are SolarEdge inverters.
+
         """
         total = len(device_list)
         scanned = 0
@@ -105,14 +110,14 @@ class SolarEdgeDeviceScanner:
             await progress_callback(scanned, total)
 
         for device_id in device_list:
-            _LOGGER.debug(f"Calling scan_device_id on device_id={device_id}")
+            _LOGGER.debug("Calling scan_device_id on device_id=%s", device_id)
             result = await self.scan_device_id(device_id, self._scan_timeout)
             if result == self.FOUND_INV:
                 self.inverters.append(device_id)
 
             scanned += 1
             if progress_callback:
-                _LOGGER.debug(f"scan_list progress: {scanned} of {total}")
+                _LOGGER.debug("scan_list progress: %s of %s", scanned, total)
                 await progress_callback(scanned, total)
 
         return self.inverters
@@ -128,6 +133,7 @@ class SolarEdgeDeviceScanner:
             - "inverters": Device IDs that are SolarEdge inverters
             - "other_devices": Device IDs that responded but aren't SolarEdge inverters
             - "no_response": Device IDs that didn't respond or timed out
+
         """
         inverters = []
         other_devices = []
@@ -154,24 +160,24 @@ class SolarEdgeDeviceScanner:
 
         while self._writer is None and attempt <= self._scan_retries:
             try:
-                _LOGGER.debug(f"Connecting to {self._host}:{self._port} ...")
+                _LOGGER.debug("Connecting to %s:%s ...", self._host, self._port)
                 self._reader, self._writer = await asyncio.wait_for(
                     asyncio.open_connection(self._host, self._port),
                     timeout=self._connect_timeout,
                 )
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError:  # noqa: PERF203
                 await self.disconnect()
                 attempt += 1
                 await asyncio.sleep(1.0)
                 _LOGGER.warning(
-                    f"Timeout occurred while connecting to {self._host}:{self._port}"
+                    "Timeout occurred while connecting to %s:%s", self._host, self._port
                 )
             except OSError as e:
                 await self.disconnect()
                 attempt += 1
                 await asyncio.sleep(1.0)
                 _LOGGER.warning(
-                    f"Network error connecting to {self._host}:{self._port}: {e}"
+                    "Network error connecting to %s:%s: %s", self._host, self._port, e
                 )
 
         if attempt > self._scan_retries:
@@ -200,6 +206,7 @@ class SolarEdgeDeviceScanner:
             NOT_FOUND (0) if the response was invalid or no device found.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
+
         """
         if len(response) < 7 or len(request) < self.DEVICE_ID_INDEX:
             return self.NOT_FOUND
@@ -235,6 +242,7 @@ class SolarEdgeDeviceScanner:
             HomeAssistantError: If scanning fails after all retry attempts.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
+
         """
 
         # Update request
@@ -253,32 +261,32 @@ class SolarEdgeDeviceScanner:
             try:
                 self._writer.write(bytes(request))
                 await self._writer.drain()
-                _LOGGER.debug(f"Scanning ID: {device_id} ...")
+                _LOGGER.debug("Scanning ID: %s ...", device_id)
 
                 async with asyncio.timeout(timeout):
                     response = await self._reader.read(1024)
                     result = self.device_is_inverter(request, response)
                     if result == self.FOUND_INV:
-                        _LOGGER.debug(f" {device_id} is INVERTER")
+                        _LOGGER.debug("%s is INVERTER", device_id)
                         return self.FOUND_INV
-                    else:
-                        _LOGGER.warning(
-                            f"Scanned device {device_id} did not match signature: "
-                            f"{' '.join(format(x, '02x') for x in response)}"
-                        )
+                    _LOGGER.warning(
+                        "Scanned device %s did not match signature: %s",
+                        device_id,
+                        " ".join(format(x, "02x") for x in response),
+                    )
 
-                    _LOGGER.debug(f" Received ({len(response)} bytes)")
-                    _LOGGER.debug(f" {' '.join(format(x, '02x') for x in response)}")
+                    _LOGGER.debug("Received (%s bytes)", len(response))
+                    _LOGGER.debug("%s", " ".join(format(x, "02x") for x in response))
 
                     return self.FOUND
 
-            except asyncio.TimeoutError:
-                _LOGGER.debug(f" Timed out after {timeout}s")
+            except asyncio.TimeoutError:  # noqa: PERF203
+                _LOGGER.debug("Timed out after %ss", timeout)
                 attempt += 1
 
             except OSError as e:
-                _LOGGER.debug(f" FAILED: {e}")
+                _LOGGER.debug("FAILED: %s", e)
                 attempt += 1
 
-        _LOGGER.debug(f" No device found at ID {device_id}")
+        _LOGGER.debug("No device found at ID %s", device_id)
         return self.NOT_FOUND
