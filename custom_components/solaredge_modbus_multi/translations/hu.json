@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "Akkumulátor Beállítások",
         "data": {
-          "allow_battery_energy_reset": "Akkumulátor Energiájának Visszaállítása Engedélyezve",
-          "battery_energy_reset_cycles": "Frissítési Ciklusok az Akkumulátor Energiájának Visszaállításához",
           "battery_rating_adjust": "Akkumulátor Kapacitásának Beállítása (százalék)"
         }
       }

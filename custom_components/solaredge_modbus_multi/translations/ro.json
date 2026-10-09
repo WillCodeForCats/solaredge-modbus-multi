@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "Opțiuni Baterie",
         "data": {
-          "allow_battery_energy_reset": "Permite Resetarea Energiei Bateriei",
-          "battery_energy_reset_cycles": "Cicluri de Actualizare pentru Resetarea Energiei Bateriei",
           "battery_rating_adjust": "Ajustare Capacitate Baterie (procent)"
         }
       }

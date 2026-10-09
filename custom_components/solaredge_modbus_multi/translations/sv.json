@@ -104,8 +104,6 @@
       "battery_options": {
         "title": "Batterialternativ",
         "data": {
-          "allow_battery_energy_reset": "Tillåt återställning av batterienergi",
-          "battery_energy_reset_cycles": "Uppdateringscykler för att återställa batterienergi",
           "battery_rating_adjust": "Justering av batterikapacitet (procent)"
         }
       }
