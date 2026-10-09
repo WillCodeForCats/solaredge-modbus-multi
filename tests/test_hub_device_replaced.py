@@ -112,6 +112,7 @@ async def test_no_issue_when_unchanged(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_issue_created_on_replacement(hass):
+    """A different serial at a known unit ID raises the device_replaced issue."""
     entry = _make_entry(hass)
     hub = _make_hub(hass, entry)
     _seed_existing_device(hass, entry, 1)
@@ -130,8 +131,9 @@ async def test_issue_created_on_replacement(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_migrate_preserves_entity_id_and_history(hass):
-    """The repair's 'migrate' path renames the old entity's unique_id onto the
-    new hardware instead of leaving it orphaned next to a fresh duplicate.
+    """Migrating renames the old entity's unique_id onto the new hardware.
+
+    The old entity must not be left orphaned next to a fresh duplicate.
     """
     entry = _make_entry(hass)
     hub = _make_hub(hass, entry)
@@ -222,6 +224,7 @@ async def test_migrate_preserves_entity_id_and_history(hass):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_ignore_cleans_up_without_touching_entities(hass):
+    """Ignoring clears the issue and leaves existing entities as they are."""
     entry = _make_entry(hass)
     hub = _make_hub(hass, entry)
     device, anchor, old_uid_base = _seed_existing_device(hass, entry, 1)
