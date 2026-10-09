@@ -73,8 +73,8 @@ def test_status_disabled_by_default():
 
 def test_soc_not_implemented_value_disables_by_default():
     """Test soc not implemented value disables by default."""
-    # SunSpecNotImpl.FLOAT32 is 0x7FC00000, a NaN
-    entity = SolarEdgeDERStorageSOC(_platform(_der(soc=float("nan"))), None, None, 1)
+    # modbus-connection decodes a not-implemented uint16 (0xFFFF) to None
+    entity = SolarEdgeDERStorageSOC(_platform(_der(soc=None)), None, None, 1)
     assert entity.entity_registry_enabled_default is False
 
 

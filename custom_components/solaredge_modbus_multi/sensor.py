@@ -1774,11 +1774,7 @@ class SolarEdgeDERStorageBase(SolarEdgeSensorBase):
         installed, so the default is decided once, from the first value seen.
         Users can enable the entity manually.
         """
-        return (
-            value is not None
-            and float_to_hex(value) != hex(SunSpecNotImpl.FLOAT32)
-            and value != 0
-        )
+        return value is not None and value != 0x0
 
     async def async_added_to_hass(self) -> None:
         """Register as a DER listener when added."""
