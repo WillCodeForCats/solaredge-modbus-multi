@@ -274,7 +274,8 @@ Core suits a single inverter, with or without a meter or battery, that needs a s
 - Serial number as unique ID, with automatic address updates and a wrong-inverter check
 - RS485 serial connections
 - Per-sub-system availability, so a silent block does not blank the others
-- No setup options: nothing for the user to configure or change, including detection of attached hardware. The trade-off is that probing for meters, batteries and the multiple-MPPT block repeats every 15 minutes and cannot be switched off; since 2026.10.1 other silent blocks are no longer re-probed while the entry stays loaded (only grid status and storage, export and power control are remembered across reloads)
+- No setup options: nothing for the user to configure or change, including detection of attached hardware. The trade-off is that probing for meters, batteries and the multiple-MPPT block repeats every 15 minutes and cannot be switched off; since 2026.10.1
+  other silent blocks are no longer re-probed while the entry stays loaded (only grid status and storage, export and power control are remembered across reloads)
 - Translations through HA's pipeline, and maintenance within Home Assistant
 
 **solaredge-modbus-multi**
