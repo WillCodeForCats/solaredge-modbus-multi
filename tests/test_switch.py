@@ -59,9 +59,8 @@ def _setup_hass(inverters, site_limit, detect_extras):
 )
 async def test_setup_entry_entities_per_inverter(site_limit, detect_extras, expected):
     """Entities per inverter follow the site limit and extras options."""
-    hass, entry = _setup_hass(
-        [SimpleNamespace(), SimpleNamespace()], site_limit, detect_extras
-    )
+    inverters = [SimpleNamespace(), SimpleNamespace()]
+    hass, entry = _setup_hass(inverters, site_limit, detect_extras)
     add = MagicMock()
 
     await async_setup_entry(hass, entry, add)
@@ -69,6 +68,9 @@ async def test_setup_entry_entities_per_inverter(site_limit, detect_extras, expe
     if expected:
         entities = add.call_args.args[0]
         assert [type(e) for e in entities] == expected * 2
+        for index, inverter in enumerate(inverters):
+            group = entities[index * len(expected) : (index + 1) * len(expected)]
+            assert all(e._platform is inverter for e in group)
     else:
         add.assert_not_called()
 
@@ -173,28 +175,30 @@ class TestSiteLimitSwitches:
         assert not off.is_on
 
     async def test_turn_on(self, cls, suffix, name, bit, enabled_default):
-        """Turning on sets the bit and keeps the others."""
-        platform = _site_limit_platform(0b1)
+        """Turning on sets this bit and keeps the other switch's bit."""
+        other = 1 << (21 - bit)
+        platform = _site_limit_platform(other)
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
 
         await entity.async_turn_on()
 
         platform.write.assert_awaited_once_with(
-            platform.site_limit_control_data, "E_Lim_Ctl_Mode", 0b1 | (1 << bit)
+            platform.site_limit_control_data, "E_Lim_Ctl_Mode", other | (1 << bit)
         )
         coordinator.async_request_refresh.assert_awaited_once_with()
 
     async def test_turn_off(self, cls, suffix, name, bit, enabled_default):
-        """Turning off clears the bit and keeps the others."""
-        platform = _site_limit_platform(0b1 | (1 << bit))
+        """Turning off clears only this bit and keeps the other switch's bit."""
+        other = 1 << (21 - bit)
+        platform = _site_limit_platform(other | (1 << bit))
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
 
         await entity.async_turn_off()
 
         platform.write.assert_awaited_once_with(
-            platform.site_limit_control_data, "E_Lim_Ctl_Mode", 0b1
+            platform.site_limit_control_data, "E_Lim_Ctl_Mode", other
         )
         coordinator.async_request_refresh.assert_awaited_once_with()
 
