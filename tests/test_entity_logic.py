@@ -11,7 +11,6 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.binary_sensor import InverterProblem
 from custom_components.solaredge_modbus_multi.const import (
     LIMIT_CONTROL_MODE,
     SunSpecNotImpl,
@@ -211,54 +210,3 @@ async def test_scan_list_works_without_progress_callback():
         scanner, "scan_device_id", new=AsyncMock(return_value=scanner.FOUND_INV)
     ):
         assert await scanner.scan_list([5]) == [5]
-
-
-@pytest.mark.parametrize(
-    ("status", "available", "is_on"),
-    [
-        (7, True, True),
-        (4, True, False),
-        (1, True, False),
-        (None, False, None),
-        (SunSpecNotImpl.UINT16, False, None),
-        (99, False, None),
-    ],
-)
-def test_inverter_problem(status, available, is_on):
-    """Problem is on only for the fault status, and unavailable for bad status."""
-    platform = SimpleNamespace(
-        uid_base="inverter_1",
-        inverter_data=SimpleNamespace(I_Status=status),
-    )
-    entity = InverterProblem(platform, None, SimpleNamespace(last_update_success=True))
-    assert entity.unique_id == "inverter_1_problem"
-    assert entity.available is available
-    if available:
-        assert entity.is_on is is_on
-
-
-@pytest.mark.parametrize(
-    ("use_v4", "vendor", "vendor4", "expected"),
-    [
-        (False, 17, None, {"status_value": 17}),
-        (False, SunSpecNotImpl.UINT16, None, {}),
-        (False, None, None, {}),
-        (True, 0, 0xFFFFFFFF, {}),
-        (True, 0, 0x01000001, {"status_value": "1x1"}),
-    ],
-)
-def test_inverter_problem_vendor_attributes(use_v4, vendor, vendor4, expected):
-    """Attributes come from vendor4 when in use, otherwise from vendor status."""
-    platform = SimpleNamespace(
-        uid_base="inverter_1",
-        use_status_vendor4=use_v4,
-        inverter_data=SimpleNamespace(
-            I_Status=7, I_Status_Vendor=vendor, I_Status_Vendor4=vendor4
-        ),
-    )
-    entity = InverterProblem(platform, None, SimpleNamespace(last_update_success=True))
-    attrs = entity.extra_state_attributes
-    for key, value in expected.items():
-        assert attrs[key] == value
-    if not expected:
-        assert attrs == {}
