@@ -26,6 +26,21 @@ def _coordinator(last_update_success=True):
     )
 
 
+def _record_order(platform, coordinator):
+    """Record when the write and refresh complete, in order."""
+    events = []
+
+    async def write(*args, **kwargs):
+        events.append("write")
+
+    async def refresh():
+        events.append("refresh")
+
+    platform.write.side_effect = write
+    coordinator.async_request_refresh.side_effect = refresh
+    return events
+
+
 def _setup_hass(inverters, detect_extras):
     """Build a fake hass and config entry around a hub with the given inverters."""
     hub = SimpleNamespace(inverters=inverters, option_detect_extras=detect_extras)
@@ -183,8 +198,10 @@ class TestControlButtons:
         platform = self._platform()
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
+        events = _record_order(platform, coordinator)
 
         await entity.async_press()
 
         platform.write.assert_awaited_once_with("apc_data", register, 1)
         coordinator.async_request_refresh.assert_awaited_once_with()
+        assert events == ["write", "refresh"]

@@ -26,6 +26,21 @@ def _coordinator(last_update_success=True):
     )
 
 
+def _record_order(platform, coordinator):
+    """Record when the write and refresh complete, in order."""
+    events = []
+
+    async def write(*args, **kwargs):
+        events.append("write")
+
+    async def refresh():
+        events.append("refresh")
+
+    platform.write.side_effect = write
+    coordinator.async_request_refresh.side_effect = refresh
+    return events
+
+
 def _setup_hass(inverters, site_limit, detect_extras):
     """Build a fake hass and config entry around a hub with the given options."""
     hub = SimpleNamespace(
@@ -180,6 +195,7 @@ class TestSiteLimitSwitches:
         platform = _site_limit_platform(other)
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
+        events = _record_order(platform, coordinator)
 
         await entity.async_turn_on()
 
@@ -187,6 +203,7 @@ class TestSiteLimitSwitches:
             platform.site_limit_control_data, "E_Lim_Ctl_Mode", other | (1 << bit)
         )
         coordinator.async_request_refresh.assert_awaited_once_with()
+        assert events == ["write", "refresh"]
 
     async def test_turn_off(self, cls, suffix, name, bit, enabled_default):
         """Turning off clears only this bit and keeps the other switch's bit."""
@@ -194,6 +211,7 @@ class TestSiteLimitSwitches:
         platform = _site_limit_platform(other | (1 << bit))
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
+        events = _record_order(platform, coordinator)
 
         await entity.async_turn_off()
 
@@ -201,6 +219,7 @@ class TestSiteLimitSwitches:
             platform.site_limit_control_data, "E_Lim_Ctl_Mode", other
         )
         coordinator.async_request_refresh.assert_awaited_once_with()
+        assert events == ["write", "refresh"]
 
 
 def _adv_platform(enabled=0, supported=True):
@@ -253,6 +272,7 @@ async def test_grid_control_writes(method, value):
     platform = _adv_platform()
     coordinator = _coordinator()
     entity = SolarEdgeGridControl(platform, None, coordinator)
+    events = _record_order(platform, coordinator)
 
     await getattr(entity, method)()
 
@@ -260,3 +280,4 @@ async def test_grid_control_writes(method, value):
         platform.advanced_power_control_data, "AdvPwrCtrlEn", value
     )
     coordinator.async_request_refresh.assert_awaited_once_with()
+    assert events == ["write", "refresh"]
