@@ -21,11 +21,6 @@ REDACT_BATTERY = {
     "serial_number",
     "via_device",
 }
-REDACT_DER_BATTERY = {
-    "identifiers",
-    "serial_number",
-    "via_device",
-}
 REDACT_EVSE = {"identifiers", "C_SerialNumber", "serial_number"}
 
 
@@ -133,18 +128,15 @@ async def async_get_config_entry_diagnostics(
         }
         data.update(async_redact_data(battery, REDACT_BATTERY))
 
-    for der_battery in hub.der_batteries:
-        der_battery: dict[str, Any] = {
-            f"der_battery_id_I{der_battery.inverter_unit_id}"
-            f"_DERB{der_battery.battery_id}": {
-                "device_info": der_battery.device_info,
-                "inverter_unit_id": der_battery.inverter_unit_id,
-                "model": format_values(
-                    component_to_dict(der_battery.der_storage_capacity_data)
-                ),
+    for inverter in hub.inverters:
+        for der_id, der in enumerate(inverter.der_storage, 1):
+            der_storage: dict[str, Any] = {
+                f"der_storage_id_I{inverter.inverter_unit_id}_storage_{der_id}": {
+                    "inverter_unit_id": inverter.inverter_unit_id,
+                    "model": format_values(component_to_dict(der)),
+                }
             }
-        }
-        data.update(async_redact_data(der_battery, REDACT_DER_BATTERY))
+            data.update(der_storage)
 
     for evse in hub.evses:
         evse: dict[str, Any] = {

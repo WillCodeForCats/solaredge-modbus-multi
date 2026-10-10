@@ -19,7 +19,7 @@ discovery and may not be supported by SolarEdge.
 - Inverter support for 1 to 32 SolarEdge inverters.
 - Meter support for 1 to 3 meters per inverter.
 - Battery support for 1 to 3 batteries per inverter (SolarEdge proprietary).
-- SunSpec DER Battery reporting (SunSpec model 713).
+- SunSpec DER Storage Capacity reporting (SunSpec model 713).
 - Supports site limit and storage controls.
 - Automatically detects meters and batteries.
 - Supports Three Phase Inverters with Synergy Technology.

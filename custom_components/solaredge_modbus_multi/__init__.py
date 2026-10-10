@@ -10,9 +10,13 @@ from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import (
+    device_registry as dr,
+    entity_registry as er,
+    issue_registry as ir,
+)
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import (
@@ -129,6 +133,82 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+# Earlier versions misnamed the DER State of Charge sensor (SunSpec model 713
+# SoC) as State of Energy, with the unique ID suffix "battery_soe"; it is
+# migrated to "soc". SolarEdge does not report State of Health or Status in
+# model 713, so those sensors of earlier versions are removed.
+_LEGACY_DER_SOE_SUFFIX = "battery_soe"
+_LEGACY_DER_UNSUPPORTED_SUFFIXES = ("battery_soh", "status")
+
+
+@callback
+def _async_migrate_legacy_der_entities(
+    hass: HomeAssistant, solaredge_hub: SolarEdgeModbusMultiHub
+) -> None:
+    """Keep the DER State of Charge sensor of earlier versions.
+
+    Earlier versions had a device per DER block with unique IDs like
+    "<inverter>_DERB1_battery_soe", where "soe" was used instead of "soc".
+    Renaming it to the current unique ID keeps its entity ID and history;
+    the sensor platform then moves it to the inverter device. The unsupported
+    State of Health and Status sensors are removed. Must run before the sensor
+    platform is set up.
+    """
+    entity_registry = er.async_get(hass)
+    for inverter in solaredge_hub.inverters:
+        for der_id in range(1, len(inverter.der_storage) + 1):
+            legacy_prefix = f"{inverter.uid_base}_DERB{der_id}"
+
+            for suffix in _LEGACY_DER_UNSUPPORTED_SUFFIXES:
+                entity_id = entity_registry.async_get_entity_id(
+                    Platform.SENSOR, DOMAIN, f"{legacy_prefix}_{suffix}"
+                )
+                if entity_id is not None:
+                    _LOGGER.debug("Removing unsupported DER sensor %s", entity_id)
+                    entity_registry.async_remove(entity_id)
+
+            old_unique_id = f"{legacy_prefix}_{_LEGACY_DER_SOE_SUFFIX}"
+            new_unique_id = f"{inverter.uid_base}_storage_{der_id}_soc"
+            entity_id = entity_registry.async_get_entity_id(
+                Platform.SENSOR, DOMAIN, old_unique_id
+            )
+            if entity_id is None or entity_registry.async_get_entity_id(
+                Platform.SENSOR, DOMAIN, new_unique_id
+            ):
+                continue
+            _LOGGER.debug("Migrating DER sensor %s to %s", old_unique_id, new_unique_id)
+            entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
+
+
+@callback
+def _async_remove_legacy_der_devices(
+    hass: HomeAssistant, entry: ConfigEntry, solaredge_hub: SolarEdgeModbusMultiHub
+) -> None:
+    """Remove the separate DER battery devices from earlier versions.
+
+    DER battery sensors are now on the inverter device. Only devices for DER
+    blocks found in this run are removed, after the sensor platform has moved
+    their entities to the inverter device, so a failed scan never deletes an
+    entity. Removing a device also removes the entities still registered to it.
+    """
+    legacy_ids = {
+        f"{inverter.uid_base}_DERB{der_id}"
+        for inverter in solaredge_hub.inverters
+        for der_id in range(1, len(inverter.der_storage) + 1)
+    }
+    if not legacy_ids:
+        return
+
+    device_registry = dr.async_get(hass)
+    for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id):
+        if any(
+            ident[0] == DOMAIN and ident[1] in legacy_ids
+            for ident in device.identifiers
+        ):
+            _LOGGER.debug("Removing legacy DER battery device %s", device.name)
+            device_registry.async_remove_device(device.id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
@@ -170,7 +250,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await coordinator.async_config_entry_first_refresh()
 
+    _async_migrate_legacy_der_entities(hass, solaredge_hub)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    _async_remove_legacy_der_devices(hass, entry, solaredge_hub)
 
     return True
 
