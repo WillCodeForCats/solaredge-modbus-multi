@@ -57,7 +57,13 @@ Both integrations probe the inverter at startup, and a probe of a block the inve
 What this means for startup:
 
 - **The 30 s timeout does not apply to the probe.** Core sets it after `async_probe` returns, so a silent block during setup still costs 10 s. It does apply to the first refresh, so an inverter that is slow to answer can take up to 30 s on a read where solaredge-modbus-multi would give up after 3 s and try again.
-- **solaredge-modbus-multi fails fast and then backs off.** With a 3 s timeout and 3 attempts, a request that never answers costs about 9 s, and the user can lower the timeout if their inverters answer quickly. A refresh that fails with a data-update error is then retried by the coordinator, up to 6 attempts with the wait doubling from 1 s (1, 2, 4, 8, 16 s, 31 s of waiting in total). The retry delays leave the bus idle between attempts instead of queuing the next request behind a slow one. A failure during first-time setup (hub initialization) is not retried by this loop. The retry count, first wait and ratio can be changed in `configuration.yaml`.
+- **solaredge-modbus-multi fails fast and then backs off.** With a 3 s timeout and 3 attempts, a
+  request that never answers costs about 9 s, and the user can lower the timeout if their inverters
+  answer quickly. A refresh that fails with a data-update error is then retried by the coordinator,
+  up to 6 attempts with the wait doubling from 1 s (1, 2, 4, 8, 16 s, 31 s of waiting in total). The
+  retry delays leave the bus idle between attempts instead of queuing the next request behind a slow
+  one. A failure during first-time setup (hub initialization) is not retried by this loop. The retry
+  count, first wait and ratio can be changed in `configuration.yaml`.
 - **solaredge-modbus-multi does not probe for unofficial registers unless asked.** Battery and extra-entity detection are off by default, so no startup waits on those blocks. Meter detection is on by default and can be switched off at a site with no meter. Core can only skip blocks it has already settled as silent, and never skips meters or batteries.
 - **A slow inverter works against solaredge-modbus-multi.** The same short timeout makes solaredge-modbus-multi less tolerant of an inverter that answers late (for example over Wi-Fi), which core's 30 s read timeout was added for. The user can raise the option. On a leader/follower site the maintainer's experience is that this trade-off favors short timeouts (see below).
 
@@ -201,7 +207,13 @@ resolved in core 2026.10.1; the 15-minute probe cost is reduced, not removed.
 
 **5-minute settings poll.** Core reads control settings every 5 minutes. Settings can also change by other routes: a change in the SolarEdge app, a change pushed by SolarEdge, or a utility program the inverter is enrolled in. Home Assistant sees those changes after up to 5 minutes, and such changes can also revert a value written over Modbus.
 
-**Long timeouts.** The maintainer's experience is that very long timeouts are inappropriate for leader/follower setups, because the leader and its followers behave as one system rather than as separate devices on a shared bus. A request that waits 30 s holds up every other inverter behind the same leader, so the wait is paid by the whole site. A short timeout with backoff (solaredge-modbus-multi) gives up early and tries again later. This is the maintainer's observation, not a test, and core's 30 s timeout was added for inverters on Wi-Fi that answer late, a case where a short timeout fails the poll.
+**Long timeouts.** The maintainer's experience is that very long timeouts are inappropriate for
+leader/follower setups, because the leader and its followers behave as one system rather than as
+separate devices on a shared bus. A request that waits 30 s holds up every other inverter behind the
+same leader, so the wait is paid by the whole site. A short timeout with backoff
+(solaredge-modbus-multi) gives up early and tries again later. This is the maintainer's observation,
+not a test, and core's 30 s timeout was added for inverters on Wi-Fi that answer late, a case where
+a short timeout fails the poll.
 
 **Maintainer's suggested approach.** Place every device on the bus under one coordinator and one polling loop.
 
@@ -233,7 +245,12 @@ cites the solaredge-modbus-multi issue #1055.
   unsupported registers instead of refusing them. Each silent block therefore takes a full timeout
   before the next probe starts. The timeout length comes from `modbus-connection`, not this library;
   the issue above shows 10.0 s in its error messages.
-- **0.5.0 adds `assume_absent`.** `async_probe` takes a keyword-only `assume_absent: frozenset[str]`. A block named there is not read: it is added to `unresponsive_blocks` and treated as absent. Applies to the multiple-MPPT, meter, battery, SunSpec model and optional control-block checks. Its docstring says a block named there cannot be discovered until probed for real again. The new test passes a first probe's `unresponsive_blocks` back in and checks that the second probe sends no reads to the silent addresses.
+- **0.5.0 adds `assume_absent`.** `async_probe` takes a keyword-only `assume_absent:
+  frozenset[str]`. A block named there is not read: it is added to `unresponsive_blocks` and treated
+  as absent. Applies to the multiple-MPPT, meter, battery, SunSpec model and optional control-block
+  checks. Its docstring says a block named there cannot be discovered until probed for real again.
+  The new test passes a first probe's `unresponsive_blocks` back in and checks that the second probe
+  sends no reads to the silent addresses.
 - **The library does not schedule probes.** It probes when `async_probe` is called; the 15-minute re-probe is in core's code.
 - **Polling reads one block at a time.** Each sub-system is reported as updated or failed, so one failing block does not blank the others. If the first block times out and nothing has answered, the poll fails immediately.
 - **The library supports more than core exposes.** It reads per-string DC data (SunSpec 160), up to three meters and VAh/varh energy. Core creates no per-string entities and no VAh/varh sensors.
