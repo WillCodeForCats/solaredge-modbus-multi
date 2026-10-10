@@ -246,7 +246,7 @@ cites the solaredge-modbus-multi issue #1055.
   before the next probe starts. The timeout length comes from `modbus-connection`, not this library;
   the issue above shows 10.0 s in its error messages.
 - **0.5.0 adds `assume_absent`.** `async_probe` takes a keyword-only `assume_absent:
-  frozenset[str]`. A block named there is not read: it is added to `unresponsive_blocks` and treated
+frozenset[str]`. A block named there is not read: it is added to `unresponsive_blocks` and treated
   as absent. Applies to the multiple-MPPT, meter, battery, SunSpec model and optional control-block
   checks. Its docstring says a block named there cannot be discovered until probed for real again.
   The new test passes a first probe's `unresponsive_blocks` back in and checks that the second probe
