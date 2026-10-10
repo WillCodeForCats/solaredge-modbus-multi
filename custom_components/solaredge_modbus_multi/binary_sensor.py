@@ -113,7 +113,9 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
     def available(self) -> bool:
         """Return the available."""
         return (
-            super().available and self._platform.inverter_data.I_Grid_Status is not None
+            super().available
+            and self._platform.inverter_data.I_Grid_Status is not None
+            and self._platform.inverter_data.I_Grid_Status != SunSpecNotImpl.UINT32
         )
 
     @property
