@@ -56,6 +56,7 @@ from .const import (
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
+    MeterRole,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -1570,6 +1571,15 @@ class SolarEdgeMeter:
     @via_device.setter
     def via_device(self, device: str) -> None:
         self._via_device = (DOMAIN, device)
+
+    @property
+    def meter_role(self) -> MeterRole:
+        """Return the meter role reported in C_Option."""
+        option = (getattr(self, "option", None) or "").strip(" \x00").lower()
+        try:
+            return MeterRole(option)
+        except ValueError:
+            return MeterRole.UNKNOWN
 
 
 class _DERStorageBatteryInfo:
