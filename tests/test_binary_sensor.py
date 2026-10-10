@@ -177,6 +177,16 @@ def test_grid_status_on_off(grid_status, available, is_on):
         assert entity.is_on is is_on
 
 
+def test_grid_status_unavailable_when_not_implemented():
+    """Grid status is unavailable, not off grid, for the SunSpec not-implemented value."""
+    platform = SimpleNamespace(
+        uid_base="inverter_1",
+        inverter_data=SimpleNamespace(I_Grid_Status=0xFFFFFFFF),
+    )
+    entity = GridStatusOnOff(platform, None, COORDINATOR)
+    assert entity.available is False
+
+
 def test_grid_status_unavailable_when_update_failed():
     """Grid status is unavailable when the coordinator update failed."""
     platform = SimpleNamespace(
