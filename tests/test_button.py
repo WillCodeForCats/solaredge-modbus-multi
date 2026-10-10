@@ -52,13 +52,17 @@ def _setup_hass(inverters, detect_extras):
 )
 async def test_setup_entry_entities_per_inverter(detect_extras, expected):
     """Each inverter gets a refresh button, plus the control buttons with extras."""
-    hass, entry = _setup_hass([SimpleNamespace(), SimpleNamespace()], detect_extras)
+    inverters = [SimpleNamespace(), SimpleNamespace()]
+    hass, entry = _setup_hass(inverters, detect_extras)
     add = MagicMock()
 
     await async_setup_entry(hass, entry, add)
 
     entities = add.call_args.args[0]
     assert [type(e) for e in entities] == expected * 2
+    for index, inverter in enumerate(inverters):
+        group = entities[index * len(expected) : (index + 1) * len(expected)]
+        assert all(e._platform is inverter for e in group)
 
 
 async def test_setup_entry_no_inverters_adds_nothing():
