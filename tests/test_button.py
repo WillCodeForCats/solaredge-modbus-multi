@@ -19,6 +19,7 @@ from custom_components.solaredge_modbus_multi.const import DOMAIN
 
 
 def _coordinator(last_update_success=True):
+    """Build a fake coordinator with a mocked refresh request."""
     return SimpleNamespace(
         last_update_success=last_update_success,
         async_request_refresh=AsyncMock(),
@@ -26,6 +27,7 @@ def _coordinator(last_update_success=True):
 
 
 def _setup_hass(inverters, detect_extras):
+    """Build a fake hass and config entry around a hub with the given inverters."""
     hub = SimpleNamespace(inverters=inverters, option_detect_extras=detect_extras)
     entry = SimpleNamespace(entry_id="entry1")
     hass = SimpleNamespace(
@@ -131,6 +133,7 @@ class TestControlButtons:
 
     @staticmethod
     def _platform(supported=True):
+        """Build a fake inverter platform for the control buttons."""
         return SimpleNamespace(
             uid_base="inverter_1",
             has_advanced_power_control=supported,

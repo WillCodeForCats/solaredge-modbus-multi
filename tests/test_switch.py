@@ -19,6 +19,7 @@ from custom_components.solaredge_modbus_multi.switch import (
 
 
 def _coordinator(last_update_success=True):
+    """Build a fake coordinator with a mocked refresh request."""
     return SimpleNamespace(
         last_update_success=last_update_success,
         async_request_refresh=AsyncMock(),
@@ -26,6 +27,7 @@ def _coordinator(last_update_success=True):
 
 
 def _setup_hass(inverters, site_limit, detect_extras):
+    """Build a fake hass and config entry around a hub with the given options."""
     hub = SimpleNamespace(
         inverters=inverters,
         option_site_limit_control=site_limit,
@@ -95,6 +97,7 @@ def test_coordinator_update_writes_state():
 
 
 def _site_limit_platform(mode=0, supported=True):
+    """Build a fake inverter platform with site limit control data."""
     return SimpleNamespace(
         uid_base="inverter_1",
         has_site_limit_control=supported,
@@ -197,6 +200,7 @@ class TestSiteLimitSwitches:
 
 
 def _adv_platform(enabled=0, supported=True):
+    """Build a fake inverter platform with advanced power control data."""
     return SimpleNamespace(
         uid_base="inverter_1",
         has_advanced_power_control=supported,
