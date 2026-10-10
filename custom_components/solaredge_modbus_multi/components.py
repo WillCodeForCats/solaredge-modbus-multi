@@ -104,7 +104,11 @@ class InverterData(Component):
     I_Temp_SF = integer(40106, signed=True)
     I_Status = integer(40107, signed=False)
     I_Status_Vendor = integer(40108, signed=False)
-    I_Grid_Status = integer(40113, signed=False)  # previously uint32 little endian
+    Evt1 = uint32(40109)  # no known use by SolarEdge
+    Evt2 = uint32(40111)  # no known use by SolarEdge
+    I_Grid_Status = uint32(40113)  # SunSpec EvtVnd1, undocumented by SolarEdge
+    EvtVnd2 = uint32(40115)  # no known use by SolarEdge
+    EvtVnd3 = uint32(40117)  # no known use by SolarEdge
     I_Status_Vendor4 = uint32(40119)
 
     def restrict_status_vendor4(self, use_status_vendor4: bool) -> None:
