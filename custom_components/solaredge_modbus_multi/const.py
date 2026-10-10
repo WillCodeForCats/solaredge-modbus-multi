@@ -145,6 +145,15 @@ class ConfName(StrEnum):
     DEVICE_ID = "device_id"
 
 
+class MeterRole(StrEnum):
+    """Meter role, as reported in the SunSpec C_Option string."""
+
+    EXPORT_IMPORT = "export+import"
+    PRODUCTION = "production"
+    CONSUMPTION = "consumption"
+    UNKNOWN = "unknown"
+
+
 class SunSpecAccum(IntEnum):
     """Sun spec accum."""
 
