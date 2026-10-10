@@ -77,6 +77,7 @@ async def test_setup_entry_entities_per_inverter(site_limit, detect_extras, expe
     inverters = [SimpleNamespace(), SimpleNamespace()]
     hass, entry = _setup_hass(inverters, site_limit, detect_extras)
     add = MagicMock()
+    coordinator = hass.data[DOMAIN]["entry1"]["coordinator"]
 
     await async_setup_entry(hass, entry, add)
 
@@ -86,6 +87,7 @@ async def test_setup_entry_entities_per_inverter(site_limit, detect_extras, expe
         for index, inverter in enumerate(inverters):
             group = entities[index * len(expected) : (index + 1) * len(expected)]
             assert all(e._platform is inverter for e in group)
+            assert all(e.coordinator is coordinator for e in group)
     else:
         add.assert_not_called()
 
