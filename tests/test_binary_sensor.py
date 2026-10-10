@@ -5,7 +5,7 @@ and each binary sensor's availability, state, and attributes.
 """
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -73,6 +73,17 @@ def test_base_class_properties():
     assert entity.config_entry_id == "entry1"
     assert entity.config_entry_name == "Site"
     assert entity.should_poll is False
+
+
+def test_coordinator_update_writes_state():
+    """A coordinator update writes the entity state."""
+    platform = SimpleNamespace(uid_base="inverter_1")
+    entity = InverterProblem(platform, None, COORDINATOR)
+
+    with patch.object(entity, "async_write_ha_state") as write_state:
+        entity._handle_coordinator_update()
+
+    write_state.assert_called_once_with()
 
 
 @pytest.mark.parametrize(
