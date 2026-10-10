@@ -51,7 +51,7 @@ Both integrations probe the inverter at startup, and a probe of a block the inve
 | Request timeout             | Option, default 3 s (1–60 s)                                                                                                                                                    | Probe: link default, 10 s. Reads after the probe: 30 s (`READ_TIMEOUT`)                                                                 |
 | Attempts per request        | 3 for the model scan and for reads, so at most about 9 s at the default; then the coordinator retries a failed refresh up to 6 times, waiting 1, 2, 4, 8 and 16 s between tries | The library's behavior; not read for this table                                                                                         |
 | Probing for absent hardware | Only for enabled features. Batteries, extras and the control features are off by default (unofficial registers); only meters are on by default                                  | Always: batteries, meters, multiple-MPPT and the control blocks are asked at every setup unless a previous check settled them as silent |
-| Memory between setups       | None; enabled features are probed again at each setup                                                                                                                           | Blocks that stayed silent on two checks are kept in the config entry and skipped, except meters, batteries and multiple-MPPT            |
+| Memory between setups       | None; enabled features are probed again at each setup                                                                                                                           | Skipped while the entry is loaded; across reloads only grid status and storage, export and power control are kept (others re-probed)    |
 | Several inverters           | One setup for the whole hub, with a time budget computed from the number of inverters; the model scan runs once per inverter                                                    | Each entry sets up on its own and probes on its own, on a bus that may be shared                                                        |
 
 What this means for startup:
@@ -170,8 +170,10 @@ officially supported) and can be switched off. Core has no options flow.
 and #185518, read in the code, not tested):
 
 - A block that stays silent on two checks in a row (setup, then the first 15-minute check) is
-  recorded as settled and passed to the library as `assume_absent`. Later checks and later setups skip
-  it. It is stored in the config entry (`silent_blocks`).
+  recorded as settled and passed to the library as `assume_absent`. Later checks skip it for as long
+  as the entry stays loaded. Only grid status and storage, export and power control are also stored in
+  the config entry (`silent_blocks`) and skipped at later setups; silent SunSpec-model and
+  advanced-power-control blocks are settled in memory only, so they are probed again after a reload.
 - Meters, batteries and the multiple-MPPT block are never settled, because finding hardware depends
   on them, so they are still probed every 15 minutes.
 - Probing keeps the 10 s link default; reads after probing use a 30 s timeout, since a SolarEdge
@@ -272,7 +274,7 @@ Core suits a single inverter, with or without a meter or battery, that needs a s
 - Serial number as unique ID, with automatic address updates and a wrong-inverter check
 - RS485 serial connections
 - Per-sub-system availability, so a silent block does not blank the others
-- No setup options: nothing for the user to configure or change, including detection of attached hardware. The trade-off is that probing for meters, batteries and the multiple-MPPT block repeats every 15 minutes and cannot be switched off; since 2026.10.1 other silent blocks are no longer re-probed
+- No setup options: nothing for the user to configure or change, including detection of attached hardware. The trade-off is that probing for meters, batteries and the multiple-MPPT block repeats every 15 minutes and cannot be switched off; since 2026.10.1 other silent blocks are no longer re-probed while the entry stays loaded (only grid status and storage, export and power control are remembered across reloads)
 - Translations through HA's pipeline, and maintenance within Home Assistant
 
 **solaredge-modbus-multi**
