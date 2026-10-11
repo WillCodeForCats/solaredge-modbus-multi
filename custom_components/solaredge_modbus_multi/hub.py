@@ -209,6 +209,9 @@ class SolarEdgeModbusMultiHub:
         self._detect_extras = entry_options.get(
             ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
         )
+        self._virtual_system = entry_options.get(
+            ConfName.VIRTUAL_SYSTEM, bool(ConfDefaultFlag.VIRTUAL_SYSTEM)
+        )
         self._adv_storage_control = entry_options.get(
             ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
         )
@@ -243,6 +246,7 @@ class SolarEdgeModbusMultiHub:
         self.batteries = []
         self.der_batteries = []
         self.evses = []
+        self.system = SolarEdgeSystem(self)
         self.inverter_common = {}
         self.mmppt_common = {}
         self._write_settle_cycles: dict[int, int] = {}
@@ -255,7 +259,8 @@ class SolarEdgeModbusMultiHub:
 
         _LOGGER.debug(
             "%s configuration: inverter_list=%s, detect_meters=%s, "
-            "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
+            "detect_batteries=%s, detect_extras=%s, virtual_system=%s, "
+            "adv_storage_control=%s, "
             "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
             "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
             "close_after_polling=%s, ",
@@ -264,6 +269,7 @@ class SolarEdgeModbusMultiHub:
             self._detect_meters,
             self._detect_batteries,
             self._detect_extras,
+            self._virtual_system,
             self._adv_storage_control,
             self._adv_site_limit_control,
             self._allow_battery_energy_reset,
@@ -750,6 +756,11 @@ class SolarEdgeModbusMultiHub:
     def option_detect_extras(self) -> bool:
         """Return the option detect extras."""
         return self._detect_extras
+
+    @property
+    def option_virtual_system(self) -> bool:
+        """Return the option virtual system."""
+        return self._virtual_system
 
     @property
     def allow_battery_energy_reset(self) -> bool:
@@ -1385,6 +1396,33 @@ class SolarEdgeInverter:
     def has_site_limit_control(self) -> bool | None:
         """Return True if site limit control."""
         return self.site_limit_control
+
+
+class SolarEdgeSystem:
+    """Defines the virtual SolarEdge system device.
+
+    This device holds values calculated from the other devices on the hub.
+    It does not read any Modbus registers of its own.
+    """
+
+    manufacturer = "SolarEdge"
+    model = "Virtual System"
+
+    def __init__(self, hub: SolarEdgeModbusMultiHub) -> None:
+        """Initialize the solar edge system."""
+        self.hub = hub
+        self.uid_base = f"{hub.entry_id}_system"
+        self.name = f"{hub.hub_id.capitalize()} System"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.uid_base)},
+            name=self.name,
+            manufacturer=self.manufacturer,
+            model=self.model,
+        )
 
 
 class SolarEdgeMMPPTUnit:

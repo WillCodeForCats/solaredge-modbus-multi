@@ -88,6 +88,7 @@
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "detect_extras": "Auto-Detect Additional Entities",
+          "virtual_system": "Enable Virtual System Device",
           "advanced_power_control": "Power Control Options",
           "request_timeout": "Modbus Request Timeout (seconds)",
           "sleep_after_write": "Inverter Command Delay (seconds)"
