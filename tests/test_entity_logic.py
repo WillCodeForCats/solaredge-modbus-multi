@@ -20,6 +20,7 @@ from custom_components.solaredge_modbus_multi.select import SolaredgeLimitContro
 from custom_components.solaredge_modbus_multi.sensor import (
     HeatSinkTemperature,
     SolarEdgeRRCR,
+    StatusVendor4,
 )
 from custom_components.solaredge_modbus_multi.switch import (
     SolarEdgeExternalProduction,
@@ -210,3 +211,27 @@ async def test_scan_list_works_without_progress_callback():
         scanner, "scan_device_id", new=AsyncMock(return_value=scanner.FOUND_INV)
     ):
         assert await scanner.scan_list([5]) == [5]
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (0x03000002, True),
+        (0, True),
+        (SunSpecNotImpl.UINT32, False),
+        (None, False),
+    ],
+)
+def test_status_vendor4_availability(value, expected):
+    """Test status vendor 4 availability."""
+    platform = SimpleNamespace(
+        uid_base="inverter_1",
+        inverter_data=SimpleNamespace(I_Status_Vendor4=value),
+    )
+    entity = StatusVendor4(platform, None, SimpleNamespace(last_update_success=True))
+
+    with patch(
+        "homeassistant.helpers.update_coordinator.CoordinatorEntity.available",
+        new=True,
+    ):
+        assert entity.available is expected
