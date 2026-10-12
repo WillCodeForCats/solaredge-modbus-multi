@@ -242,6 +242,53 @@ class AdvancedPowerControl(Component):
     DisconnectAtZeroPwrLim = float32(61864, word_order="little", writable=True)
 
 
+class EnhancedDynamicPowerControl(Component):
+    """Enhanced Dynamic Power Control.
+
+    DynamicActivePowerLimit, DynamicReactivePowerRef, and DynamicCosPhiRef
+    should use count_write=False since they are not saved to the inverter.
+    """
+
+    Enable = integer(62208, signed=False, writable=True)
+    _Reserved_F301 = integer(62209, signed=False)
+    _Reserved_F302 = float32(62210, word_order="little")
+    MaxActivePower = float32(62212, unit="W", word_order="little")
+    MaxReactivePower = float32(62214, unit="VAR", word_order="little")
+    ActiveReactivePreference = integer(62216, signed=False, writable=True)
+    CosPhiQPreference = integer(62217, signed=False, writable=True)
+    _Reserved_F30A = float32(62218, word_order="little", writable=True)
+    ActivePowerLimit = float32(62220, unit="W", word_order="little", writable=True)
+    ReactivePowerLimit = float32(62222, unit="VAR", word_order="little", writable=True)
+    CommandTimeout = uint32(62224, unit="s", word_order="little", writable=True)
+    FallbackActivePowerLimit = float32(
+        62226, unit="%", word_order="little", writable=True
+    )
+    FallbackReactivePowerLimit = float32(
+        62228, unit="%", word_order="little", writable=True
+    )
+    FallbackCosPhi = float32(62230, word_order="little", writable=True)
+    ActivePowerRampUpRate = float32(
+        62232, unit="%/min", word_order="little", writable=True
+    )
+    ActivePowerRampDownRate = float32(
+        62234, unit="%/min", word_order="little", writable=True
+    )
+    ReactivePowerRampUpRate = float32(
+        62236, unit="%/min", word_order="little", writable=True
+    )
+    ReactivePowerRampDownRate = float32(
+        62238, unit="%/min", word_order="little", writable=True
+    )
+    PhiChangeRate = float32(62240, unit="rad/min", word_order="little", writable=True)
+    DynamicActivePowerLimit = float32(
+        62242, unit="%", word_order="little", writable=True
+    )
+    DynamicReactivePowerRef = float32(
+        62244, unit="%", word_order="little", writable=True
+    )
+    DynamicCosPhiRef = float32(62246, word_order="little", writable=True)
+
+
 class SiteLimitControl(Component):
     """Power Control Options: Site Limit Control, read every polling cycle."""
 
