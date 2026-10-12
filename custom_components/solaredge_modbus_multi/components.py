@@ -126,7 +126,11 @@ class InverterData(Component):
 
 
 class GlobalDynamicPowerControl(Component):
-    """Global Dynamic Power Control and Status."""
+    """Global Dynamic Power Control and Status.
+
+    I_Power_Limit and I_CosPhi
+    should use count_write=False since they are not saved to the inverter.
+    """
 
     I_RRCR = integer(61440, signed=False)
     I_Power_Limit = integer(61441, signed=False, unit="%", writable=True)
