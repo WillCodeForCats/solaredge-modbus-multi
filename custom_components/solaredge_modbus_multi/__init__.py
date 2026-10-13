@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
-import importlib.metadata
 import logging
-from typing import TYPE_CHECKING
 
+from homeassistant.components.modbus import async_get_unit
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryError
+from homeassistant.exceptions import ConfigEntryError, HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
@@ -19,64 +18,13 @@ from homeassistant.helpers.update_coordinator import (
     TimestampDataUpdateCoordinator,
     UpdateFailed,
 )
+from modbus_connection import ModbusTcpParams
 import voluptuous as vol
 
-from .const import (
-    DOMAIN,
-    MESSAGE_SPACING,
-    MODBUS_CONNECTION_REQUIRED_VERSION,
-    TMODBUS_REQUIRED_VERSION,
-    ConfDefaultInt,
-    ConfName,
-    RetrySettings,
-)
-from .helpers import safe_version_tuple
-
-if TYPE_CHECKING:
-    from .hub import SolarEdgeModbusMultiHub
+from .const import DOMAIN, MESSAGE_SPACING, ConfDefaultInt, ConfName, RetrySettings
+from .hub import DataUpdateFailed, HubInitFailed, SharedUnits, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _check_dependency_versions() -> dict[str, str]:
-    """Fail early if tmodbus/modbus-connection are missing or too old.
-
-    Must be called from async_setup_entry via hass.async_add_executor_job.
-    """
-
-    installed_versions = {}
-
-    for display_name, distribution_name, required in (
-        ("tmodbus", "tmodbus", TMODBUS_REQUIRED_VERSION),
-        ("modbus-connection", "modbus_connection", MODBUS_CONNECTION_REQUIRED_VERSION),
-    ):
-        try:
-            installed = importlib.metadata.version(distribution_name)
-        except importlib.metadata.PackageNotFoundError as err:
-            raise ConfigEntryError(
-                f"{display_name} is not installed. Restart Home Assistant to let "
-                "it install dependencies automatically. If it still doesn't "
-                "install, check the Home Assistant log for a failed pip install, "
-                "confirm HACS isn't set to skip requirement installation for "
-                "this integration, and check whether another custom integration "
-                f"or manual environment change removed {display_name}."
-            ) from err
-
-        if safe_version_tuple(installed) < safe_version_tuple(required):
-            raise ConfigEntryError(
-                f"{display_name} version must be at least {required}, but {installed} "
-                "is installed. Please remove or upgrade other custom integrations "
-                f"that depend on an older version of {display_name} and restart."
-            )
-
-        installed_versions[display_name] = installed
-
-    _LOGGER.debug(
-        "Installed versions: %s",
-        ", ".join(f"{name} {version}" for name, version in installed_versions.items()),
-    )
-
-    return installed_versions
 
 
 PLATFORMS: list[str] = [
@@ -132,25 +80,26 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
-    # importlib.metadata does blocking file I/O, and modbus_connection/.hub
-    # aren't safe to import until we know the versions are good -- see
-    # _check_dependency_versions()'s docstring.
-    installed_versions = await hass.async_add_executor_job(_check_dependency_versions)
-
-    from modbus_connection import ModbusTcpParams  # noqa: PLC0415
-    from modbus_connection.tmodbus import ModbusConnection  # noqa: PLC0415
-
-    from .hub import SolarEdgeModbusMultiHub  # noqa: PLC0415
-
     request_timeout = entry.options.get(
         ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
     )
-    connection = ModbusConnection(
-        ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT]),
-        timeout=request_timeout,
-        message_spacing=MESSAGE_SPACING,
-    )
-    entry.async_on_unload(connection.close)
+    params = ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT])
+
+    # One unit per device ID on the shared connection. The connection itself
+    # belongs to the modbus integration, which closes it behind the last entry
+    # holding a unit, so there is nothing for us to close on unload.
+    units = {}
+    try:
+        for unit_id in entry.data[ConfName.DEVICE_LIST]:
+            unit = async_get_unit(hass, entry, params, unit_id)
+            unit.set_message_spacing(MESSAGE_SPACING)
+            unit.require_timeout(request_timeout)
+            units[unit_id] = unit
+    except HomeAssistantError as err:
+        # Another integration holds this device over different link settings,
+        # which one shared connection cannot honour.
+        raise ConfigEntryError(str(err)) from err
+    connection = SharedUnits(units)
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options, connection
@@ -165,7 +114,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
         "coordinator": coordinator,
-        "dependency_versions": installed_versions,
     }
 
     await coordinator.async_config_entry_first_refresh()
@@ -356,7 +304,6 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
         self._yaml_config = hass.data[DOMAIN]["yaml"]
 
     async def _async_update_data(self) -> bool:
-        from .hub import DataUpdateFailed, HubInitFailed  # noqa: PLC0415
 
         try:
             return await self._refresh_modbus_data_with_retry(

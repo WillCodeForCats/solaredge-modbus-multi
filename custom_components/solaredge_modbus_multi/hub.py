@@ -48,6 +48,7 @@ from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
     DOMAIN,
+    MESSAGE_SPACING,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
     STATUS_VENDOR4_VERSION,
@@ -181,6 +182,25 @@ def _log_component_fields(prefix: str, component) -> None:
         else:
             display_value = hex(value) if isinstance(value, int) else value
         _LOGGER.debug("%s: %s %s %s", prefix, name, display_value, type(value))
+
+
+class SharedUnits:
+    """The units this entry holds on the modbus integration's shared connection."""
+
+    def __init__(self, units: dict) -> None:
+        """Initialize with a unit per device ID."""
+        self._units = units
+
+    def for_unit(self, unit_id: int):
+        """Return the unit for a device ID."""
+        return self._units[unit_id]
+
+    async def disconnect(self) -> None:
+        """Drop the link so the next request reopens it.
+
+        The connection is shared, so this closes it for every unit on it.
+        """
+        await next(iter(self._units.values())).disconnect()
 
 
 class SolarEdgeModbusMultiHub:
@@ -627,7 +647,7 @@ class SolarEdgeModbusMultiHub:
 
         if cycles_remaining <= 1:
             _LOGGER.debug("Clearing unit %s request spacing.", unit)
-            self.connection.for_unit(unit).set_message_spacing(0)
+            self.connection.for_unit(unit).set_message_spacing(MESSAGE_SPACING)
             del self._write_settle_cycles[unit]
         else:
             _LOGGER.debug(
