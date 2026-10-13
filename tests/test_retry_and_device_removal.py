@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from modbus_connection.exceptions import ModbusConnectionError, ModbusTimeoutError
+from modbus_connection.model.sunspec import SunSpecError
 import pytest
 
 from custom_components.solaredge_modbus_multi import (
@@ -19,6 +20,7 @@ from custom_components.solaredge_modbus_multi import (
 from custom_components.solaredge_modbus_multi.const import DOMAIN, RetrySettings
 from custom_components.solaredge_modbus_multi.hub import (
     DataUpdateFailed,
+    async_suns_scan_with_retry,
     async_update_with_retry,
     async_write_with_retry,
 )
@@ -102,6 +104,46 @@ async def test_write_with_retry_raises_last_error_when_exhausted():
         await async_write_with_retry(component, "field", 5)
 
     assert component.write.await_count == _retries()
+
+
+async def test_suns_scan_with_retry_recovers_from_transient_errors():
+    """Test suns scan with retry recovers from transient errors."""
+    with patch(
+        "custom_components.solaredge_modbus_multi.hub.suns_scan",
+        AsyncMock(side_effect=[ModbusTimeoutError(), "models"]),
+    ) as scan:
+        assert await async_suns_scan_with_retry("conn", 40000) == "models"
+
+    assert scan.await_count == 2
+    scan.assert_awaited_with("conn", 40000)
+
+
+async def test_suns_scan_with_retry_raises_last_error_when_exhausted():
+    """Test suns scan with retry raises last error when exhausted."""
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.suns_scan",
+            AsyncMock(side_effect=ModbusTimeoutError()),
+        ) as scan,
+        pytest.raises(ModbusTimeoutError),
+    ):
+        await async_suns_scan_with_retry("conn", 40000)
+
+    assert scan.await_count == _retries()
+
+
+async def test_suns_scan_with_retry_does_not_retry_sunspec_errors():
+    """Test suns scan with retry does not retry SunSpec errors."""
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.suns_scan",
+            AsyncMock(side_effect=SunSpecError()),
+        ) as scan,
+        pytest.raises(SunSpecError),
+    ):
+        await async_suns_scan_with_retry("conn", 40000)
+
+    scan.assert_awaited_once()
 
 
 def _make_coordinator(hass, refresh):

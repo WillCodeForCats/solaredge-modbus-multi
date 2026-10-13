@@ -96,7 +96,7 @@ class BatteryLimit(IntEnum):
 class ConfDefaultInt(IntEnum):
     """Defaults for options that are integers."""
 
-    SCAN_INTERVAL = 300
+    SCAN_INTERVAL = 10
     PORT = 1502
     REQUEST_TIMEOUT = 3
     SLEEP_AFTER_WRITE = 0
@@ -417,6 +417,7 @@ LIMIT_CONTROL_MODE = {
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
 
 VENDOR4_STATUS: dict[int, dict[int, str]] = {
+    0x0: {0x0: "No Error"},
     0x3: {
         0x0: "Reset",
         0x1: "Set Real Time Clock",

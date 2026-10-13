@@ -104,7 +104,11 @@ class InverterData(Component):
     I_Temp_SF = integer(40106, signed=True)
     I_Status = integer(40107, signed=False)
     I_Status_Vendor = integer(40108, signed=False)
-    I_Grid_Status = integer(40113, signed=False)  # previously uint32 little endian
+    Evt1 = uint32(40109)  # no known use by SolarEdge
+    Evt2 = uint32(40111)  # no known use by SolarEdge
+    I_Grid_Status = uint32(40113)  # SunSpec EvtVnd1, undocumented by SolarEdge
+    EvtVnd2 = uint32(40115)  # no known use by SolarEdge
+    EvtVnd3 = uint32(40117)  # no known use by SolarEdge
     I_Status_Vendor4 = uint32(40119)
 
     def restrict_status_vendor4(self, use_status_vendor4: bool) -> None:
@@ -122,7 +126,11 @@ class InverterData(Component):
 
 
 class GlobalDynamicPowerControl(Component):
-    """Global Dynamic Power Control and Status."""
+    """Global Dynamic Power Control and Status.
+
+    I_Power_Limit and I_CosPhi
+    should use count_write=False since they are not saved to the inverter.
+    """
 
     I_RRCR = integer(61440, signed=False)
     I_Power_Limit = integer(61441, signed=False, unit="%", writable=True)
@@ -238,6 +246,53 @@ class AdvancedPowerControl(Component):
     DisconnectAtZeroPwrLim = float32(61864, word_order="little", writable=True)
 
 
+class EnhancedDynamicPowerControl(Component):
+    """Enhanced Dynamic Power Control.
+
+    DynamicActivePowerLimit, DynamicReactivePowerRef, and DynamicCosPhiRef
+    should use count_write=False since they are not saved to the inverter.
+    """
+
+    Enable = integer(62208, signed=False, writable=True)
+    _Reserved_F301 = integer(62209, signed=False)
+    _Reserved_F302 = float32(62210, word_order="little")
+    MaxActivePower = float32(62212, unit="W", word_order="little")
+    MaxReactivePower = float32(62214, unit="VAR", word_order="little")
+    ActiveReactivePreference = integer(62216, signed=False, writable=True)
+    CosPhiQPreference = integer(62217, signed=False, writable=True)
+    _Reserved_F30A = float32(62218, word_order="little", writable=True)
+    ActivePowerLimit = float32(62220, unit="W", word_order="little", writable=True)
+    ReactivePowerLimit = float32(62222, unit="VAR", word_order="little", writable=True)
+    CommandTimeout = uint32(62224, unit="s", word_order="little", writable=True)
+    FallbackActivePowerLimit = float32(
+        62226, unit="%", word_order="little", writable=True
+    )
+    FallbackReactivePowerLimit = float32(
+        62228, unit="%", word_order="little", writable=True
+    )
+    FallbackCosPhi = float32(62230, word_order="little", writable=True)
+    ActivePowerRampUpRate = float32(
+        62232, unit="%/min", word_order="little", writable=True
+    )
+    ActivePowerRampDownRate = float32(
+        62234, unit="%/min", word_order="little", writable=True
+    )
+    ReactivePowerRampUpRate = float32(
+        62236, unit="%/min", word_order="little", writable=True
+    )
+    ReactivePowerRampDownRate = float32(
+        62238, unit="%/min", word_order="little", writable=True
+    )
+    PhiChangeRate = float32(62240, unit="rad/min", word_order="little", writable=True)
+    DynamicActivePowerLimit = float32(
+        62242, unit="%", word_order="little", writable=True
+    )
+    DynamicReactivePowerRef = float32(
+        62244, unit="%", word_order="little", writable=True
+    )
+    DynamicCosPhiRef = float32(62246, word_order="little", writable=True)
+
+
 class SiteLimitControl(Component):
     """Power Control Options: Site Limit Control, read every polling cycle."""
 
@@ -250,7 +305,12 @@ class SiteLimitControl(Component):
 
 
 class StorageControl(Component):
-    """Power Control Options: Storage Control, read every polling cycle."""
+    """Power Control Options: Storage Control, read every polling cycle.
+
+    command_timeout, command_mode, charge_limit, and discharge_limit
+    should use count_write=False since they have been reported to not be saved
+    in issue #1141.
+    """
 
     control_mode = integer(57348, signed=False, writable=True)
     ac_charge_policy = integer(57349, signed=False, writable=True)

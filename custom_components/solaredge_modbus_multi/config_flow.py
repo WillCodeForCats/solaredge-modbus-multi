@@ -8,7 +8,12 @@ import re
 from typing import Any
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlowResult,
+    OptionsFlow,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
@@ -199,11 +204,11 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if {info[4][0].lower() for info in addr_info} & discovered_ips:
                 return self.async_abort(reason="already_configured")
 
-        if not await self._async_port_open(host, port):
-            return self.async_abort(reason="cannot_connect")
-
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
+
+        if not await self._async_port_open(host, port):
+            return self.async_abort(reason="cannot_connect")
 
         self._discovered = {CONF_HOST: host, CONF_PORT: port}
         self.context["title_placeholders"] = {"host": host}
@@ -594,7 +599,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
+class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
     """Handle an options flow for SolarEdge Modbus Multi."""
 
     async def async_step_init(

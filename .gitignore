@@ -2,3 +2,4 @@
 solaredge-modbus-multi.bbprojectd
 /megalinter-reports
 *.pyc
+.coverage
