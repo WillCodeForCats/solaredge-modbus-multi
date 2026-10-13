@@ -98,7 +98,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except HomeAssistantError as err:
         # Another integration holds this device over different link settings,
         # which one shared connection cannot honour.
-        raise ConfigEntryError(str(err)) from err
+        raise ConfigEntryError(
+            translation_domain=DOMAIN,
+            translation_key="link_settings_in_use",
+            translation_placeholders={
+                "host": entry.data[CONF_HOST],
+                "port": str(entry.data[CONF_PORT]),
+            },
+        ) from err
     connection = SharedUnits(units)
 
     solaredge_hub = SolarEdgeModbusMultiHub(

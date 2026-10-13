@@ -178,5 +178,10 @@
       "title": "Keep Modbus Connection Open Option Replaced",
       "description": "The \"Keep Modbus Connection Open\" option has been replaced by \"Close Connection After Polling\" in this integration's configuration. Review the new option if you need the same behavior."
     }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Another integration is already connected to {host}:{port} using different connection settings, and one connection cannot use both. Remove or reconfigure the other integration, then reload this one."
+    }
   }
 }
