@@ -266,7 +266,10 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
         """Set native value."""
         _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
-            self._platform.storage_control_data, "command_timeout", int(value)
+            self._platform.storage_control_data,
+            "command_timeout",
+            int(value),
+            count_write=False,
         )
         await self.async_update()
 
@@ -322,7 +325,10 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         """Set native value."""
         _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
-            self._platform.storage_control_data, "charge_limit", int(value)
+            self._platform.storage_control_data,
+            "charge_limit",
+            int(value),
+            count_write=False,
         )
         await self.async_update()
 
@@ -378,7 +384,10 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
         """Set native value."""
         _LOGGER.debug("set %s to %s", self.unique_id, value)
         await self._platform.write(
-            self._platform.storage_control_data, "discharge_limit", int(value)
+            self._platform.storage_control_data,
+            "discharge_limit",
+            int(value),
+            count_write=False,
         )
         await self.async_update()
 
