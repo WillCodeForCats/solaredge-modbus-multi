@@ -305,7 +305,12 @@ class SiteLimitControl(Component):
 
 
 class StorageControl(Component):
-    """Power Control Options: Storage Control, read every polling cycle."""
+    """Power Control Options: Storage Control, read every polling cycle.
+
+    command_timeout, command_mode, charge_limit, and discharge_limit
+    should use count_write=False since they have been reported to not be saved
+    in issue #1141.
+    """
 
     control_mode = integer(57348, signed=False, writable=True)
     ac_charge_policy = integer(57349, signed=False, writable=True)

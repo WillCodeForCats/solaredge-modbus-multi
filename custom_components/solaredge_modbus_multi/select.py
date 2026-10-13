@@ -302,7 +302,10 @@ class StorageCommandMode(SolarEdgeSelectBase):
         _LOGGER.debug("set %s to %s", self.unique_id, option)
         new_mode = get_key(self._options, option)
         await self._platform.write(
-            self._platform.storage_control_data, "command_mode", new_mode
+            self._platform.storage_control_data,
+            "command_mode",
+            new_mode,
+            count_write=False,
         )
         await self.async_update()
 
