@@ -107,10 +107,16 @@ async def test_setup_link_settings_conflict_is_a_config_entry_error(hass, setup_
 
     with (
         patch(GET_UNIT, side_effect=HomeAssistantError("different link settings")),
-        pytest.raises(ConfigEntryError, match="different link settings"),
+        pytest.raises(ConfigEntryError) as exc_info,
     ):
         await async_setup_entry(hass, entry)
 
+    assert exc_info.value.translation_domain == DOMAIN
+    assert exc_info.value.translation_key == "link_settings_in_use"
+    assert exc_info.value.translation_placeholders == {
+        "host": "127.0.0.1",
+        "port": "1502",
+    }
     setup_mocks.assert_not_called()
 
 
