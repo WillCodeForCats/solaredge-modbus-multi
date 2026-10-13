@@ -156,8 +156,8 @@ def _async_migrate_legacy_der_entities(
     """
     entity_registry = er.async_get(hass)
     for inverter in solaredge_hub.inverters:
-        for der_id in range(1, len(inverter.der_storage) + 1):
-            legacy_prefix = f"{inverter.uid_base}_DERB{der_id}"
+        for der_id, scan_id in enumerate(inverter.der_storage_scan_ids, 1):
+            legacy_prefix = f"{inverter.uid_base}_DERB{scan_id}"
 
             for suffix in _LEGACY_DER_UNSUPPORTED_SUFFIXES:
                 entity_id = entity_registry.async_get_entity_id(
@@ -192,9 +192,9 @@ def _async_remove_legacy_der_devices(
     entity. Removing a device also removes the entities still registered to it.
     """
     legacy_ids = {
-        f"{inverter.uid_base}_DERB{der_id}"
+        f"{inverter.uid_base}_DERB{scan_id}"
         for inverter in solaredge_hub.inverters
-        for der_id in range(1, len(inverter.der_storage) + 1)
+        for scan_id in inverter.der_storage_scan_ids
     }
     if not legacy_ids:
         return

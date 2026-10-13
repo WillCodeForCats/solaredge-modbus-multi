@@ -32,9 +32,14 @@ from custom_components.solaredge_modbus_multi.sensor import (
 )
 
 
-def _platform(*ders):
+def _platform(*ders, scan_ids=None):
     return SimpleNamespace(
-        uid_base="inv", der_storage=list(ders), der_storage_listeners=set()
+        uid_base="inv",
+        der_storage=list(ders),
+        der_storage_scan_ids=(
+            list(scan_ids) if scan_ids else list(range(1, len(ders) + 1))
+        ),
+        der_storage_listeners=set(),
     )
 
 
@@ -160,6 +165,25 @@ async def test_init_der_storage_reads_without_listeners_and_skips_failures():
 
     assert component_update.await_count == 2
     assert len(inverter.der_storage) == 1
+    assert inverter.der_storage_scan_ids == [1]
+
+
+async def test_init_der_storage_keeps_original_scan_id_of_retained_block():
+    """Test init der storage keeps original scan id of retained block."""
+    component_update = AsyncMock(side_effect=[ModbusExceptionError(2, "bad"), None])
+    stub_hub = SimpleNamespace(
+        connection=MockModbusConnection(), component_update=component_update
+    )
+    inverter = SolarEdgeInverter(1, stub_hub)
+    models = [
+        SunSpecModel(model_id=713, address=41438, length=7),
+        SunSpecModel(model_id=713, address=41500, length=7),
+    ]
+
+    await inverter.init_der_storage(models)
+
+    assert len(inverter.der_storage) == 1
+    assert inverter.der_storage_scan_ids == [2]
 
 
 # --- legacy device cleanup ---------------------------------------------------
@@ -280,3 +304,23 @@ async def test_legacy_der_entity_not_migrated_when_new_one_exists(hass):
 
     assert entity_registry.async_get(old.entity_id).unique_id == "inv_DERB1_battery_soe"
     assert entity_registry.async_get(new.entity_id).unique_id == "inv_storage_1_soc"
+
+
+async def test_legacy_der_migration_uses_original_scan_id(hass):
+    """Test legacy der migration uses original scan id, not list position."""
+    entry, _, entity_registry, _soc, _model, _legacy = _setup_registry(hass)
+    block1 = entity_registry.async_get_or_create(
+        "sensor", DOMAIN, "inv_DERB1_battery_soe", config_entry=entry
+    )
+    block2 = entity_registry.async_get_or_create(
+        "sensor", DOMAIN, "inv_DERB2_battery_soe", config_entry=entry
+    )
+    # block 1 failed to initialize; block 2 is the only retained block
+    hub = SimpleNamespace(inverters=[_platform(_der(), scan_ids=[2])])
+
+    _async_migrate_legacy_der_entities(hass, hub)
+
+    assert entity_registry.async_get(block2.entity_id).unique_id == "inv_storage_1_soc"
+    assert entity_registry.async_get(block1.entity_id).unique_id == (
+        "inv_DERB1_battery_soe"
+    )

@@ -833,6 +833,9 @@ class SolarEdgeInverter:
         self.write_count = 0
         self.write_count_listeners = set()
 
+        # Scan position of each retained der_storage block, for legacy DERB<n>
+        self.der_storage_scan_ids = []
+
         self.inverter_common = InverterCommon(
             self.hub.connection.for_unit(self.inverter_unit_id)
         )
@@ -999,7 +1002,8 @@ class SolarEdgeInverter:
         Not documented by SolarEdge. Reported in
         https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/1055
         Independent of the proprietary battery block; both can be present on the
-        same inverter. Every model 713 block found is kept, in scan order.
+        same inverter. Every model 713 block that reads successfully is kept, in
+        scan order; its 1-based scan position is kept in der_storage_scan_ids.
         """
         for der_id, der_storage_model in enumerate(der_storage_models, 1):
             der = DERStorageCapacity(
@@ -1019,6 +1023,7 @@ class SolarEdgeInverter:
 
             _log_component_fields(f"I{self.inverter_unit_id}_storage_{der_id}", der)
             self.der_storage.append(der)
+            self.der_storage_scan_ids.append(der_id)
             _LOGGER.debug(
                 "Found I%s DER Storage Capacity %s", self.inverter_unit_id, der_id
             )
