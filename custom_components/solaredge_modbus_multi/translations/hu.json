@@ -104,6 +104,7 @@
       "battery_options": {
         "title": "Akkumulátor Beállítások",
         "data": {
+          "battery_energy_reset_cycles": "Frissítési Ciklusok az Akkumulátor Energiájának Visszaállításához",
           "battery_rating_adjust": "Akkumulátor Kapacitásának Beállítása (százalék)"
         }
       }
@@ -171,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "A Modbus YAML Konfiguráció Már Nem Támogatott",
       "description": "A `modbus` szakasz a `solaredge_modbus_multi` alatt a `configuration.yaml` fájlban már nem támogatott, és figyelmen kívül lesz hagyva. Kérjük, távolítsa el a YAML konfigurációjából."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Az akkumulátorenergia-visszaállítás ciklusai megváltoztak",
+      "description": "A(z) „Frissítési Ciklusok az Akkumulátor Energiájának Visszaállításához” beállítás mostantól azt adja meg, hány egymást követő lekérdezésen át kell fennmaradnia egy alacsonyabb akkumulátorenergia-értéknek, mielőtt visszaállításként elfogadásra kerül. A minimum 2. A(z) {old_value} értéket {new_value} értékre módosítottuk. Ha más értéket szeretne, ellenőrizze a beállítást az akkumulátor beállításai között."
     },
     "deprecated_keep_modbus_open": {
       "title": "A „Modbus Kapcsolat Nyitva Tartása” Opció Lecserélve",

@@ -104,6 +104,7 @@
       "battery_options": {
         "title": "Batterieoptionen",
         "data": {
+          "battery_energy_reset_cycles": "Aktualisierungszyklen zum Zurücksetzen der Batterieenergie",
           "battery_rating_adjust": "Anpassung der Batterieleistung (Prozent)"
         }
       }
@@ -171,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus-YAML-Konfiguration wird nicht mehr unterstützt",
       "description": "Der Abschnitt `modbus` unter `solaredge_modbus_multi` in der `configuration.yaml` wird nicht mehr unterstützt und wird ignoriert. Bitte entfernen Sie ihn aus Ihrer YAML-Konfiguration."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Zyklen zum Zurücksetzen der Batterieenergie geändert",
+      "description": "Die Option „Aktualisierungszyklen zum Zurücksetzen der Batterieenergie“ legt jetzt fest, wie viele aufeinanderfolgende Abfragen ein niedrigerer Batterieenergiewert bestehen muss, bevor er als Zurücksetzung akzeptiert wird. Der Mindestwert ist 2. Ihr Wert {old_value} wurde auf {new_value} geändert. Prüfen Sie die Option in den Batterieoptionen, wenn Sie einen anderen Wert möchten."
     },
     "deprecated_keep_modbus_open": {
       "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",

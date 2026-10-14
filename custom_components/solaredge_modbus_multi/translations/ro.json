@@ -104,6 +104,7 @@
       "battery_options": {
         "title": "Opțiuni Baterie",
         "data": {
+          "battery_energy_reset_cycles": "Cicluri de Actualizare pentru Resetarea Energiei Bateriei",
           "battery_rating_adjust": "Ajustare Capacitate Baterie (procent)"
         }
       }
@@ -171,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Configurația Modbus YAML Nu Mai Este Acceptată",
       "description": "Secțiunea `modbus` de sub `solaredge_modbus_multi` din `configuration.yaml` nu mai este acceptată și este ignorată. Vă rugăm să o eliminați din configurația YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Ciclurile de resetare a energiei bateriei au fost modificate",
+      "description": "Opțiunea „Cicluri de Actualizare pentru Resetarea Energiei Bateriei” stabilește acum câte interogări consecutive trebuie să persiste o valoare mai mică a energiei bateriei înainte de a fi acceptată ca resetare. Minimul este 2. Valoarea dvs. de {old_value} a fost schimbată în {new_value}. Verificați opțiunea din opțiunile bateriei dacă doriți o altă valoare."
     },
     "deprecated_keep_modbus_open": {
       "title": "Opțiunea Menține Conexiunea Modbus Deschisă a Fost Înlocuită",

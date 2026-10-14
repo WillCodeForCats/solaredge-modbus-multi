@@ -104,6 +104,7 @@
       "battery_options": {
         "title": "Options de batterie",
         "data": {
+          "battery_energy_reset_cycles": "Cycles de mise à jour pour réinitialiser l'énergie de la batterie",
           "battery_rating_adjust": "Ajustement de la capacité de la batterie (pourcentage)"
         }
       }
@@ -171,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Configuration YAML Modbus non prise en charge",
       "description": "La section `modbus` sous `solaredge_modbus_multi` dans `configuration.yaml` n'est plus prise en charge et est ignorée. Veuillez la supprimer de votre configuration YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cycles de réinitialisation de l'énergie de la batterie modifiés",
+      "description": "L'option « Cycles de mise à jour pour réinitialiser l'énergie de la batterie » définit désormais le nombre d'interrogations consécutives pendant lesquelles une valeur d'énergie de batterie plus basse doit persister avant d'être acceptée comme une réinitialisation. Le minimum est 2. Votre valeur de {old_value} a été remplacée par {new_value}. Vérifiez l'option dans les options de la batterie si vous souhaitez une autre valeur."
     },
     "deprecated_keep_modbus_open": {
       "title": "Option « Garder la connexion Modbus ouverte » remplacée",

@@ -104,6 +104,7 @@
       "battery_options": {
         "title": "电池选项",
         "data": {
+          "battery_energy_reset_cycles": "重置电池能量的更新周期数",
           "battery_rating_adjust": "电池容量调整（百分比）"
         }
       }
@@ -171,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "不再支持 Modbus YAML 配置",
       "description": "`configuration.yaml` 中 `solaredge_modbus_multi` 下的 `modbus` 部分已不再受支持，将被忽略。请将其从您的 YAML 配置中移除。"
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "电池能量重置周期已更改",
+      "description": "选项“重置电池能量的更新周期数”现在用于指定较低的电池能量读数必须连续保持多少次轮询后才会被接受为重置。最小值为 2。您设置的值 {old_value} 已更改为 {new_value}。如需其他值,请在电池选项中检查该选项。"
     },
     "deprecated_keep_modbus_open": {
       "title": "“保持 Modbus 连接打开”选项已被替换",

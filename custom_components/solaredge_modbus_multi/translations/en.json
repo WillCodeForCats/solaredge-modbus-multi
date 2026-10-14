@@ -104,6 +104,7 @@
       "battery_options": {
         "title": "Battery Options",
         "data": {
+          "battery_energy_reset_cycles": "Update Cycles to Reset Battery Energy",
           "battery_rating_adjust": "Battery Rating Adjustment (percent)"
         }
       }
@@ -171,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus YAML Configuration No Longer Supported",
       "description": "The `modbus` section under `solaredge_modbus_multi` in `configuration.yaml` is no longer supported and is being ignored. Please remove it from your YAML configuration."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Battery Energy Reset Cycles Changed",
+      "description": "The \"Update Cycles to Reset Battery Energy\" option now sets how many consecutive polls a lower battery energy reading must persist before it is accepted as a reset, and the minimum is 2. Your value of {old_value} has been changed to {new_value}. Review the option in the battery options if you want a different value."
     },
     "deprecated_keep_modbus_open": {
       "title": "Keep Modbus Connection Open Option Replaced",
