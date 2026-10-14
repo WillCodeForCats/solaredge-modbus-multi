@@ -101,6 +101,7 @@ class ConfDefaultInt(IntEnum):
     REQUEST_TIMEOUT = 3
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
+    BATTERY_ENERGY_RESET_CYCLES = 2
 
 
 class ConfDefaultFlag(IntEnum):
@@ -134,6 +135,7 @@ class ConfName(StrEnum):
     REQUEST_TIMEOUT = "request_timeout"
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
+    BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
     CLOSE_AFTER_POLLING = "close_after_polling"
 
     # Old config entry names for migration

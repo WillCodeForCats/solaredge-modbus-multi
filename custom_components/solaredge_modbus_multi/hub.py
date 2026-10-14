@@ -224,6 +224,13 @@ class SolarEdgeModbusMultiHub:
         self._battery_rating_adjust = entry_options.get(
             ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
         )
+        self._battery_energy_reset_cycles = max(
+            2,
+            entry_options.get(
+                ConfName.BATTERY_ENERGY_RESET_CYCLES,
+                ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
+            ),
+        )
         self._close_after_polling = entry_options.get(
             ConfName.CLOSE_AFTER_POLLING, bool(ConfDefaultFlag.CLOSE_AFTER_POLLING)
         )
@@ -722,6 +729,11 @@ class SolarEdgeModbusMultiHub:
     def battery_rating_adjust(self) -> int:
         """Return the battery rating adjust."""
         return (self._battery_rating_adjust + 100) / 100
+
+    @property
+    def battery_energy_reset_cycles(self) -> int:
+        """Return the polls a lower battery energy reading must persist."""
+        return self._battery_energy_reset_cycles
 
     @property
     def close_after_polling(self) -> bool:
@@ -1747,6 +1759,11 @@ class SolarEdgeBattery:
     def battery_rating_adjust(self) -> int:
         """Return the battery rating adjust."""
         return self.hub.battery_rating_adjust
+
+    @property
+    def battery_energy_reset_cycles(self) -> int:
+        """Return the battery energy reset cycles."""
+        return self.hub.battery_energy_reset_cycles
 
 
 class SolarEdgeEVSE:
