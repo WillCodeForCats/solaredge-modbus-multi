@@ -220,9 +220,10 @@ BATTERY_ENERGY_CLASSES = [
 ]
 
 
-def _make_battery_energy(cls, attr, value, total=None, prev_raw=None):
+def _make_battery_energy(cls, attr, value, total=None, prev_raw=None, cycles=2):
     platform = SimpleNamespace(
         uid_base="battery_1",
+        battery_energy_reset_cycles=cycles,
         battery_data=SimpleNamespace(**{attr: value}),
     )
     entity = cls(platform, None, None)
@@ -271,17 +272,36 @@ class TestBatteryEnergyAccumulators:
         assert entity._attr_native_value == 500
         assert entity._prev_raw == 100
 
-    def test_decrease_keeps_total_and_rebaselines(self, cls, attr):
-        """Test decrease keeps total and rebaselines."""
+    def test_single_decrease_is_not_accepted(self, cls, attr):
+        """Test a single lower reading keeps the reference point."""
         entity = _make_battery_energy(cls, attr, value=50, total=500, prev_raw=100)
         entity._process_data()
         assert entity._attr_native_value == 500
+        assert entity._prev_raw == 100
+
+    def test_confirmed_decrease_keeps_total_and_rebaselines(self, cls, attr):
+        """Test a confirmed decrease keeps total and rebaselines."""
+        entity = _make_battery_energy(cls, attr, value=50, total=500, prev_raw=100)
+        for _ in range(2):
+            entity._process_data()
+        assert entity._attr_native_value == 500
         assert entity._prev_raw == 50
 
-    def test_counting_resumes_after_decrease(self, cls, attr):
-        """Test counting resumes after decrease."""
+    def test_glitch_decrease_is_ignored(self, cls, attr):
+        """Test a one-off lower reading does not lose energy."""
         entity = _make_battery_energy(cls, attr, value=50, total=500, prev_raw=100)
         entity._process_data()
+        setattr(entity._platform.battery_data, attr, 130)
+        entity._process_data()
+        assert entity._attr_native_value == 530
+        assert entity._prev_raw == 130
+        assert entity._lower_polls == 0
+
+    def test_counting_resumes_after_decrease(self, cls, attr):
+        """Test counting resumes after a confirmed decrease."""
+        entity = _make_battery_energy(cls, attr, value=50, total=500, prev_raw=100)
+        for _ in range(2):
+            entity._process_data()
         setattr(entity._platform.battery_data, attr, 70)
         entity._process_data()
         assert entity._attr_native_value == 520
