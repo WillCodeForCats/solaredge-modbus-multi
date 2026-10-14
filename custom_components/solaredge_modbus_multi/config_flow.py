@@ -37,7 +37,7 @@ from .const import (
     ConfName,
 )
 from .helpers import device_list_from_string, host_valid
-from .scanner import SolarEdgeDeviceScanner
+from .scanner import ScannerConnectionError, SolarEdgeDeviceScanner
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -442,7 +442,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 except (ScanOtherDeviceError, ScanNoResponseError) as e:
                     errors[ConfName.DEVICE_LIST] = f"{e}"
 
-                except HomeAssistantError as e:
+                except (ScannerConnectionError, HomeAssistantError) as e:
                     errors[CONF_HOST] = f"{e}"
 
                 else:
