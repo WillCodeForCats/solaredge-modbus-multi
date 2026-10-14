@@ -1,4 +1,4 @@
-"""Tests diagnostics keys for meters/batteries/der_batteries."""
+"""Tests diagnostics keys for meters/batteries/DER storage."""
 
 from types import SimpleNamespace
 
@@ -7,12 +7,20 @@ from modbus_connection.model.sunspec import SunSpecModel, SunSpecModels
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.components import (
+    AdvancedPowerControl,
     BatteryData,
     BatteryInfo,
     DERStorageCapacity,
     EvseCommon,
+    GlobalDynamicPowerControl,
+    InverterCommon,
+    InverterData,
     MeterData,
     MeterInfo,
+    MmpptCommon,
+    MmpptData,
+    SiteLimitControl,
+    StorageControl,
 )
 from custom_components.solaredge_modbus_multi.const import DOMAIN
 from custom_components.solaredge_modbus_multi.diagnostics import (
@@ -44,16 +52,32 @@ def _fake_battery(inverter_unit_id, battery_id):
     )
 
 
-def _fake_der_battery(inverter_unit_id, battery_id):
+def _fake_inverter(inverter_unit_id, der_count=0):
     unit = MockModbusConnection().for_unit(inverter_unit_id)
     model = SunSpecModel(model_id=713, address=41438, length=7)
     return SimpleNamespace(
-        device_info={
-            "identifiers": {(DOMAIN, f"der_battery_{inverter_unit_id}_{battery_id}")}
-        },
         inverter_unit_id=inverter_unit_id,
-        battery_id=battery_id,
-        der_storage_capacity_data=DERStorageCapacity(unit, model),
+        device_info={"identifiers": {(DOMAIN, f"inverter_{inverter_unit_id}")}},
+        global_power_control=None,
+        advanced_power_control=None,
+        site_limit_control=None,
+        inverter_common=InverterCommon(unit),
+        inverter_data=InverterData(unit),
+        mmppt_common=MmpptCommon(unit),
+        mmppt_data=MmpptData(unit),
+        global_power_control_data=GlobalDynamicPowerControl(unit),
+        advanced_power_control_data=AdvancedPowerControl(unit),
+        site_limit_control_data=SiteLimitControl(unit),
+        storage_control_data=StorageControl(unit),
+        sunspec_models=None,
+        use_status_vendor4=False,
+        use_mmppt_units=False,
+        has_battery=None,
+        has_storage_control=False,
+        has_global_power_control=False,
+        has_advanced_power_control=False,
+        has_site_limit_control=False,
+        der_storage=[DERStorageCapacity(unit, model) for _ in range(der_count)],
     )
 
 
@@ -67,12 +91,11 @@ def _fake_evse(inverter_unit_id, sunspec_models=None):
     )
 
 
-def _fake_hub(meters=(), batteries=(), der_batteries=(), evses=()):
+def _fake_hub(meters=(), batteries=(), inverters=(), evses=()):
     return SimpleNamespace(
-        inverters=[],
+        inverters=list(inverters),
         meters=list(meters),
         batteries=list(batteries),
-        der_batteries=list(der_batteries),
         evses=list(evses),
     )
 
@@ -114,29 +137,29 @@ async def test_batteries_on_different_inverters_get_distinct_keys(hass):
     assert "battery_id_I2_B1" in data
 
 
-async def test_der_batteries_on_different_inverters_get_distinct_keys(hass):
+async def test_der_storage_on_different_inverters_get_distinct_keys(hass):
     """Test der batteries on different inverters get distinct keys."""
-    hub = _fake_hub(der_batteries=[_fake_der_battery(1, 1), _fake_der_battery(2, 1)])
+    hub = _fake_hub(inverters=[_fake_inverter(1, 1), _fake_inverter(2, 1)])
 
     data = await _get_diagnostics(hass, hub)
 
-    der_keys = [k for k in data if k.startswith("der_battery_id_")]
+    der_keys = [k for k in data if k.startswith("der_storage_id_")]
     assert len(der_keys) == 2
-    assert "der_battery_id_I1_DERB1" in data
-    assert "der_battery_id_I2_DERB1" in data
+    assert "der_storage_id_I1_storage_1" in data
+    assert "der_storage_id_I2_storage_1" in data
 
 
-async def test_der_battery_and_regular_battery_keys_do_not_collide(hass):
-    """Test der battery and regular battery keys do not collide."""
+async def test_der_storage_and_regular_battery_keys_do_not_collide(hass):
+    """Test der storage and regular battery keys do not collide."""
     hub = _fake_hub(
         batteries=[_fake_battery(1, 1)],
-        der_batteries=[_fake_der_battery(1, 1)],
+        inverters=[_fake_inverter(1, 1)],
     )
 
     data = await _get_diagnostics(hass, hub)
 
     assert "battery_id_I1_B1" in data
-    assert "der_battery_id_I1_DERB1" in data
+    assert "der_storage_id_I1_storage_1" in data
 
 
 async def test_evse_includes_sunspec_scan_results(hass):
