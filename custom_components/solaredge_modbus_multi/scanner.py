@@ -9,9 +9,11 @@ import asyncio
 from collections.abc import Callable
 import logging
 
-from homeassistant.exceptions import HomeAssistantError
-
 _LOGGER = logging.getLogger(__name__)
+
+
+class ScannerConnectionError(Exception):
+    """Unable to connect to the device being scanned."""
 
 
 class SolarEdgeDeviceScanner:
@@ -181,7 +183,7 @@ class SolarEdgeDeviceScanner:
                 )
 
         if attempt > self._scan_retries:
-            raise HomeAssistantError(
+            raise ScannerConnectionError(
                 f"Unable to connect to {self._host}:{self._port} after {attempt - 1} attempts."
             )
 
@@ -239,7 +241,7 @@ class SolarEdgeDeviceScanner:
             NOT_FOUND (0) if no valid response was received.
 
         Raises:
-            HomeAssistantError: If scanning fails after all retry attempts.
+            ScannerConnectionError: If the connection cannot be established.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
 
