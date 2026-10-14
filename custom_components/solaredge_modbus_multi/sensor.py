@@ -2688,6 +2688,7 @@ class SolarEdgeBatteryEnergyBase(SolarEdgeSensorBase, RestoreSensor):
         super().__init__(platform, config_entry, coordinator)
 
         self._prev_raw = None
+        self._lower_polls = 0
 
     @property
     def available(self) -> bool:
@@ -2732,6 +2733,12 @@ class SolarEdgeBatteryEnergyBase(SolarEdgeSensorBase, RestoreSensor):
             return
 
         if value < self._prev_raw:
+            self._lower_polls += 1
+            if self._lower_polls < self._platform.battery_energy_reset_cycles:
+                # A lower reading may be a glitch; keep the reference point
+                # until enough consecutive polls confirm it.
+                return
+
             _LOGGER.warning(
                 "Battery %s Energy went backwards: current value %s is "
                 "less than last value of %s; continuing from the new value",
@@ -2742,6 +2749,7 @@ class SolarEdgeBatteryEnergyBase(SolarEdgeSensorBase, RestoreSensor):
         else:
             self._attr_native_value += value - self._prev_raw
 
+        self._lower_polls = 0
         self._prev_raw = value
 
 
