@@ -11,7 +11,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.solaredge_modbus_multi import async_migrate_entry
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
 
-ISSUE_ID = "battery_energy_reset_cycles_changed"
+ISSUE_ID_PREFIX = "battery_energy_reset_cycles_changed"
 
 
 def _entry(options):
@@ -39,7 +39,9 @@ async def test_low_value_migrated_and_issue_raised(hass, old_value):
 
     assert entry.minor_version == 4
     assert entry.options[ConfName.BATTERY_ENERGY_RESET_CYCLES] == 2
-    issue = ir.async_get(hass).async_get_issue(DOMAIN, ISSUE_ID)
+    issue = ir.async_get(hass).async_get_issue(
+        DOMAIN, f"{ISSUE_ID_PREFIX}_{entry.entry_id}"
+    )
     assert issue is not None
     assert issue.translation_placeholders == {
         "old_value": str(old_value),
@@ -57,4 +59,9 @@ async def test_other_values_left_alone(hass, options):
 
     assert entry.minor_version == 4
     assert dict(entry.options) == options
-    assert ir.async_get(hass).async_get_issue(DOMAIN, ISSUE_ID) is None
+    assert (
+        ir.async_get(hass).async_get_issue(
+            DOMAIN, f"{ISSUE_ID_PREFIX}_{entry.entry_id}"
+        )
+        is None
+    )

@@ -426,7 +426,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             ir.async_create_issue(
                 hass,
                 DOMAIN,
-                "battery_energy_reset_cycles_changed",
+                f"battery_energy_reset_cycles_changed_{config_entry.entry_id}",
                 is_fixable=False,
                 severity=ir.IssueSeverity.WARNING,
                 translation_key="battery_energy_reset_cycles_changed",
