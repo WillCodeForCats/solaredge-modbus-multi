@@ -164,7 +164,7 @@ async def async_create_fix_flow(
     entry_id = cast(str, data["entry_id"])
 
     if (entry := hass.config_entries.async_get_entry(entry_id)) is not None:
-        if issue_id == "check_configuration":
+        if issue_id.startswith("check_configuration_"):
             return CheckConfigurationRepairFlow(entry)
 
         if issue_id.startswith("detect_timeout_gpc_"):
