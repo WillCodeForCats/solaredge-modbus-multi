@@ -645,10 +645,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
-                ConfName.CLOSE_AFTER_POLLING: self.config_entry.options.get(
-                    ConfName.CLOSE_AFTER_POLLING,
-                    bool(ConfDefaultFlag.CLOSE_AFTER_POLLING),
-                ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
                     ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
@@ -677,10 +673,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                         CONF_SCAN_INTERVAL,
                         default=user_input[CONF_SCAN_INTERVAL],
                     ): vol.Coerce(int),
-                    vol.Optional(
-                        f"{ConfName.CLOSE_AFTER_POLLING}",
-                        default=user_input[ConfName.CLOSE_AFTER_POLLING],
-                    ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.DETECT_METERS}",
                         default=user_input[ConfName.DETECT_METERS],

@@ -252,9 +252,6 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
-        self._close_after_polling = entry_options.get(
-            ConfName.CLOSE_AFTER_POLLING, bool(ConfDefaultFlag.CLOSE_AFTER_POLLING)
-        )
 
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
@@ -276,7 +273,7 @@ class SolarEdgeModbusMultiHub:
             "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
             "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
             "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
-            "close_after_polling=%s, ",
+            "close_after_polling=%s",
             DOMAIN,
             self._inverter_list,
             self._detect_meters,
@@ -288,7 +285,7 @@ class SolarEdgeModbusMultiHub:
             self._request_timeout,
             self._sleep_after_write,
             self._battery_rating_adjust,
-            self._close_after_polling,
+            self.close_after_polling,
         )
 
     async def _async_init_solaredge(self) -> None:  # noqa: C901
@@ -766,8 +763,15 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def close_after_polling(self) -> bool:
-        """Return the close after polling."""
-        return self._close_after_polling
+        """Return whether to close the connection after polling.
+
+        Set in YAML and only for an own connection: a shared connection
+        belongs to the modbus integration and other entries may be using it.
+        """
+        return bool(
+            self._yaml_config.get("own_connection", False)
+            and self._yaml_config.get("close_after_polling", False)
+        )
 
     @property
     def number_of_meters(self) -> int:
