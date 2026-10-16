@@ -12,6 +12,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platfo
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError, HomeAssistantError
 from homeassistant.helpers import (
+    config_validation as cv,
     device_registry as dr,
     entity_registry as er,
     issue_registry as ir,
@@ -46,6 +47,7 @@ CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
+                vol.Optional("own_connection"): cv.boolean,
                 "retry": vol.Schema(
                     {
                         vol.Optional("time"): vol.Coerce(int),
@@ -157,17 +159,18 @@ def _async_remove_legacy_der_devices(
             device_registry.async_remove_device(device.id)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up SolarEdge Modbus Muti from a config entry."""
+def _async_get_shared_units(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    params: ModbusTcpParams,
+    request_timeout: float,
+) -> SharedUnits:
+    """Get a unit per device ID on the modbus integration's shared connection.
 
-    request_timeout = entry.options.get(
-        ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
-    )
-    params = ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT])
-
-    # One unit per device ID on the shared connection. The connection itself
-    # belongs to the modbus integration, which closes it behind the last entry
-    # holding a unit, so there is nothing for us to close on unload.
+    The connection itself belongs to the modbus integration, which closes it
+    behind the last entry holding a unit, so there is nothing for us to close
+    on unload.
+    """
     units = {}
     try:
         for unit_id in entry.data[ConfName.DEVICE_LIST]:
@@ -186,7 +189,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "port": str(entry.data[CONF_PORT]),
             },
         ) from err
-    connection = SharedUnits(units)
+    return SharedUnits(units)
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up SolarEdge Modbus Muti from a config entry."""
+
+    request_timeout = entry.options.get(
+        ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
+    )
+    params = ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT])
+
+    if hass.data[DOMAIN]["yaml"].get("own_connection", False):
+        # Optional: we can open and own the connection instead of sharing
+        # one from the core modbus integration.
+        from modbus_connection.tmodbus import ModbusConnection  # noqa: PLC0415
+
+        _LOGGER.warning("Using own modbus connection (own_connection is set in YAML)")
+        connection = ModbusConnection(
+            params,
+            timeout=request_timeout,
+            message_spacing=MESSAGE_SPACING,
+        )
+        entry.async_on_unload(connection.close)
+    else:
+        connection = _async_get_shared_units(hass, entry, params, request_timeout)
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options, connection
