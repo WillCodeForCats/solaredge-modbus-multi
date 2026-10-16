@@ -399,6 +399,34 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         # points affected users at the YAML setting.
         hass.config_entries.async_update_entry(config_entry, version=2, minor_version=3)
 
+    if config_entry.version == 2 and config_entry.minor_version < 4:
+        _LOGGER.debug("Migrating from version 2.3")
+
+        # close_after_polling moved to YAML, where it only applies with
+        # own_connection. Users of an own connection that had it enabled
+        # need to set it in YAML to keep the behavior.
+        update_options = {**config_entry.options}
+        had_close_after_polling = update_options.pop("close_after_polling", False)
+        yaml_config = hass.data.get(DOMAIN, {}).get("yaml", {})
+
+        if (
+            had_close_after_polling
+            and yaml_config.get("own_connection", False)
+            and not yaml_config.get("close_after_polling", False)
+        ):
+            ir.async_create_issue(
+                hass,
+                DOMAIN,
+                f"close_after_polling_moved_{config_entry.entry_id}",
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="close_after_polling_moved",
+            )
+
+        hass.config_entries.async_update_entry(
+            config_entry, options=update_options, version=2, minor_version=4
+        )
+
     _LOGGER.warning(
         "Migrated to config version %s.%s",
         config_entry.version,
