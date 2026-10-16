@@ -423,6 +423,27 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
                 translation_key="close_after_polling_moved",
             )
 
+        # config 2.4 changes battery_energy_reset_cycles to the number of
+        # consecutive lower polls before rebasing; a single poll (0 or 1) can
+        # no longer rebase, so the minimum is 2.
+        old_cycles = update_options.get(ConfName.BATTERY_ENERGY_RESET_CYCLES)
+
+        if old_cycles is not None and old_cycles < 2:
+            new_cycles = int(ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES)
+            update_options[ConfName.BATTERY_ENERGY_RESET_CYCLES] = new_cycles
+            ir.async_create_issue(
+                hass,
+                DOMAIN,
+                f"battery_energy_reset_cycles_changed_{config_entry.entry_id}",
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="battery_energy_reset_cycles_changed",
+                translation_placeholders={
+                    "old_value": str(old_cycles),
+                    "new_value": str(new_cycles),
+                },
+            )
+
         hass.config_entries.async_update_entry(
             config_entry, options=update_options, version=2, minor_version=4
         )

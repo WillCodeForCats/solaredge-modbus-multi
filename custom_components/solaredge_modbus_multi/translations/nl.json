@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Batterij opties",
         "data": {
-          "allow_battery_energy_reset": "Batterij-energie laten resetten",
           "battery_energy_reset_cycles": "Update cycli om de batterij-energie te resetten",
           "battery_rating_adjust": "Aanpassing batterijvermogen (%)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "'Verbinding sluiten na oproep' verplaatst naar YAML",
       "description": "De optie 'Verbinding sluiten na oproep' wordt nu ingesteld in `configuration.yaml` en geldt alleen met `own_connection`. Voeg `close_after_polling: true` toe onder `solaredge_modbus_multi` om hetzelfde gedrag te behouden."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cycli voor het resetten van batterij-energie gewijzigd",
+      "description": "De optie \"Update cycli om de batterij-energie te resetten\" bepaalt nu hoeveel opeenvolgende polls een lagere batterij-energiewaarde moet aanhouden voordat deze als reset wordt geaccepteerd. Het minimum is 2. Uw waarde van {old_value} is gewijzigd naar {new_value}. Controleer de optie in de batterijopties als u een andere waarde wilt."
     },
     "deprecated_keep_modbus_open": {
       "title": "Optie 'Houd Modbus-verbinding open' vervangen",

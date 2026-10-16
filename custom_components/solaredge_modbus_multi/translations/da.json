@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Batteriindstillinger",
         "data": {
-          "allow_battery_energy_reset": "Tillad nulstilling af batterienergi",
           "battery_energy_reset_cycles": "Opdateringscyklusser til nulstilling af batterienergi",
           "battery_rating_adjust": "Justering af batterikapacitet (procent)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "Luk forbindelsen efter polling er flyttet til YAML",
       "description": "Indstillingen \"Luk forbindelsen efter polling\" angives nu i `configuration.yaml` og gælder kun sammen med `own_connection`. Tilføj `close_after_polling: true` under `solaredge_modbus_multi` for at beholde den samme adfærd."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cyklusser til nulstilling af batterienergi ændret",
+      "description": "Indstillingen \"Opdateringscyklusser til nulstilling af batterienergi\" angiver nu, hvor mange på hinanden følgende aflæsninger en lavere batterienergiværdi skal bestå, før den accepteres som en nulstilling. Minimum er 2. Din værdi på {old_value} er ændret til {new_value}. Gennemgå indstillingen under batteriindstillinger, hvis du ønsker en anden værdi."
     },
     "deprecated_keep_modbus_open": {
       "title": "Indstillingen \"Hold Modbus-forbindelsen åben\" er erstattet",

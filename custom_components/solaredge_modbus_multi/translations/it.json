@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Opzioni batteria",
         "data": {
-          "allow_battery_energy_reset": "Consenti il ripristino dell'energia della batteria",
           "battery_energy_reset_cycles": "Cicli di aggiornamento per ripristinare l'energia della batteria",
           "battery_rating_adjust": "Regolazione della potenza della batteria (percentuale)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "\"Chiudi la connessione dopo il polling\" spostata in YAML",
       "description": "L'opzione \"Chiudi la connessione dopo il polling\" ora si imposta in `configuration.yaml` e vale solo con `own_connection`. Aggiungi `close_after_polling: true` sotto `solaredge_modbus_multi` per mantenere lo stesso comportamento."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cicli di reset dell'energia della batteria modificati",
+      "description": "L'opzione \"Cicli di aggiornamento per ripristinare l'energia della batteria\" ora indica per quante letture consecutive un valore di energia della batteria più basso deve persistere prima di essere accettato come reset. Il minimo è 2. Il valore {old_value} è stato modificato in {new_value}. Controlla l'opzione nelle opzioni della batteria se desideri un valore diverso."
     },
     "deprecated_keep_modbus_open": {
       "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",

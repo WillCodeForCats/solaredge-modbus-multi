@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Opțiuni Baterie",
         "data": {
-          "allow_battery_energy_reset": "Permite Resetarea Energiei Bateriei",
           "battery_energy_reset_cycles": "Cicluri de Actualizare pentru Resetarea Energiei Bateriei",
           "battery_rating_adjust": "Ajustare Capacitate Baterie (procent)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "Închide Conexiunea După Interogare Mutată în YAML",
       "description": "Opțiunea „Închide Conexiunea După Interogare” se setează acum în `configuration.yaml` și se aplică doar împreună cu `own_connection`. Adăugați `close_after_polling: true` sub `solaredge_modbus_multi` pentru a păstra același comportament."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Ciclurile de resetare a energiei bateriei au fost modificate",
+      "description": "Opțiunea „Cicluri de Actualizare pentru Resetarea Energiei Bateriei” stabilește acum câte interogări consecutive trebuie să persiste o valoare mai mică a energiei bateriei înainte de a fi acceptată ca resetare. Minimul este 2. Valoarea dvs. de {old_value} a fost schimbată în {new_value}. Verificați opțiunea din opțiunile bateriei dacă doriți o altă valoare."
     },
     "deprecated_keep_modbus_open": {
       "title": "Opțiunea Menține Conexiunea Modbus Deschisă a Fost Înlocuită",

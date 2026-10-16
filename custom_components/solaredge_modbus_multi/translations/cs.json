@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Možnosti baterie",
         "data": {
-          "allow_battery_energy_reset": "Povolit reset energie baterie",
           "battery_energy_reset_cycles": "Aktualizační cykly pro reset energie baterie",
           "battery_rating_adjust": "Úprava kapacity baterie (procenta)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "Zavřít připojení po dotazování přesunuto do YAML",
       "description": "Možnost „Zavřít připojení po dotazování“ se nyní nastavuje v souboru `configuration.yaml` a platí pouze s `own_connection`. Chcete-li zachovat stejné chování, přidejte `close_after_polling: true` do části `solaredge_modbus_multi`."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Změna počtu cyklů pro reset energie baterie",
+      "description": "Volba „Aktualizační cykly pro reset energie baterie“ nyní určuje, kolik po sobě jdoucích dotazů musí nižší hodnota energie baterie vydržet, než bude přijata jako reset. Minimum jsou 2. Vaše hodnota {old_value} byla změněna na {new_value}. Pokud chcete jinou hodnotu, zkontrolujte volbu v nastavení baterie."
     },
     "deprecated_keep_modbus_open": {
       "title": "Možnost „Udržovat připojení Modbus otevřené“ byla nahrazena",

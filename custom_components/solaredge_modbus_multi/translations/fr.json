@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Options de batterie",
         "data": {
-          "allow_battery_energy_reset": "Autoriser la réinitialisation de la batterie",
           "battery_energy_reset_cycles": "Cycles de mise à jour pour réinitialiser l'énergie de la batterie",
           "battery_rating_adjust": "Ajustement de la capacité de la batterie (pourcentage)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "« Fermer la connexion après le rafraichissement » déplacé vers YAML",
       "description": "L'option « Fermer la connexion après le rafraichissement » se définit désormais dans `configuration.yaml` et ne s'applique qu'avec `own_connection`. Ajoutez `close_after_polling: true` sous `solaredge_modbus_multi` pour conserver le même comportement."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cycles de réinitialisation de l'énergie de la batterie modifiés",
+      "description": "L'option « Cycles de mise à jour pour réinitialiser l'énergie de la batterie » définit désormais le nombre d'interrogations consécutives pendant lesquelles une valeur d'énergie de batterie plus basse doit persister avant d'être acceptée comme une réinitialisation. Le minimum est 2. Votre valeur de {old_value} a été remplacée par {new_value}. Vérifiez l'option dans les options de la batterie si vous souhaitez une autre valeur."
     },
     "deprecated_keep_modbus_open": {
       "title": "Option « Garder la connexion Modbus ouverte » remplacée",

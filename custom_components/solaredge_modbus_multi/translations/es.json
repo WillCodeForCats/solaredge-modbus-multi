@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Opciones de batería",
         "data": {
-          "allow_battery_energy_reset": "Permitir el reinicio de la energía de la batería",
           "battery_energy_reset_cycles": "Ciclos de actualización para reiniciar la energía de la batería",
           "battery_rating_adjust": "Ajuste de capacidad de la batería (porcentaje)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "Cerrar la conexión después de sondear se movió a YAML",
       "description": "La opción \"Cerrar la conexión después de sondear\" ahora se establece en `configuration.yaml` y solo se aplica con `own_connection`. Agregue `close_after_polling: true` en `solaredge_modbus_multi` para mantener el mismo comportamiento."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Ciclos de reinicio de energía de la batería modificados",
+      "description": "La opción «Ciclos de actualización para reiniciar la energía de la batería» ahora define cuántas consultas consecutivas debe mantenerse una lectura de energía de la batería más baja antes de aceptarse como un reinicio. El mínimo es 2. Su valor de {old_value} se ha cambiado a {new_value}. Revise la opción en las opciones de la batería si desea otro valor."
     },
     "deprecated_keep_modbus_open": {
       "title": "Se reemplazó la opción Mantener abierta la conexión Modbus",

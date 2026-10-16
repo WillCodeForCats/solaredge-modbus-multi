@@ -103,7 +103,6 @@
       "battery_options": {
         "title": "Batterieoptionen",
         "data": {
-          "allow_battery_energy_reset": "Batterieenergie zurücksetzen lassen",
           "battery_energy_reset_cycles": "Aktualisierungszyklen zum Zurücksetzen der Batterieenergie",
           "battery_rating_adjust": "Anpassung der Batterieleistung (Prozent)"
         }
@@ -176,6 +175,10 @@
     "close_after_polling_moved": {
       "title": "\"Verbindung nach Abfrage schließen\" in YAML verschoben",
       "description": "Die Option \"Verbindung nach Abfrage schließen\" wird jetzt in der `configuration.yaml` festgelegt und gilt nur zusammen mit `own_connection`. Fügen Sie `close_after_polling: true` unter `solaredge_modbus_multi` hinzu, um das gleiche Verhalten beizubehalten."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Zyklen zum Zurücksetzen der Batterieenergie geändert",
+      "description": "Die Option „Aktualisierungszyklen zum Zurücksetzen der Batterieenergie“ legt jetzt fest, wie viele aufeinanderfolgende Abfragen ein niedrigerer Batterieenergiewert bestehen muss, bevor er als Zurücksetzung akzeptiert wird. Der Mindestwert ist 2. Ihr Wert {old_value} wurde auf {new_value} geändert. Prüfen Sie die Option in den Batterieoptionen, wenn Sie einen anderen Wert möchten."
     },
     "deprecated_keep_modbus_open": {
       "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",
