@@ -244,6 +244,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Drop the entry-independent issue ID used by earlier versions.
     ir.async_delete_issue(hass, DOMAIN, "check_configuration")
+    ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
 
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
