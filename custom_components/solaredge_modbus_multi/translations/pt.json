@@ -84,7 +84,6 @@
         "title": "Opções do Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequência de Sondagem (segundos)",
-          "close_after_polling": "Fechar a Ligação Após a Sondagem",
           "detect_meters": "Deteção Automática de Contadores",
           "detect_batteries": "Deteção Automática de Baterias",
           "detect_extras": "Deteção Automática de Entidades Adicionais",
@@ -174,9 +173,13 @@
       "title": "A Configuração YAML do Modbus Já Não É Suportada",
       "description": "A secção `modbus` em `solaredge_modbus_multi` no `configuration.yaml` já não é suportada e está a ser ignorada. Remova-a da sua configuração YAML."
     },
+    "close_after_polling_moved": {
+      "title": "Fechar a Ligação Após a Sondagem Movida para o YAML",
+      "description": "A opção \"Fechar a Ligação Após a Sondagem\" é agora definida no `configuration.yaml` e só se aplica com `own_connection`. Adicione `close_after_polling: true` em `solaredge_modbus_multi` para manter o mesmo comportamento."
+    },
     "deprecated_keep_modbus_open": {
       "title": "A Opção Manter a Ligação Modbus Aberta Foi Substituída",
-      "description": "A opção \"Manter a Ligação Modbus Aberta\" foi substituída por \"Fechar a Ligação Após a Sondagem\" na configuração desta integração. Reveja a nova opção se precisar do mesmo comportamento."
+      "description": "A opção \"Manter a Ligação Modbus Aberta\" já não é utilizada. Esta integração passa agora a partilhar a ligação da integração modbus. Para controlar a ligação por si, defina `own_connection` e `close_after_polling` em `solaredge_modbus_multi` no `configuration.yaml`."
     }
   }
 }

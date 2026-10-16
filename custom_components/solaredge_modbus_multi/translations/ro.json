@@ -84,7 +84,6 @@
         "title": "Opțiuni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frecvență de Interogare (secunde)",
-          "close_after_polling": "Închide Conexiunea După Interogare",
           "detect_meters": "Detectare Automată a Contoarelor",
           "detect_batteries": "Detectare Automată a Bateriilor",
           "detect_extras": "Detectare Automată a Entităților Suplimentare",
@@ -174,9 +173,13 @@
       "title": "Configurația Modbus YAML Nu Mai Este Acceptată",
       "description": "Secțiunea `modbus` de sub `solaredge_modbus_multi` din `configuration.yaml` nu mai este acceptată și este ignorată. Vă rugăm să o eliminați din configurația YAML."
     },
+    "close_after_polling_moved": {
+      "title": "Închide Conexiunea După Interogare Mutată în YAML",
+      "description": "Opțiunea „Închide Conexiunea După Interogare” se setează acum în `configuration.yaml` și se aplică doar împreună cu `own_connection`. Adăugați `close_after_polling: true` sub `solaredge_modbus_multi` pentru a păstra același comportament."
+    },
     "deprecated_keep_modbus_open": {
       "title": "Opțiunea Menține Conexiunea Modbus Deschisă a Fost Înlocuită",
-      "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” a fost înlocuită cu „Închide Conexiunea După Interogare” în configurația acestei integrări. Verificați noua opțiune dacă aveți nevoie de același comportament."
+      "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” nu mai este folosită. Această integrare partajează acum conexiunea integrării modbus. Pentru a controla singur conexiunea, setați `own_connection` și `close_after_polling` sub `solaredge_modbus_multi` în `configuration.yaml`."
     }
   }
 }

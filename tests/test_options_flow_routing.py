@@ -10,7 +10,6 @@ from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
 def _init_input(**overrides):
     user_input = {
         CONF_SCAN_INTERVAL: 15,
-        ConfName.CLOSE_AFTER_POLLING: False,
         ConfName.DETECT_METERS: True,
         ConfName.DETECT_BATTERIES: False,
         ConfName.DETECT_EXTRAS: True,

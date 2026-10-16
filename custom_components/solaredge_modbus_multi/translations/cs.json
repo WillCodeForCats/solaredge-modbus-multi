@@ -84,7 +84,6 @@
         "title": "Možnosti Modbus SolarEdge",
         "data": {
           "scan_interval": "Frekvence dotazování (sekundy)",
-          "close_after_polling": "Zavřít připojení po dotazování",
           "detect_meters": "Automatická detekce měřičů",
           "detect_batteries": "Automatická detekce baterií",
           "detect_extras": "Automatická detekce dalších entit",
@@ -174,9 +173,13 @@
       "title": "Konfigurace Modbus přes YAML již není podporována",
       "description": "Sekce `modbus` pod `solaredge_modbus_multi` v souboru `configuration.yaml` již není podporována a je ignorována. Odstraňte ji prosím ze své konfigurace YAML."
     },
+    "close_after_polling_moved": {
+      "title": "Zavřít připojení po dotazování přesunuto do YAML",
+      "description": "Možnost „Zavřít připojení po dotazování“ se nyní nastavuje v souboru `configuration.yaml` a platí pouze s `own_connection`. Chcete-li zachovat stejné chování, přidejte `close_after_polling: true` do části `solaredge_modbus_multi`."
+    },
     "deprecated_keep_modbus_open": {
       "title": "Možnost „Udržovat připojení Modbus otevřené“ byla nahrazena",
-      "description": "Možnost „Udržovat připojení Modbus otevřené“ byla v konfiguraci této integrace nahrazena možností „Zavřít připojení po dotazování“. Pokud potřebujete stejné chování, zkontrolujte novou možnost."
+      "description": "Možnost „Udržovat připojení Modbus otevřené“ se již nepoužívá. Tato integrace nyní sdílí připojení integrace modbus. Chcete-li připojení řídit sami, nastavte `own_connection` a `close_after_polling` v části `solaredge_modbus_multi` v souboru `configuration.yaml`."
     }
   }
 }

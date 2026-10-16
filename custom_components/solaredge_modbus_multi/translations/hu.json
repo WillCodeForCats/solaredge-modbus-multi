@@ -84,7 +84,6 @@
         "title": "SolarEdge Modbus Beállítások",
         "data": {
           "scan_interval": "Lekérdezési Gyakoriság (másodperc)",
-          "close_after_polling": "Kapcsolat Bezárása Lekérdezés Után",
           "detect_meters": "Mérők Automatikus Felismerése",
           "detect_batteries": "Akkumulátorok Automatikus Felismerése",
           "detect_extras": "További Entitások Automatikus Felismerése",
@@ -174,9 +173,13 @@
       "title": "A Modbus YAML Konfiguráció Már Nem Támogatott",
       "description": "A `modbus` szakasz a `solaredge_modbus_multi` alatt a `configuration.yaml` fájlban már nem támogatott, és figyelmen kívül lesz hagyva. Kérjük, távolítsa el a YAML konfigurációjából."
     },
+    "close_after_polling_moved": {
+      "title": "A „Kapcsolat Bezárása Lekérdezés Után” átkerült a YAML-ba",
+      "description": "A „Kapcsolat Bezárása Lekérdezés Után” opció mostantól a `configuration.yaml` fájlban állítható be, és csak az `own_connection` mellett érvényes. Az azonos működés megtartásához adja hozzá a `close_after_polling: true` sort a `solaredge_modbus_multi` alá."
+    },
     "deprecated_keep_modbus_open": {
       "title": "A „Modbus Kapcsolat Nyitva Tartása” Opció Lecserélve",
-      "description": "A „Modbus Kapcsolat Nyitva Tartása” opciót ennek az integrációnak a konfigurációjában a „Kapcsolat Bezárása Lekérdezés Után” váltotta fel. Tekintse át az új opciót, ha ugyanarra a viselkedésre van szüksége."
+      "description": "A „Modbus Kapcsolat Nyitva Tartása” opció már nincs használatban. Ez az integráció mostantól a modbus integráció kapcsolatát használja közösen. Ha saját maga szeretné vezérelni a kapcsolatot, állítsa be az `own_connection` és a `close_after_polling` értéket a `configuration.yaml` fájl `solaredge_modbus_multi` szakaszában."
     }
   }
 }

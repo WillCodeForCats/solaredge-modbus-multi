@@ -70,7 +70,6 @@ async def test_options_default_to_bool(hass):
     for attr in (
         "_detect_meters",
         "_detect_batteries",
-        "_close_after_polling",
     ):
         assert isinstance(getattr(hub, attr), bool)
 
@@ -93,14 +92,28 @@ async def test_close_after_polling_defaults_to_false(hass):
 
 
 async def test_close_after_polling_true_disconnects_after_successful_poll(hass):
-    """Test close after polling true disconnects after successful poll."""
-    hub = _make_hub(hass, entry_options={ConfName.CLOSE_AFTER_POLLING: True})
+    """Test close after polling in YAML disconnects an own connection."""
+    hub = _make_hub(hass)
+    hass.data[DOMAIN]["yaml"] = {"own_connection": True, "close_after_polling": True}
+    hub._yaml_config = hass.data[DOMAIN]["yaml"]
     hub.initalized = True
     hub.connection.disconnect = AsyncMock()
 
     await hub.async_refresh_modbus_data()
 
     hub.connection.disconnect.assert_awaited_once()
+
+
+async def test_close_after_polling_ignored_without_own_connection(hass):
+    """Test close after polling does nothing on a shared connection."""
+    hub = _make_hub(hass)
+    hub._yaml_config = {"close_after_polling": True}
+    hub.initalized = True
+    hub.connection.disconnect = AsyncMock()
+
+    await hub.async_refresh_modbus_data()
+
+    hub.connection.disconnect.assert_not_called()
 
 
 async def test_close_after_polling_false_keeps_connection_open(hass):
