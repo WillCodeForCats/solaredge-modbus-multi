@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from homeassistant import config_entries
+from homeassistant.components.modbus import async_get_temporary_unit
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlowResult,
@@ -20,6 +21,7 @@ from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
+from modbus_connection import ModbusError, ModbusTcpParams
 import voluptuous as vol
 
 from .const import (
@@ -37,7 +39,7 @@ from .const import (
     ConfName,
 )
 from .helpers import device_list_from_string, host_valid
-from .scanner import ScannerConnectionError, SolarEdgeDeviceScanner
+from .scanner import SIGNATURE_ADDRESS, ScannerConnectionError, SolarEdgeDeviceScanner
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -89,30 +91,32 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
 
-    @staticmethod
-    async def _async_port_open(
-        host: str, port: int, timeout: float = ZEROCONF_PROBE_TIMEOUT
-    ) -> bool:
-        """Check if a TCP port actually accepts connections.
+    async def _async_port_open(self, host: str, port: int) -> bool:
+        """Check if a Modbus connection to the device actually opens.
 
         mDNS only confirms a device advertised itself, not that its Modbus TCP
-        port is actually reachable.
+        port is actually reachable. Sends a single read to device ID 1: any
+        answer, an error response or no answer at all, still means the link
+        came up. Only a link that never opened counts as closed. No ID can be
+        counted on to exist, since the ID advertised over mDNS is not always
+        the one the device uses, so expect to wait out the whole timeout.
         """
+        params = ModbusTcpParams(host=host, port=port)
         try:
-            _reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(host, port), timeout=timeout
-            )
-        except (OSError, asyncio.TimeoutError):
-            return False
-
-        try:
-            writer.close()
-            await writer.wait_closed()
-        except OSError:
-            pass
+            async with async_get_temporary_unit(self.hass, params, 1) as unit:
+                unit.require_timeout(ZEROCONF_PROBE_TIMEOUT)
+                try:
+                    await unit.read_holding_registers(SIGNATURE_ADDRESS, 1)
+                except (ModbusError, OSError):
+                    is_open = unit.connected
+                else:
+                    is_open = True
+        except HomeAssistantError:
+            # In use over different link settings: the device is there.
+            return True
 
         await asyncio.sleep(1.0)
-        return True
+        return is_open
 
     async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
         try:
@@ -124,6 +128,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
         """Scanner job for async_create_task."""
         scanner = SolarEdgeDeviceScanner(
+            self.hass,
             host=user_input[CONF_HOST],
             port=user_input[CONF_PORT],
             scan_retries=2,
@@ -406,6 +411,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         return await self.async_step_features_info()
             else:
                 scanner = SolarEdgeDeviceScanner(
+                    self.hass,
                     host=user_input[CONF_HOST],
                     port=user_input[CONF_PORT],
                     scan_retries=3,
