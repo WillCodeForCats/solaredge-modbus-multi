@@ -3,10 +3,13 @@
 from types import SimpleNamespace
 
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN
 from custom_components.solaredge_modbus_multi.repairs import (
+    CheckConfigurationRepairFlow,
     RetryFeatureDetectionRepairFlow,
+    async_create_fix_flow,
 )
 
 
@@ -70,3 +73,15 @@ async def test_unknown_inverter_unit_id_is_a_no_op(hass):
 
     assert inverter.global_power_control is False
     assert result["type"] == FlowResultType.CREATE_ENTRY
+
+
+async def test_check_configuration_issue_routes_to_its_flow(hass):
+    """Test the per-entry check_configuration issue ID opens its repair flow."""
+    entry = MockConfigEntry(domain=DOMAIN)
+    entry.add_to_hass(hass)
+
+    flow = await async_create_fix_flow(
+        hass, f"check_configuration_{entry.entry_id}", {"entry_id": entry.entry_id}
+    )
+
+    assert isinstance(flow, CheckConfigurationRepairFlow)

@@ -549,7 +549,7 @@ class SolarEdgeModbusMultiHub:
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
-                    "check_configuration",
+                    f"check_configuration_{self._entry_id}",
                     is_fixable=True,
                     severity=ir.IssueSeverity.ERROR,
                     translation_key="check_configuration",
@@ -559,7 +559,9 @@ class SolarEdgeModbusMultiHub:
                     f"Coordinator setup timed out after {self.coordinator_timeout} seconds."
                 ) from err
 
-            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+            ir.async_delete_issue(
+                self._hass, DOMAIN, f"check_configuration_{self._entry_id}"
+            )
 
             return True
 
