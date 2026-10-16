@@ -242,6 +242,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL),
     )
 
+    # Drop the entry-independent issue ID used by earlier versions.
+    ir.async_delete_issue(hass, DOMAIN, "check_configuration")
+    ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
+
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
         "coordinator": coordinator,
@@ -390,7 +394,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             ir.async_create_issue(
                 hass,
                 DOMAIN,
-                "deprecated_keep_modbus_open",
+                f"deprecated_keep_modbus_open_{config_entry.entry_id}",
                 is_fixable=False,
                 severity=ir.IssueSeverity.WARNING,
                 translation_key="deprecated_keep_modbus_open",
