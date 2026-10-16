@@ -84,7 +84,6 @@
         "title": "Opcje SolarEdge Modbus",
         "data": {
           "scan_interval": "Częstotliwość odczytu (sekundy)",
-          "close_after_polling": "Zamknij połączenie po odczycie",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
@@ -174,9 +173,13 @@
       "title": "Konfiguracja YAML Modbus nie jest już obsługiwana",
       "description": "Sekcja `modbus` w `solaredge_modbus_multi` w pliku `configuration.yaml` nie jest już obsługiwana i jest ignorowana. Usuń ją z konfiguracji YAML."
     },
+    "close_after_polling_moved": {
+      "title": "Opcja „Zamknij połączenie po odczycie” przeniesiona do YAML",
+      "description": "Opcja \"Zamknij połączenie po odczycie\" jest teraz ustawiana w pliku `configuration.yaml` i działa tylko z `own_connection`. Dodaj `close_after_polling: true` w sekcji `solaredge_modbus_multi`, aby zachować to samo zachowanie."
+    },
     "deprecated_keep_modbus_open": {
       "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",
-      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" została zastąpiona opcją \"Zamknij połączenie po odczycie\" w konfiguracji tej integracji. Sprawdź nową opcję, jeśli potrzebujesz tego samego zachowania."
+      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" nie jest już używana. Ta integracja współdzieli teraz połączenie integracji modbus. Aby samodzielnie zarządzać połączeniem, ustaw `own_connection` i `close_after_polling` w sekcji `solaredge_modbus_multi` pliku `configuration.yaml`."
     }
   }
 }

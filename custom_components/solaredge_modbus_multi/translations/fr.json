@@ -84,7 +84,6 @@
         "title": "Options SolarEdge Modbus",
         "data": {
           "scan_interval": "Fréquence de rafraichissement (en secondes)",
-          "close_after_polling": "Fermer la connexion après le rafraichissement",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
@@ -174,9 +173,13 @@
       "title": "Configuration YAML Modbus non prise en charge",
       "description": "La section `modbus` sous `solaredge_modbus_multi` dans `configuration.yaml` n'est plus prise en charge et est ignorée. Veuillez la supprimer de votre configuration YAML."
     },
+    "close_after_polling_moved": {
+      "title": "« Fermer la connexion après le rafraichissement » déplacé vers YAML",
+      "description": "L'option « Fermer la connexion après le rafraichissement » se définit désormais dans `configuration.yaml` et ne s'applique qu'avec `own_connection`. Ajoutez `close_after_polling: true` sous `solaredge_modbus_multi` pour conserver le même comportement."
+    },
     "deprecated_keep_modbus_open": {
       "title": "Option « Garder la connexion Modbus ouverte » remplacée",
-      "description": "L'option « Garder la connexion Modbus ouverte » a été remplacée par « Fermer la connexion après le rafraichissement » dans la configuration de cette intégration. Consultez la nouvelle option si vous avez besoin du même comportement."
+      "description": "L'option « Garder la connexion Modbus ouverte » n'est plus utilisée. Cette intégration partage désormais la connexion de l'intégration modbus. Pour gérer vous-même la connexion, définissez `own_connection` et `close_after_polling` sous `solaredge_modbus_multi` dans `configuration.yaml`."
     }
   }
 }

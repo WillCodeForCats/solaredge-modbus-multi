@@ -84,7 +84,6 @@
         "title": "Opciones de Modbus de SolarEdge",
         "data": {
           "scan_interval": "Frecuencia de sondeo (segundos)",
-          "close_after_polling": "Cerrar la conexión después de sondear",
           "detect_meters": "Detección automática de medidores",
           "detect_batteries": "Detección automática de baterías",
           "detect_extras": "Detección automática de entidades adicionales",
@@ -174,9 +173,13 @@
       "title": "La configuración de Modbus en YAML ya no es compatible",
       "description": "La sección `modbus` bajo `solaredge_modbus_multi` en `configuration.yaml` ya no es compatible y se está ignorando. Elimínela de su configuración YAML."
     },
+    "close_after_polling_moved": {
+      "title": "Cerrar la conexión después de sondear se movió a YAML",
+      "description": "La opción \"Cerrar la conexión después de sondear\" ahora se establece en `configuration.yaml` y solo se aplica con `own_connection`. Agregue `close_after_polling: true` en `solaredge_modbus_multi` para mantener el mismo comportamiento."
+    },
     "deprecated_keep_modbus_open": {
       "title": "Se reemplazó la opción Mantener abierta la conexión Modbus",
-      "description": "La opción \"Mantener abierta la conexión Modbus\" ha sido reemplazada por \"Cerrar la conexión después de sondear\" en la configuración de esta integración. Revise la nueva opción si necesita el mismo comportamiento."
+      "description": "La opción \"Mantener abierta la conexión Modbus\" ya no se usa. Esta integración ahora comparte la conexión de la integración modbus. Para controlar la conexión usted mismo, establezca `own_connection` y `close_after_polling` en `solaredge_modbus_multi` dentro de `configuration.yaml`."
     }
   }
 }

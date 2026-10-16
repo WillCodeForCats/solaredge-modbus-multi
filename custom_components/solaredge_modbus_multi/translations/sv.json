@@ -84,7 +84,6 @@
         "title": "SolarEdge Modbus-alternativ",
         "data": {
           "scan_interval": "Avfrågningsfrekvens (sekunder)",
-          "close_after_polling": "Stäng anslutningen efter avfrågning",
           "detect_meters": "Automatisk identifiering av mätare",
           "detect_batteries": "Automatisk identifiering av batterier",
           "detect_extras": "Automatisk identifiering av ytterligare entiteter",
@@ -174,9 +173,13 @@
       "title": "Modbus YAML-konfiguration stöds inte längre",
       "description": "Avsnittet `modbus` under `solaredge_modbus_multi` i `configuration.yaml` stöds inte längre och ignoreras. Ta bort det från din YAML-konfiguration."
     },
+    "close_after_polling_moved": {
+      "title": "Stäng anslutningen efter avfrågning flyttad till YAML",
+      "description": "Alternativet \"Stäng anslutningen efter avfrågning\" anges nu i `configuration.yaml` och gäller bara tillsammans med `own_connection`. Lägg till `close_after_polling: true` under `solaredge_modbus_multi` för att behålla samma beteende."
+    },
     "deprecated_keep_modbus_open": {
       "title": "Alternativet Håll Modbus-anslutningen öppen har ersatts",
-      "description": "Alternativet \"Håll Modbus-anslutningen öppen\" har ersatts av \"Stäng anslutningen efter avfrågning\" i den här integrationens konfiguration. Granska det nya alternativet om du behöver samma beteende."
+      "description": "Alternativet \"Håll Modbus-anslutningen öppen\" används inte längre. Den här integrationen delar nu anslutningen med modbus-integrationen. Vill du styra anslutningen själv anger du `own_connection` och `close_after_polling` under `solaredge_modbus_multi` i `configuration.yaml`."
     }
   }
 }

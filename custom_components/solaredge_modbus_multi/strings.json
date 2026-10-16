@@ -84,7 +84,6 @@
         "title": "SolarEdge Modbus Options",
         "data": {
           "scan_interval": "Polling Frequency (seconds)",
-          "close_after_polling": "Close Connection After Polling",
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "detect_extras": "Auto-Detect Additional Entities",
@@ -174,9 +173,13 @@
       "title": "Modbus YAML Configuration No Longer Supported",
       "description": "The `modbus` section under `solaredge_modbus_multi` in `configuration.yaml` is no longer supported and is being ignored. Please remove it from your YAML configuration."
     },
+    "close_after_polling_moved": {
+      "title": "Close Connection After Polling Moved to YAML",
+      "description": "The \"Close Connection After Polling\" option is now set in `configuration.yaml` and only applies with `own_connection`. Add `close_after_polling: true` under `solaredge_modbus_multi` to keep the same behavior."
+    },
     "deprecated_keep_modbus_open": {
       "title": "Keep Modbus Connection Open Option Replaced",
-      "description": "The \"Keep Modbus Connection Open\" option has been replaced by \"Close Connection After Polling\" in this integration's configuration. Review the new option if you need the same behavior."
+      "description": "The \"Keep Modbus Connection Open\" option is no longer used. This integration now shares the modbus integration's connection. To control the connection yourself, set `own_connection` and `close_after_polling` under `solaredge_modbus_multi` in `configuration.yaml`."
     }
   },
   "exceptions": {
