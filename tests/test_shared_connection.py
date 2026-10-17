@@ -284,6 +284,23 @@ async def test_slow_refresh_is_reported_with_the_likely_cause(hass, caplog):
     assert "Disable the other integration" in caplog.text
 
 
+async def test_slow_setup_is_reported_too(hass, caplog):
+    """Test the first refresh, which does the setup, is timed as well."""
+    hass.data[DOMAIN] = {"yaml": {}}
+    hub = SolarEdgeModbusMultiHub(
+        hass, "test_entry_id", ENTRY_DATA, {}, SharedUnits({1: MagicMock()})
+    )
+
+    with (
+        patch.object(hub, "_async_init_solaredge", AsyncMock()),
+        patch("custom_components.solaredge_modbus_multi.hub.SLOW_REFRESH", -1),
+    ):
+        assert await hub.async_refresh_modbus_data()
+
+    assert "Setup took" in caplog.text
+    assert "Disable the other integration" in caplog.text
+
+
 async def test_slow_refresh_on_own_connection_does_not_blame_sharing(hass, caplog):
     """Test the shared connection hint is left out of our own connection."""
     hub = _refresh_hub(hass, MagicMock(), None)

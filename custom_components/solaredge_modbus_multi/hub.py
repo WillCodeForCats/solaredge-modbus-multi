@@ -552,8 +552,28 @@ class SolarEdgeModbusMultiHub:
 
         self.initalized = True
 
+    def _warn_if_slow(self, what: str, started: float) -> None:
+        """Warn when a setup or refresh took long enough to be held up."""
+        elapsed = time.monotonic() - started
+        if elapsed <= SLOW_REFRESH:
+            return
+
+        _LOGGER.warning(
+            "%s took %.0f seconds.%s",
+            what,
+            elapsed,
+            (
+                " Another integration sharing this connection, such as the "
+                "built-in SolarEdge Modbus integration, may be holding it up. "
+                "Disable the other integration for this inverter."
+                if isinstance(self.connection, SharedUnits)
+                else ""
+            ),
+        )
+
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
+        started = time.monotonic()
 
         if not self.initalized:
             try:
@@ -578,9 +598,9 @@ class SolarEdgeModbusMultiHub:
                 self._hass, DOMAIN, f"check_configuration_{self._entry_id}"
             )
 
-            return True
+            self._warn_if_slow("Setup", started)
 
-        started = time.monotonic()
+            return True
 
         try:
             async with asyncio.timeout(REFRESH_WATCHDOG):
@@ -617,19 +637,7 @@ class SolarEdgeModbusMultiHub:
                 await self.connection.disconnect()
             raise DataUpdateFailed(f"Timeout error: {e}") from e
 
-        elapsed = time.monotonic() - started
-        if elapsed > SLOW_REFRESH:
-            _LOGGER.warning(
-                "Refresh took %.0f seconds.%s",
-                elapsed,
-                (
-                    " Another integration sharing this connection, such as the "
-                    "built-in SolarEdge Modbus integration, may be holding it up. "
-                    "Disable the other integration for this inverter."
-                    if isinstance(self.connection, SharedUnits)
-                    else ""
-                ),
-            )
+        self._warn_if_slow("Refresh", started)
 
         if self.close_after_polling:
             await self.connection.disconnect()
