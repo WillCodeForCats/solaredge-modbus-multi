@@ -556,6 +556,7 @@ class SolarEdgeModbusMultiHub:
         if elapsed <= SLOW_REFRESH:
             return
 
+        shared = isinstance(self.connection, SharedUnits)
         _LOGGER.warning(
             "%s took %.0f seconds.%s",
             what,
@@ -564,10 +565,24 @@ class SolarEdgeModbusMultiHub:
                 " Another integration sharing this connection, such as the "
                 "built-in SolarEdge Modbus integration, may be holding it up. "
                 "Disable the other integration for this inverter."
-                if isinstance(self.connection, SharedUnits)
+                if shared
                 else ""
             ),
         )
+
+        if shared:
+            # Cleared when the entry sets up again, so it stays while it keeps
+            # happening instead of coming and going with each fast refresh.
+            ir.async_create_issue(
+                self._hass,
+                DOMAIN,
+                f"shared_connection_slow_{self._entry_id}",
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="shared_connection_slow",
+                translation_placeholders={"host": self.hub_host},
+                data={"entry_id": self._entry_id},
+            )
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""

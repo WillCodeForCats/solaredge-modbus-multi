@@ -301,6 +301,40 @@ async def test_slow_setup_is_reported_too(hass, caplog):
     assert "Disable the other integration" in caplog.text
 
 
+async def test_slow_refresh_on_shared_connection_raises_a_repair_issue(hass):
+    """Test a slow refresh on a shared connection raises one repair issue."""
+    hub = _refresh_hub(hass, SharedUnits({1: MagicMock()}), None)
+    hub.inverters = [MagicMock(read_modbus_data=AsyncMock())]
+
+    with (
+        patch("custom_components.solaredge_modbus_multi.hub.SLOW_REFRESH", -1),
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.ir.async_create_issue"
+        ) as create_issue,
+    ):
+        assert await hub.async_refresh_modbus_data()
+
+    create_issue.assert_called_once()
+    assert create_issue.call_args.args[2] == "shared_connection_slow_test_entry_id"
+    assert create_issue.call_args.kwargs["translation_key"] == "shared_connection_slow"
+
+
+async def test_slow_refresh_on_own_connection_raises_no_repair_issue(hass):
+    """Test a slow refresh on our own connection raises no repair issue."""
+    hub = _refresh_hub(hass, MagicMock(), None)
+    hub.inverters = [MagicMock(read_modbus_data=AsyncMock())]
+
+    with (
+        patch("custom_components.solaredge_modbus_multi.hub.SLOW_REFRESH", -1),
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.ir.async_create_issue"
+        ) as create_issue,
+    ):
+        assert await hub.async_refresh_modbus_data()
+
+    create_issue.assert_not_called()
+
+
 async def test_slow_refresh_on_own_connection_does_not_blame_sharing(hass, caplog):
     """Test the shared connection hint is left out of our own connection."""
     hub = _refresh_hub(hass, MagicMock(), None)
