@@ -8,6 +8,7 @@ import pytest
 
 from custom_components.solaredge_modbus_multi.const import (
     DOMAIN,
+    TIMEOUT_SCALE_BASE,
     WRITE_SETTLE_CYCLES,
     ConfDefaultInt,
     ConfName,
@@ -172,6 +173,20 @@ async def test_coordinator_timeout_scales_with_request_timeout(hass):
     )
 
 
+async def test_coordinator_timeout_scales_from_the_tuned_base_not_the_default(hass):
+    """Test the coordinator timeout is scaled against the tuned base."""
+    base_hub = _make_hub(
+        hass, entry_options={ConfName.REQUEST_TIMEOUT: TIMEOUT_SCALE_BASE}
+    )
+    default_hub = _make_hub(hass)
+
+    assert default_hub.coordinator_timeout == pytest.approx(
+        base_hub.coordinator_timeout
+        * ConfDefaultInt.REQUEST_TIMEOUT
+        / TIMEOUT_SCALE_BASE
+    )
+
+
 async def test_coordinator_timeout_with_sleep_after_write(hass):
     """Test coordinator timeout with sleep after write."""
     hub = _make_hub(hass, entry_options={ConfName.SLEEP_AFTER_WRITE: 5})
@@ -204,4 +219,7 @@ async def test_coordinator_timeout_init_budgets_every_scan_attempt(hass):
     )
     scan_ms = SolarEdgeTimeouts.Read * RetrySettings.RequestRetries * 2
 
-    assert hub.coordinator_timeout == pytest.approx((non_scan_ms + scan_ms) / 1000)
+    scale = ConfDefaultInt.REQUEST_TIMEOUT / TIMEOUT_SCALE_BASE
+    assert hub.coordinator_timeout == pytest.approx(
+        (non_scan_ms + scan_ms) / 1000 * scale
+    )
