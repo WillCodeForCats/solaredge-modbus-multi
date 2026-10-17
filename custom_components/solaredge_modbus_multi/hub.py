@@ -49,6 +49,7 @@ from .components import (
 )
 from .const import (
     BATTERY_REG_BASE,
+    COORDINATOR_RETRY_MARGIN,
     DETECT_EVSE_REGEX,
     DOMAIN,
     MESSAGE_SPACING,
@@ -292,6 +293,7 @@ class SolarEdgeModbusMultiHub:
         self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
         self._slow_timeouts = 0
         self._interference_reported = False
+        self._request_timeout_cycles = 0
 
         self.connection = connection
 
@@ -600,7 +602,22 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+        except ModbusTimeoutError as e:
+            # A request that timed out is already retried. The connection is
+            # only recycled when refreshes keep failing this way, so a slow
+            # reply does not drop it under other holders of a shared one.
+            self._request_timeout_cycles += 1
+            if self._request_timeout_cycles >= self._coordinator_timeouts_limit:
+                _LOGGER.warning(
+                    "Requests timed out in %s refreshes in a row, "
+                    "recycling the connection",
+                    self._request_timeout_cycles,
+                )
+                self._request_timeout_cycles = 0
+                await self.connection.disconnect()
+            raise DataUpdateFailed(f"Update failed: {e}") from e
+
+        except (ModbusConnectionError, ModbusProtocolError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}") from e
 
@@ -638,6 +655,7 @@ class SolarEdgeModbusMultiHub:
             self._coordinator_timeouts_count = 0
 
         self._slow_timeouts = 0
+        self._request_timeout_cycles = 0
 
         if self.close_after_polling:
             await self.connection.disconnect()
@@ -928,6 +946,14 @@ class SolarEdgeModbusMultiHub:
         # The per-step timeouts were based on TIMEOUT_SCALE_BASE; scale the
         # coordinator timeout if the user changes the request timeout
         this_timeout *= self.request_timeout / TIMEOUT_SCALE_BASE
+
+        # The retries of one request must be able to finish: a coordinator
+        # timeout that fires first would cut off the last retry every time.
+        this_timeout = max(
+            this_timeout,
+            RetrySettings.RequestRetries * self.request_timeout
+            + COORDINATOR_RETRY_MARGIN,
+        )
 
         # Add the sleep_after_write value to the coordinator timeout
         this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES

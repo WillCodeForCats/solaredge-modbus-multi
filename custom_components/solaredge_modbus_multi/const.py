@@ -81,6 +81,11 @@ class RetrySettings(IntEnum):
 # and not against the default, which can change without retuning them.
 TIMEOUT_SCALE_BASE = 3
 
+# Seconds added to the retries of one request for the reads before it in the
+# same refresh and the message spacing, so the coordinator timeout never
+# fires before the last retry has had its turn.
+COORDINATOR_RETRY_MARGIN = 1
+
 
 class SolarEdgeTimeouts(IntEnum):
     """Timeouts in milliseconds."""
