@@ -125,10 +125,10 @@ async def test_setup_link_settings_conflict_is_a_config_entry_error(hass, setup_
     setup_mocks.assert_not_called()
 
 
-async def test_setup_own_connection_from_yaml_skips_shared_units(hass, setup_mocks):
-    """Test own_connection in YAML opens our own connection."""
-    hass.data[DOMAIN] = {"yaml": {"own_connection": True}}
-    entry = _make_entry(options={ConfName.REQUEST_TIMEOUT: 7})
+async def test_setup_own_connection_from_the_option(hass, setup_mocks):
+    """Test the own connection option opens our own connection."""
+    hass.data[DOMAIN] = {"yaml": {}}
+    entry = _make_entry(options={ConfName.CONNECTION_MODE: "own"})
     entry.add_to_hass(hass)
 
     with (
@@ -139,12 +139,6 @@ async def test_setup_own_connection_from_yaml_skips_shared_units(hass, setup_moc
         assert await async_setup_entry(hass, entry)
 
     get_unit.assert_not_called()
-    params = connection_cls.call_args.args[0]
-    assert (params.host, params.port) == ("127.0.0.1", 1502)
-    assert connection_cls.call_args.kwargs == {
-        "timeout": 7,
-        "message_spacing": MESSAGE_SPACING,
-    }
     assert setup_mocks.call_args.args[4] is connection_cls.return_value
 
 

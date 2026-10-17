@@ -7,7 +7,7 @@ import struct
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN_REGEX
+from .const import DOMAIN_REGEX, ConfName, ConnectionMode
 
 
 def float_to_hex(f: float) -> str:
@@ -97,3 +97,14 @@ def check_device_id(value: str | int) -> int:
         raise HomeAssistantError("invalid_device_id") from err
 
     return device_id
+
+
+def get_connection_mode(options) -> ConnectionMode:
+    """Return how to connect to the inverter.
+
+    The option in the hub configuration decides.
+    """
+    try:
+        return ConnectionMode(options.get(ConfName.CONNECTION_MODE))
+    except ValueError:
+        return ConnectionMode.SHARED

@@ -89,7 +89,11 @@
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
           "advanced_power_control": "Optionen zur Leistungssteuerung",
           "request_timeout": "Modbus-Anfrage-Zeitüberschreitung (Sekunden)",
-          "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
+          "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)",
+          "connection_mode": "Modbus-Verbindung"
+        },
+        "data_description": {
+          "connection_mode": "Wie SolarEdge Modbus Multi eine Verbindung zum Wechselrichter herstellt. Eine andere Integration, die denselben Wechselrichter verwendet, kann eine gemeinsame Verbindung verlangsamen. Weitere Informationen finden Sie in der README."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Gemeinsame Modbus-Verbindung ist langsam",
-      "description": "Die Einrichtung oder das Lesen von {host} dauert viel länger als erwartet. Eine andere Integration, die denselben Wechselrichter verwendet, etwa die integrierte SolarEdge-Modbus-Integration, blockiert wahrscheinlich die gemeinsame Verbindung. Das kann zu langsamen oder ausgelassenen Aktualisierungen führen.\n\nDeaktivieren Sie die andere Integration für diesen Wechselrichter und starten Sie anschließend Home Assistant neu. Die gemeinsame Verbindung behält das lange Zeitlimit, bis sie erneut geöffnet wird. Wenn Sie beide benötigen, setzen Sie own_connection in der erweiterten YAML-Konfiguration, damit diese Integration eine eigene Verbindung verwendet. Weitere Informationen finden Sie in der README."
+      "description": "Die Einrichtung oder das Lesen von {host} dauert viel länger als erwartet. Eine andere Integration, die denselben Wechselrichter verwendet, etwa die integrierte SolarEdge-Modbus-Integration, blockiert wahrscheinlich die gemeinsame Verbindung. Das kann zu langsamen oder ausgelassenen Aktualisierungen führen.\n\nDeaktivieren Sie die andere Integration für diesen Wechselrichter und starten Sie anschließend Home Assistant neu. Die gemeinsame Verbindung behält das lange Zeitlimit, bis sie erneut geöffnet wird. Wenn Sie beide benötigen, wählen Sie in den Optionen dieser Integration als Modbus-Verbindung „Eigene Verbindung verwenden“, damit sie eine eigene Verbindung nutzt. Weitere Informationen finden Sie in der README."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",
@@ -176,10 +180,6 @@
       "title": "Modbus-YAML-Konfiguration wird nicht mehr unterstützt",
       "description": "Der Abschnitt `modbus` unter `solaredge_modbus_multi` in der `configuration.yaml` wird nicht mehr unterstützt und wird ignoriert. Bitte entfernen Sie ihn aus Ihrer YAML-Konfiguration."
     },
-    "close_after_polling_moved": {
-      "title": "\"Verbindung nach Abfrage schließen\" in YAML verschoben",
-      "description": "Die Option \"Verbindung nach Abfrage schließen\" wird jetzt in der `configuration.yaml` festgelegt und gilt nur zusammen mit `own_connection`. Fügen Sie `close_after_polling: true` unter `solaredge_modbus_multi` hinzu, um das gleiche Verhalten beizubehalten."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Zyklen zum Zurücksetzen der Batterieenergie geändert",
       "description": "Die Option „Aktualisierungszyklen zum Zurücksetzen der Batterieenergie“ legt jetzt fest, wie viele aufeinanderfolgende Abfragen ein niedrigerer Batterieenergiewert bestehen muss, bevor er als Zurücksetzung akzeptiert wird. Der Mindestwert ist 2. Ihr Wert {old_value} wurde auf {new_value} geändert. Prüfen Sie die Option in den Batterieoptionen, wenn Sie einen anderen Wert möchten."
@@ -192,6 +192,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Eine andere Integration ist bereits mit {host}:{port} verbunden und verwendet andere Verbindungseinstellungen; eine Verbindung kann nicht beides nutzen. Entfernen oder ändern Sie die andere Integration und laden Sie diese anschließend neu."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Gemeinsame Modbus-Verbindung von Home Assistant verwenden",
+        "own": "Eigene Verbindung verwenden",
+        "own_close_after_polling": "Eigene Verbindung verwenden und nach jeder Abfrage schließen"
+      }
     }
   }
 }

@@ -89,7 +89,11 @@
           "detect_extras": "Lisäentiteettien automaattinen tunnistus",
           "advanced_power_control": "Tehonhallinnan valinnat",
           "request_timeout": "Modbus-pyynnön aikakatkaisu (sekuntia)",
-          "sleep_after_write": "Vaihtosuuntaajan komennon viive (sekuntia)"
+          "sleep_after_write": "Vaihtosuuntaajan komennon viive (sekuntia)",
+          "connection_mode": "Modbus-yhteys"
+        },
+        "data_description": {
+          "connection_mode": "Miten SolarEdge Modbus Multi muodostaa yhteyden vaihtosuuntaajaan. Toinen samaa vaihtosuuntaajaa käyttävä integraatio voi hidastaa jaettua yhteyttä. Lisätietoja on README-tiedostossa."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Jaettu Modbus-yhteys on hidas",
-      "description": "Laitteen {host} käyttöönotto tai lukeminen kestää odotettua paljon pidempään. Toinen samaa vaihtosuuntaajaa käyttävä integraatio, kuten sisäänrakennettu SolarEdge Modbus -integraatio, pitää todennäköisesti jaettua yhteyttä varattuna. Tämä voi aiheuttaa hitaita tai väliin jääviä päivityksiä.\n\nPoista toinen integraatio käytöstä tältä vaihtosuuntaajalta ja käynnistä sen jälkeen Home Assistant uudelleen. Jaettu yhteys säilyttää pitkän aikakatkaisun, kunnes se avataan uudelleen. Jos tarvitset molempia, aseta own_connection YAML-lisäasetuksissa, jolloin tämä integraatio käyttää omaa yhteyttään. Lisätietoja on README-tiedostossa."
+      "description": "Laitteen {host} käyttöönotto tai lukeminen kestää odotettua paljon pidempään. Toinen samaa vaihtosuuntaajaa käyttävä integraatio, kuten sisäänrakennettu SolarEdge Modbus -integraatio, pitää todennäköisesti jaettua yhteyttä varattuna. Tämä voi aiheuttaa hitaita tai väliin jääviä päivityksiä.\n\nPoista toinen integraatio käytöstä tältä vaihtosuuntaajalta ja käynnistä sen jälkeen Home Assistant uudelleen. Jaettu yhteys säilyttää pitkän aikakatkaisun, kunnes se avataan uudelleen. Jos tarvitset molempia, valitse tämän integraation asetuksissa Modbus-yhteydeksi ”Käytä omaa yhteyttä”, jolloin se käyttää omaa yhteyttään. Lisätietoja on README-tiedostossa."
     },
     "detect_timeout_gpc": {
       "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",
@@ -176,10 +180,6 @@
       "title": "Modbus YAML -määritystä ei enää tueta",
       "description": "`modbus`-osiota kohdassa `solaredge_modbus_multi` tiedostossa `configuration.yaml` ei enää tueta, ja se ohitetaan. Poista se YAML-määrityksestäsi."
     },
-    "close_after_polling_moved": {
-      "title": "Sulje yhteys kyselyn jälkeen siirretty YAMLiin",
-      "description": "Asetus \"Sulje yhteys kyselyn jälkeen\" määritetään nyt tiedostossa `configuration.yaml`, ja se toimii vain `own_connection`-asetuksen kanssa. Lisää `close_after_polling: true` kohtaan `solaredge_modbus_multi` säilyttääksesi saman toiminnan."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Akun energian nollauksen jaksot muuttuneet",
       "description": "Asetus ”Päivityssyklit akun energian nollaamiseksi” määrittää nyt, kuinka monta peräkkäistä kyselyä pienemmän akun energia-arvon on säilyttävä, ennen kuin se hyväksytään nollaukseksi. Vähimmäisarvo on 2. Arvosi {old_value} on muutettu arvoksi {new_value}. Tarkista asetus akkuasetuksista, jos haluat toisen arvon."
@@ -192,6 +192,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Toinen integraatio on jo yhdistetty kohteeseen {host}:{port} eri yhteysasetuksilla, eikä yksi yhteys voi käyttää molempia. Poista tai määritä toinen integraatio uudelleen ja lataa sitten tämä uudelleen."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Käytä Home Assistantin jaettua Modbus-yhteyttä",
+        "own": "Käytä omaa yhteyttä",
+        "own_close_after_polling": "Käytä omaa yhteyttä ja sulje se jokaisen kyselyn jälkeen"
+      }
     }
   }
 }

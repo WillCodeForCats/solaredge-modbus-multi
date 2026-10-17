@@ -89,7 +89,11 @@
           "detect_extras": "Automatisk registrering af yderligere enheder",
           "advanced_power_control": "Effektstyringsindstillinger",
           "request_timeout": "Modbus-forespørgselstimeout (sekunder)",
-          "sleep_after_write": "Forsinkelse for inverterkommando (sekunder)"
+          "sleep_after_write": "Forsinkelse for inverterkommando (sekunder)",
+          "connection_mode": "Modbus-forbindelse"
+        },
+        "data_description": {
+          "connection_mode": "Hvordan SolarEdge Modbus Multi forbinder til inverteren. En anden integration, der bruger den samme inverter, kan gøre en delt forbindelse langsom. Se README for flere oplysninger."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Delt Modbus-forbindelse er langsom",
-      "description": "Opsætning eller læsning fra {host} tager meget længere tid end forventet. En anden integration, der bruger den samme inverter, f.eks. den indbyggede SolarEdge Modbus-integration, holder sandsynligvis den delte forbindelse optaget. Det kan give langsomme eller manglende opdateringer.\n\nDeaktiver den anden integration for denne inverter, og genstart derefter Home Assistant. Den delte forbindelse beholder den lange timeout, indtil den åbnes igen. Hvis du har brug for begge, skal du indstille own_connection i den avancerede YAML-konfiguration, så denne integration bruger sin egen forbindelse. Se README for flere oplysninger."
+      "description": "Opsætning eller læsning fra {host} tager meget længere tid end forventet. En anden integration, der bruger den samme inverter, f.eks. den indbyggede SolarEdge Modbus-integration, holder sandsynligvis den delte forbindelse optaget. Det kan give langsomme eller manglende opdateringer.\n\nDeaktiver den anden integration for denne inverter, og genstart derefter Home Assistant. Den delte forbindelse beholder den lange timeout, indtil den åbnes igen. Hvis du har brug for begge, skal du vælge „Brug egen forbindelse“ som Modbus-forbindelse i denne integrations indstillinger, så den bruger sin egen forbindelse. Se README for flere oplysninger."
     },
     "detect_timeout_gpc": {
       "title": "Timeout for global dynamisk effektstyring (Inverter {device_id})",
@@ -176,10 +180,6 @@
       "title": "Modbus YAML-konfiguration understøttes ikke længere",
       "description": "Afsnittet `modbus` under `solaredge_modbus_multi` i `configuration.yaml` understøttes ikke længere og ignoreres. Fjern det venligst fra din YAML-konfiguration."
     },
-    "close_after_polling_moved": {
-      "title": "Luk forbindelsen efter polling er flyttet til YAML",
-      "description": "Indstillingen \"Luk forbindelsen efter polling\" angives nu i `configuration.yaml` og gælder kun sammen med `own_connection`. Tilføj `close_after_polling: true` under `solaredge_modbus_multi` for at beholde den samme adfærd."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Cyklusser til nulstilling af batterienergi ændret",
       "description": "Indstillingen \"Opdateringscyklusser til nulstilling af batterienergi\" angiver nu, hvor mange på hinanden følgende aflæsninger en lavere batterienergiværdi skal bestå, før den accepteres som en nulstilling. Minimum er 2. Din værdi på {old_value} er ændret til {new_value}. Gennemgå indstillingen under batteriindstillinger, hvis du ønsker en anden værdi."
@@ -192,6 +192,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "En anden integration er allerede forbundet til {host}:{port} med andre forbindelsesindstillinger, og én forbindelse kan ikke bruge begge. Fjern eller omkonfigurer den anden integration, og genindlæs derefter denne."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Brug Home Assistants delte Modbus-forbindelse",
+        "own": "Brug egen forbindelse",
+        "own_close_after_polling": "Brug egen forbindelse og luk den efter hver aflæsning"
+      }
     }
   }
 }

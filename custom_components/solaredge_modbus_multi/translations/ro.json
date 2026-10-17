@@ -89,7 +89,11 @@
           "detect_extras": "Detectare Automată a Entităților Suplimentare",
           "advanced_power_control": "Opțiuni de Control al Puterii",
           "request_timeout": "Timeout Solicitare Modbus (secunde)",
-          "sleep_after_write": "Întârziere Comandă Invertor (secunde)"
+          "sleep_after_write": "Întârziere Comandă Invertor (secunde)",
+          "connection_mode": "Conexiune Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Cum se conectează SolarEdge Modbus Multi la invertor. O altă integrare care folosește același invertor poate încetini o conexiune partajată. Consultați README pentru detalii."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Conexiunea Modbus partajată este lentă",
-      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor, apoi reporniți Home Assistant. Conexiunea partajată păstrează timpul de expirare lung până când este redeschisă. Dacă aveți nevoie de ambele, setați own_connection în configurația YAML avansată, astfel încât această integrare să folosească propria conexiune. Consultați README pentru detalii."
+      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor, apoi reporniți Home Assistant. Conexiunea partajată păstrează timpul de expirare lung până când este redeschisă. Dacă aveți nevoie de ambele, alegeți „Utilizați conexiune proprie” ca Conexiune Modbus în opțiunile acestei integrări, astfel încât să folosească propria conexiune. Consultați README pentru detalii."
     },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",
@@ -176,10 +180,6 @@
       "title": "Configurația Modbus YAML Nu Mai Este Acceptată",
       "description": "Secțiunea `modbus` de sub `solaredge_modbus_multi` din `configuration.yaml` nu mai este acceptată și este ignorată. Vă rugăm să o eliminați din configurația YAML."
     },
-    "close_after_polling_moved": {
-      "title": "Închide Conexiunea După Interogare Mutată în YAML",
-      "description": "Opțiunea „Închide Conexiunea După Interogare” se setează acum în `configuration.yaml` și se aplică doar împreună cu `own_connection`. Adăugați `close_after_polling: true` sub `solaredge_modbus_multi` pentru a păstra același comportament."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Ciclurile de resetare a energiei bateriei au fost modificate",
       "description": "Opțiunea „Cicluri de Actualizare pentru Resetarea Energiei Bateriei” stabilește acum câte interogări consecutive trebuie să persiste o valoare mai mică a energiei bateriei înainte de a fi acceptată ca resetare. Minimul este 2. Valoarea dvs. de {old_value} a fost schimbată în {new_value}. Verificați opțiunea din opțiunile bateriei dacă doriți o altă valoare."
@@ -192,6 +192,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "O altă integrare este deja conectată la {host}:{port} cu setări de conexiune diferite, iar o conexiune nu le poate folosi pe amândouă. Eliminați sau reconfigurați cealaltă integrare, apoi reîncărcați-o pe aceasta."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Utilizați conexiunea Modbus partajată din Home Assistant",
+        "own": "Utilizați conexiune proprie",
+        "own_close_after_polling": "Utilizați conexiune proprie și închideți-o după fiecare interogare"
+      }
     }
   }
 }

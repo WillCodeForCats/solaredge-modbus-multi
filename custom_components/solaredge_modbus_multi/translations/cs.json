@@ -89,7 +89,11 @@
           "detect_extras": "Automatická detekce dalších entit",
           "advanced_power_control": "Možnosti řízení výkonu",
           "request_timeout": "Časový limit požadavku Modbus (sekundy)",
-          "sleep_after_write": "Zpoždění příkazu střídače (sekundy)"
+          "sleep_after_write": "Zpoždění příkazu střídače (sekundy)",
+          "connection_mode": "Připojení Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Jak se SolarEdge Modbus Multi připojuje ke střídači. Jiná integrace používající stejný střídač může sdílené připojení zpomalit. Podrobnosti najdete v souboru README."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Sdílené připojení Modbus je pomalé",
-      "description": "Nastavení nebo čtení z {host} trvá mnohem déle, než se očekávalo. Jiná integrace používající stejný střídač, například vestavěná integrace SolarEdge Modbus, pravděpodobně blokuje sdílené připojení. To může způsobit pomalé nebo vynechané aktualizace.\n\nZakažte pro tento střídač druhou integraci a poté restartujte Home Assistant. Sdílené připojení si dlouhý časový limit ponechá, dokud není znovu otevřeno. Pokud potřebujete obě, nastavte v pokročilé konfiguraci YAML volbu own_connection, aby tato integrace používala vlastní připojení. Podrobnosti najdete v souboru README."
+      "description": "Nastavení nebo čtení z {host} trvá mnohem déle, než se očekávalo. Jiná integrace používající stejný střídač, například vestavěná integrace SolarEdge Modbus, pravděpodobně blokuje sdílené připojení. To může způsobit pomalé nebo vynechané aktualizace.\n\nZakažte pro tento střídač druhou integraci a poté restartujte Home Assistant. Sdílené připojení si dlouhý časový limit ponechá, dokud není znovu otevřeno. Pokud potřebujete obě, zvolte v nastavení této integrace jako Připojení Modbus možnost „Použít vlastní připojení“, aby tato integrace používala vlastní připojení. Podrobnosti najdete v souboru README."
     },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",
@@ -176,10 +180,6 @@
       "title": "Konfigurace Modbus přes YAML již není podporována",
       "description": "Sekce `modbus` pod `solaredge_modbus_multi` v souboru `configuration.yaml` již není podporována a je ignorována. Odstraňte ji prosím ze své konfigurace YAML."
     },
-    "close_after_polling_moved": {
-      "title": "Zavřít připojení po dotazování přesunuto do YAML",
-      "description": "Možnost „Zavřít připojení po dotazování“ se nyní nastavuje v souboru `configuration.yaml` a platí pouze s `own_connection`. Chcete-li zachovat stejné chování, přidejte `close_after_polling: true` do části `solaredge_modbus_multi`."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Změna počtu cyklů pro reset energie baterie",
       "description": "Volba „Aktualizační cykly pro reset energie baterie“ nyní určuje, kolik po sobě jdoucích dotazů musí nižší hodnota energie baterie vydržet, než bude přijata jako reset. Minimum jsou 2. Vaše hodnota {old_value} byla změněna na {new_value}. Pokud chcete jinou hodnotu, zkontrolujte volbu v nastavení baterie."
@@ -192,6 +192,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Jiná integrace je již připojena k {host}:{port} s jiným nastavením připojení a jedno připojení nemůže použít obě. Odeberte nebo přenastavte druhou integraci a poté tuto znovu načtěte."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Použít sdílené připojení Modbus služby Home Assistant",
+        "own": "Použít vlastní připojení",
+        "own_close_after_polling": "Použít vlastní připojení a po každém dotazu ho zavřít"
+      }
     }
   }
 }

@@ -89,7 +89,11 @@
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
           "advanced_power_control": "Opcje kontroli mocy",
           "request_timeout": "Limit czasu żądania Modbus (sekundy)",
-          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
+          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)",
+          "connection_mode": "Połączenie Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Jak SolarEdge Modbus Multi łączy się z falownikiem. Inna integracja korzystająca z tego samego falownika może spowalniać współdzielone połączenie. Szczegóły znajdziesz w pliku README."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Współdzielone połączenie Modbus jest wolne",
-      "description": "Konfiguracja lub odczyt z {host} trwa znacznie dłużej, niż oczekiwano. Prawdopodobnie inna integracja korzystająca z tego samego falownika, na przykład wbudowana integracja SolarEdge Modbus, zajmuje współdzielone połączenie. Może to powodować wolne lub pominięte aktualizacje.\n\nWyłącz drugą integrację dla tego falownika, a następnie uruchom ponownie Home Assistant. Współdzielone połączenie zachowuje długi limit czasu, dopóki nie zostanie otwarte ponownie. Jeśli potrzebujesz obu, ustaw own_connection w zaawansowanej konfiguracji YAML, aby ta integracja używała własnego połączenia. Szczegóły znajdziesz w pliku README."
+      "description": "Konfiguracja lub odczyt z {host} trwa znacznie dłużej, niż oczekiwano. Prawdopodobnie inna integracja korzystająca z tego samego falownika, na przykład wbudowana integracja SolarEdge Modbus, zajmuje współdzielone połączenie. Może to powodować wolne lub pominięte aktualizacje.\n\nWyłącz drugą integrację dla tego falownika, a następnie uruchom ponownie Home Assistant. Współdzielone połączenie zachowuje długi limit czasu, dopóki nie zostanie otwarte ponownie. Jeśli potrzebujesz obu, wybierz w opcjach tej integracji jako Połączenie Modbus opcję „Użyj własnego połączenia”, aby używała własnego połączenia. Szczegóły znajdziesz w pliku README."
     },
     "detect_timeout_gpc": {
       "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
@@ -176,10 +180,6 @@
       "title": "Konfiguracja YAML Modbus nie jest już obsługiwana",
       "description": "Sekcja `modbus` w `solaredge_modbus_multi` w pliku `configuration.yaml` nie jest już obsługiwana i jest ignorowana. Usuń ją z konfiguracji YAML."
     },
-    "close_after_polling_moved": {
-      "title": "Opcja „Zamknij połączenie po odczycie” przeniesiona do YAML",
-      "description": "Opcja \"Zamknij połączenie po odczycie\" jest teraz ustawiana w pliku `configuration.yaml` i działa tylko z `own_connection`. Dodaj `close_after_polling: true` w sekcji `solaredge_modbus_multi`, aby zachować to samo zachowanie."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Zmieniono cykle resetowania energii baterii",
       "description": "Opcja „Zaktualizuj cykle, aby zresetować energię baterii” określa teraz, przez ile kolejnych odpytań niższa wartość energii baterii musi się utrzymać, zanim zostanie uznana za reset. Minimum to 2. Twoja wartość {old_value} została zmieniona na {new_value}. Jeśli chcesz inną wartość, sprawdź opcję w opcjach baterii."
@@ -192,6 +192,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Inna integracja jest już połączona z {host}:{port} przy użyciu innych ustawień połączenia, a jedno połączenie nie może obsłużyć obu. Usuń lub skonfiguruj ponownie drugą integrację, a następnie załaduj ponownie tę."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Użyj współdzielonego połączenia Modbus Home Assistant",
+        "own": "Użyj własnego połączenia",
+        "own_close_after_polling": "Użyj własnego połączenia i zamykaj je po każdym odczycie"
+      }
     }
   }
 }

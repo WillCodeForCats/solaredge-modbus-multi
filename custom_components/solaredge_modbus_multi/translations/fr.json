@@ -89,7 +89,11 @@
           "detect_extras": "Détection automatique des entités supplémentaires",
           "advanced_power_control": "Options de contrôle de l'alimentation",
           "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
-          "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
+          "sleep_after_write": "Délai de commande de l'onduleur (en secondes)",
+          "connection_mode": "Connexion Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Comment SolarEdge Modbus Multi se connecte à l'onduleur. Une autre intégration utilisant le même onduleur peut ralentir une connexion partagée. Consultez le README pour plus de détails."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "La connexion Modbus partagée est lente",
-      "description": "La configuration ou la lecture de {host} prend beaucoup plus de temps que prévu. Une autre intégration utilisant le même onduleur, comme l'intégration SolarEdge Modbus intégrée, occupe probablement la connexion partagée. Cela peut provoquer des mises à jour lentes ou manquées.\n\nDésactivez l'autre intégration pour cet onduleur, puis redémarrez Home Assistant. La connexion partagée conserve le long délai d'attente tant qu'elle n'est pas rouverte. Si vous avez besoin des deux, définissez own_connection dans la configuration YAML avancée afin que cette intégration utilise sa propre connexion. Consultez le README pour plus de détails."
+      "description": "La configuration ou la lecture de {host} prend beaucoup plus de temps que prévu. Une autre intégration utilisant le même onduleur, comme l'intégration SolarEdge Modbus intégrée, occupe probablement la connexion partagée. Cela peut provoquer des mises à jour lentes ou manquées.\n\nDésactivez l'autre intégration pour cet onduleur, puis redémarrez Home Assistant. La connexion partagée conserve le long délai d'attente tant qu'elle n'est pas rouverte. Si vous avez besoin des deux, choisissez « Utiliser une connexion propre » comme Connexion Modbus dans les options de cette intégration afin qu'elle utilise sa propre connexion. Consultez le README pour plus de détails."
     },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
@@ -176,10 +180,6 @@
       "title": "Configuration YAML Modbus non prise en charge",
       "description": "La section `modbus` sous `solaredge_modbus_multi` dans `configuration.yaml` n'est plus prise en charge et est ignorée. Veuillez la supprimer de votre configuration YAML."
     },
-    "close_after_polling_moved": {
-      "title": "« Fermer la connexion après le rafraichissement » déplacé vers YAML",
-      "description": "L'option « Fermer la connexion après le rafraichissement » se définit désormais dans `configuration.yaml` et ne s'applique qu'avec `own_connection`. Ajoutez `close_after_polling: true` sous `solaredge_modbus_multi` pour conserver le même comportement."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Cycles de réinitialisation de l'énergie de la batterie modifiés",
       "description": "L'option « Cycles de mise à jour pour réinitialiser l'énergie de la batterie » définit désormais le nombre d'interrogations consécutives pendant lesquelles une valeur d'énergie de batterie plus basse doit persister avant d'être acceptée comme une réinitialisation. Le minimum est 2. Votre valeur de {old_value} a été remplacée par {new_value}. Vérifiez l'option dans les options de la batterie si vous souhaitez une autre valeur."
@@ -192,6 +192,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Une autre intégration est déjà connectée à {host}:{port} avec des paramètres de connexion différents, et une même connexion ne peut pas utiliser les deux. Supprimez ou reconfigurez l'autre intégration, puis rechargez celle-ci."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Utiliser la connexion Modbus partagée de Home Assistant",
+        "own": "Utiliser une connexion propre",
+        "own_close_after_polling": "Utiliser une connexion propre et la fermer après chaque interrogation"
+      }
     }
   }
 }

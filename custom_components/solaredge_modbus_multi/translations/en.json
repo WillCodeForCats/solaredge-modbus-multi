@@ -89,7 +89,11 @@
           "detect_extras": "Auto-Detect Additional Entities",
           "advanced_power_control": "Power Control Options",
           "request_timeout": "Modbus Request Timeout (seconds)",
-          "sleep_after_write": "Inverter Command Delay (seconds)"
+          "sleep_after_write": "Inverter Command Delay (seconds)",
+          "connection_mode": "Modbus Connection"
+        },
+        "data_description": {
+          "connection_mode": "How SolarEdge Modbus Multi connects to the inverter. Another integration using the same inverter can slow down a shared connection. See the README for details."
         }
       },
       "adv_pwr_ctl": {
@@ -148,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Shared Modbus Connection Is Slow",
-      "description": "Setting up or reading from {host} is taking much longer than expected. Another integration using the same inverter, such as the built-in SolarEdge Modbus integration, is probably holding the shared connection. This can cause slow or missed updates.\n\nDisable the other integration for this inverter, then restart Home Assistant. The shared connection keeps the long timeout until it is reopened. If you need both, set own_connection in the advanced YAML configuration so this integration uses its own connection. See the README for details."
+      "description": "Setting up or reading from {host} is taking much longer than expected. Another integration using the same inverter, such as the built-in SolarEdge Modbus integration, is probably holding the shared connection. This can cause slow or missed updates.\n\nDisable the other integration for this inverter, then restart Home Assistant. The shared connection keeps the long timeout until it is reopened. If you need both, choose \"Use own connection\" as the Modbus Connection in this integration's options so it uses its own connection. See the README for details."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Inverter {device_id})",
@@ -176,22 +180,27 @@
       "title": "Modbus YAML Configuration No Longer Supported",
       "description": "The `modbus` section under `solaredge_modbus_multi` in `configuration.yaml` is no longer supported and is being ignored. Please remove it from your YAML configuration."
     },
-    "close_after_polling_moved": {
-      "title": "Close Connection After Polling Moved to YAML",
-      "description": "The \"Close Connection After Polling\" option is now set in `configuration.yaml` and only applies with `own_connection`. Add `close_after_polling: true` under `solaredge_modbus_multi` to keep the same behavior."
-    },
     "battery_energy_reset_cycles_changed": {
       "title": "Battery Energy Reset Cycles Changed",
       "description": "The \"Update Cycles to Reset Battery Energy\" option now sets how many consecutive polls a lower battery energy reading must persist before it is accepted as a reset, and the minimum is 2. Your value of {old_value} has been changed to {new_value}. Review the option in the battery options if you want a different value."
     },
     "deprecated_keep_modbus_open": {
       "title": "Keep Modbus Connection Open Option Replaced",
-      "description": "The \"Keep Modbus Connection Open\" option is no longer used. This integration now shares the modbus integration's connection. To control the connection yourself, set `own_connection` and `close_after_polling` under `solaredge_modbus_multi` in `configuration.yaml`."
+      "description": "The \"Keep Modbus Connection Open\" option is no longer used. This integration now shares the modbus integration's connection. To control the connection yourself, choose \"Use own connection\" or \"Use own connection and close it after each poll\" as the Modbus Connection in the options of this hub."
     }
   },
   "exceptions": {
     "link_settings_in_use": {
       "message": "Another integration is already connected to {host}:{port} using different connection settings, and one connection cannot use both. Remove or reconfigure the other integration, then reload this one."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Use the Home Assistant shared Modbus connection",
+        "own": "Use own connection",
+        "own_close_after_polling": "Use own connection and close it after each poll"
+      }
     }
   }
 }
