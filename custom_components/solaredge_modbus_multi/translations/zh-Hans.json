@@ -146,6 +146,10 @@
       "title": "逆变器设备 ID 无效",
       "description": "{host} 上的逆变器设备 ID {device_id} 无响应，或不是有效的 SolarEdge 逆变器，已被跳过。如果设备已更换或其 ID 已更改，请在集线器配置中更新逆变器设备 ID 列表。否则，请检查设备和 Modbus/TCP 连接。"
     },
+    "shared_connection_slow": {
+      "title": "共享 Modbus 连接缓慢",
+      "description": "设置或读取 {host} 的耗时远超预期。使用同一台逆变器的其他集成（例如内置的 SolarEdge Modbus 集成）很可能占用了共享连接，这可能导致更新缓慢或丢失。\n\n请为此逆变器禁用另一个集成。如果两者都需要，请在高级 YAML 配置中设置 own_connection，使此集成使用自己的连接。详情请参阅 README。"
+    },
     "detect_timeout_gpc": {
       "title": "全局动态功率控制超时（逆变器 {device_id}）",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "“保持 Modbus 连接打开”选项已被替换",
       "description": "“保持 Modbus 连接打开”选项已不再使用。此集成现在共享 modbus 集成的连接。如需自行控制连接，请在 `configuration.yaml` 的 `solaredge_modbus_multi` 下设置 `own_connection` 和 `close_after_polling`。"
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "另一个集成已使用不同的连接设置连接到 {host}:{port}，而同一个连接无法同时使用两者。请移除或重新配置另一个集成，然后重新加载此集成。"
     }
   }
 }

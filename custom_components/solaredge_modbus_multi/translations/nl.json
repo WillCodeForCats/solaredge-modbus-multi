@@ -146,6 +146,10 @@
       "title": "Ongeldige omvormer-apparaat-ID",
       "description": "Omvormer-apparaat-ID {device_id} op {host} reageert niet of is geen geldige SolarEdge-omvormer. Deze is overgeslagen. Als het apparaat is vervangen of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Controleer anders het apparaat en de Modbus/TCP-verbinding."
     },
+    "shared_connection_slow": {
+      "title": "Gedeelde Modbus-verbinding is traag",
+      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit. Als je beide nodig hebt, stel dan own_connection in de geavanceerde YAML-configuratie in, zodat deze integratie een eigen verbinding gebruikt. Zie de README voor meer informatie."
+    },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Optie 'Houd Modbus-verbinding open' vervangen",
       "description": "De optie 'Houd Modbus-verbinding open' wordt niet meer gebruikt. Deze integratie deelt nu de verbinding van de modbus-integratie. Wil je de verbinding zelf beheren, stel dan `own_connection` en `close_after_polling` in onder `solaredge_modbus_multi` in `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Een andere integratie is al verbonden met {host}:{port} met andere verbindingsinstellingen, en één verbinding kan niet allebei gebruiken. Verwijder of herconfigureer de andere integratie en laad deze daarna opnieuw."
     }
   }
 }

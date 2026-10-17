@@ -146,6 +146,10 @@
       "title": "ID de dispositivo del inversor no válido",
       "description": "El ID de dispositivo del inversor {device_id} en {host} no responde o no es un inversor SolarEdge válido. Se ha omitido. Si el dispositivo fue reemplazado o su ID cambió, actualice la Lista de ID de dispositivo de los inversores en la configuración del hub. De lo contrario, verifique el dispositivo y la conexión Modbus/TCP."
     },
+    "shared_connection_slow": {
+      "title": "La conexión Modbus compartida es lenta",
+      "description": "La configuración o la lectura de {host} está tardando mucho más de lo esperado. Es probable que otra integración que usa el mismo inversor, como la integración integrada de SolarEdge Modbus, esté ocupando la conexión compartida. Esto puede provocar actualizaciones lentas o perdidas.\n\nDesactive la otra integración para este inversor. Si necesita ambas, establezca own_connection en la configuración YAML avanzada para que esta integración use su propia conexión. Consulte el README para más información."
+    },
     "detect_timeout_gpc": {
       "title": "Tiempo de espera agotado del control dinámico de energía global (Inversor {device_id})",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Se reemplazó la opción Mantener abierta la conexión Modbus",
       "description": "La opción \"Mantener abierta la conexión Modbus\" ya no se usa. Esta integración ahora comparte la conexión de la integración modbus. Para controlar la conexión usted mismo, establezca `own_connection` y `close_after_polling` en `solaredge_modbus_multi` dentro de `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Otra integración ya está conectada a {host}:{port} con una configuración de conexión distinta, y una misma conexión no puede usar ambas. Elimine o reconfigure la otra integración y vuelva a cargar esta."
     }
   }
 }

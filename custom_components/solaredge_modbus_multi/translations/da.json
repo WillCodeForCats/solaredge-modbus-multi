@@ -146,6 +146,10 @@
       "title": "Ugyldigt enheds-ID for inverter",
       "description": "Inverterens enheds-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-inverter. Den er blevet sprunget over. Hvis enheden er blevet udskiftet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Kontrollér ellers enheden og Modbus/TCP-forbindelsen."
     },
+    "shared_connection_slow": {
+      "title": "Delt Modbus-forbindelse er langsom",
+      "description": "Opsætning eller læsning fra {host} tager meget længere tid end forventet. En anden integration, der bruger den samme inverter, f.eks. den indbyggede SolarEdge Modbus-integration, holder sandsynligvis den delte forbindelse optaget. Det kan give langsomme eller manglende opdateringer.\n\nDeaktiver den anden integration for denne inverter. Hvis du har brug for begge, skal du indstille own_connection i den avancerede YAML-konfiguration, så denne integration bruger sin egen forbindelse. Se README for flere oplysninger."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout for global dynamisk effektstyring (Inverter {device_id})",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Indstillingen \"Hold Modbus-forbindelsen åben\" er erstattet",
       "description": "Indstillingen \"Hold Modbus-forbindelsen åben\" bruges ikke længere. Denne integration deler nu forbindelsen fra modbus-integrationen. Hvis du selv vil styre forbindelsen, skal du angive `own_connection` og `close_after_polling` under `solaredge_modbus_multi` i `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "En anden integration er allerede forbundet til {host}:{port} med andre forbindelsesindstillinger, og én forbindelse kan ikke bruge begge. Fjern eller omkonfigurer den anden integration, og genindlæs derefter denne."
     }
   }
 }

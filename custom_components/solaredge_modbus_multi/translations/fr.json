@@ -146,6 +146,10 @@
       "title": "ID d'appareil onduleur invalide",
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
     },
+    "shared_connection_slow": {
+      "title": "La connexion Modbus partagée est lente",
+      "description": "La configuration ou la lecture de {host} prend beaucoup plus de temps que prévu. Une autre intégration utilisant le même onduleur, comme l'intégration SolarEdge Modbus intégrée, occupe probablement la connexion partagée. Cela peut provoquer des mises à jour lentes ou manquées.\n\nDésactivez l'autre intégration pour cet onduleur. Si vous avez besoin des deux, définissez own_connection dans la configuration YAML avancée afin que cette intégration utilise sa propre connexion. Consultez le README pour plus de détails."
+    },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Option « Garder la connexion Modbus ouverte » remplacée",
       "description": "L'option « Garder la connexion Modbus ouverte » n'est plus utilisée. Cette intégration partage désormais la connexion de l'intégration modbus. Pour gérer vous-même la connexion, définissez `own_connection` et `close_after_polling` sous `solaredge_modbus_multi` dans `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Une autre intégration est déjà connectée à {host}:{port} avec des paramètres de connexion différents, et une même connexion ne peut pas utiliser les deux. Supprimez ou reconfigurez l'autre intégration, puis rechargez celle-ci."
     }
   }
 }

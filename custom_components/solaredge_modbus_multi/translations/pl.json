@@ -146,6 +146,10 @@
       "title": "Nieprawidłowy identyfikator falownika",
       "description": "Identyfikator falownika {device_id} na {host} nie odpowiada lub nie jest prawidłowym falownikiem SolarEdge. Został pominięty. Jeśli urządzenie zostało wymienione lub jego identyfikator się zmienił, zaktualizuj listę identyfikatorów falowników w konfiguracji huba. W przeciwnym razie sprawdź urządzenie i połączenie Modbus/TCP."
     },
+    "shared_connection_slow": {
+      "title": "Współdzielone połączenie Modbus jest wolne",
+      "description": "Konfiguracja lub odczyt z {host} trwa znacznie dłużej, niż oczekiwano. Prawdopodobnie inna integracja korzystająca z tego samego falownika, na przykład wbudowana integracja SolarEdge Modbus, zajmuje współdzielone połączenie. Może to powodować wolne lub pominięte aktualizacje.\n\nWyłącz drugą integrację dla tego falownika. Jeśli potrzebujesz obu, ustaw own_connection w zaawansowanej konfiguracji YAML, aby ta integracja używała własnego połączenia. Szczegóły znajdziesz w pliku README."
+    },
     "detect_timeout_gpc": {
       "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",
       "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" nie jest już używana. Ta integracja współdzieli teraz połączenie integracji modbus. Aby samodzielnie zarządzać połączeniem, ustaw `own_connection` i `close_after_polling` w sekcji `solaredge_modbus_multi` pliku `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Inna integracja jest już połączona z {host}:{port} przy użyciu innych ustawień połączenia, a jedno połączenie nie może obsłużyć obu. Usuń lub skonfiguruj ponownie drugą integrację, a następnie załaduj ponownie tę."
     }
   }
 }

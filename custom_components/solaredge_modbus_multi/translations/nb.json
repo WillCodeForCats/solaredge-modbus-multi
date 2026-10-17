@@ -146,6 +146,10 @@
       "title": "Ugyldig omformer-enhets-ID",
       "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."
     },
+    "shared_connection_slow": {
+      "title": "Delt Modbus-tilkobling er treg",
+      "description": "Oppsett eller lesing fra {host} tar mye lengre tid enn forventet. En annen integrasjon som bruker den samme omformeren, for eksempel den innebygde SolarEdge Modbus-integrasjonen, holder sannsynligvis den delte tilkoblingen opptatt. Dette kan gi trege eller manglende oppdateringer.\n\nDeaktiver den andre integrasjonen for denne omformeren. Hvis du trenger begge, setter du own_connection i den avanserte YAML-konfigurasjonen, slik at denne integrasjonen bruker sin egen tilkobling. Se README for mer informasjon."
+    },
     "detect_timeout_gpc": {
       "title": "Global dynamisk kraftkontroll timeout (Omformer {device_id})",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet",
       "description": "Alternativet «Hold Modbus-tilkoblingen åpen» brukes ikke lenger. Denne integrasjonen deler nå tilkoblingen til modbus-integrasjonen. Hvis du vil styre tilkoblingen selv, setter du `own_connection` og `close_after_polling` under `solaredge_modbus_multi` i `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "En annen integrasjon er allerede koblet til {host}:{port} med andre tilkoblingsinnstillinger, og én tilkobling kan ikke bruke begge. Fjern eller konfigurer den andre integrasjonen på nytt, og last deretter denne inn på nytt."
     }
   }
 }

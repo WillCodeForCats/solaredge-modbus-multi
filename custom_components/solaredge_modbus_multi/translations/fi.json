@@ -146,6 +146,10 @@
       "title": "Virheellinen vaihtosuuntaajan laitetunnus",
       "description": "Vaihtosuuntaajan laitetunnus {device_id} osoitteessa {host} ei vastaa tai ei ole kelvollinen SolarEdge-vaihtosuuntaaja. Se on ohitettu. Jos laite vaihdettiin tai sen tunnus muuttui, päivitä vaihtosuuntaajien laitetunnusluettelo keskittimen asetuksissa. Muussa tapauksessa tarkista laite ja Modbus/TCP-yhteys."
     },
+    "shared_connection_slow": {
+      "title": "Jaettu Modbus-yhteys on hidas",
+      "description": "Laitteen {host} käyttöönotto tai lukeminen kestää odotettua paljon pidempään. Toinen samaa vaihtosuuntaajaa käyttävä integraatio, kuten sisäänrakennettu SolarEdge Modbus -integraatio, pitää todennäköisesti jaettua yhteyttä varattuna. Tämä voi aiheuttaa hitaita tai väliin jääviä päivityksiä.\n\nPoista toinen integraatio käytöstä tältä vaihtosuuntaajalta. Jos tarvitset molempia, aseta own_connection YAML-lisäasetuksissa, jolloin tämä integraatio käyttää omaa yhteyttään. Lisätietoja on README-tiedostossa."
+    },
     "detect_timeout_gpc": {
       "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",
       "fix_flow": {
@@ -183,6 +187,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Pidä Modbus-yhteys avoinna -asetus korvattu",
       "description": "Asetusta \"Pidä Modbus-yhteys avoinna\" ei enää käytetä. Tämä integraatio jakaa nyt modbus-integraation yhteyden. Jos haluat hallita yhteyttä itse, aseta `own_connection` ja `close_after_polling` kohtaan `solaredge_modbus_multi` tiedostossa `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Toinen integraatio on jo yhdistetty kohteeseen {host}:{port} eri yhteysasetuksilla, eikä yksi yhteys voi käyttää molempia. Poista tai määritä toinen integraatio uudelleen ja lataa sitten tämä uudelleen."
     }
   }
 }

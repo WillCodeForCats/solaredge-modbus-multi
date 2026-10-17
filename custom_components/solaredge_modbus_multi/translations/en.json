@@ -146,6 +146,10 @@
       "title": "Invalid Inverter Device ID",
       "description": "Inverter Device ID {device_id} at {host} is not responding or is not a valid SolarEdge inverter. It has been skipped. If the device was replaced or its ID changed, update the Inverter Device ID List in the hub configuration. Otherwise check the device and Modbus/TCP connection."
     },
+    "shared_connection_slow": {
+      "title": "Shared Modbus Connection Is Slow",
+      "description": "Setting up or reading from {host} is taking much longer than expected. Another integration using the same inverter, such as the built-in SolarEdge Modbus integration, is probably holding the shared connection. This can cause slow or missed updates.\n\nDisable the other integration for this inverter. If you need both, set own_connection in the advanced YAML configuration so this integration uses its own connection. See the README for details."
+    },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Inverter {device_id})",
       "fix_flow": {
