@@ -608,8 +608,7 @@ class SolarEdgeModbusMultiHub:
 
         except TimeoutError as e:
             # Waiting behind a shared connection can go past the coordinator
-            # timeout, so a shared connection is only recycled if this keeps
-            # happening.
+            # timeout. Clearing it would wait for the other request to finish.
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
 
@@ -627,8 +626,6 @@ class SolarEdgeModbusMultiHub:
                     self._coordinator_timeouts_limit,
                 )
                 self._coordinator_timeouts_count = 0
-                if isinstance(self.connection, SharedUnits):
-                    await self.connection.disconnect()
 
             raise DataUpdateFailed(f"Timeout error: {e}") from e
 
