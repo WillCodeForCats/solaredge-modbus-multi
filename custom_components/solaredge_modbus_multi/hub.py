@@ -170,17 +170,24 @@ def _parse_se_version(version_str: str) -> AwesomeVersion:
 
 
 def _log_component_fields(prefix: str, component) -> None:
-    """Debug-log every field of a just-read component, by name."""
+    """Debug-log every field of a just-read component on one line, by name."""
     if not _LOGGER.isEnabledFor(logging.DEBUG):
         return
 
+    fields = []
     for name in component_field_names(component):
         value = getattr(component, name)
         if isinstance(value, float):
             display_value = float_to_hex(value)
+        elif isinstance(value, int):
+            display_value = hex(value)
         else:
-            display_value = hex(value) if isinstance(value, int) else value
-        _LOGGER.debug("%s: %s %s %s", prefix, name, display_value, type(value))
+            display_value = repr(value)
+        if isinstance(value, int):
+            fields.append(f"{name}={display_value}")
+        else:
+            fields.append(f"{name}={display_value}<{type(value).__name__}>")
+    _LOGGER.debug("%s: %s", prefix, " ".join(fields))
 
 
 class SolarEdgeModbusMultiHub:
