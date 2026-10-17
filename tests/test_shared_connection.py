@@ -36,6 +36,7 @@ GET_UNIT = "custom_components.solaredge_modbus_multi.async_get_unit"
 
 
 def _make_entry(options=None):
+    """Build a mock config entry with optional options."""
     return MockConfigEntry(
         domain=DOMAIN, data=ENTRY_DATA, options=options or {}, unique_id="test"
     )
@@ -196,6 +197,7 @@ async def test_write_settle_restores_message_spacing(hass):
 
 
 def _refresh_hub(hass, connection, error):
+    """Build an initialized hub whose inverter read raises the given error."""
     hass.data[DOMAIN] = {"yaml": {}}
     hub = SolarEdgeModbusMultiHub(hass, "test_entry_id", ENTRY_DATA, {}, connection)
     hub.initalized = True
@@ -274,8 +276,8 @@ async def test_repeated_request_timeouts_recycle_own_connection(hass):
     connection.disconnect.assert_awaited_once()
 
 
-async def test_coordinator_timeout_disconnects_shared_units(hass):
-    """Test the coordinator timeout recycles a shared connection."""
+async def test_coordinator_timeout_recycles_shared_units_only_when_repeated(hass):
+    """Test a shared connection survives a lone coordinator timeout."""
     unit = MagicMock()
     unit.disconnect = AsyncMock()
     hub = _refresh_hub(hass, SharedUnits({1: unit}), TimeoutError())
@@ -283,8 +285,26 @@ async def test_coordinator_timeout_disconnects_shared_units(hass):
     with pytest.raises(DataUpdateFailed):
         await hub.async_refresh_modbus_data()
 
-    unit.disconnect.assert_awaited_once()
+    unit.disconnect.assert_not_called()
     assert hub._coordinator_timeouts_count == 1
+
+    for _ in range(RetrySettings.CoordinatorTimeouts - 1):
+        with pytest.raises(DataUpdateFailed):
+            await hub.async_refresh_modbus_data()
+
+    unit.disconnect.assert_awaited_once()
+
+
+async def test_coordinator_timeout_disconnects_own_connection(hass):
+    """Test our own connection is recycled on every coordinator timeout."""
+    connection = MagicMock()
+    connection.disconnect = AsyncMock()
+    hub = _refresh_hub(hass, connection, TimeoutError())
+
+    with pytest.raises(DataUpdateFailed):
+        await hub.async_refresh_modbus_data()
+
+    connection.disconnect.assert_awaited_once()
 
 
 async def test_connection_error_disconnects_shared_units(hass):

@@ -106,8 +106,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             async with async_get_temporary_unit(self.hass, params, 1) as unit:
                 unit.require_timeout(ZEROCONF_PROBE_TIMEOUT)
                 try:
-                    await unit.read_holding_registers(SIGNATURE_ADDRESS, 1)
-                except (ModbusError, OSError):
+                    # The shared request timeout may be longer than ours, so
+                    # limit the probe with its own deadline.
+                    await asyncio.wait_for(
+                        unit.read_holding_registers(SIGNATURE_ADDRESS, 1),
+                        timeout=ZEROCONF_PROBE_TIMEOUT,
+                    )
+                except (ModbusError, OSError, asyncio.TimeoutError):
                     is_open = unit.connected
                 else:
                     is_open = True

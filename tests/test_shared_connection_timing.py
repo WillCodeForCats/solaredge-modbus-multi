@@ -30,6 +30,7 @@ FAST = ConfDefaultInt.REQUEST_TIMEOUT
 
 
 def _make_hub(hass, connection):
+    """Build a hub on the given connection."""
     hass.data[DOMAIN] = {"yaml": {}}
     return SolarEdgeModbusMultiHub(hass, "test_entry_id", ENTRY_DATA, {}, connection)
 
