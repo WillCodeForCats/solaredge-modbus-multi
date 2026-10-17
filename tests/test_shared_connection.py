@@ -166,18 +166,27 @@ async def test_shared_units_disconnect_drops_the_link_once():
 
 
 async def test_write_settle_restores_message_spacing(hass):
-    """Test write settle restores message spacing instead of clearing it."""
+    """Test spacing is the settle spacing until the cycles end, then restored."""
     hass.data[DOMAIN] = {"yaml": {}}
     connection = MagicMock()
-    hub = SolarEdgeModbusMultiHub(hass, "test_entry_id", ENTRY_DATA, {}, connection)
+    hub = SolarEdgeModbusMultiHub(
+        hass,
+        "test_entry_id",
+        ENTRY_DATA,
+        {ConfName.SLEEP_AFTER_WRITE: 2},
+        connection,
+    )
     hub._write_settle_cycles[1] = 1
     component = MagicMock()
     component.async_update = AsyncMock()
+    set_spacing = connection.for_unit.return_value.set_message_spacing
 
     await hub.component_update(1, component)
 
-    connection.for_unit.assert_called_once_with(1)
-    connection.for_unit.return_value.set_message_spacing.assert_called_once_with(
-        MESSAGE_SPACING
-    )
     assert 1 not in hub._write_settle_cycles
+    set_spacing.assert_called_once_with(2)
+
+    set_spacing.reset_mock()
+    await hub.component_update(1, component)
+
+    set_spacing.assert_called_once_with(MESSAGE_SPACING)
