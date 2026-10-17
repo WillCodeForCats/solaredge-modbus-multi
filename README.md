@@ -65,7 +65,9 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 Home Assistant shares a single Modbus/TCP connection per host and port between integrations, and the
 connection's timing settings are shared too. The built-in integration requests a 30 second timeout,
-which is much higher than the default of SolarEdge Modbus Multi of 3 seconds. The shared connection
+which is much higher than the default of SolarEdge Modbus Multi of 3 seconds. The built-in
+integration's timeout is fixed and cannot be configured, while the Modbus Request Timeout of
+SolarEdge Modbus Multi can be changed in its options. The shared connection
 will use the highest timeout any integration asks for, so 30 seconds applies to every request on it,
 including those of SolarEdge Modbus Multi. A request that is slow to fail can then hold up polling by
 SolarEdge Modbus Multi, and either integration can change the other's message spacing. The result can
