@@ -50,6 +50,34 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 Inverter site limit and battery storage controls are disabled by default: not all inverters support controls. You will need to enable Power Control Options after adding your inverter hub in the integration.
 
+### Using another integration with the same inverter
+
+> [!WARNING]
+> Running this integration and Home Assistant's built-in SolarEdge Modbus integration (`solaredge_modbus`)
+> for the same inverter is not recommended. Home Assistant may offer to set up the built-in integration
+> when it discovers your inverter: check that you are adding the one you intend to use.
+
+Home Assistant shares a single Modbus/TCP connection per host and port between integrations, and the
+connection's timing settings are shared too. The built-in integration requests a 30 second timeout,
+which is much higher than this integration's default of 3 seconds. The shared connection will use the
+highest timeout any integration asks for, so 30 seconds applies to every request on it, including this
+integration's. A request that is slow to fail can then hold up this integration's polling, and either
+integration can change the other's message spacing. The result can be coordinator timeouts, slow or
+missed updates, and unavailable entities.
+
+If you want to run both, set `own_connection` in your `configuration.yaml`. This integration then opens
+its own Modbus/TCP connection with its own timeout and message spacing, which other integrations cannot
+change:
+
+```yaml
+solaredge_modbus_multi:
+  own_connection: true
+```
+
+This is an advanced option. It has worked alongside the built-in integration on the maintainer's system,
+but SolarEdge does not document support for more than one Modbus/TCP connection, so results may vary
+with your inverter and firmware.
+
 ### Documentation
 
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
