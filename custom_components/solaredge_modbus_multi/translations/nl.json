@@ -148,7 +148,7 @@
     },
     "shared_connection_slow": {
       "title": "Gedeelde Modbus-verbinding is traag",
-      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit. Als je beide nodig hebt, stel dan own_connection in de geavanceerde YAML-configuratie in, zodat deze integratie een eigen verbinding gebruikt. Zie de README voor meer informatie."
+      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit en start Home Assistant daarna opnieuw op. De gedeelde verbinding behoudt de lange time-out totdat ze opnieuw wordt geopend. Als je beide nodig hebt, stel dan own_connection in de geavanceerde YAML-configuratie in, zodat deze integratie een eigen verbinding gebruikt. Zie de README voor meer informatie."
     },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",

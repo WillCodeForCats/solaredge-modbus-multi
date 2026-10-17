@@ -564,7 +564,8 @@ class SolarEdgeModbusMultiHub:
             (
                 " Another integration sharing this connection, such as the "
                 "built-in SolarEdge Modbus integration, may be holding it up. "
-                "Disable the other integration for this inverter."
+                "Disable the other integration for this inverter, then restart "
+                "Home Assistant to clear the long timeout."
                 if shared
                 else ""
             ),

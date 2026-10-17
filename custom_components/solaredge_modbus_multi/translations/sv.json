@@ -148,7 +148,7 @@
     },
     "shared_connection_slow": {
       "title": "Den delade Modbus-anslutningen är långsam",
-      "description": "Konfigurering eller läsning från {host} tar mycket längre tid än väntat. En annan integration som använder samma växelriktare, till exempel den inbyggda SolarEdge Modbus-integrationen, håller sannolikt den delade anslutningen upptagen. Det kan ge långsamma eller missade uppdateringar.\n\nInaktivera den andra integrationen för den här växelriktaren. Om du behöver båda ställer du in own_connection i den avancerade YAML-konfigurationen så att den här integrationen använder en egen anslutning. Se README för mer information."
+      "description": "Konfigurering eller läsning från {host} tar mycket längre tid än väntat. En annan integration som använder samma växelriktare, till exempel den inbyggda SolarEdge Modbus-integrationen, håller sannolikt den delade anslutningen upptagen. Det kan ge långsamma eller missade uppdateringar.\n\nInaktivera den andra integrationen för den här växelriktaren och starta sedan om Home Assistant. Den delade anslutningen behåller den långa tidsgränsen tills den öppnas igen. Om du behöver båda ställer du in own_connection i den avancerade YAML-konfigurationen så att den här integrationen använder en egen anslutning. Se README för mer information."
     },
     "detect_timeout_gpc": {
       "title": "Tidsgräns för global dynamisk effektstyrning (växelriktare {device_id})",

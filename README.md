@@ -57,9 +57,11 @@ Inverter site limit and battery storage controls are disabled by default: not al
 > Running SolarEdge Modbus Multi and Home Assistant's built-in SolarEdge Modbus integration
 > (`solaredge_modbus`) for the same inverter is not recommended. The built-in integration requests a
 > high timeout (30 seconds), and Home Assistant applies it to the shared connection, so it is forced on
-> SolarEdge Modbus Multi as well, which can cause coordinator timeouts and missed updates. Home Assistant
-> may offer to set up the built-in integration when it discovers your inverter: check that you are
-> adding the one you intend to use.
+> SolarEdge Modbus Multi as well, which can cause slow or missed updates. If SolarEdge Modbus Multi
+> raises the "Shared Modbus Connection Is Slow" repair issue, disable the other integration for this
+> inverter and then restart Home Assistant: the shared connection keeps the long timeout until it is
+> closed and reopened. Home Assistant may offer to set up the built-in integration when it discovers
+> your inverter: check that you are adding the one you intend to use.
 
 Home Assistant shares a single Modbus/TCP connection per host and port between integrations, and the
 connection's timing settings are shared too. The built-in integration requests a 30 second timeout,
@@ -67,7 +69,11 @@ which is much higher than the default of SolarEdge Modbus Multi of 3 seconds. Th
 will use the highest timeout any integration asks for, so 30 seconds applies to every request on it,
 including those of SolarEdge Modbus Multi. A request that is slow to fail can then hold up polling by
 SolarEdge Modbus Multi, and either integration can change the other's message spacing. The result can
-be coordinator timeouts, slow or missed updates, and unavailable entities.
+be refreshes that take minutes, slow or missed updates, and unavailable entities.
+
+Disabling the other integration does not shorten the timeout right away. The shared connection keeps
+the highest timeout it was given until it is closed and reopened, so restart Home Assistant after
+disabling it.
 
 If you want to run both, set `own_connection` in your `configuration.yaml`. SolarEdge Modbus Multi then
 opens its own Modbus/TCP connection with its own timeout and message spacing, which other integrations

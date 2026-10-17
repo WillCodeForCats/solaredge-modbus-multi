@@ -148,7 +148,7 @@
     },
     "shared_connection_slow": {
       "title": "Jaettu Modbus-yhteys on hidas",
-      "description": "Laitteen {host} käyttöönotto tai lukeminen kestää odotettua paljon pidempään. Toinen samaa vaihtosuuntaajaa käyttävä integraatio, kuten sisäänrakennettu SolarEdge Modbus -integraatio, pitää todennäköisesti jaettua yhteyttä varattuna. Tämä voi aiheuttaa hitaita tai väliin jääviä päivityksiä.\n\nPoista toinen integraatio käytöstä tältä vaihtosuuntaajalta. Jos tarvitset molempia, aseta own_connection YAML-lisäasetuksissa, jolloin tämä integraatio käyttää omaa yhteyttään. Lisätietoja on README-tiedostossa."
+      "description": "Laitteen {host} käyttöönotto tai lukeminen kestää odotettua paljon pidempään. Toinen samaa vaihtosuuntaajaa käyttävä integraatio, kuten sisäänrakennettu SolarEdge Modbus -integraatio, pitää todennäköisesti jaettua yhteyttä varattuna. Tämä voi aiheuttaa hitaita tai väliin jääviä päivityksiä.\n\nPoista toinen integraatio käytöstä tältä vaihtosuuntaajalta ja käynnistä sen jälkeen Home Assistant uudelleen. Jaettu yhteys säilyttää pitkän aikakatkaisun, kunnes se avataan uudelleen. Jos tarvitset molempia, aseta own_connection YAML-lisäasetuksissa, jolloin tämä integraatio käyttää omaa yhteyttään. Lisätietoja on README-tiedostossa."
     },
     "detect_timeout_gpc": {
       "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",

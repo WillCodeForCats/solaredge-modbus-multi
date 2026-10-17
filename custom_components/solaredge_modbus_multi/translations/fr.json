@@ -148,7 +148,7 @@
     },
     "shared_connection_slow": {
       "title": "La connexion Modbus partagée est lente",
-      "description": "La configuration ou la lecture de {host} prend beaucoup plus de temps que prévu. Une autre intégration utilisant le même onduleur, comme l'intégration SolarEdge Modbus intégrée, occupe probablement la connexion partagée. Cela peut provoquer des mises à jour lentes ou manquées.\n\nDésactivez l'autre intégration pour cet onduleur. Si vous avez besoin des deux, définissez own_connection dans la configuration YAML avancée afin que cette intégration utilise sa propre connexion. Consultez le README pour plus de détails."
+      "description": "La configuration ou la lecture de {host} prend beaucoup plus de temps que prévu. Une autre intégration utilisant le même onduleur, comme l'intégration SolarEdge Modbus intégrée, occupe probablement la connexion partagée. Cela peut provoquer des mises à jour lentes ou manquées.\n\nDésactivez l'autre intégration pour cet onduleur, puis redémarrez Home Assistant. La connexion partagée conserve le long délai d'attente tant qu'elle n'est pas rouverte. Si vous avez besoin des deux, définissez own_connection dans la configuration YAML avancée afin que cette intégration utilise sa propre connexion. Consultez le README pour plus de détails."
     },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",

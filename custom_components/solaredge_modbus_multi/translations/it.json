@@ -148,7 +148,7 @@
     },
     "shared_connection_slow": {
       "title": "La connessione Modbus condivisa è lenta",
-      "description": "La configurazione o la lettura di {host} sta richiedendo molto più tempo del previsto. Probabilmente un'altra integrazione che usa lo stesso inverter, come l'integrazione SolarEdge Modbus integrata, sta occupando la connessione condivisa. Questo può causare aggiornamenti lenti o mancati.\n\nDisattiva l'altra integrazione per questo inverter. Se ti servono entrambe, imposta own_connection nella configurazione YAML avanzata in modo che questa integrazione usi una connessione propria. Consulta il README per i dettagli."
+      "description": "La configurazione o la lettura di {host} sta richiedendo molto più tempo del previsto. Probabilmente un'altra integrazione che usa lo stesso inverter, come l'integrazione SolarEdge Modbus integrata, sta occupando la connessione condivisa. Questo può causare aggiornamenti lenti o mancati.\n\nDisattiva l'altra integrazione per questo inverter e riavvia Home Assistant. La connessione condivisa mantiene il timeout lungo finché non viene riaperta. Se ti servono entrambe, imposta own_connection nella configurazione YAML avanzata in modo che questa integrazione usi una connessione propria. Consulta il README per i dettagli."
     },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",

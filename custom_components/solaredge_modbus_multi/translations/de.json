@@ -148,7 +148,7 @@
     },
     "shared_connection_slow": {
       "title": "Gemeinsame Modbus-Verbindung ist langsam",
-      "description": "Die Einrichtung oder das Lesen von {host} dauert viel länger als erwartet. Eine andere Integration, die denselben Wechselrichter verwendet, etwa die integrierte SolarEdge-Modbus-Integration, blockiert wahrscheinlich die gemeinsame Verbindung. Das kann zu langsamen oder ausgelassenen Aktualisierungen führen.\n\nDeaktivieren Sie die andere Integration für diesen Wechselrichter. Wenn Sie beide benötigen, setzen Sie own_connection in der erweiterten YAML-Konfiguration, damit diese Integration eine eigene Verbindung verwendet. Weitere Informationen finden Sie in der README."
+      "description": "Die Einrichtung oder das Lesen von {host} dauert viel länger als erwartet. Eine andere Integration, die denselben Wechselrichter verwendet, etwa die integrierte SolarEdge-Modbus-Integration, blockiert wahrscheinlich die gemeinsame Verbindung. Das kann zu langsamen oder ausgelassenen Aktualisierungen führen.\n\nDeaktivieren Sie die andere Integration für diesen Wechselrichter und starten Sie anschließend Home Assistant neu. Die gemeinsame Verbindung behält das lange Zeitlimit, bis sie erneut geöffnet wird. Wenn Sie beide benötigen, setzen Sie own_connection in der erweiterten YAML-Konfiguration, damit diese Integration eine eigene Verbindung verwendet. Weitere Informationen finden Sie in der README."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",

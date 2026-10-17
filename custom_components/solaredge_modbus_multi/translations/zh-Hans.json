@@ -148,7 +148,7 @@
     },
     "shared_connection_slow": {
       "title": "共享 Modbus 连接缓慢",
-      "description": "设置或读取 {host} 的耗时远超预期。使用同一台逆变器的其他集成（例如内置的 SolarEdge Modbus 集成）很可能占用了共享连接，这可能导致更新缓慢或丢失。\n\n请为此逆变器禁用另一个集成。如果两者都需要，请在高级 YAML 配置中设置 own_connection，使此集成使用自己的连接。详情请参阅 README。"
+      "description": "设置或读取 {host} 的耗时远超预期。使用同一台逆变器的其他集成（例如内置的 SolarEdge Modbus 集成）很可能占用了共享连接，这可能导致更新缓慢或丢失。\n\n请为此逆变器禁用另一个集成，然后重启 Home Assistant。共享连接在重新打开之前会一直保留较长的超时设置。如果两者都需要，请在高级 YAML 配置中设置 own_connection，使此集成使用自己的连接。详情请参阅 README。"
     },
     "detect_timeout_gpc": {
       "title": "全局动态功率控制超时（逆变器 {device_id}）",
