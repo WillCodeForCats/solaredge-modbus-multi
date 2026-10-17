@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.exceptions import ConfigEntryError, HomeAssistantError
-from modbus_connection.exceptions import ModbusConnectionError
+from modbus_connection.exceptions import ModbusConnectionError, ModbusTimeoutError
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -202,6 +202,30 @@ def _refresh_hub(hass, connection, error):
     hub.initalized = True
     hub.inverters = [MagicMock(read_modbus_data=AsyncMock(side_effect=error))]
     return hub
+
+
+async def test_request_timeout_does_not_disconnect_shared_units(hass):
+    """Test a request timeout leaves a shared connection up."""
+    unit = MagicMock()
+    unit.disconnect = AsyncMock()
+    hub = _refresh_hub(hass, SharedUnits({1: unit}), ModbusTimeoutError())
+
+    with pytest.raises(DataUpdateFailed):
+        await hub.async_refresh_modbus_data()
+
+    unit.disconnect.assert_not_called()
+
+
+async def test_request_timeout_disconnects_own_connection(hass):
+    """Test a request timeout still recycles our own connection."""
+    connection = MagicMock()
+    connection.disconnect = AsyncMock()
+    hub = _refresh_hub(hass, connection, ModbusTimeoutError())
+
+    with pytest.raises(DataUpdateFailed):
+        await hub.async_refresh_modbus_data()
+
+    connection.disconnect.assert_awaited_once()
 
 
 async def test_coordinator_timeout_disconnects_shared_units(hass):

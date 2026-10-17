@@ -587,7 +587,12 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+        except ModbusTimeoutError as e:
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
+            raise DataUpdateFailed(f"Update failed: {e}") from e
+
+        except (ModbusConnectionError, ModbusProtocolError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}") from e
 
