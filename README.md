@@ -89,6 +89,19 @@ solaredge_modbus_multi:
   own_connection: true
 ```
 
+`own_connection` can also be used with the optional `close_after_polling` setting (default `false`),
+which closes the connection after every poll so that the inverter is free for other clients between
+polls. This relies on those other clients also closing their connections when idle: a client that
+holds its connection open between requests can keep the inverter's connection in use regardless.
+
+Example:
+
+```yaml
+solaredge_modbus_multi:
+  own_connection: true
+  close_after_polling: true
+```
+
 This is an advanced option. It has worked alongside the built-in integration on the maintainer's system,
 but SolarEdge does not document support for more than one Modbus/TCP connection, so results may vary
 with your inverter and firmware.
