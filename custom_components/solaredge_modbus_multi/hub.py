@@ -48,14 +48,12 @@ from .components import (
 )
 from .const import (
     BATTERY_REG_BASE,
-    COORDINATOR_RETRY_MARGIN,
     DETECT_EVSE_REGEX,
     DOMAIN,
     MESSAGE_SPACING,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
     STATUS_VENDOR4_VERSION,
-    TIMEOUT_SCALE_BASE,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
     ConfDefaultInt,
@@ -281,7 +279,6 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._coordinator_timeouts_count = 0
         self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
-        self._request_timeout_cycles = 0
 
         self.connection = connection
 
@@ -590,22 +587,7 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except ModbusTimeoutError as e:
-            # A request that timed out is already retried. The connection is
-            # only recycled when refreshes keep failing this way, so a slow
-            # reply does not drop it under other holders of a shared one.
-            self._request_timeout_cycles += 1
-            if self._request_timeout_cycles >= self._coordinator_timeouts_limit:
-                _LOGGER.warning(
-                    "Requests timed out in %s refreshes in a row, "
-                    "recycling the connection",
-                    self._request_timeout_cycles,
-                )
-                self._request_timeout_cycles = 0
-                await self.connection.disconnect()
-            raise DataUpdateFailed(f"Update failed: {e}") from e
-
-        except (ModbusConnectionError, ModbusProtocolError) as e:
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}") from e
 
@@ -615,12 +597,7 @@ class SolarEdgeModbusMultiHub:
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            # Another holder of a shared connection can raise its per-request
-            # timeout above ours, so a refresh can run past the coordinator
-            # timeout without anything being wrong. A shared connection is
-            # only recycled once this keeps happening.
-            if not isinstance(self.connection, SharedUnits):
-                await self.connection.disconnect()
+            await self.connection.disconnect()
 
             self._coordinator_timeouts_count += 1
 
@@ -636,8 +613,6 @@ class SolarEdgeModbusMultiHub:
                     self._coordinator_timeouts_limit,
                 )
                 self._coordinator_timeouts_count = 0
-                if isinstance(self.connection, SharedUnits):
-                    await self.connection.disconnect()
 
             raise DataUpdateFailed(f"Timeout error: {e}") from e
 
@@ -648,8 +623,6 @@ class SolarEdgeModbusMultiHub:
                 self._coordinator_timeouts_limit,
             )
             self._coordinator_timeouts_count = 0
-
-        self._request_timeout_cycles = 0
 
         if self.close_after_polling:
             await self.connection.disconnect()
@@ -892,17 +865,9 @@ class SolarEdgeModbusMultiHub:
 
         this_timeout = this_timeout / 1000
 
-        # The per-step timeouts were based on TIMEOUT_SCALE_BASE; scale the
-        # coordinator timeout if the user changes the request timeout
-        this_timeout *= self.request_timeout / TIMEOUT_SCALE_BASE
-
-        # The retries of one request must be able to finish: a coordinator
-        # timeout that fires first would cut off the last retry every time.
-        this_timeout = max(
-            this_timeout,
-            RetrySettings.RequestRetries * self.request_timeout
-            + COORDINATOR_RETRY_MARGIN,
-        )
+        # The per-step timeouts were based on the default request_timeout;
+        # scale the coordinator timeout if the user changes the value
+        this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
 
         # Add the sleep_after_write value to the coordinator timeout
         this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES

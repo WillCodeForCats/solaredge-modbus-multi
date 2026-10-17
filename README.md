@@ -62,28 +62,14 @@ Inverter site limit and battery storage controls are disabled by default: not al
 > adding the one you intend to use.
 
 Home Assistant shares a single Modbus/TCP connection per host and port between integrations, and the
-connection's timing settings are shared too. SolarEdge specifies a response time of under 0.5 seconds
-for read and write requests, under "SolarEdge timing performance" in the
-[SunSpec Implementation Technical Note](doc/sunspec-implementation-technical-note.pdf) (version 3.2,
-page 31), and the timing of SolarEdge Modbus Multi is built around that. Its default timeout is 10
-seconds, which is also the default of the modbus-connection library. The built-in integration requests
-a 30 second timeout, three times as long. The shared connection will use the highest timeout any
-integration asks for, so 30 seconds applies to every request on it, including those of SolarEdge
-Modbus Multi. A request that is slow to fail can then hold up polling by SolarEdge Modbus Multi, and
-either integration can change the other's message spacing. The result can be coordinator timeouts, slow
-or missed updates, and unavailable entities.
+connection's timing settings are shared too. The built-in integration requests a 30 second timeout,
+which is much higher than the default of SolarEdge Modbus Multi of 3 seconds. The shared connection
+will use the highest timeout any integration asks for, so 30 seconds applies to every request on it,
+including those of SolarEdge Modbus Multi. A request that is slow to fail can then hold up polling by
+SolarEdge Modbus Multi, and either integration can change the other's message spacing. The result can
+be coordinator timeouts, slow or missed updates, and unavailable entities.
 
-Because the shared connection uses the highest timeout requested, SolarEdge Modbus Multi cannot keep
-the shorter timeout it would otherwise use. If you want to run both, one option is to set Modbus
-Request Timeout to 30 seconds in the options of SolarEdge Modbus Multi, so that its timeouts allow for
-the 30 seconds the shared connection now applies. The coordinator timeout scales with it, so waiting
-behind the built-in integration's requests no longer trips it. The cost is that SolarEdge Modbus Multi
-then also waits up to 30 seconds on a request that never gets an answer, and long waits cause missed
-polling intervals, which lowers the resolution of your data. This is especially so because the
-built-in integration scans for batteries and meters on a regular schedule, and an inverter may not
-answer for hardware it does not have, such as a battery, so each scan can wait out the full timeout.
-
-The other option is to set `own_connection` in your `configuration.yaml`. SolarEdge Modbus Multi then
+If you want to run both, set `own_connection` in your `configuration.yaml`. SolarEdge Modbus Multi then
 opens its own Modbus/TCP connection with its own timeout and message spacing, which other integrations
 cannot change:
 

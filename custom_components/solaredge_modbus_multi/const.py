@@ -66,17 +66,6 @@ class RetrySettings(IntEnum):
     FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
 
 
-# The request timeout, in seconds, that SolarEdgeTimeouts were tuned for. The
-# coordinator timeout scales with the configured request timeout against this,
-# and not against the default, which can change without retuning them.
-TIMEOUT_SCALE_BASE = 3
-
-# Seconds added to the retries of one request for the reads before it in the
-# same refresh and the message spacing, so the coordinator timeout never
-# fires before the last retry has had its turn.
-COORDINATOR_RETRY_MARGIN = 1
-
-
 class SolarEdgeTimeouts(IntEnum):
     """Timeouts in milliseconds."""
 
@@ -105,7 +94,7 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 10
     PORT = 1502
-    REQUEST_TIMEOUT = 10
+    REQUEST_TIMEOUT = 3
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
