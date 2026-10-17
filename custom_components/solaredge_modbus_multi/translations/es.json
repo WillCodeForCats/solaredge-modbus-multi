@@ -149,7 +149,7 @@
     },
     "shared_connection_slow": {
       "title": "La conexión Modbus compartida es lenta",
-      "description": "La configuración o la lectura de {host} está tardando mucho más de lo esperado. Es probable que otra integración que usa el mismo inversor, como la integración integrada de SolarEdge Modbus, esté ocupando la conexión compartida. Esto puede provocar actualizaciones lentas o perdidas.\n\nDesactive la otra integración para este inversor. Si necesita ambas, establezca own_connection en la configuración YAML avanzada para que esta integración use su propia conexión. Consulte el README para más información."
+      "description": "La configuración o la lectura de {host} está tardando mucho más de lo esperado. Es probable que otra integración que usa el mismo inversor, como la integración integrada de SolarEdge Modbus, esté ocupando la conexión compartida. Esto puede provocar actualizaciones lentas o perdidas.\n\nDesactive la otra integración para este inversor y reinicie Home Assistant. La conexión compartida conserva el tiempo de espera largo hasta que se vuelve a abrir. Si necesita ambas, establezca own_connection en la configuración YAML avanzada para que esta integración use su propia conexión. Consulte el README para más información."
     },
     "detect_timeout_gpc": {
       "title": "Tiempo de espera agotado del control dinámico de energía global (Inversor {device_id})",

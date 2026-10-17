@@ -149,7 +149,7 @@
     },
     "shared_connection_slow": {
       "title": "Sdílené připojení Modbus je pomalé",
-      "description": "Nastavení nebo čtení z {host} trvá mnohem déle, než se očekávalo. Jiná integrace používající stejný střídač, například vestavěná integrace SolarEdge Modbus, pravděpodobně blokuje sdílené připojení. To může způsobit pomalé nebo vynechané aktualizace.\n\nZakažte pro tento střídač druhou integraci. Pokud potřebujete obě, nastavte v pokročilé konfiguraci YAML volbu own_connection, aby tato integrace používala vlastní připojení. Podrobnosti najdete v souboru README."
+      "description": "Nastavení nebo čtení z {host} trvá mnohem déle, než se očekávalo. Jiná integrace používající stejný střídač, například vestavěná integrace SolarEdge Modbus, pravděpodobně blokuje sdílené připojení. To může způsobit pomalé nebo vynechané aktualizace.\n\nZakažte pro tento střídač druhou integraci a poté restartujte Home Assistant. Sdílené připojení si dlouhý časový limit ponechá, dokud není znovu otevřeno. Pokud potřebujete obě, nastavte v pokročilé konfiguraci YAML volbu own_connection, aby tato integrace používala vlastní připojení. Podrobnosti najdete v souboru README."
     },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",

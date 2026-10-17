@@ -149,7 +149,7 @@
     },
     "shared_connection_slow": {
       "title": "A megosztott Modbus-kapcsolat lassú",
-      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél. Ha mindkettőre szüksége van, állítsa be az own_connection beállítást a speciális YAML-konfigurációban, hogy ez az integráció saját kapcsolatot használjon. További részletekért lásd a README-t."
+      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél, majd indítsa újra a Home Assistantot. A megosztott kapcsolat addig megtartja a hosszú időkorlátot, amíg újra nem nyílik. Ha mindkettőre szüksége van, állítsa be az own_connection beállítást a speciális YAML-konfigurációban, hogy ez az integráció saját kapcsolatot használjon. További részletekért lásd a README-t."
     },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",

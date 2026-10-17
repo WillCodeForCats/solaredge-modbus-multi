@@ -149,7 +149,7 @@
     },
     "shared_connection_slow": {
       "title": "Conexiunea Modbus partajată este lentă",
-      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor. Dacă aveți nevoie de ambele, setați own_connection în configurația YAML avansată, astfel încât această integrare să folosească propria conexiune. Consultați README pentru detalii."
+      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor, apoi reporniți Home Assistant. Conexiunea partajată păstrează timpul de expirare lung până când este redeschisă. Dacă aveți nevoie de ambele, setați own_connection în configurația YAML avansată, astfel încât această integrare să folosească propria conexiune. Consultați README pentru detalii."
     },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",

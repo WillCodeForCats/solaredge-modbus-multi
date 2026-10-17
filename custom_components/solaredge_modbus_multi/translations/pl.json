@@ -149,7 +149,7 @@
     },
     "shared_connection_slow": {
       "title": "Współdzielone połączenie Modbus jest wolne",
-      "description": "Konfiguracja lub odczyt z {host} trwa znacznie dłużej, niż oczekiwano. Prawdopodobnie inna integracja korzystająca z tego samego falownika, na przykład wbudowana integracja SolarEdge Modbus, zajmuje współdzielone połączenie. Może to powodować wolne lub pominięte aktualizacje.\n\nWyłącz drugą integrację dla tego falownika. Jeśli potrzebujesz obu, ustaw own_connection w zaawansowanej konfiguracji YAML, aby ta integracja używała własnego połączenia. Szczegóły znajdziesz w pliku README."
+      "description": "Konfiguracja lub odczyt z {host} trwa znacznie dłużej, niż oczekiwano. Prawdopodobnie inna integracja korzystająca z tego samego falownika, na przykład wbudowana integracja SolarEdge Modbus, zajmuje współdzielone połączenie. Może to powodować wolne lub pominięte aktualizacje.\n\nWyłącz drugą integrację dla tego falownika, a następnie uruchom ponownie Home Assistant. Współdzielone połączenie zachowuje długi limit czasu, dopóki nie zostanie otwarte ponownie. Jeśli potrzebujesz obu, ustaw own_connection w zaawansowanej konfiguracji YAML, aby ta integracja używała własnego połączenia. Szczegóły znajdziesz w pliku README."
     },
     "detect_timeout_gpc": {
       "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
