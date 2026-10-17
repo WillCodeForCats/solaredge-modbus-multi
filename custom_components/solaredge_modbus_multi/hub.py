@@ -838,7 +838,7 @@ class SolarEdgeModbusMultiHub:
     def close_after_polling(self) -> bool:
         """Return whether to close the connection after polling.
 
-        Only for an own connection: a shared connection belongs to the modbus
+        Only for a direct connection: a shared connection belongs to the modbus
         integration and other entries may be using it.
         """
         return (

@@ -153,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "A megosztott Modbus-kapcsolat lassú",
-      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél, majd indítsa újra a Home Assistantot. A megosztott kapcsolat addig megtartja a hosszú időkorlátot, amíg újra nem nyílik. Ha mindkettőre szüksége van, válassza ennek az integrációnak a beállításaiban a Modbus-kapcsolatnál a „Saját kapcsolat használata” lehetőséget, hogy saját kapcsolatot használjon. További részletekért lásd a README-t."
+      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél, majd indítsa újra a Home Assistantot. A megosztott kapcsolat addig megtartja a hosszú időkorlátot, amíg újra nem nyílik. Ha mindkettőre szüksége van, válassza ennek az integrációnak a beállításaiban a Modbus-kapcsolatnál a „Közvetlen kapcsolat használata” lehetőséget, hogy közvetlen kapcsolatot használjon. További részletekért lásd a README-t."
     },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",
@@ -183,7 +183,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "A „Modbus Kapcsolat Nyitva Tartása” Opció Lecserélve",
-      "description": "A „Modbus Kapcsolat Nyitva Tartása” opció már nincs használatban. Ez az integráció mostantól a modbus integráció kapcsolatát használja közösen. Ha saját maga szeretné vezérelni a kapcsolatot, állítsa be az `own_connection` és a `close_after_polling` értéket a `configuration.yaml` fájl `solaredge_modbus_multi` szakaszában."
+      "description": "A „Modbus Kapcsolat Nyitva Tartása” opció már nincs használatban. Ez az integráció mostantól a modbus integráció kapcsolatát használja közösen. Ha saját maga szeretné vezérelni a kapcsolatot, válassza ennek az integrációnak a beállításaiban a Modbus-kapcsolatnál a „Közvetlen kapcsolat használata” vagy a „Közvetlen kapcsolat használata, és lezárása minden lekérdezés után” lehetőséget."
     }
   },
   "exceptions": {
@@ -195,8 +195,8 @@
     "connection_mode": {
       "options": {
         "shared": "A Home Assistant megosztott Modbus-kapcsolatának használata",
-        "own": "Saját kapcsolat használata",
-        "own_close_after_polling": "Saját kapcsolat használata, és lezárása minden lekérdezés után"
+        "own": "Közvetlen kapcsolat használata",
+        "own_close_after_polling": "Közvetlen kapcsolat használata, és lezárása minden lekérdezés után"
       }
     }
   }

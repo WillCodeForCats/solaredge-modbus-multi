@@ -153,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "Conexiunea Modbus partajată este lentă",
-      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor, apoi reporniți Home Assistant. Conexiunea partajată păstrează timpul de expirare lung până când este redeschisă. Dacă aveți nevoie de ambele, alegeți „Utilizați conexiune proprie” ca Conexiune Modbus în opțiunile acestei integrări, astfel încât să folosească propria conexiune. Consultați README pentru detalii."
+      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor, apoi reporniți Home Assistant. Conexiunea partajată păstrează timpul de expirare lung până când este redeschisă. Dacă aveți nevoie de ambele, alegeți „Utilizați conexiune directă” ca Conexiune Modbus în opțiunile acestei integrări, astfel încât să folosească o conexiune directă. Consultați README pentru detalii."
     },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",
@@ -183,7 +183,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Opțiunea Menține Conexiunea Modbus Deschisă a Fost Înlocuită",
-      "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” nu mai este folosită. Această integrare partajează acum conexiunea integrării modbus. Pentru a controla singur conexiunea, setați `own_connection` și `close_after_polling` sub `solaredge_modbus_multi` în `configuration.yaml`."
+      "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” nu mai este folosită. Această integrare partajează acum conexiunea integrării modbus. Pentru a controla singur conexiunea, alegeți „Utilizați conexiune directă” sau „Utilizați conexiune directă și închideți-o după fiecare interogare” ca Conexiune Modbus în opțiunile acestei integrări."
     }
   },
   "exceptions": {
@@ -195,8 +195,8 @@
     "connection_mode": {
       "options": {
         "shared": "Utilizați conexiunea Modbus partajată din Home Assistant",
-        "own": "Utilizați conexiune proprie",
-        "own_close_after_polling": "Utilizați conexiune proprie și închideți-o după fiecare interogare"
+        "own": "Utilizați conexiune directă",
+        "own_close_after_polling": "Utilizați conexiune directă și închideți-o după fiecare interogare"
       }
     }
   }

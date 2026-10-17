@@ -153,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "La conexión Modbus compartida es lenta",
-      "description": "La configuración o la lectura de {host} está tardando mucho más de lo esperado. Es probable que otra integración que usa el mismo inversor, como la integración integrada de SolarEdge Modbus, esté ocupando la conexión compartida. Esto puede provocar actualizaciones lentas o perdidas.\n\nDesactive la otra integración para este inversor y reinicie Home Assistant. La conexión compartida conserva el tiempo de espera largo hasta que se vuelve a abrir. Si necesita ambas, elija «Usar conexión propia» como Conexión Modbus en las opciones de esta integración para que use su propia conexión. Consulte el README para más información."
+      "description": "La configuración o la lectura de {host} está tardando mucho más de lo esperado. Es probable que otra integración que usa el mismo inversor, como la integración integrada de SolarEdge Modbus, esté ocupando la conexión compartida. Esto puede provocar actualizaciones lentas o perdidas.\n\nDesactive la otra integración para este inversor y reinicie Home Assistant. La conexión compartida conserva el tiempo de espera largo hasta que se vuelve a abrir. Si necesita ambas, elija «Usar conexión directa» como Conexión Modbus en las opciones de esta integración para que use una conexión directa. Consulte el README para más información."
     },
     "detect_timeout_gpc": {
       "title": "Tiempo de espera agotado del control dinámico de energía global (Inversor {device_id})",
@@ -183,7 +183,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Se reemplazó la opción Mantener abierta la conexión Modbus",
-      "description": "La opción \"Mantener abierta la conexión Modbus\" ya no se usa. Esta integración ahora comparte la conexión de la integración modbus. Para controlar la conexión usted mismo, establezca `own_connection` y `close_after_polling` en `solaredge_modbus_multi` dentro de `configuration.yaml`."
+      "description": "La opción \"Mantener abierta la conexión Modbus\" ya no se usa. Esta integración ahora comparte la conexión de la integración modbus. Para controlar la conexión usted mismo, elija «Usar conexión directa» o «Usar conexión directa y cerrarla tras cada sondeo» como Conexión Modbus en las opciones de esta integración."
     }
   },
   "exceptions": {
@@ -195,8 +195,8 @@
     "connection_mode": {
       "options": {
         "shared": "Usar la conexión Modbus compartida de Home Assistant",
-        "own": "Usar conexión propia",
-        "own_close_after_polling": "Usar conexión propia y cerrarla tras cada sondeo"
+        "own": "Usar conexión directa",
+        "own_close_after_polling": "Usar conexión directa y cerrarla tras cada sondeo"
       }
     }
   }

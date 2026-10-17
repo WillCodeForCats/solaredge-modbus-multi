@@ -153,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "Współdzielone połączenie Modbus jest wolne",
-      "description": "Konfiguracja lub odczyt z {host} trwa znacznie dłużej, niż oczekiwano. Prawdopodobnie inna integracja korzystająca z tego samego falownika, na przykład wbudowana integracja SolarEdge Modbus, zajmuje współdzielone połączenie. Może to powodować wolne lub pominięte aktualizacje.\n\nWyłącz drugą integrację dla tego falownika, a następnie uruchom ponownie Home Assistant. Współdzielone połączenie zachowuje długi limit czasu, dopóki nie zostanie otwarte ponownie. Jeśli potrzebujesz obu, wybierz w opcjach tej integracji jako Połączenie Modbus opcję „Użyj własnego połączenia”, aby używała własnego połączenia. Szczegóły znajdziesz w pliku README."
+      "description": "Konfiguracja lub odczyt z {host} trwa znacznie dłużej, niż oczekiwano. Prawdopodobnie inna integracja korzystająca z tego samego falownika, na przykład wbudowana integracja SolarEdge Modbus, zajmuje współdzielone połączenie. Może to powodować wolne lub pominięte aktualizacje.\n\nWyłącz drugą integrację dla tego falownika, a następnie uruchom ponownie Home Assistant. Współdzielone połączenie zachowuje długi limit czasu, dopóki nie zostanie otwarte ponownie. Jeśli potrzebujesz obu, wybierz w opcjach tej integracji jako Połączenie Modbus opcję „Użyj połączenia bezpośredniego”, aby używała połączenia bezpośredniego. Szczegóły znajdziesz w pliku README."
     },
     "detect_timeout_gpc": {
       "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
@@ -183,7 +183,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",
-      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" nie jest już używana. Ta integracja współdzieli teraz połączenie integracji modbus. Aby samodzielnie zarządzać połączeniem, ustaw `own_connection` i `close_after_polling` w sekcji `solaredge_modbus_multi` pliku `configuration.yaml`."
+      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" nie jest już używana. Ta integracja współdzieli teraz połączenie integracji modbus. Aby samodzielnie zarządzać połączeniem, wybierz w opcjach tej integracji jako Połączenie Modbus opcję „Użyj połączenia bezpośredniego” lub „Użyj połączenia bezpośredniego i zamykaj je po każdym odczycie”."
     }
   },
   "exceptions": {
@@ -195,8 +195,8 @@
     "connection_mode": {
       "options": {
         "shared": "Użyj współdzielonego połączenia Modbus Home Assistant",
-        "own": "Użyj własnego połączenia",
-        "own_close_after_polling": "Użyj własnego połączenia i zamykaj je po każdym odczycie"
+        "own": "Użyj połączenia bezpośredniego",
+        "own_close_after_polling": "Użyj połączenia bezpośredniego i zamykaj je po każdym odczycie"
       }
     }
   }

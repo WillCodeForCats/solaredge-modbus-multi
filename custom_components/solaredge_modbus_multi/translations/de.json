@@ -153,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "Gemeinsame Modbus-Verbindung ist langsam",
-      "description": "Die Einrichtung oder das Lesen von {host} dauert viel länger als erwartet. Eine andere Integration, die denselben Wechselrichter verwendet, etwa die integrierte SolarEdge-Modbus-Integration, blockiert wahrscheinlich die gemeinsame Verbindung. Das kann zu langsamen oder ausgelassenen Aktualisierungen führen.\n\nDeaktivieren Sie die andere Integration für diesen Wechselrichter und starten Sie anschließend Home Assistant neu. Die gemeinsame Verbindung behält das lange Zeitlimit, bis sie erneut geöffnet wird. Wenn Sie beide benötigen, wählen Sie in den Optionen dieser Integration als Modbus-Verbindung „Eigene Verbindung verwenden“, damit sie eine eigene Verbindung nutzt. Weitere Informationen finden Sie in der README."
+      "description": "Die Einrichtung oder das Lesen von {host} dauert viel länger als erwartet. Eine andere Integration, die denselben Wechselrichter verwendet, etwa die integrierte SolarEdge-Modbus-Integration, blockiert wahrscheinlich die gemeinsame Verbindung. Das kann zu langsamen oder ausgelassenen Aktualisierungen führen.\n\nDeaktivieren Sie die andere Integration für diesen Wechselrichter und starten Sie anschließend Home Assistant neu. Die gemeinsame Verbindung behält das lange Zeitlimit, bis sie erneut geöffnet wird. Wenn Sie beide benötigen, wählen Sie in den Optionen dieser Integration als Modbus-Verbindung „Direkte Verbindung verwenden“, damit sie eine direkte Verbindung nutzt. Weitere Informationen finden Sie in der README."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",
@@ -183,7 +183,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",
-      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wird nicht mehr verwendet. Diese Integration nutzt jetzt die Verbindung der Modbus-Integration gemeinsam. Um die Verbindung selbst zu steuern, setzen Sie `own_connection` und `close_after_polling` unter `solaredge_modbus_multi` in der `configuration.yaml`."
+      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wird nicht mehr verwendet. Diese Integration nutzt jetzt die Verbindung der Modbus-Integration gemeinsam. Um die Verbindung selbst zu steuern, wählen Sie in den Optionen dieser Integration als Modbus-Verbindung „Direkte Verbindung verwenden“ oder „Direkte Verbindung verwenden und nach jeder Abfrage schließen“."
     }
   },
   "exceptions": {
@@ -195,8 +195,8 @@
     "connection_mode": {
       "options": {
         "shared": "Gemeinsame Modbus-Verbindung von Home Assistant verwenden",
-        "own": "Eigene Verbindung verwenden",
-        "own_close_after_polling": "Eigene Verbindung verwenden und nach jeder Abfrage schließen"
+        "own": "Direkte Verbindung verwenden",
+        "own_close_after_polling": "Direkte Verbindung verwenden und nach jeder Abfrage schließen"
       }
     }
   }

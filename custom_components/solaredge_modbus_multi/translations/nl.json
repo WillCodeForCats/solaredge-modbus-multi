@@ -153,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "Gedeelde Modbus-verbinding is traag",
-      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit en start Home Assistant daarna opnieuw op. De gedeelde verbinding behoudt de lange time-out totdat ze opnieuw wordt geopend. Als je beide nodig hebt, kies dan „Eigen verbinding gebruiken” als Modbus-verbinding in de opties van deze integratie, zodat deze een eigen verbinding gebruikt. Zie de README voor meer informatie."
+      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit en start Home Assistant daarna opnieuw op. De gedeelde verbinding behoudt de lange time-out totdat ze opnieuw wordt geopend. Als je beide nodig hebt, kies dan „Directe verbinding gebruiken” als Modbus-verbinding in de opties van deze integratie, zodat deze een directe verbinding gebruikt. Zie de README voor meer informatie."
     },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",
@@ -183,7 +183,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Optie 'Houd Modbus-verbinding open' vervangen",
-      "description": "De optie 'Houd Modbus-verbinding open' wordt niet meer gebruikt. Deze integratie deelt nu de verbinding van de modbus-integratie. Wil je de verbinding zelf beheren, stel dan `own_connection` en `close_after_polling` in onder `solaredge_modbus_multi` in `configuration.yaml`."
+      "description": "De optie 'Houd Modbus-verbinding open' wordt niet meer gebruikt. Deze integratie deelt nu de verbinding van de modbus-integratie. Wil je de verbinding zelf beheren, kies dan „Directe verbinding gebruiken” of „Directe verbinding gebruiken en na elke peiling sluiten” als Modbus-verbinding in de opties van deze integratie."
     }
   },
   "exceptions": {
@@ -195,8 +195,8 @@
     "connection_mode": {
       "options": {
         "shared": "De gedeelde Modbus-verbinding van Home Assistant gebruiken",
-        "own": "Eigen verbinding gebruiken",
-        "own_close_after_polling": "Eigen verbinding gebruiken en na elke peiling sluiten"
+        "own": "Directe verbinding gebruiken",
+        "own_close_after_polling": "Directe verbinding gebruiken en na elke peiling sluiten"
       }
     }
   }
