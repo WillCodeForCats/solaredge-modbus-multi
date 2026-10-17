@@ -219,6 +219,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
     else:
         connection = _async_get_shared_units(hass, entry, params, request_timeout)
+        # close_after_polling only applies to an own connection.
+        ir.async_delete_issue(
+            hass, DOMAIN, f"close_after_polling_moved_{entry.entry_id}"
+        )
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options, connection
