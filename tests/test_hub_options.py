@@ -87,28 +87,29 @@ async def test_close_after_polling_defaults_to_false(hass):
     assert hub.close_after_polling is False
 
 
-async def test_close_after_polling_true_disconnects_after_successful_poll(hass):
-    """Test close after polling in YAML disconnects an own connection."""
-    hub = _make_hub(hass)
-    hass.data[DOMAIN]["yaml"] = {"own_connection": True, "close_after_polling": True}
-    hub._yaml_config = hass.data[DOMAIN]["yaml"]
+async def test_close_after_polling_from_the_connection_mode_option(hass):
+    """Test the own connection with close after polling option disconnects."""
+    hub = _make_hub(
+        hass, entry_options={ConfName.CONNECTION_MODE: "own_close_after_polling"}
+    )
     hub.initalized = True
     hub.connection.disconnect = AsyncMock()
 
     await hub.async_refresh_modbus_data()
 
+    assert hub.close_after_polling is True
     hub.connection.disconnect.assert_awaited_once()
 
 
-async def test_close_after_polling_ignored_without_own_connection(hass):
-    """Test close after polling does nothing on a shared connection."""
-    hub = _make_hub(hass)
-    hub._yaml_config = {"close_after_polling": True}
+async def test_own_connection_mode_option_keeps_the_connection_open(hass):
+    """Test the own connection option alone does not disconnect after polling."""
+    hub = _make_hub(hass, entry_options={ConfName.CONNECTION_MODE: "own"})
     hub.initalized = True
     hub.connection.disconnect = AsyncMock()
 
     await hub.async_refresh_modbus_data()
 
+    assert hub.close_after_polling is False
     hub.connection.disconnect.assert_not_called()
 
 

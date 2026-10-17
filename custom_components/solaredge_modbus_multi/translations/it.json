@@ -89,7 +89,11 @@
           "detect_extras": "Rileva automaticamente entità aggiuntive",
           "advanced_power_control": "Opzioni di controllo della potenza",
           "request_timeout": "Timeout richiesta Modbus (secondi)",
-          "sleep_after_write": "Ritardo comando inverter (secondi)"
+          "sleep_after_write": "Ritardo comando inverter (secondi)",
+          "connection_mode": "Connessione Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Come SolarEdge Modbus Multi si connette all'inverter. Un'altra integrazione che usa lo stesso inverter può rallentare una connessione condivisa. Consulta il README per i dettagli."
         }
       },
       "adv_pwr_ctl": {
@@ -149,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "La connessione Modbus condivisa è lenta",
-      "description": "La configurazione o la lettura di {host} sta richiedendo molto più tempo del previsto. Probabilmente un'altra integrazione che usa lo stesso inverter, come l'integrazione SolarEdge Modbus integrata, sta occupando la connessione condivisa. Questo può causare aggiornamenti lenti o mancati.\n\nDisattiva l'altra integrazione per questo inverter e riavvia Home Assistant. La connessione condivisa mantiene il timeout lungo finché non viene riaperta. Se ti servono entrambe, imposta own_connection nella configurazione YAML avanzata in modo che questa integrazione usi una connessione propria. Consulta il README per i dettagli."
+      "description": "La configurazione o la lettura di {host} sta richiedendo molto più tempo del previsto. Probabilmente un'altra integrazione che usa lo stesso inverter, come l'integrazione SolarEdge Modbus integrata, sta occupando la connessione condivisa. Questo può causare aggiornamenti lenti o mancati.\n\nDisattiva l'altra integrazione per questo inverter e riavvia Home Assistant. La connessione condivisa mantiene il timeout lungo finché non viene riaperta. Se ti servono entrambe, scegli «Usa una connessione propria» come Connessione Modbus nelle opzioni di questa integrazione in modo che usi una connessione propria. Consulta il README per i dettagli."
     },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",
@@ -177,10 +181,6 @@
       "title": "Configurazione YAML Modbus non più supportata",
       "description": "La sezione `modbus` sotto `solaredge_modbus_multi` in `configuration.yaml` non è più supportata e viene ignorata. Rimuovila dalla tua configurazione YAML."
     },
-    "close_after_polling_moved": {
-      "title": "\"Chiudi la connessione dopo il polling\" spostata in YAML",
-      "description": "L'opzione \"Chiudi la connessione dopo il polling\" ora si imposta in `configuration.yaml` e vale solo con `own_connection`. Aggiungi `close_after_polling: true` sotto `solaredge_modbus_multi` per mantenere lo stesso comportamento."
-    },
     "deprecated_keep_modbus_open": {
       "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",
       "description": "L'opzione \"Mantieni aperta la connessione Modbus\" non viene più utilizzata. Questa integrazione ora condivide la connessione dell'integrazione modbus. Per gestire la connessione manualmente, imposta `own_connection` e `close_after_polling` sotto `solaredge_modbus_multi` in `configuration.yaml`."
@@ -189,6 +189,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Un'altra integrazione è già connessa a {host}:{port} con impostazioni di connessione diverse e una singola connessione non può usarle entrambe. Rimuovi o riconfigura l'altra integrazione, poi ricarica questa."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Usa la connessione Modbus condivisa di Home Assistant",
+        "own": "Usa una connessione propria",
+        "own_close_after_polling": "Usa una connessione propria e chiudila dopo ogni lettura"
+      }
     }
   }
 }

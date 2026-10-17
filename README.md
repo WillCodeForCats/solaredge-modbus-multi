@@ -77,31 +77,21 @@ Disabling the other integration does not shorten the timeout right away. The sha
 the highest timeout it was given until it is closed and reopened, so restart Home Assistant after
 disabling it.
 
-If you want to run both, set `own_connection` in your `configuration.yaml`. SolarEdge Modbus Multi then
-opens its own Modbus/TCP connection with its own timeout and message spacing, which other integrations
-cannot change:
+If you want to run both, open the options of SolarEdge Modbus Multi and change the Modbus Connection.
+It has three choices:
 
-```yaml
-solaredge_modbus_multi:
-  own_connection: true
-```
+| Modbus Connection                                         | What it does                                                                                                                 |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Use the Home Assistant shared Modbus connection (default) | Shares one Modbus/TCP connection with other integrations that talk to the same inverter.                                     |
+| Use own connection                                        | Opens a separate Modbus/TCP connection with its own timeout and message spacing, which other integrations cannot change.     |
+| Use own connection and close it after each poll           | Same as above, and also closes the connection after every poll so that the inverter is free for other clients between polls. |
 
-`own_connection` can also be used with the optional `close_after_polling` setting (default `false`),
-which closes the connection after every poll so that the inverter is free for other clients between
-polls. This relies on those other clients also closing their connections when idle: a client that
-holds its connection open between requests can keep the inverter's connection in use regardless.
+Closing after each poll relies on those other clients also closing their connections when idle: a client
+that holds its connection open between requests can keep the inverter's connection in use regardless.
 
-Example:
-
-```yaml
-solaredge_modbus_multi:
-  own_connection: true
-  close_after_polling: true
-```
-
-This is an advanced option. It has worked alongside the built-in integration on the maintainer's system,
-but SolarEdge does not document support for more than one Modbus/TCP connection, so results may vary
-with your inverter and firmware.
+Using your own connection is an advanced option. It has worked alongside the built-in integration on the
+maintainer's system, but SolarEdge does not document support for more than one Modbus/TCP connection,
+so results may vary with your inverter and firmware.
 
 ### Documentation
 

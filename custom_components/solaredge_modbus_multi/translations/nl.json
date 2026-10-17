@@ -89,7 +89,11 @@
           "detect_extras": "Automatische detectie van aanvullende entiteiten",
           "advanced_power_control": "Opties voor vermogensregeling",
           "request_timeout": "Time-out voor Modbus-aanvraag (seconden)",
-          "sleep_after_write": "Omvormer commando vertraging (seconden)"
+          "sleep_after_write": "Omvormer commando vertraging (seconden)",
+          "connection_mode": "Modbus-verbinding"
+        },
+        "data_description": {
+          "connection_mode": "Hoe SolarEdge Modbus Multi verbinding maakt met de omvormer. Een andere integratie die dezelfde omvormer gebruikt, kan een gedeelde verbinding vertragen. Zie de README voor meer informatie."
         }
       },
       "adv_pwr_ctl": {
@@ -149,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "Gedeelde Modbus-verbinding is traag",
-      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit en start Home Assistant daarna opnieuw op. De gedeelde verbinding behoudt de lange time-out totdat ze opnieuw wordt geopend. Als je beide nodig hebt, stel dan own_connection in de geavanceerde YAML-configuratie in, zodat deze integratie een eigen verbinding gebruikt. Zie de README voor meer informatie."
+      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit en start Home Assistant daarna opnieuw op. De gedeelde verbinding behoudt de lange time-out totdat ze opnieuw wordt geopend. Als je beide nodig hebt, kies dan „Eigen verbinding gebruiken” als Modbus-verbinding in de opties van deze integratie, zodat deze een eigen verbinding gebruikt. Zie de README voor meer informatie."
     },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",
@@ -177,10 +181,6 @@
       "title": "Modbus YAML-configuratie niet meer ondersteund",
       "description": "De sectie `modbus` onder `solaredge_modbus_multi` in `configuration.yaml` wordt niet meer ondersteund en wordt genegeerd. Verwijder deze uit uw YAML-configuratie."
     },
-    "close_after_polling_moved": {
-      "title": "'Verbinding sluiten na oproep' verplaatst naar YAML",
-      "description": "De optie 'Verbinding sluiten na oproep' wordt nu ingesteld in `configuration.yaml` en geldt alleen met `own_connection`. Voeg `close_after_polling: true` toe onder `solaredge_modbus_multi` om hetzelfde gedrag te behouden."
-    },
     "deprecated_keep_modbus_open": {
       "title": "Optie 'Houd Modbus-verbinding open' vervangen",
       "description": "De optie 'Houd Modbus-verbinding open' wordt niet meer gebruikt. Deze integratie deelt nu de verbinding van de modbus-integratie. Wil je de verbinding zelf beheren, stel dan `own_connection` en `close_after_polling` in onder `solaredge_modbus_multi` in `configuration.yaml`."
@@ -189,6 +189,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Een andere integratie is al verbonden met {host}:{port} met andere verbindingsinstellingen, en één verbinding kan niet allebei gebruiken. Verwijder of herconfigureer de andere integratie en laad deze daarna opnieuw."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "De gedeelde Modbus-verbinding van Home Assistant gebruiken",
+        "own": "Eigen verbinding gebruiken",
+        "own_close_after_polling": "Eigen verbinding gebruiken en na elke peiling sluiten"
+      }
     }
   }
 }

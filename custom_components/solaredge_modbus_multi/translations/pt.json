@@ -89,7 +89,11 @@
           "detect_extras": "Deteção Automática de Entidades Adicionais",
           "advanced_power_control": "Opções de Controlo de Potência",
           "request_timeout": "Tempo Limite do Pedido Modbus (segundos)",
-          "sleep_after_write": "Atraso de Comando do Inversor (segundos)"
+          "sleep_after_write": "Atraso de Comando do Inversor (segundos)",
+          "connection_mode": "Ligação Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Como o SolarEdge Modbus Multi se liga ao inversor. Outra integração que utilize o mesmo inversor pode tornar lenta uma ligação partilhada. Consulte o README para mais detalhes."
         }
       },
       "adv_pwr_ctl": {
@@ -149,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "A ligação Modbus partilhada está lenta",
-      "description": "A configuração ou a leitura de {host} está a demorar muito mais do que o esperado. Outra integração que utiliza o mesmo inversor, como a integração SolarEdge Modbus incorporada, provavelmente está a ocupar a ligação partilhada. Isto pode causar atualizações lentas ou perdidas.\n\nDesative a outra integração para este inversor e reinicie o Home Assistant. A ligação partilhada mantém o tempo limite longo até ser reaberta. Se precisar de ambas, defina own_connection na configuração YAML avançada para que esta integração utilize a sua própria ligação. Consulte o README para mais detalhes."
+      "description": "A configuração ou a leitura de {host} está a demorar muito mais do que o esperado. Outra integração que utiliza o mesmo inversor, como a integração SolarEdge Modbus incorporada, provavelmente está a ocupar a ligação partilhada. Isto pode causar atualizações lentas ou perdidas.\n\nDesative a outra integração para este inversor e reinicie o Home Assistant. A ligação partilhada mantém o tempo limite longo até ser reaberta. Se precisar de ambas, escolha “Utilizar ligação própria” como Ligação Modbus nas opções desta integração para que utilize a sua própria ligação. Consulte o README para mais detalhes."
     },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controlo Dinâmico de Potência Global (Inversor {device_id})",
@@ -177,10 +181,6 @@
       "title": "A Configuração YAML do Modbus Já Não É Suportada",
       "description": "A secção `modbus` em `solaredge_modbus_multi` no `configuration.yaml` já não é suportada e está a ser ignorada. Remova-a da sua configuração YAML."
     },
-    "close_after_polling_moved": {
-      "title": "Fechar a Ligação Após a Sondagem Movida para o YAML",
-      "description": "A opção \"Fechar a Ligação Após a Sondagem\" é agora definida no `configuration.yaml` e só se aplica com `own_connection`. Adicione `close_after_polling: true` em `solaredge_modbus_multi` para manter o mesmo comportamento."
-    },
     "deprecated_keep_modbus_open": {
       "title": "A Opção Manter a Ligação Modbus Aberta Foi Substituída",
       "description": "A opção \"Manter a Ligação Modbus Aberta\" já não é utilizada. Esta integração passa agora a partilhar a ligação da integração modbus. Para controlar a ligação por si, defina `own_connection` e `close_after_polling` em `solaredge_modbus_multi` no `configuration.yaml`."
@@ -189,6 +189,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Outra integração já está ligada a {host}:{port} com definições de ligação diferentes, e uma mesma ligação não pode utilizar ambas. Remova ou reconfigure a outra integração e depois volte a carregar esta."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Utilizar a ligação Modbus partilhada do Home Assistant",
+        "own": "Utilizar ligação própria",
+        "own_close_after_polling": "Utilizar ligação própria e fechá-la após cada leitura"
+      }
     }
   }
 }

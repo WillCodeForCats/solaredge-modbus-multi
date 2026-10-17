@@ -112,10 +112,19 @@ class ConfDefaultFlag(IntEnum):
     ALLOW_BATTERY_ENERGY_RESET = 0
 
 
+class ConnectionMode(StrEnum):
+    """How this integration connects to the inverter."""
+
+    SHARED = "shared"
+    OWN = "own"
+    OWN_CLOSE_AFTER_POLLING = "own_close_after_polling"
+
+
 class ConfDefaultStr(StrEnum):
     """Defaults for options that are strings."""
 
     DEVICE_LIST = "1"
+    CONNECTION_MODE = "shared"
 
 
 class ConfName(StrEnum):
@@ -131,6 +140,7 @@ class ConfName(StrEnum):
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     REQUEST_TIMEOUT = "request_timeout"
     SLEEP_AFTER_WRITE = "sleep_after_write"
+    CONNECTION_MODE = "connection_mode"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
 

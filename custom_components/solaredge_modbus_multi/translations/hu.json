@@ -89,7 +89,11 @@
           "detect_extras": "További Entitások Automatikus Felismerése",
           "advanced_power_control": "Teljesítményvezérlési Beállítások",
           "request_timeout": "Modbus Kérés Időtúllépése (másodperc)",
-          "sleep_after_write": "Inverter Parancs Késleltetése (másodperc)"
+          "sleep_after_write": "Inverter Parancs Késleltetése (másodperc)",
+          "connection_mode": "Modbus-kapcsolat"
+        },
+        "data_description": {
+          "connection_mode": "Hogyan csatlakozik a SolarEdge Modbus Multi az inverterhez. Ugyanazt az invertert használó másik integráció lelassíthatja a megosztott kapcsolatot. További részletekért lásd a README-t."
         }
       },
       "adv_pwr_ctl": {
@@ -149,7 +153,7 @@
     },
     "shared_connection_slow": {
       "title": "A megosztott Modbus-kapcsolat lassú",
-      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél, majd indítsa újra a Home Assistantot. A megosztott kapcsolat addig megtartja a hosszú időkorlátot, amíg újra nem nyílik. Ha mindkettőre szüksége van, állítsa be az own_connection beállítást a speciális YAML-konfigurációban, hogy ez az integráció saját kapcsolatot használjon. További részletekért lásd a README-t."
+      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél, majd indítsa újra a Home Assistantot. A megosztott kapcsolat addig megtartja a hosszú időkorlátot, amíg újra nem nyílik. Ha mindkettőre szüksége van, válassza ennek az integrációnak a beállításaiban a Modbus-kapcsolatnál a „Saját kapcsolat használata” lehetőséget, hogy saját kapcsolatot használjon. További részletekért lásd a README-t."
     },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",
@@ -177,10 +181,6 @@
       "title": "A Modbus YAML Konfiguráció Már Nem Támogatott",
       "description": "A `modbus` szakasz a `solaredge_modbus_multi` alatt a `configuration.yaml` fájlban már nem támogatott, és figyelmen kívül lesz hagyva. Kérjük, távolítsa el a YAML konfigurációjából."
     },
-    "close_after_polling_moved": {
-      "title": "A „Kapcsolat Bezárása Lekérdezés Után” átkerült a YAML-ba",
-      "description": "A „Kapcsolat Bezárása Lekérdezés Után” opció mostantól a `configuration.yaml` fájlban állítható be, és csak az `own_connection` mellett érvényes. Az azonos működés megtartásához adja hozzá a `close_after_polling: true` sort a `solaredge_modbus_multi` alá."
-    },
     "deprecated_keep_modbus_open": {
       "title": "A „Modbus Kapcsolat Nyitva Tartása” Opció Lecserélve",
       "description": "A „Modbus Kapcsolat Nyitva Tartása” opció már nincs használatban. Ez az integráció mostantól a modbus integráció kapcsolatát használja közösen. Ha saját maga szeretné vezérelni a kapcsolatot, állítsa be az `own_connection` és a `close_after_polling` értéket a `configuration.yaml` fájl `solaredge_modbus_multi` szakaszában."
@@ -189,6 +189,15 @@
   "exceptions": {
     "link_settings_in_use": {
       "message": "Egy másik integráció már csatlakozik a(z) {host}:{port} címhez eltérő kapcsolati beállításokkal, és egy kapcsolat nem használhatja mindkettőt. Távolítsa el vagy konfigurálja újra a másik integrációt, majd töltse be újra ezt."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "A Home Assistant megosztott Modbus-kapcsolatának használata",
+        "own": "Saját kapcsolat használata",
+        "own_close_after_polling": "Saját kapcsolat használata, és lezárása minden lekérdezés után"
+      }
     }
   }
 }

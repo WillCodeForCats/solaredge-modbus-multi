@@ -181,3 +181,46 @@ async def test_init_rejects_out_of_range_values(hass, override, error_key, error
     assert result["type"] == "form"
     assert result["step_id"] == "init"
     assert result["errors"] == {error_key: error}
+
+
+def _connection_mode_default(result):
+    for key in result["data_schema"].schema:
+        if key == ConfName.CONNECTION_MODE:
+            return key.default()
+    raise AssertionError("connection_mode is missing from the form")
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_init_offers_the_connection_mode_with_shared_units_as_default(hass):
+    """Test the connection mode is offered and defaults to shared units."""
+    result = await _start_options(hass)
+
+    assert _connection_mode_default(result) == "shared"
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+@pytest.mark.parametrize("mode", ["shared", "own", "own_close_after_polling"])
+async def test_init_saves_the_connection_mode(hass, mode):
+    """Test the chosen connection mode is saved in the options."""
+    result = await _start_options(hass)
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input=_init_input(**{ConfName.CONNECTION_MODE: mode})
+    )
+
+    assert result["type"] == "create_entry"
+    assert result["data"][ConfName.CONNECTION_MODE] == mode
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_init_rejects_an_unknown_connection_mode(hass):
+    """Test a value that is not a connection mode is refused."""
+    from homeassistant.data_entry_flow import InvalidData  # noqa: PLC0415
+
+    result = await _start_options(hass)
+
+    with pytest.raises(InvalidData):
+        await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input=_init_input(**{ConfName.CONNECTION_MODE: "teleport"}),
+        )

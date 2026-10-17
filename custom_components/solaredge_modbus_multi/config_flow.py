@@ -20,6 +20,11 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from modbus_connection import ModbusError, ModbusTcpParams
 import voluptuous as vol
@@ -37,8 +42,9 @@ from .const import (
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
+    ConnectionMode,
 )
-from .helpers import device_list_from_string, host_valid
+from .helpers import device_list_from_string, get_connection_mode, host_valid
 from .scanner import SIGNATURE_ADDRESS, ScannerConnectionError, SolarEdgeDeviceScanner
 
 
@@ -668,6 +674,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
                 ),
+                ConfName.CONNECTION_MODE: get_connection_mode(
+                    self.config_entry.options
+                ).value,
             }
 
         return self.async_show_form(
@@ -702,6 +711,16 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                         f"{ConfName.SLEEP_AFTER_WRITE}",
                         default=user_input[ConfName.SLEEP_AFTER_WRITE],
                     ): vol.Coerce(int),
+                    vol.Optional(
+                        f"{ConfName.CONNECTION_MODE}",
+                        default=user_input[ConfName.CONNECTION_MODE],
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[mode.value for mode in ConnectionMode],
+                            mode=SelectSelectorMode.DROPDOWN,
+                            translation_key=ConfName.CONNECTION_MODE,
+                        )
+                    ),
                 },
             ),
             errors=errors,

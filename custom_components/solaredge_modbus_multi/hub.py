@@ -62,10 +62,11 @@ from .const import (
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
+    ConnectionMode,
     RetrySettings,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex
+from .helpers import float_to_hex, get_connection_mode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -234,7 +235,6 @@ class SolarEdgeModbusMultiHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._yaml_config = hass.data[DOMAIN]["yaml"]
         self._name = entry_data[CONF_NAME]
         self._host = entry_data[CONF_HOST]
         self._port = entry_data[CONF_PORT]
@@ -242,6 +242,7 @@ class SolarEdgeModbusMultiHub:
         self._inverter_list = entry_data.get(
             ConfName.DEVICE_LIST, [ConfDefaultStr.DEVICE_LIST]
         )
+        self._entry_options = entry_options
         self._detect_meters = entry_options.get(
             ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
         )
@@ -837,12 +838,12 @@ class SolarEdgeModbusMultiHub:
     def close_after_polling(self) -> bool:
         """Return whether to close the connection after polling.
 
-        Set in YAML and only for an own connection: a shared connection
-        belongs to the modbus integration and other entries may be using it.
+        Only for an own connection: a shared connection belongs to the modbus
+        integration and other entries may be using it.
         """
-        return bool(
-            self._yaml_config.get("own_connection", False)
-            and self._yaml_config.get("close_after_polling", False)
+        return (
+            get_connection_mode(self._entry_options)
+            == ConnectionMode.OWN_CLOSE_AFTER_POLLING
         )
 
     @property

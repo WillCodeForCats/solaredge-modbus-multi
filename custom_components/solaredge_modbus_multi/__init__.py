@@ -12,7 +12,6 @@ from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platfo
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError, HomeAssistantError
 from homeassistant.helpers import (
-    config_validation as cv,
     device_registry as dr,
     entity_registry as er,
     issue_registry as ir,
@@ -26,7 +25,15 @@ from homeassistant.helpers.update_coordinator import (
 from modbus_connection import ModbusTcpParams
 import voluptuous as vol
 
-from .const import DOMAIN, MESSAGE_SPACING, ConfDefaultInt, ConfName, RetrySettings
+from .const import (
+    DOMAIN,
+    MESSAGE_SPACING,
+    ConfDefaultInt,
+    ConfName,
+    ConnectionMode,
+    RetrySettings,
+)
+from .helpers import get_connection_mode
 from .hub import DataUpdateFailed, HubInitFailed, SharedUnits, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,8 +54,6 @@ CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
-                vol.Optional("own_connection"): cv.boolean,
-                vol.Optional("close_after_polling"): cv.boolean,
                 "retry": vol.Schema(
                     {
                         vol.Optional("time"): vol.Coerce(int),
@@ -201,28 +206,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     params = ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT])
 
-    if hass.data[DOMAIN]["yaml"].get("own_connection", False):
+    mode = get_connection_mode(entry.options)
+
+    if mode != ConnectionMode.SHARED:
         # Optional: we can open and own the connection instead of sharing
         # one from the core modbus integration.
         from modbus_connection.tmodbus import ModbusConnection  # noqa: PLC0415
 
-        _LOGGER.warning("Using own modbus connection (own_connection is set in YAML)")
+        _LOGGER.warning("Using own modbus connection")
         connection = ModbusConnection(
             params,
             timeout=request_timeout,
             message_spacing=MESSAGE_SPACING,
         )
         entry.async_on_unload(connection.close)
-        if hass.data[DOMAIN]["yaml"].get("close_after_polling", False):
-            ir.async_delete_issue(
-                hass, DOMAIN, f"close_after_polling_moved_{entry.entry_id}"
-            )
     else:
         connection = _async_get_shared_units(hass, entry, params, request_timeout)
-        # close_after_polling only applies to an own connection.
-        ir.async_delete_issue(
-            hass, DOMAIN, f"close_after_polling_moved_{entry.entry_id}"
-        )
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options, connection
@@ -401,33 +400,20 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     if config_entry.version == 2 and config_entry.minor_version < 3:
         _LOGGER.debug("Migrating from version 2.2")
 
-        # config 2.3 added the close_after_polling option, which 2.4 moved
-        # to YAML. The deprecated_keep_modbus_open repair issue from 2.2
-        # points affected users at the YAML setting.
+        # config 2.3 added the close_after_polling option, which 2.4 replaced
+        # with the connection mode option.
         hass.config_entries.async_update_entry(config_entry, version=2, minor_version=3)
 
     if config_entry.version == 2 and config_entry.minor_version < 4:
         _LOGGER.debug("Migrating from version 2.3")
 
-        # close_after_polling moved to YAML, where it only applies with
-        # own_connection. Users of an own connection that had it enabled
-        # need to set it in YAML to keep the behavior.
+        # close_after_polling became part of the connection mode option, which
+        # only has it with an own connection.
         update_options = {**config_entry.options}
-        had_close_after_polling = update_options.pop("close_after_polling", False)
-        yaml_config = hass.data.get(DOMAIN, {}).get("yaml", {})
 
-        if (
-            had_close_after_polling
-            and yaml_config.get("own_connection", False)
-            and not yaml_config.get("close_after_polling", False)
-        ):
-            ir.async_create_issue(
-                hass,
-                DOMAIN,
-                f"close_after_polling_moved_{config_entry.entry_id}",
-                is_fixable=False,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="close_after_polling_moved",
+        if update_options.pop("close_after_polling", False):
+            update_options[ConfName.CONNECTION_MODE] = (
+                ConnectionMode.OWN_CLOSE_AFTER_POLLING.value
             )
 
         hass.config_entries.async_update_entry(
