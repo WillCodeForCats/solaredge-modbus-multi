@@ -22,14 +22,18 @@ CONFIG_FLOW = "custom_components.solaredge_modbus_multi.config_flow"
 
 
 def _temporary_units(unit):
+    """Build a stand-in for async_get_temporary_unit that yields one unit."""
+
     @asynccontextmanager
     async def _context(hass, params, unit_id):
+        """Yield the unit."""
         yield unit
 
     return _context
 
 
 async def _probe(unit_context):
+    """Run the port probe with the given temporary unit context."""
     flow = SolaredgeModbusMultiConfigFlow()
     flow.hass = MagicMock()
     with (
@@ -60,6 +64,7 @@ async def test_port_in_use_over_other_link_settings_counts_as_open():
 
     @asynccontextmanager
     async def _conflict(hass, params, unit_id):
+        """Refuse the unit as if held over different link settings."""
         raise HomeAssistantError("different link settings")
         yield
 

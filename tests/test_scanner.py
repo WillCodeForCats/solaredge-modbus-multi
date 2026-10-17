@@ -28,12 +28,14 @@ def _temporary_units(unit):
 
     @asynccontextmanager
     async def _context(hass, params, unit_id):
+        """Yield the unit."""
         yield unit
 
     return _context
 
 
 def _unit(read=None, connected=True):
+    """Build a mock unit that reads the SunSpec signature by default."""
     unit = MagicMock()
     unit.connected = connected
     unit.read_holding_registers = read or AsyncMock(return_value=list(SIGNATURE))
@@ -41,6 +43,7 @@ def _unit(read=None, connected=True):
 
 
 async def _scan(unit, retries=2):
+    """Scan device ID 3 using the given unit."""
     scanner = SolarEdgeDeviceScanner(
         MagicMock(), "127.0.0.1", 1502, scan_retries=retries
     )
@@ -103,6 +106,7 @@ async def test_connect_holds_one_unit_until_disconnect():
 
     @asynccontextmanager
     async def _context(hass, params, unit_id):
+        """Record entering and leaving the unit."""
         entered.append(unit_id)
         yield MagicMock()
         exited.append(unit_id)

@@ -36,6 +36,7 @@ GET_UNIT = "custom_components.solaredge_modbus_multi.async_get_unit"
 
 
 def _make_entry(options=None):
+    """Build a mock config entry with optional options."""
     return MockConfigEntry(
         domain=DOMAIN, data=ENTRY_DATA, options=options or {}, unique_id="test"
     )
@@ -196,6 +197,7 @@ async def test_write_settle_restores_message_spacing(hass):
 
 
 def _refresh_hub(hass, connection, error):
+    """Build an initialized hub whose inverter read raises the given error."""
     hass.data[DOMAIN] = {"yaml": {}}
     hub = SolarEdgeModbusMultiHub(hass, "test_entry_id", ENTRY_DATA, {}, connection)
     hub.initalized = True
