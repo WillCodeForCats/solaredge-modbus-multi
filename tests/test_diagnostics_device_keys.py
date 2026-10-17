@@ -107,7 +107,6 @@ async def _get_diagnostics(hass, hub):
     hass.data[DOMAIN]["yaml"] = {}
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": hub,
-        "dependency_versions": {"tmodbus": "0.6.2", "modbus-connection": "4.12.1"},
     }
 
     return await async_get_config_entry_diagnostics(hass, entry)

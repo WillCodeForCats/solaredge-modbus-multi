@@ -70,11 +70,8 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     hub = entry_data["hub"]
-    dependency_versions = entry_data["dependency_versions"]
 
     data: dict[str, Any] = {
-        "tmodbus_version": dependency_versions["tmodbus"],
-        "modbus_connection_version": dependency_versions["modbus-connection"],
         "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
         "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
     }

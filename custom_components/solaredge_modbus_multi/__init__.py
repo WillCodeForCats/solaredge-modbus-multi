@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
-import importlib.metadata
 import logging
-from typing import TYPE_CHECKING
 
+from homeassistant.components.modbus import async_get_unit
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryError
+from homeassistant.exceptions import ConfigEntryError, HomeAssistantError
 from homeassistant.helpers import (
+    config_validation as cv,
     device_registry as dr,
     entity_registry as er,
     issue_registry as ir,
@@ -23,64 +23,13 @@ from homeassistant.helpers.update_coordinator import (
     TimestampDataUpdateCoordinator,
     UpdateFailed,
 )
+from modbus_connection import ModbusTcpParams
 import voluptuous as vol
 
-from .const import (
-    DOMAIN,
-    MESSAGE_SPACING,
-    MODBUS_CONNECTION_REQUIRED_VERSION,
-    TMODBUS_REQUIRED_VERSION,
-    ConfDefaultInt,
-    ConfName,
-    RetrySettings,
-)
-from .helpers import safe_version_tuple
-
-if TYPE_CHECKING:
-    from .hub import SolarEdgeModbusMultiHub
+from .const import DOMAIN, MESSAGE_SPACING, ConfDefaultInt, ConfName, RetrySettings
+from .hub import DataUpdateFailed, HubInitFailed, SharedUnits, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _check_dependency_versions() -> dict[str, str]:
-    """Fail early if tmodbus/modbus-connection are missing or too old.
-
-    Must be called from async_setup_entry via hass.async_add_executor_job.
-    """
-
-    installed_versions = {}
-
-    for display_name, distribution_name, required in (
-        ("tmodbus", "tmodbus", TMODBUS_REQUIRED_VERSION),
-        ("modbus-connection", "modbus_connection", MODBUS_CONNECTION_REQUIRED_VERSION),
-    ):
-        try:
-            installed = importlib.metadata.version(distribution_name)
-        except importlib.metadata.PackageNotFoundError as err:
-            raise ConfigEntryError(
-                f"{display_name} is not installed. Restart Home Assistant to let "
-                "it install dependencies automatically. If it still doesn't "
-                "install, check the Home Assistant log for a failed pip install, "
-                "confirm HACS isn't set to skip requirement installation for "
-                "this integration, and check whether another custom integration "
-                f"or manual environment change removed {display_name}."
-            ) from err
-
-        if safe_version_tuple(installed) < safe_version_tuple(required):
-            raise ConfigEntryError(
-                f"{display_name} version must be at least {required}, but {installed} "
-                "is installed. Please remove or upgrade other custom integrations "
-                f"that depend on an older version of {display_name} and restart."
-            )
-
-        installed_versions[display_name] = installed
-
-    _LOGGER.debug(
-        "Installed versions: %s",
-        ", ".join(f"{name} {version}" for name, version in installed_versions.items()),
-    )
-
-    return installed_versions
 
 
 PLATFORMS: list[str] = [
@@ -98,6 +47,8 @@ CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
+                vol.Optional("own_connection"): cv.boolean,
+                vol.Optional("close_after_polling"): cv.boolean,
                 "retry": vol.Schema(
                     {
                         vol.Optional("time"): vol.Coerce(int),
@@ -209,28 +160,69 @@ def _async_remove_legacy_der_devices(
             device_registry.async_remove_device(device.id)
 
 
+def _async_get_shared_units(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    params: ModbusTcpParams,
+    request_timeout: float,
+) -> SharedUnits:
+    """Get a unit per device ID on the modbus integration's shared connection.
+
+    The connection itself belongs to the modbus integration, which closes it
+    behind the last entry holding a unit, so there is nothing for us to close
+    on unload.
+    """
+    units = {}
+    try:
+        for unit_id in entry.data[ConfName.DEVICE_LIST]:
+            unit = async_get_unit(hass, entry, params, unit_id)
+            unit.set_message_spacing(MESSAGE_SPACING)
+            unit.require_timeout(request_timeout)
+            units[unit_id] = unit
+    except HomeAssistantError as err:
+        # Another integration holds this device over different link settings,
+        # which one shared connection cannot honour.
+        raise ConfigEntryError(
+            translation_domain=DOMAIN,
+            translation_key="link_settings_in_use",
+            translation_placeholders={
+                "host": entry.data[CONF_HOST],
+                "port": str(entry.data[CONF_PORT]),
+            },
+        ) from err
+    return SharedUnits(units)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
-
-    # importlib.metadata does blocking file I/O, and modbus_connection/.hub
-    # aren't safe to import until we know the versions are good -- see
-    # _check_dependency_versions()'s docstring.
-    installed_versions = await hass.async_add_executor_job(_check_dependency_versions)
-
-    from modbus_connection import ModbusTcpParams  # noqa: PLC0415
-    from modbus_connection.tmodbus import ModbusConnection  # noqa: PLC0415
-
-    from .hub import SolarEdgeModbusMultiHub  # noqa: PLC0415
 
     request_timeout = entry.options.get(
         ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
     )
-    connection = ModbusConnection(
-        ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT]),
-        timeout=request_timeout,
-        message_spacing=MESSAGE_SPACING,
-    )
-    entry.async_on_unload(connection.close)
+    params = ModbusTcpParams(host=entry.data[CONF_HOST], port=entry.data[CONF_PORT])
+
+    if hass.data[DOMAIN]["yaml"].get("own_connection", False):
+        # Optional: we can open and own the connection instead of sharing
+        # one from the core modbus integration.
+        from modbus_connection.tmodbus import ModbusConnection  # noqa: PLC0415
+
+        _LOGGER.warning("Using own modbus connection (own_connection is set in YAML)")
+        connection = ModbusConnection(
+            params,
+            timeout=request_timeout,
+            message_spacing=MESSAGE_SPACING,
+        )
+        entry.async_on_unload(connection.close)
+        if hass.data[DOMAIN]["yaml"].get("close_after_polling", False):
+            ir.async_delete_issue(
+                hass, DOMAIN, f"close_after_polling_moved_{entry.entry_id}"
+            )
+    else:
+        connection = _async_get_shared_units(hass, entry, params, request_timeout)
+        # close_after_polling only applies to an own connection.
+        ir.async_delete_issue(
+            hass, DOMAIN, f"close_after_polling_moved_{entry.entry_id}"
+        )
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options, connection
@@ -249,7 +241,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
         "coordinator": coordinator,
-        "dependency_versions": installed_versions,
     }
 
     await coordinator.async_config_entry_first_refresh()
@@ -407,13 +398,38 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     if config_entry.version == 2 and config_entry.minor_version < 3:
         _LOGGER.debug("Migrating from version 2.2")
 
-        # config 2.3 adds close_after_polling option
-        # keep_modbus_open was removed, but the new close_after_polling
-        # option is similar now that modbus-connection supports
-        # disconnect() without it being a permanent shutdown. The
-        # deprecated_keep_modbus_open repair issue from 2.2 now points
-        # affected users at the replacement option.
+        # config 2.3 added the close_after_polling option, which 2.4 moved
+        # to YAML. The deprecated_keep_modbus_open repair issue from 2.2
+        # points affected users at the YAML setting.
         hass.config_entries.async_update_entry(config_entry, version=2, minor_version=3)
+
+    if config_entry.version == 2 and config_entry.minor_version < 4:
+        _LOGGER.debug("Migrating from version 2.3")
+
+        # close_after_polling moved to YAML, where it only applies with
+        # own_connection. Users of an own connection that had it enabled
+        # need to set it in YAML to keep the behavior.
+        update_options = {**config_entry.options}
+        had_close_after_polling = update_options.pop("close_after_polling", False)
+        yaml_config = hass.data.get(DOMAIN, {}).get("yaml", {})
+
+        if (
+            had_close_after_polling
+            and yaml_config.get("own_connection", False)
+            and not yaml_config.get("close_after_polling", False)
+        ):
+            ir.async_create_issue(
+                hass,
+                DOMAIN,
+                f"close_after_polling_moved_{config_entry.entry_id}",
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="close_after_polling_moved",
+            )
+
+        hass.config_entries.async_update_entry(
+            config_entry, options=update_options, version=2, minor_version=4
+        )
 
     _LOGGER.warning(
         "Migrated to config version %s.%s",
@@ -444,7 +460,6 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
         self._yaml_config = hass.data[DOMAIN]["yaml"]
 
     async def _async_update_data(self) -> bool:
-        from .hub import DataUpdateFailed, HubInitFailed  # noqa: PLC0415
 
         try:
             return await self._refresh_modbus_data_with_retry(

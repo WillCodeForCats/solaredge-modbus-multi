@@ -8,7 +8,6 @@ from custom_components.solaredge_modbus_multi.helpers import (
     device_list_from_string,
     float_to_hex,
     host_valid,
-    safe_version_tuple,
 )
 
 
@@ -112,27 +111,6 @@ class TestDeviceListFromString:
     def test_whitespace_is_tolerated(self):
         """Test whitespace is tolerated."""
         assert device_list_from_string(" 1 , 2 ") == [1, 2]
-
-
-class TestSafeVersionTuple:
-    """Test safe version tuple."""
-
-    def test_parses_dotted_version(self):
-        """Test parses dotted version."""
-        assert safe_version_tuple("4.10.0") == (4, 10, 0)
-
-    def test_parses_two_part_version(self):
-        """Test parses two part version."""
-        assert safe_version_tuple("0.6") == (0, 6)
-
-    def test_orders_as_expected(self):
-        """Test orders as expected."""
-        assert safe_version_tuple("4.9.0") < safe_version_tuple("4.10.0")
-
-    def test_rejects_non_numeric_part(self):
-        """Test rejects non numeric part."""
-        with pytest.raises(ValueError):
-            safe_version_tuple("4.10.0-pre1")
 
 
 class TestCheckDeviceId:

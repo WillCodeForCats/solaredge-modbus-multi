@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
+from functools import partial
 import logging
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
@@ -48,6 +50,7 @@ from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
     DOMAIN,
+    MESSAGE_SPACING,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
     STATUS_VENDOR4_VERSION,
@@ -85,14 +88,19 @@ class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid."""
 
 
-async def async_update_with_retry(component) -> None:
+async def async_update_with_retry(
+    component, before_attempt: Callable[[], None] | None = None
+) -> None:
     """Call component.async_update(), retrying connection/timeout errors.
 
     modbus-connection has no built-in per-request retry, unlike pymodbus's
-    `retries` option, so this method mimics that behavior.
+    `retries` option, so this method mimics that behavior. before_attempt is
+    called right before each attempt.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
             await component.async_update()
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
@@ -111,13 +119,20 @@ async def async_update_with_retry(component) -> None:
             return
 
 
-async def async_write_with_retry(component, field: str, value) -> None:
+async def async_write_with_retry(
+    component,
+    field: str,
+    value,
+    before_attempt: Callable[[], None] | None = None,
+) -> None:
     """Call component.write(field, value), retrying connection/timeout errors.
 
     Like async_update_with_retry() but for writes.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
             await component.write(field, value)
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
@@ -190,6 +205,25 @@ def _log_component_fields(prefix: str, component) -> None:
     _LOGGER.debug("%s: %s", prefix, " ".join(fields))
 
 
+class SharedUnits:
+    """The units this entry holds on the modbus integration's shared connection."""
+
+    def __init__(self, units: dict) -> None:
+        """Initialize with a unit per device ID."""
+        self._units = units
+
+    def for_unit(self, unit_id: int):
+        """Return the unit for a device ID."""
+        return self._units[unit_id]
+
+    async def disconnect(self) -> None:
+        """Drop the link so the next request reopens it.
+
+        The connection is shared, so this closes it for every unit on it.
+        """
+        await next(iter(self._units.values())).disconnect()
+
+
 class SolarEdgeModbusMultiHub:
     """Solar edge modbus multi hub."""
 
@@ -239,9 +273,6 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
-        self._close_after_polling = entry_options.get(
-            ConfName.CLOSE_AFTER_POLLING, bool(ConfDefaultFlag.CLOSE_AFTER_POLLING)
-        )
 
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
@@ -263,7 +294,7 @@ class SolarEdgeModbusMultiHub:
             "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
             "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
             "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
-            "close_after_polling=%s, ",
+            "close_after_polling=%s",
             DOMAIN,
             self._inverter_list,
             self._detect_meters,
@@ -275,7 +306,7 @@ class SolarEdgeModbusMultiHub:
             self._request_timeout,
             self._sleep_after_write,
             self._battery_rating_adjust,
-            self._close_after_polling,
+            self.close_after_polling,
         )
 
     async def _async_init_solaredge(self) -> None:  # noqa: C901
@@ -563,16 +594,25 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+        except ModbusTimeoutError as e:
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
+            raise DataUpdateFailed(f"Update failed: {e}") from e
+
+        except (ModbusConnectionError, ModbusProtocolError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}") from e
 
         except DeviceInvalid as e:
-            await self.connection.disconnect()
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            await self.connection.disconnect()
+            # Waiting behind a shared connection can go past the coordinator
+            # timeout. Clearing it would wait for the other request to finish.
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
 
             self._coordinator_timeouts_count += 1
 
@@ -613,15 +653,23 @@ class SolarEdgeModbusMultiHub:
         do that instead of passing the unit separately. We need it to track settle cycles.
         """
 
-        await async_update_with_retry(component)
-
         cycles_remaining = self._write_settle_cycles.get(unit)
+
+        # A shared unit's spacing can be changed by another holder, so
+        # enforce ours before every attempt instead of trusting the last set.
+        spacing = (
+            MESSAGE_SPACING if cycles_remaining is None else self.sleep_after_write
+        )
+        await async_update_with_retry(
+            component,
+            partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+        )
+
         if cycles_remaining is None:
             return
 
         if cycles_remaining <= 1:
             _LOGGER.debug("Clearing unit %s request spacing.", unit)
-            self.connection.for_unit(unit).set_message_spacing(0)
             del self._write_settle_cycles[unit]
         else:
             _LOGGER.debug(
@@ -646,11 +694,21 @@ class SolarEdgeModbusMultiHub:
                 self.sleep_after_write,
                 field,
             )
-            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
             self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
+        # Enforce our spacing before each attempt; another holder may have
+        # changed it.
+        spacing = (
+            self.sleep_after_write if self.sleep_after_write > 0 else MESSAGE_SPACING
+        )
+
         try:
-            await async_write_with_retry(component, field, value)
+            await async_write_with_retry(
+                component,
+                field,
+                value,
+                partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+            )
 
         except IllegalFunctionError as e:
             _LOGGER.debug("Unit %s Write IllegalFunction: %s", unit, e)
@@ -761,8 +819,15 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def close_after_polling(self) -> bool:
-        """Return the close after polling."""
-        return self._close_after_polling
+        """Return whether to close the connection after polling.
+
+        Set in YAML and only for an own connection: a shared connection
+        belongs to the modbus integration and other entries may be using it.
+        """
+        return bool(
+            self._yaml_config.get("own_connection", False)
+            and self._yaml_config.get("close_after_polling", False)
+        )
 
     @property
     def number_of_meters(self) -> int:

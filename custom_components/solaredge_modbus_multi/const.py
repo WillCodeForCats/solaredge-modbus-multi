@@ -22,10 +22,6 @@ ZEROCONF_PROBE_TIMEOUT = 3.0
 # spacing active before clearing it back to 0.
 WRITE_SETTLE_CYCLES: Final = 2
 
-# raise a startup exception if library versions are less than this
-TMODBUS_REQUIRED_VERSION = "0.6.1"
-MODBUS_CONNECTION_REQUIRED_VERSION = "4.10.0"
-
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 
@@ -114,7 +110,6 @@ class ConfDefaultFlag(IntEnum):
     ADV_STORAGE_CONTROL = 0
     ADV_SITE_LIMIT_CONTROL = 0
     ALLOW_BATTERY_ENERGY_RESET = 0
-    CLOSE_AFTER_POLLING = 0
 
 
 class ConfDefaultStr(StrEnum):
@@ -138,7 +133,6 @@ class ConfName(StrEnum):
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
-    CLOSE_AFTER_POLLING = "close_after_polling"
 
     # Old config entry names for migration
     NUMBER_INVERTERS = "number_of_inverters"

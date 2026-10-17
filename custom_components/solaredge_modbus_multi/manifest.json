@@ -3,13 +3,17 @@
   "name": "SolarEdge Modbus Multi",
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["modbus"],
   "documentation": "https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
-  "loggers": ["custom_components.solaredge_modbus_multi", "tmodbus"],
-  "requirements": ["modbus-connection[tmodbus]>=4.10.0", "tmodbus>=0.6.1"],
+  "loggers": [
+    "custom_components.solaredge_modbus_multi",
+    "tmodbus",
+    "modbus_connection"
+  ],
+  "requirements": [],
   "version": "4.0.8",
   "zeroconf": ["_solaredge-modbus._tcp.local."]
 }
