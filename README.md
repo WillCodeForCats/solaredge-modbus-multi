@@ -77,6 +77,11 @@ Disabling the other integration does not shorten the timeout right away. The sha
 the highest timeout it was given until it is closed and reopened, so restart Home Assistant after
 disabling it.
 
+Scanning for inverters during setup uses the shared connection too, so while another integration has
+set a high timeout, even the fast scan can take a long time. If you know your inverter Device IDs, use
+the manual setup instead, which does not scan. Otherwise, if you can, disable the other integration and
+restart Home Assistant before adding SolarEdge Modbus Multi.
+
 If you want to run both, open the options of SolarEdge Modbus Multi and change the Modbus Connection.
 It has three choices:
 
