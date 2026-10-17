@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 import logging
+import time
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
@@ -53,6 +54,8 @@ from .const import (
     MESSAGE_SPACING,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
+    REFRESH_WATCHDOG,
+    SLOW_REFRESH,
     STATUS_VENDOR4_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
@@ -60,7 +63,6 @@ from .const import (
     ConfDefaultStr,
     ConfName,
     RetrySettings,
-    SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
 from .helpers import float_to_hex
@@ -284,8 +286,6 @@ class SolarEdgeModbusMultiHub:
         self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
-        self._coordinator_timeouts_count = 0
-        self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
 
         self.connection = connection
 
@@ -550,9 +550,6 @@ class SolarEdgeModbusMultiHub:
         except DeviceInvalid as e:
             raise HubInitFailed(f"Invalid device: {e}") from e
 
-        except TimeoutError as e:
-            raise HubInitFailed(f"Timeout error: {e}") from e
-
         self.initalized = True
 
     async def async_refresh_modbus_data(self) -> bool:
@@ -560,7 +557,7 @@ class SolarEdgeModbusMultiHub:
 
         if not self.initalized:
             try:
-                async with asyncio.timeout(self.coordinator_timeout):
+                async with asyncio.timeout(REFRESH_WATCHDOG):
                     await self._async_init_solaredge()
 
             except TimeoutError as err:
@@ -574,7 +571,7 @@ class SolarEdgeModbusMultiHub:
                     data={"entry_id": self._entry_id},
                 )
                 raise HubInitFailed(
-                    f"Coordinator setup timed out after {self.coordinator_timeout} seconds."
+                    f"Setup timed out after {REFRESH_WATCHDOG} seconds."
                 ) from err
 
             ir.async_delete_issue(
@@ -583,8 +580,10 @@ class SolarEdgeModbusMultiHub:
 
             return True
 
+        started = time.monotonic()
+
         try:
-            async with asyncio.timeout(self.coordinator_timeout):
+            async with asyncio.timeout(REFRESH_WATCHDOG):
                 for inverter in self.inverters:
                     await inverter.read_modbus_data()
                 for meter in self.meters:
@@ -609,35 +608,28 @@ class SolarEdgeModbusMultiHub:
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            # Waiting behind a shared connection can go past the coordinator
-            # timeout. Clearing it would wait for the other request to finish.
+            # The refresh is wedged: every request has its own timeout, so this
+            # is something else holding it up, such as waiting behind another
+            # holder of a shared connection. Recycling that connection would
+            # wait for the request in flight, so only our own is recycled.
+            _LOGGER.warning("Refresh did not finish in %s seconds.", REFRESH_WATCHDOG)
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
-
-            self._coordinator_timeouts_count += 1
-
-            _LOGGER.debug(
-                "Coordinator timeout %s limit %s",
-                self._coordinator_timeouts_count,
-                self._coordinator_timeouts_limit,
-            )
-
-            if self._coordinator_timeouts_count >= self._coordinator_timeouts_limit:
-                _LOGGER.warning(
-                    "Coordinator has timed out %s times in a row.",
-                    self._coordinator_timeouts_limit,
-                )
-                self._coordinator_timeouts_count = 0
-
             raise DataUpdateFailed(f"Timeout error: {e}") from e
 
-        if self._coordinator_timeouts_count > 0:
-            _LOGGER.debug(
-                "Coordinator timeout count %s limit %s",
-                self._coordinator_timeouts_count,
-                self._coordinator_timeouts_limit,
+        elapsed = time.monotonic() - started
+        if elapsed > SLOW_REFRESH:
+            _LOGGER.warning(
+                "Refresh took %.0f seconds.%s",
+                elapsed,
+                (
+                    " Another integration sharing this connection, such as the "
+                    "built-in SolarEdge Modbus integration, may be holding it up. "
+                    "Disable the other integration for this inverter."
+                    if isinstance(self.connection, SharedUnits)
+                    else ""
+                ),
             )
-            self._coordinator_timeouts_count = 0
 
         if self.close_after_polling:
             await self.connection.disconnect()
@@ -853,42 +845,6 @@ class SolarEdgeModbusMultiHub:
     def sleep_after_write(self) -> int:
         """Return the sleep after write."""
         return self._sleep_after_write
-
-    @property
-    def coordinator_timeout(self) -> int:
-        """Return the coordinator timeout."""
-        if not self.initalized:
-            this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
-            this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
-            this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
-            this_timeout += (SolarEdgeTimeouts.Battery * 2) * 3  # max 3 per inverter
-            if self.option_detect_extras:
-                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
-            # SunS model-chain scan runs unconditionally, once per inverter at setup
-            this_timeout += (
-                SolarEdgeTimeouts.Read
-                * RetrySettings.RequestRetries
-                * self.number_of_inverters
-            )
-
-        else:
-            this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
-            this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
-            this_timeout += SolarEdgeTimeouts.Battery * self.number_of_batteries
-            if self.option_detect_extras:
-                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
-
-        this_timeout = this_timeout / 1000
-
-        # The per-step timeouts were based on the default request_timeout;
-        # scale the coordinator timeout if the user changes the value
-        this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
-
-        # Add the sleep_after_write value to the coordinator timeout
-        this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES
-
-        _LOGGER.debug("coordinator timeout is %s", this_timeout)
-        return this_timeout
 
 
 class SolarEdgeInverter:
