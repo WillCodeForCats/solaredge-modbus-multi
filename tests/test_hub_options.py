@@ -7,6 +7,7 @@ from modbus_connection.mock import MockModbusConnection
 import pytest
 
 from custom_components.solaredge_modbus_multi.const import (
+    COORDINATOR_RETRY_MARGIN,
     DOMAIN,
     TIMEOUT_SCALE_BASE,
     WRITE_SETTLE_CYCLES,
@@ -184,6 +185,21 @@ async def test_coordinator_timeout_scales_from_the_tuned_base_not_the_default(ha
         base_hub.coordinator_timeout
         * ConfDefaultInt.REQUEST_TIMEOUT
         / TIMEOUT_SCALE_BASE
+    )
+
+
+@pytest.mark.parametrize("request_timeout", [1, 3, 10, 30])
+async def test_coordinator_timeout_outlasts_the_retries_of_one_request(
+    hass, request_timeout
+):
+    """Test the last retry of a request is never cut off by the coordinator."""
+    hub = _make_hub(hass, entry_options={ConfName.REQUEST_TIMEOUT: request_timeout})
+    hub._inverter_list = [1]
+    hub._detect_extras = False
+    hub.initalized = True
+
+    assert hub.coordinator_timeout >= (
+        RetrySettings.RequestRetries * request_timeout + COORDINATOR_RETRY_MARGIN
     )
 
 
