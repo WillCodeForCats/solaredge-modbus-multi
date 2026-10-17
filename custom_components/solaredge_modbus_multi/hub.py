@@ -627,7 +627,12 @@ class SolarEdgeModbusMultiHub:
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            await self.connection.disconnect()
+            # Another holder of a shared connection can raise its per-request
+            # timeout above ours, so a refresh can run past the coordinator
+            # timeout without anything being wrong. A shared connection is
+            # only recycled once this keeps happening.
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
 
             self._coordinator_timeouts_count += 1
 
@@ -643,6 +648,8 @@ class SolarEdgeModbusMultiHub:
                     self._coordinator_timeouts_limit,
                 )
                 self._coordinator_timeouts_count = 0
+                if isinstance(self.connection, SharedUnits):
+                    await self.connection.disconnect()
 
             raise DataUpdateFailed(f"Timeout error: {e}") from e
 
