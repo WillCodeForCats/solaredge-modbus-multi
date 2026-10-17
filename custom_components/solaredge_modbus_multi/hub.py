@@ -578,7 +578,8 @@ class SolarEdgeModbusMultiHub:
             raise DataUpdateFailed(f"Update failed: {e}") from e
 
         except DeviceInvalid as e:
-            await self.connection.disconnect()
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
