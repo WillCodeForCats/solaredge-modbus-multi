@@ -17,6 +17,7 @@ from custom_components.solaredge_modbus_multi.const import (
     MESSAGE_SPACING,
     ConfDefaultInt,
     ConfName,
+    RetrySettings,
 )
 from custom_components.solaredge_modbus_multi.hub import (
     DataUpdateFailed,
@@ -228,8 +229,8 @@ async def test_request_timeout_disconnects_own_connection(hass):
     connection.disconnect.assert_awaited_once()
 
 
-async def test_coordinator_timeout_disconnects_shared_units(hass):
-    """Test the coordinator timeout recycles a shared connection."""
+async def test_coordinator_timeout_recycles_shared_units_only_when_repeated(hass):
+    """Test a shared connection survives a lone coordinator timeout."""
     unit = MagicMock()
     unit.disconnect = AsyncMock()
     hub = _refresh_hub(hass, SharedUnits({1: unit}), TimeoutError())
@@ -237,8 +238,26 @@ async def test_coordinator_timeout_disconnects_shared_units(hass):
     with pytest.raises(DataUpdateFailed):
         await hub.async_refresh_modbus_data()
 
-    unit.disconnect.assert_awaited_once()
+    unit.disconnect.assert_not_called()
     assert hub._coordinator_timeouts_count == 1
+
+    for _ in range(RetrySettings.CoordinatorTimeouts - 1):
+        with pytest.raises(DataUpdateFailed):
+            await hub.async_refresh_modbus_data()
+
+    unit.disconnect.assert_awaited_once()
+
+
+async def test_coordinator_timeout_disconnects_own_connection(hass):
+    """Test our own connection is recycled on every coordinator timeout."""
+    connection = MagicMock()
+    connection.disconnect = AsyncMock()
+    hub = _refresh_hub(hass, connection, TimeoutError())
+
+    with pytest.raises(DataUpdateFailed):
+        await hub.async_refresh_modbus_data()
+
+    connection.disconnect.assert_awaited_once()
 
 
 async def test_connection_error_disconnects_shared_units(hass):
