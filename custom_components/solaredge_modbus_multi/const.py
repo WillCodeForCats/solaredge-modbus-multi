@@ -54,6 +54,16 @@ INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 # at the same time. Set to 0 to disable.
 MESSAGE_SPACING = 0.1
 
+# On a shared connection another integration can raise the link's timeout or
+# keep it busy, and neither can be read back. Instead a request that fails
+# after much longer than our own request timeout is taken as a sign of it.
+# The factor leaves room for message spacing and the reads of the same update
+# that came before the failing one.
+SLOW_TIMEOUT_FACTOR = 1.5
+
+# Slow timeouts without a successful refresh in between before reporting it.
+SLOW_TIMEOUT_LIMIT = 2
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""

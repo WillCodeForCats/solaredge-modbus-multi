@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 import logging
+import time
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
@@ -53,7 +54,10 @@ from .const import (
     MESSAGE_SPACING,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
+    SLOW_TIMEOUT_FACTOR,
+    SLOW_TIMEOUT_LIMIT,
     STATUS_VENDOR4_VERSION,
+    TIMEOUT_SCALE_BASE,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
     ConfDefaultInt,
@@ -89,21 +93,28 @@ class DeviceInvalid(SolarEdgeException):
 
 
 async def async_update_with_retry(
-    component, before_attempt: Callable[[], None] | None = None
+    component,
+    before_attempt: Callable[[], None] | None = None,
+    on_timeout: Callable[[float], None] | None = None,
 ) -> None:
     """Call component.async_update(), retrying connection/timeout errors.
 
     modbus-connection has no built-in per-request retry, unlike pymodbus's
     `retries` option, so this method mimics that behavior. before_attempt is
-    called right before each attempt.
+    called right before each attempt. on_timeout is called with the seconds an
+    attempt took when it failed with a timeout.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
             if before_attempt:
                 before_attempt()
+            started = time.monotonic()
             await component.async_update()
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+            if on_timeout and isinstance(e, ModbusTimeoutError):
+                on_timeout(time.monotonic() - started)
+
             _LOGGER.debug(
                 "%s.async_update() attempt %s of %s failed: %s",
                 type(component).__name__,
@@ -279,6 +290,8 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._coordinator_timeouts_count = 0
         self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
+        self._slow_timeouts = 0
+        self._interference_reported = False
 
         self.connection = connection
 
@@ -624,6 +637,8 @@ class SolarEdgeModbusMultiHub:
             )
             self._coordinator_timeouts_count = 0
 
+        self._slow_timeouts = 0
+
         if self.close_after_polling:
             await self.connection.disconnect()
 
@@ -648,6 +663,7 @@ class SolarEdgeModbusMultiHub:
         await async_update_with_retry(
             component,
             partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+            self._note_timeout,
         )
 
         if cycles_remaining is None:
@@ -729,6 +745,50 @@ class SolarEdgeModbusMultiHub:
 
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
+
+    def _note_timeout(self, elapsed: float) -> None:
+        """Report when requests on a shared connection fail too slowly.
+
+        Another integration can raise the link's timeout or keep the shared
+        connection busy, and the public interface cannot show either. A request
+        that fails long after our own request timeout is the visible effect.
+        """
+        if not isinstance(self.connection, SharedUnits):
+            return
+        if elapsed <= self._request_timeout * SLOW_TIMEOUT_FACTOR:
+            return
+
+        self._slow_timeouts += 1
+        _LOGGER.debug(
+            "Request timed out after %.1f s, request timeout is %s s (%s in a row)",
+            elapsed,
+            self._request_timeout,
+            self._slow_timeouts,
+        )
+        if self._slow_timeouts < SLOW_TIMEOUT_LIMIT or self._interference_reported:
+            return
+
+        self._interference_reported = True
+        _LOGGER.warning(
+            "Requests to %s are failing after much longer than the request timeout "
+            "of %s s. Another integration sharing this connection, such as the "
+            "built-in SolarEdge Modbus integration, is probably changing its timing.",
+            self._host,
+            self._request_timeout,
+        )
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            f"shared_connection_timing_{self._entry_id}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="shared_connection_timing",
+            translation_placeholders={
+                "host": self._host,
+                "request_timeout": str(self._request_timeout),
+            },
+            data={"entry_id": self._entry_id},
+        )
 
     @property
     def initalized(self):
@@ -865,9 +925,9 @@ class SolarEdgeModbusMultiHub:
 
         this_timeout = this_timeout / 1000
 
-        # The per-step timeouts were based on the default request_timeout;
-        # scale the coordinator timeout if the user changes the value
-        this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
+        # The per-step timeouts were based on TIMEOUT_SCALE_BASE; scale the
+        # coordinator timeout if the user changes the request timeout
+        this_timeout *= self.request_timeout / TIMEOUT_SCALE_BASE
 
         # Add the sleep_after_write value to the coordinator timeout
         this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES
