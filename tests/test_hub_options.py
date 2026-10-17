@@ -4,15 +4,11 @@ from unittest.mock import AsyncMock
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from modbus_connection.mock import MockModbusConnection
-import pytest
 
 from custom_components.solaredge_modbus_multi.const import (
     DOMAIN,
-    WRITE_SETTLE_CYCLES,
     ConfDefaultInt,
     ConfName,
-    RetrySettings,
-    SolarEdgeTimeouts,
 )
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
 
@@ -142,65 +138,3 @@ async def test_request_timeout_override_is_stored(hass):
     assert hub._request_timeout == 10
     assert isinstance(hub._request_timeout, int)
     assert not isinstance(hub._request_timeout, bool)
-
-
-async def test_coordinator_timeout_unchanged_at_default_request_timeout(hass):
-    # default value of request_timeout makes scaling ratio is 1.0
-    """Test coordinator timeout unchanged at default request timeout."""
-    default_hub = _make_hub(hass)
-    explicit_default_hub = _make_hub(
-        hass, entry_options={ConfName.REQUEST_TIMEOUT: ConfDefaultInt.REQUEST_TIMEOUT}
-    )
-
-    assert explicit_default_hub.coordinator_timeout == pytest.approx(
-        default_hub.coordinator_timeout
-    )
-
-
-async def test_coordinator_timeout_scales_with_request_timeout(hass):
-    """Test coordinator timeout scales with request timeout."""
-    default_hub = _make_hub(hass)
-
-    doubled_hub = _make_hub(
-        hass,
-        entry_options={ConfName.REQUEST_TIMEOUT: ConfDefaultInt.REQUEST_TIMEOUT * 2},
-    )
-
-    assert doubled_hub.coordinator_timeout == pytest.approx(
-        default_hub.coordinator_timeout * 2
-    )
-
-
-async def test_coordinator_timeout_with_sleep_after_write(hass):
-    """Test coordinator timeout with sleep after write."""
-    hub = _make_hub(hass, entry_options={ConfName.SLEEP_AFTER_WRITE: 5})
-    baseline_hub = _make_hub(hass)
-
-    assert hub.coordinator_timeout == pytest.approx(
-        baseline_hub.coordinator_timeout + 5 * WRITE_SETTLE_CYCLES
-    )
-
-
-async def test_coordinator_timeout_default_sleep_after_write(hass):
-    # sleep_after_write defaults to 0
-    """Test coordinator timeout default sleep after write."""
-    hub = _make_hub(hass)
-    baseline_hub = _make_hub(hass)
-
-    assert hub.coordinator_timeout == pytest.approx(baseline_hub.coordinator_timeout)
-
-
-async def test_coordinator_timeout_init_budgets_every_scan_attempt(hass):
-    """Test init timeout covers a slow failed SunS scan followed by retries."""
-    hub = _make_hub(hass)
-    hub._inverter_list = [1, 2]
-    hub._detect_extras = False
-
-    non_scan_ms = (
-        (SolarEdgeTimeouts.Inverter + SolarEdgeTimeouts.Init) * 2
-        + (SolarEdgeTimeouts.Device * 2) * 3
-        + (SolarEdgeTimeouts.Battery * 2) * 3
-    )
-    scan_ms = SolarEdgeTimeouts.Read * RetrySettings.RequestRetries * 2
-
-    assert hub.coordinator_timeout == pytest.approx((non_scan_ms + scan_ms) / 1000)

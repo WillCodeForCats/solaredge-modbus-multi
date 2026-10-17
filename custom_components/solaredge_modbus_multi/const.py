@@ -54,6 +54,17 @@ INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 # at the same time. Set to 0 to disable.
 MESSAGE_SPACING = 0.1
 
+# Seconds a setup or refresh may run before it is given up on as wedged. This
+# is not sized to the devices: every request has its own timeout, and on a
+# shared connection a refresh can wait out the stuck requests of other holders,
+# which has been seen to take over two minutes. Kept under the 300 seconds
+# Home Assistant allows for setting up a config entry.
+REFRESH_WATCHDOG = 240
+
+# Seconds a refresh may take before it is reported as slow. A healthy refresh
+# takes a second or two.
+SLOW_REFRESH = 60
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
@@ -62,18 +73,7 @@ class RetrySettings(IntEnum):
     Ratio = 2  # time multiplier between each attempt
     Limit = 6  # number of attempts before failing
     RequestRetries = 3  # max attempts for a single modbus request
-    CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
     FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
-
-
-class SolarEdgeTimeouts(IntEnum):
-    """Timeouts in milliseconds."""
-
-    Inverter = 8400
-    Device = 1200
-    Battery = 3200
-    Init = 1200
-    Read = 6000
 
 
 class BatteryLimit(IntEnum):
