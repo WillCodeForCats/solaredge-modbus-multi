@@ -642,7 +642,9 @@ class SolarEdgeModbusMultiHub:
 
         # A shared unit's spacing can be changed by another holder, so
         # enforce ours before every attempt instead of trusting the last set.
-        spacing = MESSAGE_SPACING if cycles_remaining is None else self.sleep_after_write
+        spacing = (
+            MESSAGE_SPACING if cycles_remaining is None else self.sleep_after_write
+        )
         await async_update_with_retry(
             component,
             partial(self.connection.for_unit(unit).set_message_spacing, spacing),
@@ -681,7 +683,9 @@ class SolarEdgeModbusMultiHub:
 
         # Enforce our spacing before each attempt; another holder may have
         # changed it.
-        spacing = self.sleep_after_write if self.sleep_after_write > 0 else MESSAGE_SPACING
+        spacing = (
+            self.sleep_after_write if self.sleep_after_write > 0 else MESSAGE_SPACING
+        )
 
         try:
             await async_write_with_retry(
