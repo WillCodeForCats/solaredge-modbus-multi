@@ -26,6 +26,7 @@ discovery and may not be supported by SolarEdge.
 - Polling frequency configuration option (1 to 86400 seconds).
 - Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
+- Can use the Home Assistant shared Modbus connection or a direct/own connection (advanced).
 - Informational sensor for device and its attributes
 - Supports status and error reporting sensors.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
