@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
+from functools import partial
 import logging
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
@@ -86,14 +88,19 @@ class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid."""
 
 
-async def async_update_with_retry(component) -> None:
+async def async_update_with_retry(
+    component, before_attempt: Callable[[], None] | None = None
+) -> None:
     """Call component.async_update(), retrying connection/timeout errors.
 
     modbus-connection has no built-in per-request retry, unlike pymodbus's
-    `retries` option, so this method mimics that behavior.
+    `retries` option, so this method mimics that behavior. before_attempt is
+    called right before each attempt.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
             await component.async_update()
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
@@ -112,13 +119,20 @@ async def async_update_with_retry(component) -> None:
             return
 
 
-async def async_write_with_retry(component, field: str, value) -> None:
+async def async_write_with_retry(
+    component,
+    field: str,
+    value,
+    before_attempt: Callable[[], None] | None = None,
+) -> None:
     """Call component.write(field, value), retrying connection/timeout errors.
 
     Like async_update_with_retry() but for writes.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
             await component.write(field, value)
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
@@ -624,15 +638,21 @@ class SolarEdgeModbusMultiHub:
         do that instead of passing the unit separately. We need it to track settle cycles.
         """
 
-        await async_update_with_retry(component)
-
         cycles_remaining = self._write_settle_cycles.get(unit)
+
+        # A shared unit's spacing can be changed by another holder, so
+        # enforce ours before every attempt instead of trusting the last set.
+        spacing = MESSAGE_SPACING if cycles_remaining is None else self.sleep_after_write
+        await async_update_with_retry(
+            component,
+            partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+        )
+
         if cycles_remaining is None:
             return
 
         if cycles_remaining <= 1:
             _LOGGER.debug("Clearing unit %s request spacing.", unit)
-            self.connection.for_unit(unit).set_message_spacing(MESSAGE_SPACING)
             del self._write_settle_cycles[unit]
         else:
             _LOGGER.debug(
@@ -657,11 +677,19 @@ class SolarEdgeModbusMultiHub:
                 self.sleep_after_write,
                 field,
             )
-            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
             self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
+        # Enforce our spacing before each attempt; another holder may have
+        # changed it.
+        spacing = self.sleep_after_write if self.sleep_after_write > 0 else MESSAGE_SPACING
+
         try:
-            await async_write_with_retry(component, field, value)
+            await async_write_with_retry(
+                component,
+                field,
+                value,
+                partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+            )
 
         except IllegalFunctionError as e:
             _LOGGER.debug("Unit %s Write IllegalFunction: %s", unit, e)
