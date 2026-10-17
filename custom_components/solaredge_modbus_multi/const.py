@@ -54,6 +54,16 @@ INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 # at the same time. Set to 0 to disable.
 MESSAGE_SPACING = 0.1
 
+# On a shared connection another integration can raise the link's timeout or
+# keep it busy, and neither can be read back. Instead a request that fails
+# after much longer than our own request timeout is taken as a sign of it.
+# The factor leaves room for message spacing and the reads of the same update
+# that came before the failing one.
+SLOW_TIMEOUT_FACTOR = 1.5
+
+# Slow timeouts without a successful refresh in between before reporting it.
+SLOW_TIMEOUT_LIMIT = 2
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
@@ -64,6 +74,17 @@ class RetrySettings(IntEnum):
     RequestRetries = 3  # max attempts for a single modbus request
     CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
     FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
+
+
+# The request timeout, in seconds, that SolarEdgeTimeouts were tuned for. The
+# coordinator timeout scales with the configured request timeout against this,
+# and not against the default, which can change without retuning them.
+TIMEOUT_SCALE_BASE = 3
+
+# Seconds added to the retries of one request for the reads before it in the
+# same refresh and the message spacing, so the coordinator timeout never
+# fires before the last retry has had its turn.
+COORDINATOR_RETRY_MARGIN = 1
 
 
 class SolarEdgeTimeouts(IntEnum):
@@ -94,7 +115,7 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 10
     PORT = 1502
-    REQUEST_TIMEOUT = 3
+    REQUEST_TIMEOUT = 10
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 2

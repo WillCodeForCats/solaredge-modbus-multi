@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
+from functools import partial
 import logging
+import time
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
@@ -46,12 +49,16 @@ from .components import (
 )
 from .const import (
     BATTERY_REG_BASE,
+    COORDINATOR_RETRY_MARGIN,
     DETECT_EVSE_REGEX,
     DOMAIN,
     MESSAGE_SPACING,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
+    SLOW_TIMEOUT_FACTOR,
+    SLOW_TIMEOUT_LIMIT,
     STATUS_VENDOR4_VERSION,
+    TIMEOUT_SCALE_BASE,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
     ConfDefaultInt,
@@ -86,17 +93,29 @@ class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid."""
 
 
-async def async_update_with_retry(component) -> None:
+async def async_update_with_retry(
+    component,
+    before_attempt: Callable[[], None] | None = None,
+    on_timeout: Callable[[float], None] | None = None,
+) -> None:
     """Call component.async_update(), retrying connection/timeout errors.
 
     modbus-connection has no built-in per-request retry, unlike pymodbus's
-    `retries` option, so this method mimics that behavior.
+    `retries` option, so this method mimics that behavior. before_attempt is
+    called right before each attempt. on_timeout is called with the seconds an
+    attempt took when it failed with a timeout.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
+            started = time.monotonic()
             await component.async_update()
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+            if on_timeout and isinstance(e, ModbusTimeoutError):
+                on_timeout(time.monotonic() - started)
+
             _LOGGER.debug(
                 "%s.async_update() attempt %s of %s failed: %s",
                 type(component).__name__,
@@ -112,13 +131,20 @@ async def async_update_with_retry(component) -> None:
             return
 
 
-async def async_write_with_retry(component, field: str, value) -> None:
+async def async_write_with_retry(
+    component,
+    field: str,
+    value,
+    before_attempt: Callable[[], None] | None = None,
+) -> None:
     """Call component.write(field, value), retrying connection/timeout errors.
 
     Like async_update_with_retry() but for writes.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
             await component.write(field, value)
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
@@ -264,6 +290,9 @@ class SolarEdgeModbusMultiHub:
         self._initalized = False
         self._coordinator_timeouts_count = 0
         self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
+        self._slow_timeouts = 0
+        self._interference_reported = False
+        self._request_timeout_cycles = 0
 
         self.connection = connection
 
@@ -571,12 +600,28 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+        except ModbusTimeoutError as e:
+            # A request that timed out is already retried. The connection is
+            # only recycled when refreshes keep failing this way, so a slow
+            # reply does not drop it under other holders of a shared one.
+            self._request_timeout_cycles += 1
+            if self._request_timeout_cycles >= self._coordinator_timeouts_limit:
+                _LOGGER.warning(
+                    "Requests timed out in %s refreshes in a row, "
+                    "recycling the connection",
+                    self._request_timeout_cycles,
+                )
+                self._request_timeout_cycles = 0
+                await self.connection.disconnect()
+            raise DataUpdateFailed(f"Update failed: {e}") from e
+
+        except (ModbusConnectionError, ModbusProtocolError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}") from e
 
         except DeviceInvalid as e:
-            await self.connection.disconnect()
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
@@ -607,6 +652,9 @@ class SolarEdgeModbusMultiHub:
             )
             self._coordinator_timeouts_count = 0
 
+        self._slow_timeouts = 0
+        self._request_timeout_cycles = 0
+
         if self.close_after_polling:
             await self.connection.disconnect()
 
@@ -621,15 +669,24 @@ class SolarEdgeModbusMultiHub:
         do that instead of passing the unit separately. We need it to track settle cycles.
         """
 
-        await async_update_with_retry(component)
-
         cycles_remaining = self._write_settle_cycles.get(unit)
+
+        # A shared unit's spacing can be changed by another holder, so
+        # enforce ours before every attempt instead of trusting the last set.
+        spacing = (
+            MESSAGE_SPACING if cycles_remaining is None else self.sleep_after_write
+        )
+        await async_update_with_retry(
+            component,
+            partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+            self._note_timeout,
+        )
+
         if cycles_remaining is None:
             return
 
         if cycles_remaining <= 1:
             _LOGGER.debug("Clearing unit %s request spacing.", unit)
-            self.connection.for_unit(unit).set_message_spacing(MESSAGE_SPACING)
             del self._write_settle_cycles[unit]
         else:
             _LOGGER.debug(
@@ -654,11 +711,21 @@ class SolarEdgeModbusMultiHub:
                 self.sleep_after_write,
                 field,
             )
-            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
             self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
+        # Enforce our spacing before each attempt; another holder may have
+        # changed it.
+        spacing = (
+            self.sleep_after_write if self.sleep_after_write > 0 else MESSAGE_SPACING
+        )
+
         try:
-            await async_write_with_retry(component, field, value)
+            await async_write_with_retry(
+                component,
+                field,
+                value,
+                partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+            )
 
         except IllegalFunctionError as e:
             _LOGGER.debug("Unit %s Write IllegalFunction: %s", unit, e)
@@ -694,6 +761,50 @@ class SolarEdgeModbusMultiHub:
 
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
+
+    def _note_timeout(self, elapsed: float) -> None:
+        """Report when requests on a shared connection fail too slowly.
+
+        Another integration can raise the link's timeout or keep the shared
+        connection busy, and the public interface cannot show either. A request
+        that fails long after our own request timeout is the visible effect.
+        """
+        if not isinstance(self.connection, SharedUnits):
+            return
+        if elapsed <= self._request_timeout * SLOW_TIMEOUT_FACTOR:
+            return
+
+        self._slow_timeouts += 1
+        _LOGGER.debug(
+            "Request timed out after %.1f s, request timeout is %s s (%s in a row)",
+            elapsed,
+            self._request_timeout,
+            self._slow_timeouts,
+        )
+        if self._slow_timeouts < SLOW_TIMEOUT_LIMIT or self._interference_reported:
+            return
+
+        self._interference_reported = True
+        _LOGGER.warning(
+            "Requests to %s are failing after much longer than the request timeout "
+            "of %s s. Another integration sharing this connection, such as the "
+            "built-in SolarEdge Modbus integration, is probably changing its timing.",
+            self._host,
+            self._request_timeout,
+        )
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            f"shared_connection_timing_{self._entry_id}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="shared_connection_timing",
+            translation_placeholders={
+                "host": self._host,
+                "request_timeout": str(self._request_timeout),
+            },
+            data={"entry_id": self._entry_id},
+        )
 
     @property
     def initalized(self):
@@ -825,9 +936,17 @@ class SolarEdgeModbusMultiHub:
 
         this_timeout = this_timeout / 1000
 
-        # The per-step timeouts were based on the default request_timeout;
-        # scale the coordinator timeout if the user changes the value
-        this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
+        # The per-step timeouts were based on TIMEOUT_SCALE_BASE; scale the
+        # coordinator timeout if the user changes the request timeout
+        this_timeout *= self.request_timeout / TIMEOUT_SCALE_BASE
+
+        # The retries of one request must be able to finish: a coordinator
+        # timeout that fires first would cut off the last retry every time.
+        this_timeout = max(
+            this_timeout,
+            RetrySettings.RequestRetries * self.request_timeout
+            + COORDINATOR_RETRY_MARGIN,
+        )
 
         # Add the sleep_after_write value to the coordinator timeout
         this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES

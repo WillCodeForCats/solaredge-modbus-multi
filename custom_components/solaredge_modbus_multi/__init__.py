@@ -219,6 +219,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
     else:
         connection = _async_get_shared_units(hass, entry, params, request_timeout)
+        # close_after_polling only applies to an own connection.
+        ir.async_delete_issue(
+            hass, DOMAIN, f"close_after_polling_moved_{entry.entry_id}"
+        )
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options, connection
@@ -233,6 +237,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Drop the entry-independent issue ID used by earlier versions.
     ir.async_delete_issue(hass, DOMAIN, "check_configuration")
     ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
+
+    # Reported again while polling if the shared connection is still affected.
+    ir.async_delete_issue(hass, DOMAIN, f"shared_connection_timing_{entry.entry_id}")
 
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,

@@ -26,6 +26,7 @@ discovery and may not be supported by SolarEdge.
 - Polling frequency configuration option (1 to 86400 seconds).
 - Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
+- Can use the Home Assistant shared Modbus connection or a direct/own connection (advanced).
 - Informational sensor for device and its attributes
 - Supports status and error reporting sensors.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
@@ -49,6 +50,64 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
 
 Inverter site limit and battery storage controls are disabled by default: not all inverters support controls. You will need to enable Power Control Options after adding your inverter hub in the integration.
+
+### Using another integration with the same inverter
+
+> [!WARNING]
+> Running SolarEdge Modbus Multi and Home Assistant's built-in SolarEdge Modbus integration
+> (`solaredge_modbus`) for the same inverter is not recommended. The built-in integration requests a
+> high timeout (30 seconds), and Home Assistant applies it to the shared connection, so it is forced on
+> SolarEdge Modbus Multi as well, which can cause coordinator timeouts and missed updates. Home Assistant
+> may offer to set up the built-in integration when it discovers your inverter: check that you are
+> adding the one you intend to use.
+
+Home Assistant shares a single Modbus/TCP connection per host and port between integrations, and the
+connection's timing settings are shared too. SolarEdge specifies a response time of under 0.5 seconds
+for read and write requests, under "SolarEdge timing performance" in the
+[SunSpec Implementation Technical Note](doc/sunspec-implementation-technical-note.pdf) (version 3.2,
+page 31), and the timing of SolarEdge Modbus Multi is built around that. Its default timeout is 10
+seconds, which is also the default of the modbus-connection library. The built-in integration requests
+a 30 second timeout, three times as long. The shared connection will use the highest timeout any
+integration asks for, so 30 seconds applies to every request on it, including those of SolarEdge
+Modbus Multi. A request that is slow to fail can then hold up polling by SolarEdge Modbus Multi, and
+either integration can change the other's message spacing. The result can be coordinator timeouts, slow
+or missed updates, and unavailable entities.
+
+Because the shared connection uses the highest timeout requested, SolarEdge Modbus Multi cannot keep
+the shorter timeout it would otherwise use. If you want to run both, one option is to set Modbus
+Request Timeout to 30 seconds in the options of SolarEdge Modbus Multi, so that its timeouts allow for
+the 30 seconds the shared connection now applies. The coordinator timeout scales with it, so waiting
+behind the built-in integration's requests no longer trips it. The cost is that SolarEdge Modbus Multi
+then also waits up to 30 seconds on a request that never gets an answer, and long waits cause missed
+polling intervals, which lowers the resolution of your data. This is especially so because the
+built-in integration scans for batteries and meters on a regular schedule, and an inverter may not
+answer for hardware it does not have, such as a battery, so each scan can wait out the full timeout.
+
+The other option is to set `own_connection` in your `configuration.yaml`. SolarEdge Modbus Multi then
+opens its own Modbus/TCP connection with its own timeout and message spacing, which other integrations
+cannot change:
+
+```yaml
+solaredge_modbus_multi:
+  own_connection: true
+```
+
+`own_connection` can also be used with the optional `close_after_polling` setting (default `false`),
+which closes the connection after every poll so that the inverter is free for other clients between
+polls. This relies on those other clients also closing their connections when idle: a client that
+holds its connection open between requests can keep the inverter's connection in use regardless.
+
+Example:
+
+```yaml
+solaredge_modbus_multi:
+  own_connection: true
+  close_after_polling: true
+```
+
+This is an advanced option. It has worked alongside the built-in integration on the maintainer's system,
+but SolarEdge does not document support for more than one Modbus/TCP connection, so results may vary
+with your inverter and firmware.
 
 ### Documentation
 
