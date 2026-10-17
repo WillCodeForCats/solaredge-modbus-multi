@@ -147,6 +147,10 @@
       "title": "Ogiltigt enhets-ID för växelriktare",
       "description": "Växelriktarens enhets-ID {device_id} på {host} svarar inte eller är inte en giltig SolarEdge-växelriktare. Den har hoppats över. Om enheten byttes ut eller dess ID ändrades, uppdatera listan över växelriktarnas enhets-ID i hubbens konfiguration. Kontrollera annars enheten och Modbus/TCP-anslutningen."
     },
+    "shared_connection_slow": {
+      "title": "Den delade Modbus-anslutningen är långsam",
+      "description": "Konfigurering eller läsning från {host} tar mycket längre tid än väntat. En annan integration som använder samma växelriktare, till exempel den inbyggda SolarEdge Modbus-integrationen, håller sannolikt den delade anslutningen upptagen. Det kan ge långsamma eller missade uppdateringar.\n\nInaktivera den andra integrationen för den här växelriktaren. Om du behöver båda ställer du in own_connection i den avancerade YAML-konfigurationen så att den här integrationen använder en egen anslutning. Se README för mer information."
+    },
     "detect_timeout_gpc": {
       "title": "Tidsgräns för global dynamisk effektstyrning (växelriktare {device_id})",
       "fix_flow": {
@@ -180,6 +184,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Alternativet Håll Modbus-anslutningen öppen har ersatts",
       "description": "Alternativet \"Håll Modbus-anslutningen öppen\" används inte längre. Den här integrationen delar nu anslutningen med modbus-integrationen. Vill du styra anslutningen själv anger du `own_connection` och `close_after_polling` under `solaredge_modbus_multi` i `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "En annan integration är redan ansluten till {host}:{port} med andra anslutningsinställningar, och en anslutning kan inte använda båda. Ta bort eller konfigurera om den andra integrationen och läs sedan in den här igen."
     }
   }
 }

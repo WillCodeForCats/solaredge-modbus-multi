@@ -147,6 +147,10 @@
       "title": "ID de Dispositivo do Inversor Inválido",
       "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está a responder ou não é um inversor SolarEdge válido. Foi ignorado. Se o dispositivo foi substituído ou o seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a ligação Modbus/TCP."
     },
+    "shared_connection_slow": {
+      "title": "A ligação Modbus partilhada está lenta",
+      "description": "A configuração ou a leitura de {host} está a demorar muito mais do que o esperado. Outra integração que utiliza o mesmo inversor, como a integração SolarEdge Modbus incorporada, provavelmente está a ocupar a ligação partilhada. Isto pode causar atualizações lentas ou perdidas.\n\nDesative a outra integração para este inversor. Se precisar de ambas, defina own_connection na configuração YAML avançada para que esta integração utilize a sua própria ligação. Consulte o README para mais detalhes."
+    },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controlo Dinâmico de Potência Global (Inversor {device_id})",
       "fix_flow": {
@@ -180,6 +184,11 @@
     "deprecated_keep_modbus_open": {
       "title": "A Opção Manter a Ligação Modbus Aberta Foi Substituída",
       "description": "A opção \"Manter a Ligação Modbus Aberta\" já não é utilizada. Esta integração passa agora a partilhar a ligação da integração modbus. Para controlar a ligação por si, defina `own_connection` e `close_after_polling` em `solaredge_modbus_multi` no `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Outra integração já está ligada a {host}:{port} com definições de ligação diferentes, e uma mesma ligação não pode utilizar ambas. Remova ou reconfigure a outra integração e depois volte a carregar esta."
     }
   }
 }

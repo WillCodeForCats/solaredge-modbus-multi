@@ -147,6 +147,10 @@
       "title": "Érvénytelen Inverter Eszközazonosító",
       "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen nem válaszol, vagy nem érvényes SolarEdge inverter. Ki lett hagyva. Ha az eszközt kicserélték, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. Ellenkező esetben ellenőrizze az eszközt és a Modbus/TCP kapcsolatot."
     },
+    "shared_connection_slow": {
+      "title": "A megosztott Modbus-kapcsolat lassú",
+      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél. Ha mindkettőre szüksége van, állítsa be az own_connection beállítást a speciális YAML-konfigurációban, hogy ez az integráció saját kapcsolatot használjon. További részletekért lásd a README-t."
+    },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",
       "fix_flow": {
@@ -180,6 +184,11 @@
     "deprecated_keep_modbus_open": {
       "title": "A „Modbus Kapcsolat Nyitva Tartása” Opció Lecserélve",
       "description": "A „Modbus Kapcsolat Nyitva Tartása” opció már nincs használatban. Ez az integráció mostantól a modbus integráció kapcsolatát használja közösen. Ha saját maga szeretné vezérelni a kapcsolatot, állítsa be az `own_connection` és a `close_after_polling` értéket a `configuration.yaml` fájl `solaredge_modbus_multi` szakaszában."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Egy másik integráció már csatlakozik a(z) {host}:{port} címhez eltérő kapcsolati beállításokkal, és egy kapcsolat nem használhatja mindkettőt. Távolítsa el vagy konfigurálja újra a másik integrációt, majd töltse be újra ezt."
     }
   }
 }

@@ -147,6 +147,10 @@
       "title": "ID de Dispozitiv al Invertorului Nevalid",
       "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu răspunde sau nu este un invertor SolarEdge valid. A fost omis. Dacă dispozitivul a fost înlocuit sau ID-ul acestuia s-a schimbat, actualizați Lista de ID-uri de Dispozitiv ale Invertoarelor din configurația hub-ului. În caz contrar, verificați dispozitivul și conexiunea Modbus/TCP."
     },
+    "shared_connection_slow": {
+      "title": "Conexiunea Modbus partajată este lentă",
+      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor. Dacă aveți nevoie de ambele, setați own_connection în configurația YAML avansată, astfel încât această integrare să folosească propria conexiune. Consultați README pentru detalii."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",
       "fix_flow": {
@@ -180,6 +184,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Opțiunea Menține Conexiunea Modbus Deschisă a Fost Înlocuită",
       "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” nu mai este folosită. Această integrare partajează acum conexiunea integrării modbus. Pentru a controla singur conexiunea, setați `own_connection` și `close_after_polling` sub `solaredge_modbus_multi` în `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "O altă integrare este deja conectată la {host}:{port} cu setări de conexiune diferite, iar o conexiune nu le poate folosi pe amândouă. Eliminați sau reconfigurați cealaltă integrare, apoi reîncărcați-o pe aceasta."
     }
   }
 }

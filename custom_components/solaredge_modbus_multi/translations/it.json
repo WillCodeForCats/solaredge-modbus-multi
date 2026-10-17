@@ -147,6 +147,10 @@
       "title": "ID dispositivo inverter non valido",
       "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
     },
+    "shared_connection_slow": {
+      "title": "La connessione Modbus condivisa è lenta",
+      "description": "La configurazione o la lettura di {host} sta richiedendo molto più tempo del previsto. Probabilmente un'altra integrazione che usa lo stesso inverter, come l'integrazione SolarEdge Modbus integrata, sta occupando la connessione condivisa. Questo può causare aggiornamenti lenti o mancati.\n\nDisattiva l'altra integrazione per questo inverter. Se ti servono entrambe, imposta own_connection nella configurazione YAML avanzata in modo che questa integrazione usi una connessione propria. Consulta il README per i dettagli."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",
       "fix_flow": {
@@ -180,6 +184,11 @@
     "deprecated_keep_modbus_open": {
       "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",
       "description": "L'opzione \"Mantieni aperta la connessione Modbus\" non viene più utilizzata. Questa integrazione ora condivide la connessione dell'integrazione modbus. Per gestire la connessione manualmente, imposta `own_connection` e `close_after_polling` sotto `solaredge_modbus_multi` in `configuration.yaml`."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Un'altra integrazione è già connessa a {host}:{port} con impostazioni di connessione diverse e una singola connessione non può usarle entrambe. Rimuovi o riconfigura l'altra integrazione, poi ricarica questa."
     }
   }
 }
