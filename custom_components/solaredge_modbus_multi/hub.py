@@ -222,10 +222,6 @@ class SolarEdgeModbusMultiHub:
             ConfName.ADV_SITE_LIMIT_CONTROL,
             bool(ConfDefaultFlag.ADV_SITE_LIMIT_CONTROL),
         )
-        self._allow_battery_energy_reset = entry_options.get(
-            ConfName.ALLOW_BATTERY_ENERGY_RESET,
-            bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
-        )
         self._request_timeout = entry_options.get(
             ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
         )
@@ -235,9 +231,12 @@ class SolarEdgeModbusMultiHub:
         self._battery_rating_adjust = entry_options.get(
             ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
         )
-        self._battery_energy_reset_cycles = entry_options.get(
-            ConfName.BATTERY_ENERGY_RESET_CYCLES,
-            ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
+        self._battery_energy_reset_cycles = max(
+            2,
+            entry_options.get(
+                ConfName.BATTERY_ENERGY_RESET_CYCLES,
+                ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
+            ),
         )
         self._close_after_polling = entry_options.get(
             ConfName.CLOSE_AFTER_POLLING, bool(ConfDefaultFlag.CLOSE_AFTER_POLLING)
@@ -261,7 +260,7 @@ class SolarEdgeModbusMultiHub:
         _LOGGER.debug(
             "%s configuration: inverter_list=%s, detect_meters=%s, "
             "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
-            "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
+            "adv_site_limit_control=%s, "
             "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
             "close_after_polling=%s, ",
             DOMAIN,
@@ -271,7 +270,6 @@ class SolarEdgeModbusMultiHub:
             self._detect_extras,
             self._adv_storage_control,
             self._adv_site_limit_control,
-            self._allow_battery_energy_reset,
             self._request_timeout,
             self._sleep_after_write,
             self._battery_rating_adjust,
@@ -745,18 +743,13 @@ class SolarEdgeModbusMultiHub:
         return self._detect_extras
 
     @property
-    def allow_battery_energy_reset(self) -> bool:
-        """Return the allow battery energy reset."""
-        return self._allow_battery_energy_reset
-
-    @property
     def battery_rating_adjust(self) -> int:
         """Return the battery rating adjust."""
         return (self._battery_rating_adjust + 100) / 100
 
     @property
     def battery_energy_reset_cycles(self) -> int:
-        """Return the battery energy reset cycles."""
+        """Return the polls a lower battery energy reading must persist."""
         return self._battery_energy_reset_cycles
 
     @property
@@ -1779,11 +1772,6 @@ class SolarEdgeBattery:
     @via_device_id.setter
     def via_device_id(self, device_registry_id: str | None) -> None:
         self._via_device_id = device_registry_id
-
-    @property
-    def allow_battery_energy_reset(self) -> bool:
-        """Return the allow battery energy reset."""
-        return self.hub.allow_battery_energy_reset
 
     @property
     def battery_rating_adjust(self) -> int:

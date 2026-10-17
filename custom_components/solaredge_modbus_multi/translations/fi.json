@@ -104,7 +104,6 @@
       "battery_options": {
         "title": "Akkuvalinnat",
         "data": {
-          "allow_battery_energy_reset": "Salli akun energian nollaus",
           "battery_energy_reset_cycles": "Päivityssyklit akun energian nollaamiseksi",
           "battery_rating_adjust": "Akun kapasiteetin säätö (prosenttia)"
         }
@@ -173,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus YAML -määritystä ei enää tueta",
       "description": "`modbus`-osiota kohdassa `solaredge_modbus_multi` tiedostossa `configuration.yaml` ei enää tueta, ja se ohitetaan. Poista se YAML-määrityksestäsi."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Akun energian nollauksen jaksot muuttuneet",
+      "description": "Asetus ”Päivityssyklit akun energian nollaamiseksi” määrittää nyt, kuinka monta peräkkäistä kyselyä pienemmän akun energia-arvon on säilyttävä, ennen kuin se hyväksytään nollaukseksi. Vähimmäisarvo on 2. Arvosi {old_value} on muutettu arvoksi {new_value}. Tarkista asetus akkuasetuksista, jos haluat toisen arvon."
     },
     "deprecated_keep_modbus_open": {
       "title": "Pidä Modbus-yhteys avoinna -asetus korvattu",
