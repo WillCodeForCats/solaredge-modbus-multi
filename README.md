@@ -58,7 +58,7 @@ Inverter site limit and battery storage controls are disabled by default: not al
 > (`solaredge_modbus`) for the same inverter is not recommended. The built-in integration requests a
 > high timeout (30 seconds), and Home Assistant applies it to the shared connection, so it is forced on
 > SolarEdge Modbus Multi as well, which can cause slow or missed updates. If SolarEdge Modbus Multi
-> raises the "Shared Modbus Connection Is Slow" repair issue, disable the other integration for this
+> raises the "Another Integration Shares This Inverter" repair issue, disable the other integration for this
 > inverter and then restart Home Assistant: the shared connection keeps the long timeout until it is
 > closed and reopened. Home Assistant may offer to set up the built-in integration when it discovers
 > your inverter: check that you are adding the one you intend to use.
