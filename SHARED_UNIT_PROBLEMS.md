@@ -111,7 +111,34 @@ answered.
   timeout is ever added back to unit scans, it must account for queue wait
   separately from the device's response time, or report an inconclusive result.
 
-## 5. Other shared-connection limits
+## 5. Running both integrations
+
+Running this integration and the built-in SolarEdge Modbus integration
+(`solaredge_modbus`) for the same inverter is not recommended.
+
+- Home Assistant may offer to set up the built-in integration when it
+  discovers your inverter. Check that you are adding the one you intend to use.
+- If this integration raises the "Shared Modbus Connection Is Slow" repair
+  issue, disable the other integration for this inverter and restart Home
+  Assistant.
+- If you know your Device IDs, use the manual setup (no scan). Otherwise,
+  disable the other integration and restart Home Assistant before adding this
+  one.
+
+If you want to run both anyway, open the options of this integration and change
+the _Modbus Connection_. It has three choices:
+
+| Modbus Connection                                         | What it does                                                                                                                 |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Use the Home Assistant shared Modbus connection (default) | Shares one Modbus/TCP connection with other integrations that talk to the same inverter.                                     |
+| Use direct connection                                     | Opens a separate Modbus/TCP connection with its own timeout and message spacing, which other integrations cannot change.     |
+| Use direct connection and close it after each poll        | Same as above, and also closes the connection after every poll so that the inverter is free for other clients between polls. |
+
+A direct connection avoids the shared timeout and spacing, but an inverter
+accepts few TCP connections at once, so two clients holding it open can still
+fight over it.
+
+## 6. Other shared-connection limits
 
 - **Link settings conflicts.** If another integration holds the same device over
   different link settings, one shared connection cannot honor both, and setup
