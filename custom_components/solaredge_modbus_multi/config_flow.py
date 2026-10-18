@@ -8,7 +8,6 @@ import re
 from typing import Any
 
 from homeassistant import config_entries
-from homeassistant.components.modbus import async_get_temporary_unit
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlowResult,
@@ -26,7 +25,6 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
-from modbus_connection import ModbusError, ModbusTcpParams
 import voluptuous as vol
 
 from .const import (
@@ -37,7 +35,6 @@ from .const import (
     SETUP_SCAN_FAST,
     SETUP_SCAN_FULL,
     SETUP_TYPE,
-    ZEROCONF_PROBE_TIMEOUT,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
@@ -45,7 +42,7 @@ from .const import (
     ConnectionMode,
 )
 from .helpers import device_list_from_string, get_connection_mode, host_valid
-from .scanner import SIGNATURE_ADDRESS, ScannerConnectionError, SolarEdgeDeviceScanner
+from .scanner import ScannerConnectionError, SolarEdgeDeviceScanner
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -90,6 +87,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._scan_task_result = None
         self._pending_entry = None
         self._discovered = None
+        self._scan_progress_shown = False
 
     @staticmethod
     @callback
@@ -97,37 +95,25 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
 
-    async def _async_port_open(self, host: str, port: int) -> bool:
-        """Check if a Modbus connection to the device actually opens.
+    @callback
+    def async_remove(self) -> None:
+        """Stop a background scan when the flow goes away."""
+        if self._scan_task and not self._scan_task.done():
+            self._scan_task.cancel()
 
-        mDNS only confirms a device advertised itself, not that its Modbus TCP
-        port is actually reachable. Sends a single read to device ID 1: any
-        answer, an error response or no answer at all, still means the link
-        came up. Only a link that never opened counts as closed. No ID can be
-        counted on to exist, since the ID advertised over mDNS is not always
-        the one the device uses, so expect to wait out the whole timeout.
+    @callback
+    def _async_withdraw_if_no_inverters(self, task: asyncio.Task) -> None:
+        """Remove the discovery if its scan failed or found nothing.
+
+        Once the user is waiting on the scan, the flow ends with the reason
+        shown instead.
         """
-        params = ModbusTcpParams(host=host, port=port)
-        try:
-            async with async_get_temporary_unit(self.hass, params, 1) as unit:
-                unit.require_timeout(ZEROCONF_PROBE_TIMEOUT)
-                try:
-                    # The shared request timeout may be longer than ours, so
-                    # limit the probe with its own deadline.
-                    await asyncio.wait_for(
-                        unit.read_holding_registers(SIGNATURE_ADDRESS, 1),
-                        timeout=ZEROCONF_PROBE_TIMEOUT,
-                    )
-                except (ModbusError, OSError, asyncio.TimeoutError):
-                    is_open = unit.connected
-                else:
-                    is_open = True
-        except HomeAssistantError:
-            # In use over different link settings: the device is there.
-            return True
+        if task.cancelled() or self._scan_progress_shown:
+            return
 
-        await asyncio.sleep(1.0)
-        return is_open
+        result = task.exception() or task.result()
+        if isinstance(result, Exception) or not result:
+            self.hass.config_entries.flow.async_abort(self.flow_id)
 
     async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
         try:
@@ -223,11 +209,20 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
 
-        if not await self._async_port_open(host, port):
-            return self.async_abort(reason="cannot_connect")
-
         self._discovered = {CONF_HOST: host, CONF_PORT: port}
         self.context["title_placeholders"] = {"host": host}
+
+        # Scan in the background so the results are usually ready by the time
+        # the user opens the discovery. Nobody waits on it here, so a slow
+        # shared connection only delays when the inverters show up. The scan
+        # also proves the device is reachable: if it fails or finds nothing,
+        # the discovery is withdrawn.
+        self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
+        self._scan_task = self.hass.async_create_background_task(
+            self._async_scan_devices(self._discovered),
+            f"Scan for SolarEdge inverters at {host}:{port}",
+        )
+        self._scan_task.add_done_callback(self._async_withdraw_if_no_inverters)
 
         return await self.async_step_zeroconf_confirm()
 
@@ -236,15 +231,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Confirm setup of a discovered SolarEdge Modbus/TCP gateway."""
         if user_input is not None:
-            self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
+            self._scan_user_input = {
+                CONF_NAME: user_input[CONF_NAME],
+                CONF_HOST: self._discovered[CONF_HOST],
+                CONF_PORT: self._discovered[CONF_PORT],
+            }
 
-            return await self.async_step_scan_ask_host(
-                {
-                    CONF_NAME: user_input[CONF_NAME],
-                    CONF_HOST: self._discovered[CONF_HOST],
-                    CONF_PORT: self._discovered[CONF_PORT],
-                }
-            )
+            return await self.async_step_zeroconf_scan()
 
         return self.async_show_form(
             step_id="zeroconf_confirm",
@@ -255,6 +248,70 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_HOST: self._discovered[CONF_HOST],
                 CONF_PORT: str(self._discovered[CONF_PORT]),
             },
+        )
+
+    async def async_step_zeroconf_scan(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Wait for the scan started at discovery, if it is still running."""
+        if self._scan_task:
+            if not self._scan_task.done():
+                self._scan_progress_shown = True
+                return self.async_show_progress(
+                    step_id="zeroconf_scan",
+                    progress_action="scanning_for_inverters",
+                    progress_task=self._scan_task,
+                )
+
+            self._scan_task_result = await self._scan_task
+            self._scan_task = None
+
+            if self._scan_progress_shown:
+                return self.async_show_progress_done(next_step_id="zeroconf_select")
+
+        return await self.async_step_zeroconf_select()
+
+    async def async_step_zeroconf_select(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Offer the inverters found by the scan."""
+        found = self._scan_task_result
+
+        if isinstance(found, Exception):
+            return self.async_abort(reason="scan_failed")
+
+        if not found:
+            return self.async_abort(reason="no_inverters_found")
+
+        if user_input is not None:
+            device_list = sorted(int(i) for i in user_input[ConfName.DEVICE_LIST])
+            if device_list:
+                self._scan_user_input[ConfName.DEVICE_LIST] = device_list
+                self._pending_entry = {
+                    "title": self._scan_user_input[CONF_NAME],
+                    "data": self._scan_user_input,
+                }
+
+                return await self.async_step_features_info()
+
+        return self.async_show_form(
+            step_id="zeroconf_select",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        ConfName.DEVICE_LIST, default=[str(i) for i in found]
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[str(i) for i in found],
+                            multiple=True,
+                            mode=SelectSelectorMode.LIST,
+                        )
+                    )
+                }
+            ),
+            errors={ConfName.DEVICE_LIST: "no_inverter_selected"}
+            if user_input is not None
+            else None,
         )
 
     async def async_step_scan_fast(
