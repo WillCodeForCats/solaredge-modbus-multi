@@ -12,13 +12,11 @@ from awesomeversion.exceptions import (
     AwesomeVersionCompareException,
     AwesomeVersionStrategyException,
 )
-from homeassistant.components.modbus.connection import async_get_connection_info
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
-from modbus_connection import ModbusTcpParams
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
     IllegalDataValueError,
@@ -66,7 +64,7 @@ from .const import (
     RetrySettings,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, get_connection_mode
+from .helpers import float_to_hex, get_connection_mode, other_modbus_holders
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -553,24 +551,6 @@ class SolarEdgeModbusMultiHub:
 
         self.initalized = True
 
-    def _other_holders(self) -> set[str]:
-        """Return the domains of other integrations sharing this connection.
-
-        The modbus integration lists the config entries holding units on each
-        device but not the link's timeout, so another holder is the closest
-        sign that a long timeout may be forced on us.
-        """
-        endpoint = ModbusTcpParams(host=self._host, port=self._port).endpoint
-        domains = set()
-        for info in async_get_connection_info(self._hass):
-            if info.endpoint != endpoint:
-                continue
-            for entry_id in info.units:
-                entry = self._hass.config_entries.async_get_entry(entry_id)
-                if entry is not None and entry.domain != DOMAIN:
-                    domains.add(entry.domain)
-        return domains
-
     def _warn_if_shared(self) -> None:
         """Raise a repair issue when another integration holds our connection.
 
@@ -581,7 +561,7 @@ class SolarEdgeModbusMultiHub:
         if not isinstance(self.connection, SharedUnits):
             return
 
-        if not (domains := self._other_holders()):
+        if not (domains := other_modbus_holders(self._hass, self._host, self._port)):
             return
 
         ir.async_create_issue(
