@@ -1,16 +1,19 @@
 """Tests for zeroconf/mDNS discovery in config_flow.py."""
 
+import asyncio
 from ipaddress import ip_address
 import socket
 from unittest.mock import AsyncMock, patch
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.data_entry_flow import UnknownFlow
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN
+from custom_components.solaredge_modbus_multi.scanner import ScannerConnectionError
 
 DISCOVERY_INFO = ZeroconfServiceInfo(
     ip_address=ip_address("192.168.1.50"),
@@ -24,15 +27,12 @@ DISCOVERY_INFO = ZeroconfServiceInfo(
 
 
 @pytest.fixture(autouse=True)
-def mock_port_open():
-    """Assume the discovered port is reachable unless a test overrides this.
-
-    Real discovery checks the port before offering the device up for setup.
-    """
+def mock_scan():
+    """Scan finds inverters 1 and 2 unless a test overrides this."""
     with patch(
         "custom_components.solaredge_modbus_multi.config_flow."
-        "SolaredgeModbusMultiConfigFlow._async_port_open",
-        AsyncMock(return_value=True),
+        "SolaredgeModbusMultiConfigFlow._async_scan_devices",
+        AsyncMock(return_value=[1, 2]),
     ) as mock:
         yield mock
 
@@ -231,33 +231,148 @@ async def test_zeroconf_discovery_does_not_resolve_dns_for_mismatched_ip(
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
-async def test_zeroconf_discovery_aborts_if_port_not_open(hass, mock_port_open):
-    """A follower inverter may advertise mDNS without a reachable port.
+async def test_zeroconf_discovery_withdrawn_if_scan_finds_nothing(hass, mock_scan):
+    """A device that is unreachable or has no inverters is not offered.
 
-    It may not expose its own Modbus/TCP port - see issue #1084.
+    A follower inverter may advertise mDNS without a reachable port - see
+    issue #1084.
     """
-    mock_port_open.return_value = False
+    mock_scan.return_value = ScannerConnectionError("no route")
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_ZEROCONF},
         data=DISCOVERY_INFO,
     )
+    await hass.async_block_till_done()
 
-    assert result["type"] == "abort"
-    assert result["reason"] == "cannot_connect"
-    mock_port_open.assert_awaited_once_with("192.168.1.50", 1502)
+    with pytest.raises(UnknownFlow):
+        hass.config_entries.flow.async_get(result["flow_id"])
+    assert not hass.config_entries.flow.async_progress_by_handler(DOMAIN)
+
+
+async def _start_and_confirm(hass):
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_ZEROCONF},
+        data=DISCOVERY_INFO,
+    )
+    return await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"name": "SolarEdge"}
+    )
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
-async def test_zeroconf_discovery_probes_before_confirm(hass, mock_port_open):
-    """The port probe should run before the device is offered for setup."""
+async def test_zeroconf_scan_starts_at_discovery(hass, mock_scan):
+    """The scan starts in the background before the user confirms."""
+    await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_ZEROCONF},
+        data=DISCOVERY_INFO,
+    )
+    await hass.async_block_till_done()
+
+    mock_scan.assert_awaited_once_with({CONF_HOST: "192.168.1.50", CONF_PORT: 1502})
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_select_offers_found_inverters(hass):
+    """Found inverters are offered for setup, all selected by default."""
+    await asyncio.sleep(0)
+    result = await _start_and_confirm(hass)
+    if result["type"] == "progress":
+        await hass.async_block_till_done()
+        result = await hass.config_entries.flow.async_configure(result["flow_id"])
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "zeroconf_select"
+    assert result["data_schema"]({}) == {"device_list": ["1", "2"]}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"device_list": ["2"]}
+    )
+    assert result["step_id"] == "features_info"
+
+    with patch(
+        "custom_components.solaredge_modbus_multi.async_setup_entry",
+        AsyncMock(return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+    assert result["type"] == "create_entry"
+    assert result["title"] == "SolarEdge"
+    assert result["data"] == {
+        "name": "SolarEdge",
+        CONF_HOST: "192.168.1.50",
+        CONF_PORT: 1502,
+        "device_list": [2],
+    }
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_aborts_if_no_inverters_found(hass, mock_scan):
+    """A scan that ends while the user waits on it ends the flow with a reason."""
+    release = asyncio.Event()
+
+    async def scan(_):
+        await release.wait()
+        return []
+
+    mock_scan.side_effect = scan
+
+    result = await _start_and_confirm(hass)
+    assert result["type"] == "progress"
+
+    release.set()
+    await hass.async_block_till_done()
+    result = await hass.config_entries.flow.async_configure(result["flow_id"])
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "no_inverters_found"
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_aborts_if_scan_failed(hass, mock_scan):
+    """A scan that ends while the user waits on it ends the flow with a reason."""
+    release = asyncio.Event()
+
+    async def scan(_):
+        await release.wait()
+        return ScannerConnectionError("no route")
+
+    mock_scan.side_effect = scan
+
+    result = await _start_and_confirm(hass)
+    assert result["type"] == "progress"
+
+    release.set()
+    await hass.async_block_till_done()
+    result = await hass.config_entries.flow.async_configure(result["flow_id"])
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "scan_failed"
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_zeroconf_removing_flow_cancels_scan(hass, mock_scan):
+    """Dismissing the discovery stops the background scan."""
+    started = asyncio.Event()
+    cancelled = asyncio.Event()
+
+    async def slow_scan(_):
+        started.set()
+        try:
+            await asyncio.sleep(3600)
+        except asyncio.CancelledError:
+            cancelled.set()
+            raise
+
+    mock_scan.side_effect = slow_scan
+
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_ZEROCONF},
         data=DISCOVERY_INFO,
     )
-
-    mock_port_open.assert_awaited_once_with("192.168.1.50", 1502)
-    assert result["type"] == "form"
-    assert result["step_id"] == "zeroconf_confirm"
+    await started.wait()
+    hass.config_entries.flow.async_abort(result["flow_id"])
+    await asyncio.wait_for(cancelled.wait(), timeout=1)
