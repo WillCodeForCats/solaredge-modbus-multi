@@ -9,7 +9,6 @@ single TCP connection.
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable
 from contextlib import AsyncExitStack
 import logging
@@ -194,13 +193,8 @@ class SolarEdgeDeviceScanner:
             for attempt in range(1, self._scan_retries + 1):
                 _LOGGER.debug("Scanning ID: %s ...", device_id)
                 try:
-                    # The link's timeout is the highest any holder asked for and
-                    # a unit can only raise it, so it may be far longer than
-                    # ours. Our own deadline keeps a silent ID from waiting out
-                    # another integration's.
-                    registers = await asyncio.wait_for(
-                        unit.read_holding_registers(SIGNATURE_ADDRESS, len(SIGNATURE)),
-                        timeout=timeout,
+                    registers = await unit.read_holding_registers(
+                        SIGNATURE_ADDRESS, len(SIGNATURE)
                     )
 
                 except (GatewayPathUnavailableError, GatewayTargetError):
@@ -214,7 +208,7 @@ class SolarEdgeDeviceScanner:
                     )
                     return self.FOUND
 
-                except (ModbusTimeoutError, TimeoutError) as err:
+                except ModbusTimeoutError as err:
                     # A connect timeout is also a timeout, so ask the unit
                     # whether the link ever came up.
                     link_failed = not unit.connected
