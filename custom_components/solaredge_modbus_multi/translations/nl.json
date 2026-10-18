@@ -151,9 +151,9 @@
       "title": "Ongeldige omvormer-apparaat-ID",
       "description": "Omvormer-apparaat-ID {device_id} op {host} reageert niet of is geen geldige SolarEdge-omvormer. Deze is overgeslagen. Als het apparaat is vervangen of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Controleer anders het apparaat en de Modbus/TCP-verbinding."
     },
-    "shared_connection_slow": {
-      "title": "Gedeelde Modbus-verbinding is traag",
-      "description": "Het instellen of lezen van {host} duurt veel langer dan verwacht. Een andere integratie die dezelfde omvormer gebruikt, zoals de ingebouwde SolarEdge Modbus-integratie, houdt waarschijnlijk de gedeelde verbinding bezet. Dit kan leiden tot trage of gemiste updates.\n\nSchakel de andere integratie voor deze omvormer uit en start Home Assistant daarna opnieuw op. De gedeelde verbinding behoudt de lange time-out totdat ze opnieuw wordt geopend. Als je beide nodig hebt, kies dan „Directe verbinding gebruiken” als Modbus-verbinding in de opties van deze integratie, zodat deze een directe verbinding gebruikt. Zie de README voor meer informatie."
+    "shared_connection_other_integration": {
+      "title": "Een andere integratie deelt deze omvormer",
+      "description": "De integratie(s) {integrations} gebruiken dezelfde Modbus-verbinding met {host}. Als een daarvan een lange time-out aanvraagt, zoals de ingebouwde SolarEdge Modbus-integratie (30 seconden), geldt die time-out voor elk verzoek op de gedeelde verbinding, ook voor die van deze integratie. Dit kan leiden tot trage of gemiste updates en wordt niet veroorzaakt door deze integratie.\n\nDe lange time-out blijft gelden tot Home Assistant opnieuw wordt gestart, ook als de andere integratie wordt uitgeschakeld of verwijderd. Om beide te gebruiken, kies je in de opties van deze integratie bij ‘Modbus-verbinding’ de optie ‘Directe verbinding gebruiken’. Zie de README voor details."
     },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",

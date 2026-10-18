@@ -151,9 +151,9 @@
       "title": "Ugyldigt enheds-ID for inverter",
       "description": "Inverterens enheds-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-inverter. Den er blevet sprunget over. Hvis enheden er blevet udskiftet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Kontrollér ellers enheden og Modbus/TCP-forbindelsen."
     },
-    "shared_connection_slow": {
-      "title": "Delt Modbus-forbindelse er langsom",
-      "description": "Opsætning eller læsning fra {host} tager meget længere tid end forventet. En anden integration, der bruger den samme inverter, f.eks. den indbyggede SolarEdge Modbus-integration, holder sandsynligvis den delte forbindelse optaget. Det kan give langsomme eller manglende opdateringer.\n\nDeaktiver den anden integration for denne inverter, og genstart derefter Home Assistant. Den delte forbindelse beholder den lange timeout, indtil den åbnes igen. Hvis du har brug for begge, skal du vælge „Brug direkte forbindelse“ som Modbus-forbindelse i denne integrations indstillinger, så den bruger en direkte forbindelse. Se README for flere oplysninger."
+    "shared_connection_other_integration": {
+      "title": "En anden integration deler denne inverter",
+      "description": "Integrationerne {integrations} bruger den samme Modbus-forbindelse til {host}. Hvis en af dem beder om en lang timeout, f.eks. den indbyggede SolarEdge Modbus-integration (30 sekunder), gælder den timeout for alle forespørgsler på den delte forbindelse, også denne integrations. Det kan give langsomme eller manglende opdateringer, og det skyldes ikke denne integration.\n\nDen lange timeout bliver, indtil Home Assistant genstarter, også selvom den anden integration deaktiveres eller fjernes. Hvis du vil bruge begge, skal du under „Modbus-forbindelse“ i denne integrations indstillinger vælge „Brug direkte forbindelse“. Se README for detaljer."
     },
     "detect_timeout_gpc": {
       "title": "Timeout for global dynamisk effektstyring (Inverter {device_id})",

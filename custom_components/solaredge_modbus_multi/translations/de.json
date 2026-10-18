@@ -151,9 +151,9 @@
       "title": "Ungültige Wechselrichter-Geräte-ID",
       "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
     },
-    "shared_connection_slow": {
-      "title": "Gemeinsame Modbus-Verbindung ist langsam",
-      "description": "Die Einrichtung oder das Lesen von {host} dauert viel länger als erwartet. Eine andere Integration, die denselben Wechselrichter verwendet, etwa die integrierte SolarEdge-Modbus-Integration, blockiert wahrscheinlich die gemeinsame Verbindung. Das kann zu langsamen oder ausgelassenen Aktualisierungen führen.\n\nDeaktivieren Sie die andere Integration für diesen Wechselrichter und starten Sie anschließend Home Assistant neu. Die gemeinsame Verbindung behält das lange Zeitlimit, bis sie erneut geöffnet wird. Wenn Sie beide benötigen, wählen Sie in den Optionen dieser Integration als Modbus-Verbindung „Direkte Verbindung verwenden“, damit sie eine direkte Verbindung nutzt. Weitere Informationen finden Sie in der README."
+    "shared_connection_other_integration": {
+      "title": "Eine andere Integration teilt sich diesen Wechselrichter",
+      "description": "Die Integration(en) {integrations} verwenden dieselbe Modbus-Verbindung zu {host}. Wenn eine davon ein langes Timeout anfordert, etwa die integrierte SolarEdge-Modbus-Integration (30 Sekunden), gilt dieses Timeout für jede Anfrage auf der gemeinsamen Verbindung, auch für die dieser Integration. Das kann zu langsamen oder ausbleibenden Aktualisierungen führen und wird nicht von dieser Integration verursacht.\n\nDas lange Timeout bleibt bis zum Neustart von Home Assistant bestehen, auch wenn die andere Integration deaktiviert oder entfernt wird. Um beide zu betreiben, wähle in den Optionen dieser Integration bei „Modbus-Verbindung“ die Einstellung „Direkte Verbindung verwenden“. Details stehen in der README."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",

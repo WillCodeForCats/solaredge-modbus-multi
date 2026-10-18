@@ -151,9 +151,9 @@
       "title": "ID de dispositivo del inversor no válido",
       "description": "El ID de dispositivo del inversor {device_id} en {host} no responde o no es un inversor SolarEdge válido. Se ha omitido. Si el dispositivo fue reemplazado o su ID cambió, actualice la Lista de ID de dispositivo de los inversores en la configuración del hub. De lo contrario, verifique el dispositivo y la conexión Modbus/TCP."
     },
-    "shared_connection_slow": {
-      "title": "La conexión Modbus compartida es lenta",
-      "description": "La configuración o la lectura de {host} está tardando mucho más de lo esperado. Es probable que otra integración que usa el mismo inversor, como la integración integrada de SolarEdge Modbus, esté ocupando la conexión compartida. Esto puede provocar actualizaciones lentas o perdidas.\n\nDesactive la otra integración para este inversor y reinicie Home Assistant. La conexión compartida conserva el tiempo de espera largo hasta que se vuelve a abrir. Si necesita ambas, elija «Usar conexión directa» como Conexión Modbus en las opciones de esta integración para que use una conexión directa. Consulte el README para más información."
+    "shared_connection_other_integration": {
+      "title": "Otra integración comparte este inversor",
+      "description": "Las integraciones {integrations} usan la misma conexión Modbus con {host}. Si una de ellas solicita un tiempo de espera largo, como la integración SolarEdge Modbus incorporada (30 segundos), ese tiempo se aplica a todas las solicitudes de la conexión compartida, incluidas las de esta integración. Esto puede causar actualizaciones lentas o perdidas, y no lo causa esta integración.\n\nEl tiempo de espera largo se mantiene hasta que se reinicie Home Assistant, aunque la otra integración se desactive o se elimine. Para usar ambas, elige «Usar conexión directa» en «Conexión Modbus» en las opciones de esta integración. Consulta el README para más detalles."
     },
     "detect_timeout_gpc": {
       "title": "Tiempo de espera agotado del control dinámico de energía global (Inversor {device_id})",
