@@ -6,18 +6,19 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 import logging
-import time
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
     AwesomeVersionCompareException,
     AwesomeVersionStrategyException,
 )
+from homeassistant.components.modbus.connection import async_get_connection_info
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
+from modbus_connection import ModbusTcpParams
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
     IllegalDataValueError,
@@ -55,7 +56,6 @@ from .const import (
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
     REFRESH_WATCHDOG,
-    SLOW_REFRESH,
     STATUS_VENDOR4_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
@@ -553,44 +553,54 @@ class SolarEdgeModbusMultiHub:
 
         self.initalized = True
 
-    def _warn_if_slow(self, what: str, started: float) -> None:
-        """Warn when a setup or refresh took long enough to be held up."""
-        elapsed = time.monotonic() - started
-        if elapsed <= SLOW_REFRESH:
+    def _other_holders(self) -> set[str]:
+        """Return the domains of other integrations sharing this connection.
+
+        The modbus integration lists the config entries holding units on each
+        device but not the link's timeout, so another holder is the closest
+        sign that a long timeout may be forced on us.
+        """
+        endpoint = ModbusTcpParams(host=self._host, port=self._port).endpoint
+        domains = set()
+        for info in async_get_connection_info(self._hass):
+            if info.endpoint != endpoint:
+                continue
+            for entry_id in info.units:
+                entry = self._hass.config_entries.async_get_entry(entry_id)
+                if entry is not None and entry.domain != DOMAIN:
+                    domains.add(entry.domain)
+        return domains
+
+    def _warn_if_shared(self) -> None:
+        """Raise a repair issue when another integration holds our connection.
+
+        The issue stays after the other integration unloads, because the long
+        timeout it asked for stays until Home Assistant restarts. It is cleared
+        when this entry sets up again.
+        """
+        if not isinstance(self.connection, SharedUnits):
             return
 
-        shared = isinstance(self.connection, SharedUnits)
-        _LOGGER.warning(
-            "%s took %.0f seconds.%s",
-            what,
-            elapsed,
-            (
-                " Another integration sharing this connection, such as the "
-                "built-in SolarEdge Modbus integration, may be holding it up. "
-                "Disable the other integration for this inverter, then restart "
-                "Home Assistant to clear the long timeout."
-                if shared
-                else ""
-            ),
-        )
+        if not (domains := self._other_holders()):
+            return
 
-        if shared:
-            # Cleared when the entry sets up again, so it stays while it keeps
-            # happening instead of coming and going with each fast refresh.
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                f"shared_connection_slow_{self._entry_id}",
-                is_fixable=False,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="shared_connection_slow",
-                translation_placeholders={"host": self.hub_host},
-                data={"entry_id": self._entry_id},
-            )
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            f"shared_connection_other_integration_{self._entry_id}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="shared_connection_other_integration",
+            translation_placeholders={
+                "host": self.hub_host,
+                "integrations": ", ".join(sorted(domains)),
+            },
+        )
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
-        started = time.monotonic()
+        # The other integration may set up after this one, so look every time.
+        self._warn_if_shared()
 
         if not self.initalized:
             try:
@@ -614,8 +624,6 @@ class SolarEdgeModbusMultiHub:
             ir.async_delete_issue(
                 self._hass, DOMAIN, f"check_configuration_{self._entry_id}"
             )
-
-            self._warn_if_slow("Setup", started)
 
             return True
 
@@ -653,8 +661,6 @@ class SolarEdgeModbusMultiHub:
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
             raise DataUpdateFailed(f"Timeout error: {e}") from e
-
-        self._warn_if_slow("Refresh", started)
 
         if self.close_after_polling:
             await self.connection.disconnect()

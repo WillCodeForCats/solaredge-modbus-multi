@@ -61,10 +61,6 @@ MESSAGE_SPACING = 0.1
 # Home Assistant allows for setting up a config entry.
 REFRESH_WATCHDOG = 240
 
-# Seconds a refresh may take before it is reported as slow. A healthy refresh
-# takes a second or two.
-SLOW_REFRESH = 60
-
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""

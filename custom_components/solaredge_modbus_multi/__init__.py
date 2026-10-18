@@ -237,8 +237,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ir.async_delete_issue(hass, DOMAIN, "check_configuration")
     ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
 
-    # Raised again while polling if the shared connection is still held up.
-    ir.async_delete_issue(hass, DOMAIN, f"shared_connection_slow_{entry.entry_id}")
+    # Raised again while polling if another shared connection is detected.
+    ir.async_delete_issue(
+        hass, DOMAIN, f"shared_connection_other_integration_{entry.entry_id}"
+    )
 
     hass.data[DOMAIN][entry.entry_id] = {
         "hub": solaredge_hub,
