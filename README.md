@@ -26,7 +26,7 @@ discovery and may not be supported by SolarEdge.
 - Polling frequency configuration option (1 to 86400 seconds).
 - Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
-- Can use the Home Assistant shared Modbus connection or a direct/own connection (advanced).
+- Can use the Home Assistant shared Modbus connection or a direct connection.
 - Informational sensor for device and its attributes
 - Supports status and error reporting sensors.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
@@ -77,21 +77,26 @@ Disabling the other integration does not shorten the timeout right away. The sha
 the highest timeout it was given until it is closed and reopened, so restart Home Assistant after
 disabling it.
 
+Scanning for inverters during setup uses the shared connection too, so while another integration has
+set a high timeout, even the fast scan can take a long time. If you know your inverter Device IDs, use
+the manual setup instead, which does not scan. Otherwise, if you can, disable the other integration and
+restart Home Assistant before adding SolarEdge Modbus Multi.
+
 If you want to run both, open the options of SolarEdge Modbus Multi and change the Modbus Connection.
 It has three choices:
 
 | Modbus Connection                                         | What it does                                                                                                                 |
 | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Use the Home Assistant shared Modbus connection (default) | Shares one Modbus/TCP connection with other integrations that talk to the same inverter.                                     |
-| Use own connection                                        | Opens a separate Modbus/TCP connection with its own timeout and message spacing, which other integrations cannot change.     |
-| Use own connection and close it after each poll           | Same as above, and also closes the connection after every poll so that the inverter is free for other clients between polls. |
+| Use direct connection                                     | Opens a separate Modbus/TCP connection with its own timeout and message spacing, which other integrations cannot change.     |
+| Use direct connection and close it after each poll        | Same as above, and also closes the connection after every poll so that the inverter is free for other clients between polls. |
 
 Closing after each poll relies on those other clients also closing their connections when idle: a client
 that holds its connection open between requests can keep the inverter's connection in use regardless.
 
-Using your own connection is an advanced option. It has worked alongside the built-in integration on the
-maintainer's system, but SolarEdge does not document support for more than one Modbus/TCP connection,
-so results may vary with your inverter and firmware.
+A direct connection has worked alongside the built-in integration on the maintainer's system, but
+SolarEdge does not document support for more than one Modbus/TCP connection, so results may vary with
+your inverter and firmware.
 
 ### Documentation
 

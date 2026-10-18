@@ -152,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Delt Modbus-forbindelse er langsom",
-      "description": "Opsætning eller læsning fra {host} tager meget længere tid end forventet. En anden integration, der bruger den samme inverter, f.eks. den indbyggede SolarEdge Modbus-integration, holder sandsynligvis den delte forbindelse optaget. Det kan give langsomme eller manglende opdateringer.\n\nDeaktiver den anden integration for denne inverter, og genstart derefter Home Assistant. Den delte forbindelse beholder den lange timeout, indtil den åbnes igen. Hvis du har brug for begge, skal du vælge „Brug egen forbindelse“ som Modbus-forbindelse i denne integrations indstillinger, så den bruger sin egen forbindelse. Se README for flere oplysninger."
+      "description": "Opsætning eller læsning fra {host} tager meget længere tid end forventet. En anden integration, der bruger den samme inverter, f.eks. den indbyggede SolarEdge Modbus-integration, holder sandsynligvis den delte forbindelse optaget. Det kan give langsomme eller manglende opdateringer.\n\nDeaktiver den anden integration for denne inverter, og genstart derefter Home Assistant. Den delte forbindelse beholder den lange timeout, indtil den åbnes igen. Hvis du har brug for begge, skal du vælge „Brug direkte forbindelse“ som Modbus-forbindelse i denne integrations indstillinger, så den bruger en direkte forbindelse. Se README for flere oplysninger."
     },
     "detect_timeout_gpc": {
       "title": "Timeout for global dynamisk effektstyring (Inverter {device_id})",
@@ -186,7 +186,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Indstillingen \"Hold Modbus-forbindelsen åben\" er erstattet",
-      "description": "Indstillingen \"Hold Modbus-forbindelsen åben\" bruges ikke længere. Denne integration deler nu forbindelsen fra modbus-integrationen. Hvis du selv vil styre forbindelsen, skal du angive `own_connection` og `close_after_polling` under `solaredge_modbus_multi` i `configuration.yaml`."
+      "description": "Indstillingen \"Hold Modbus-forbindelsen åben\" bruges ikke længere. Denne integration deler nu forbindelsen fra modbus-integrationen. Hvis du selv vil styre forbindelsen, skal du vælge „Brug direkte forbindelse“ eller „Brug direkte forbindelse og luk den efter hver aflæsning“ som Modbus-forbindelse i denne integrations indstillinger."
     }
   },
   "exceptions": {
@@ -198,8 +198,8 @@
     "connection_mode": {
       "options": {
         "shared": "Brug Home Assistants delte Modbus-forbindelse",
-        "own": "Brug egen forbindelse",
-        "own_close_after_polling": "Brug egen forbindelse og luk den efter hver aflæsning"
+        "own": "Brug direkte forbindelse",
+        "own_close_after_polling": "Brug direkte forbindelse og luk den efter hver aflæsning"
       }
     }
   }

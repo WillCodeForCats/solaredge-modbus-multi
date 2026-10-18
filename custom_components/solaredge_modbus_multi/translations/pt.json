@@ -152,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "A ligação Modbus partilhada está lenta",
-      "description": "A configuração ou a leitura de {host} está a demorar muito mais do que o esperado. Outra integração que utiliza o mesmo inversor, como a integração SolarEdge Modbus incorporada, provavelmente está a ocupar a ligação partilhada. Isto pode causar atualizações lentas ou perdidas.\n\nDesative a outra integração para este inversor e reinicie o Home Assistant. A ligação partilhada mantém o tempo limite longo até ser reaberta. Se precisar de ambas, escolha “Utilizar ligação própria” como Ligação Modbus nas opções desta integração para que utilize a sua própria ligação. Consulte o README para mais detalhes."
+      "description": "A configuração ou a leitura de {host} está a demorar muito mais do que o esperado. Outra integração que utiliza o mesmo inversor, como a integração SolarEdge Modbus incorporada, provavelmente está a ocupar a ligação partilhada. Isto pode causar atualizações lentas ou perdidas.\n\nDesative a outra integração para este inversor e reinicie o Home Assistant. A ligação partilhada mantém o tempo limite longo até ser reaberta. Se precisar de ambas, escolha “Utilizar ligação direta” como Ligação Modbus nas opções desta integração para que utilize uma ligação direta. Consulte o README para mais detalhes."
     },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controlo Dinâmico de Potência Global (Inversor {device_id})",
@@ -186,7 +186,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "A Opção Manter a Ligação Modbus Aberta Foi Substituída",
-      "description": "A opção \"Manter a Ligação Modbus Aberta\" já não é utilizada. Esta integração passa agora a partilhar a ligação da integração modbus. Para controlar a ligação por si, defina `own_connection` e `close_after_polling` em `solaredge_modbus_multi` no `configuration.yaml`."
+      "description": "A opção \"Manter a Ligação Modbus Aberta\" já não é utilizada. Esta integração passa agora a partilhar a ligação da integração modbus. Para controlar a ligação por si, escolha “Utilizar ligação direta” ou “Utilizar ligação direta e fechá-la após cada leitura” como Ligação Modbus nas opções desta integração."
     }
   },
   "exceptions": {
@@ -198,8 +198,8 @@
     "connection_mode": {
       "options": {
         "shared": "Utilizar a ligação Modbus partilhada do Home Assistant",
-        "own": "Utilizar ligação própria",
-        "own_close_after_polling": "Utilizar ligação própria e fechá-la após cada leitura"
+        "own": "Utilizar ligação direta",
+        "own_close_after_polling": "Utilizar ligação direta e fechá-la após cada leitura"
       }
     }
   }

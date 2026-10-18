@@ -209,11 +209,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     mode = get_connection_mode(entry.options)
 
     if mode != ConnectionMode.SHARED:
-        # Optional: we can open and own the connection instead of sharing
+        # Optional: we can open a direct connection instead of sharing
         # one from the core modbus integration.
         from modbus_connection.tmodbus import ModbusConnection  # noqa: PLC0415
 
-        _LOGGER.warning("Using own modbus connection")
+        _LOGGER.warning("Using direct modbus connection")
         connection = ModbusConnection(
             params,
             timeout=request_timeout,
@@ -408,7 +408,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         _LOGGER.debug("Migrating from version 2.3")
 
         # close_after_polling became part of the connection mode option, which
-        # only has it with an own connection.
+        # only has it with a direct connection.
         update_options = {**config_entry.options}
 
         if update_options.pop("close_after_polling", False):

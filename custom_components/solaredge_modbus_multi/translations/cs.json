@@ -152,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Sdílené připojení Modbus je pomalé",
-      "description": "Nastavení nebo čtení z {host} trvá mnohem déle, než se očekávalo. Jiná integrace používající stejný střídač, například vestavěná integrace SolarEdge Modbus, pravděpodobně blokuje sdílené připojení. To může způsobit pomalé nebo vynechané aktualizace.\n\nZakažte pro tento střídač druhou integraci a poté restartujte Home Assistant. Sdílené připojení si dlouhý časový limit ponechá, dokud není znovu otevřeno. Pokud potřebujete obě, zvolte v nastavení této integrace jako Připojení Modbus možnost „Použít vlastní připojení“, aby tato integrace používala vlastní připojení. Podrobnosti najdete v souboru README."
+      "description": "Nastavení nebo čtení z {host} trvá mnohem déle, než se očekávalo. Jiná integrace používající stejný střídač, například vestavěná integrace SolarEdge Modbus, pravděpodobně blokuje sdílené připojení. To může způsobit pomalé nebo vynechané aktualizace.\n\nZakažte pro tento střídač druhou integraci a poté restartujte Home Assistant. Sdílené připojení si dlouhý časový limit ponechá, dokud není znovu otevřeno. Pokud potřebujete obě, zvolte v nastavení této integrace jako Připojení Modbus možnost „Použít přímé připojení“, aby tato integrace používala přímé připojení. Podrobnosti najdete v souboru README."
     },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",
@@ -186,7 +186,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Možnost „Udržovat připojení Modbus otevřené“ byla nahrazena",
-      "description": "Možnost „Udržovat připojení Modbus otevřené“ se již nepoužívá. Tato integrace nyní sdílí připojení integrace modbus. Chcete-li připojení řídit sami, nastavte `own_connection` a `close_after_polling` v části `solaredge_modbus_multi` v souboru `configuration.yaml`."
+      "description": "Možnost „Udržovat připojení Modbus otevřené“ se již nepoužívá. Tato integrace nyní sdílí připojení integrace modbus. Chcete-li připojení řídit sami, zvolte v nastavení této integrace jako Připojení Modbus možnost „Použít přímé připojení“ nebo „Použít přímé připojení a po každém dotazu ho zavřít“."
     }
   },
   "exceptions": {
@@ -198,8 +198,8 @@
     "connection_mode": {
       "options": {
         "shared": "Použít sdílené připojení Modbus služby Home Assistant",
-        "own": "Použít vlastní připojení",
-        "own_close_after_polling": "Použít vlastní připojení a po každém dotazu ho zavřít"
+        "own": "Použít přímé připojení",
+        "own_close_after_polling": "Použít přímé připojení a po každém dotazu ho zavřít"
       }
     }
   }

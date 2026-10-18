@@ -152,7 +152,7 @@
     },
     "shared_connection_slow": {
       "title": "Jaettu Modbus-yhteys on hidas",
-      "description": "Laitteen {host} käyttöönotto tai lukeminen kestää odotettua paljon pidempään. Toinen samaa vaihtosuuntaajaa käyttävä integraatio, kuten sisäänrakennettu SolarEdge Modbus -integraatio, pitää todennäköisesti jaettua yhteyttä varattuna. Tämä voi aiheuttaa hitaita tai väliin jääviä päivityksiä.\n\nPoista toinen integraatio käytöstä tältä vaihtosuuntaajalta ja käynnistä sen jälkeen Home Assistant uudelleen. Jaettu yhteys säilyttää pitkän aikakatkaisun, kunnes se avataan uudelleen. Jos tarvitset molempia, valitse tämän integraation asetuksissa Modbus-yhteydeksi ”Käytä omaa yhteyttä”, jolloin se käyttää omaa yhteyttään. Lisätietoja on README-tiedostossa."
+      "description": "Laitteen {host} käyttöönotto tai lukeminen kestää odotettua paljon pidempään. Toinen samaa vaihtosuuntaajaa käyttävä integraatio, kuten sisäänrakennettu SolarEdge Modbus -integraatio, pitää todennäköisesti jaettua yhteyttä varattuna. Tämä voi aiheuttaa hitaita tai väliin jääviä päivityksiä.\n\nPoista toinen integraatio käytöstä tältä vaihtosuuntaajalta ja käynnistä sen jälkeen Home Assistant uudelleen. Jaettu yhteys säilyttää pitkän aikakatkaisun, kunnes se avataan uudelleen. Jos tarvitset molempia, valitse tämän integraation asetuksissa Modbus-yhteydeksi ”Käytä suoraa yhteyttä”, jolloin se käyttää suoraa yhteyttä. Lisätietoja on README-tiedostossa."
     },
     "detect_timeout_gpc": {
       "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",
@@ -186,7 +186,7 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Pidä Modbus-yhteys avoinna -asetus korvattu",
-      "description": "Asetusta \"Pidä Modbus-yhteys avoinna\" ei enää käytetä. Tämä integraatio jakaa nyt modbus-integraation yhteyden. Jos haluat hallita yhteyttä itse, aseta `own_connection` ja `close_after_polling` kohtaan `solaredge_modbus_multi` tiedostossa `configuration.yaml`."
+      "description": "Asetusta \"Pidä Modbus-yhteys avoinna\" ei enää käytetä. Tämä integraatio jakaa nyt modbus-integraation yhteyden. Jos haluat hallita yhteyttä itse, valitse tämän integraation asetuksissa Modbus-yhteydeksi ”Käytä suoraa yhteyttä” tai ”Käytä suoraa yhteyttä ja sulje se jokaisen kyselyn jälkeen”."
     }
   },
   "exceptions": {
@@ -198,8 +198,8 @@
     "connection_mode": {
       "options": {
         "shared": "Käytä Home Assistantin jaettua Modbus-yhteyttä",
-        "own": "Käytä omaa yhteyttä",
-        "own_close_after_polling": "Käytä omaa yhteyttä ja sulje se jokaisen kyselyn jälkeen"
+        "own": "Käytä suoraa yhteyttä",
+        "own_close_after_polling": "Käytä suoraa yhteyttä ja sulje se jokaisen kyselyn jälkeen"
       }
     }
   }

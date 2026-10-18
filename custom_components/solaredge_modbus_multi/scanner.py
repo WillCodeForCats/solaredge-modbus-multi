@@ -188,8 +188,6 @@ class SolarEdgeDeviceScanner:
         async with async_get_temporary_unit(
             self._hass, self._params, device_id
         ) as unit:
-            unit.require_timeout(timeout)
-
             link_failed = False
 
             for attempt in range(1, self._scan_retries + 1):
