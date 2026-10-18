@@ -1729,7 +1729,15 @@ class SolarEdgeBattery:
                 self.inverter_unit_id,
                 self.base_offset,
             )
-            async with asyncio.timeout(self.hub.request_timeout):
+            # On a shared connection the request can wait in line behind other
+            # consumers, which request_timeout does not account for. There the
+            # per-request timeouts and the setup watchdog bound the probe.
+            probe_timeout = (
+                None
+                if isinstance(self.hub.connection, SharedUnits)
+                else self.hub.request_timeout
+            )
+            async with asyncio.timeout(probe_timeout):
                 # only try battery once during init, otherwise this takes too long
                 await self.hub.component_update(
                     self.inverter_unit_id, self.battery_info
