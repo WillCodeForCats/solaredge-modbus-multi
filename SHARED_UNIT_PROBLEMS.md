@@ -147,3 +147,48 @@ fight over it.
   request reopens it, which closes it for every unit on that connection.
 - **Nothing to close on unload.** The `modbus` integration owns the connection
   and closes it behind the last entry holding a unit.
+
+## 7. Reducing the bad first experience (ideas, not implemented)
+
+_Written by Claude Code as a discussion of options; nothing here is built yet._
+
+The main concern is that users try the built-in SolarEdge Modbus integration,
+which Home Assistant now offers to everyone by default, or find this
+integration later. Merely trying the built-in one raises the shared timeout
+(section 2), and the user then sees slow or missing data from this integration
+and blames it, although the cause is outside it.
+
+What exists today: the README warning, and the "Shared Modbus Connection Is
+Slow" repair issue, whose text already suggests _Use direct connection_.
+
+Gaps:
+
+- The repair issue appears only after a refresh has already been slow
+  (`_warn_if_slow` in `hub.py`), so the user has already had the bad
+  experience.
+- It is `is_fixable=False`, so the user must find the options page alone.
+- Nothing detects the cause, a shared timeout far above ours, directly.
+- The README warning is aimed at people who already know about the conflict.
+
+Options, least to most invasive:
+
+1. **Say it is not a fault of this integration.** In the log warning and the
+   repair text, state that the shared connection is running at a long timeout
+   because another integration asked for it. Cheap, and it addresses the blame.
+2. **Make the repair fixable** with a one-click switch to direct connection, so
+   the user does not need to understand the cause. Direct connections have a
+   cost of their own (an inverter accepts few TCP connections at once), so this
+   needs a decision before it becomes the suggested fix.
+3. **Detect the cause up front.** If the shared connection's timeout is already
+   far above ours at setup, raise the repair immediately instead of waiting
+   for slow refreshes. Not checked: whether `modbus_connection` exposes the
+   effective timeout.
+4. **Make direct the default for new installs.** Avoids the problem for people
+   who add this integration after the built-in one, but reverses the decision
+   to use the shared connection by default.
+5. **Move the README warning higher** with a plain-language heading such as
+   "Installed the built-in SolarEdge integration first?", so people find it by
+   symptom.
+
+Recommended low-risk set: 1, 3 and 5. Option 2 follows if steering users to
+direct mode is acceptable.
