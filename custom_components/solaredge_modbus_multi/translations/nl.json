@@ -21,6 +21,13 @@
           "name": "Sensor prefix"
         }
       },
+      "zeroconf_select": {
+        "title": "Gevonden omvormers",
+        "description": "Selecteer de omvormers die u wilt toevoegen.",
+        "data": {
+          "device_list": "Apparaat-ID's van omvormers"
+        }
+      },
       "manual": {
         "title": "Handmatige Modbus-configuratie",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
       "invalid_range_lte": "De start-ID in een bereik moet kleiner zijn dan of gelijk zijn aan de eind-ID.",
       "empty_device_id": "De ID-lijst bevat een lege of ongedefinieerde waarde.",
-      "scan_failed": "Scannen naar omvormers mislukt. Controleer uw verbinding en probeer het opnieuw."
+      "scan_failed": "Scannen naar omvormers mislukt. Controleer uw verbinding en probeer het opnieuw.",
+      "no_inverter_selected": "Selecteer minstens één omvormer."
     },
     "abort": {
       "already_configured": "Host en poort zijn al geconfigureerd in een andere hub.",
       "cannot_connect": "Kan geen verbinding maken met het gevonden apparaat.",
+      "scan_failed": "Scannen naar omvormers mislukt. Controleer uw verbinding en probeer het opnieuw.",
+      "no_inverters_found": "Er zijn geen SolarEdge-omvormers gevonden op het ontdekte adres.",
       "reconfigure_successful": "De herconfiguratie was succesvol"
     },
     "progress": {

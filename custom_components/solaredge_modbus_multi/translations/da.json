@@ -21,6 +21,13 @@
           "name": "Sensorpræfiks"
         }
       },
+      "zeroconf_select": {
+        "title": "Fundne invertere",
+        "description": "Vælg de invertere, der skal tilføjes.",
+        "data": {
+          "device_list": "Inverterens enheds-ID'er"
+        }
+      },
       "manual": {
         "title": "Manuel Modbus-konfiguration",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "Posten ligner et interval, men kun ét '-' pr. interval er tilladt.",
       "invalid_range_lte": "Start-ID i et interval skal være mindre end eller lig med slut-ID.",
       "empty_device_id": "ID-listen indeholder en tom eller udefineret værdi.",
-      "scan_failed": "Kunne ikke scanne efter invertere. Kontroller din forbindelse, og prøv igen."
+      "scan_failed": "Kunne ikke scanne efter invertere. Kontroller din forbindelse, og prøv igen.",
+      "no_inverter_selected": "Vælg mindst én inverter."
     },
     "abort": {
       "already_configured": "Vært og port er allerede konfigureret i en anden hub.",
       "cannot_connect": "Kunne ikke oprette forbindelse til den fundne enhed.",
+      "scan_failed": "Kunne ikke scanne efter invertere. Kontroller din forbindelse, og prøv igen.",
+      "no_inverters_found": "Der blev ikke fundet nogen SolarEdge-invertere på den fundne adresse.",
       "reconfigure_successful": "Genkonfiguration lykkedes"
     },
     "progress": {

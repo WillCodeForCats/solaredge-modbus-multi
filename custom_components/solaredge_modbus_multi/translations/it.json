@@ -21,6 +21,13 @@
           "name": "Prefisso sensore"
         }
       },
+      "zeroconf_select": {
+        "title": "Inverter trovati",
+        "description": "Seleziona gli inverter da aggiungere.",
+        "data": {
+          "device_list": "ID dispositivo degli inverter"
+        }
+      },
       "manual": {
         "title": "Configurazione Modbus manuale",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
       "invalid_range_lte": "L'ID iniziale in un intervallo deve essere inferiore o uguale all'ID finale.",
       "empty_device_id": "L'elenco ID contiene un valore vuoto o non definito.",
-      "scan_failed": "Scansione degli inverter non riuscita. Verificare la connessione e riprovare."
+      "scan_failed": "Scansione degli inverter non riuscita. Verificare la connessione e riprovare.",
+      "no_inverter_selected": "Seleziona almeno un inverter."
     },
     "abort": {
       "already_configured": "L'host e la porta sono già configurati in un altro hub.",
       "cannot_connect": "Impossibile connettersi al dispositivo rilevato.",
+      "scan_failed": "Scansione degli inverter non riuscita. Verificare la connessione e riprovare.",
+      "no_inverters_found": "Nessun inverter SolarEdge trovato all'indirizzo rilevato.",
       "reconfigure_successful": "La riconfigurazione ha avuto successo"
     },
     "progress": {

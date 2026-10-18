@@ -21,6 +21,13 @@
           "name": "Prefix Senzor"
         }
       },
+      "zeroconf_select": {
+        "title": "Invertoare găsite",
+        "description": "Selectați invertoarele de adăugat.",
+        "data": {
+          "device_list": "ID-urile dispozitivelor invertoarelor"
+        }
+      },
       "manual": {
         "title": "Configurare Manuală Modbus",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "Intrarea pare a fi un interval, dar este permis doar un singur '-' per interval.",
       "invalid_range_lte": "ID-ul de început al unui interval trebuie să fie mai mic sau egal cu ID-ul de sfârșit.",
       "empty_device_id": "Lista de ID-uri conține o valoare goală sau nedefinită.",
-      "scan_failed": "Scanarea invertoarelor a eșuat. Verificați conexiunea și încercați din nou."
+      "scan_failed": "Scanarea invertoarelor a eșuat. Verificați conexiunea și încercați din nou.",
+      "no_inverter_selected": "Selectați cel puțin un invertor."
     },
     "abort": {
       "already_configured": "Gazda și portul sunt deja configurate într-un alt hub.",
       "cannot_connect": "Nu s-a putut conecta la dispozitivul descoperit.",
+      "scan_failed": "Scanarea invertoarelor a eșuat. Verificați conexiunea și încercați din nou.",
+      "no_inverters_found": "Nu a fost găsit niciun invertor SolarEdge la adresa descoperită.",
       "reconfigure_successful": "Reconfigurarea a fost efectuată cu succes"
     },
     "progress": {

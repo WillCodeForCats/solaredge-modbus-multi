@@ -21,6 +21,13 @@
           "name": "传感器前缀"
         }
       },
+      "zeroconf_select": {
+        "title": "已找到的逆变器",
+        "description": "选择要添加的逆变器。",
+        "data": {
+          "device_list": "逆变器设备 ID"
+        }
+      },
       "manual": {
         "title": "手动 Modbus 配置",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "该条目看起来像一个范围，但每个范围只允许一个“-”。",
       "invalid_range_lte": "范围的起始 ID 必须小于或等于结束 ID。",
       "empty_device_id": "ID 列表包含空值或未定义的值。",
-      "scan_failed": "扫描逆变器失败。请检查您的连接并重试。"
+      "scan_failed": "扫描逆变器失败。请检查您的连接并重试。",
+      "no_inverter_selected": "请至少选择一台逆变器。"
     },
     "abort": {
       "already_configured": "主机和端口已在另一个集线器中配置。",
       "cannot_connect": "无法连接到发现的设备。",
+      "scan_failed": "扫描逆变器失败。请检查您的连接并重试。",
+      "no_inverters_found": "在发现的地址上未找到 SolarEdge 逆变器。",
       "reconfigure_successful": "重新配置成功"
     },
     "progress": {

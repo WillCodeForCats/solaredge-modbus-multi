@@ -21,6 +21,13 @@
           "name": "Prefix du capteur"
         }
       },
+      "zeroconf_select": {
+        "title": "Onduleurs trouvés",
+        "description": "Sélectionnez les onduleurs à ajouter.",
+        "data": {
+          "device_list": "ID d'appareil des onduleurs"
+        }
+      },
       "manual": {
         "title": "Configuration Modbus manuelle",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "L'entrée ressemble à une plage mais un seul « - » par plage est autorisé.",
       "invalid_range_lte": "L’ID de début d’une plage doit être inférieur ou égal à l’ID de fin.",
       "empty_device_id": "La liste d'ID contient une valeur vide ou non définie.",
-      "scan_failed": "Échec du scan des onduleurs. Veuillez vérifier votre connexion et réessayer."
+      "scan_failed": "Échec du scan des onduleurs. Veuillez vérifier votre connexion et réessayer.",
+      "no_inverter_selected": "Sélectionnez au moins un onduleur."
     },
     "abort": {
       "already_configured": "L'hôte et le port sont déjà configurés dans un autre hub.",
       "cannot_connect": "Impossible de se connecter à l'appareil découvert.",
+      "scan_failed": "Échec du scan des onduleurs. Veuillez vérifier votre connexion et réessayer.",
+      "no_inverters_found": "Aucun onduleur SolarEdge n'a été trouvé à l'adresse découverte.",
       "reconfigure_successful": "La reconfiguration a réussi"
     },
     "progress": {

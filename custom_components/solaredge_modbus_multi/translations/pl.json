@@ -21,6 +21,13 @@
           "name": "Prefix sensora"
         }
       },
+      "zeroconf_select": {
+        "title": "Znalezione falowniki",
+        "description": "Wybierz falowniki do dodania.",
+        "data": {
+          "device_list": "Identyfikatory urządzeń falowników"
+        }
+      },
       "manual": {
         "title": "Ręczna konfiguracja Modbus",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "Wpis wygląda jak zakres, ale dozwolony jest tylko jeden znak „-” na zakres.",
       "invalid_range_lte": "Początkowy identyfikator w zakresie musi być mniejszy lub równy identyfikatorowi końcowemu.",
       "empty_device_id": "Lista identyfikatorów zawiera pustą lub niezdefiniowaną wartość.",
-      "scan_failed": "Skanowanie w poszukiwaniu falowników nie powiodło się. Sprawdź połączenie i spróbuj ponownie."
+      "scan_failed": "Skanowanie w poszukiwaniu falowników nie powiodło się. Sprawdź połączenie i spróbuj ponownie.",
+      "no_inverter_selected": "Wybierz co najmniej jeden falownik."
     },
     "abort": {
       "already_configured": "Host i port są już skonfigurowane w innym koncentratorze.",
       "cannot_connect": "Nie można połączyć się z wykrytym urządzeniem.",
+      "scan_failed": "Skanowanie w poszukiwaniu falowników nie powiodło się. Sprawdź połączenie i spróbuj ponownie.",
+      "no_inverters_found": "Pod wykrytym adresem nie znaleziono falowników SolarEdge.",
       "reconfigure_successful": "Ponowna konfiguracja przebiegła pomyślnie"
     },
     "progress": {

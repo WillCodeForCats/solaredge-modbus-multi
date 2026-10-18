@@ -21,6 +21,13 @@
           "name": "Předpona senzoru"
         }
       },
+      "zeroconf_select": {
+        "title": "Nalezené střídače",
+        "description": "Vyberte střídače, které chcete přidat.",
+        "data": {
+          "device_list": "ID zařízení střídačů"
+        }
+      },
       "manual": {
         "title": "Ruční konfigurace Modbus",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "Položka vypadá jako rozsah, ale je povolen pouze jeden znak '-' na rozsah.",
       "invalid_range_lte": "Počáteční ID rozsahu musí být menší nebo rovno koncovému ID.",
       "empty_device_id": "Seznam ID obsahuje prázdnou nebo nedefinovanou hodnotu.",
-      "scan_failed": "Vyhledání střídačů se nezdařilo. Zkontrolujte připojení a zkuste to znovu."
+      "scan_failed": "Vyhledání střídačů se nezdařilo. Zkontrolujte připojení a zkuste to znovu.",
+      "no_inverter_selected": "Vyberte alespoň jeden střídač."
     },
     "abort": {
       "already_configured": "Hostitel a port jsou již nakonfigurovány v jiném hubu.",
       "cannot_connect": "Nepodařilo se připojit k nalezenému zařízení.",
+      "scan_failed": "Vyhledání střídačů se nezdařilo. Zkontrolujte připojení a zkuste to znovu.",
+      "no_inverters_found": "Na zjištěné adrese nebyly nalezeny žádné střídače SolarEdge.",
       "reconfigure_successful": "Rekonfigurace byla úspěšná"
     },
     "progress": {

@@ -21,6 +21,13 @@
           "name": "Sensorprefix"
         }
       },
+      "zeroconf_select": {
+        "title": "Hittade växelriktare",
+        "description": "Välj de växelriktare som ska läggas till.",
+        "data": {
+          "device_list": "Växelriktarnas enhets-ID"
+        }
+      },
       "manual": {
         "title": "Manuell Modbus-konfiguration",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "Posten ser ut som ett intervall, men endast ett '-' per intervall är tillåtet.",
       "invalid_range_lte": "Start-ID i ett intervall måste vara mindre än eller lika med slut-ID.",
       "empty_device_id": "ID-listan innehåller ett tomt eller odefinierat värde.",
-      "scan_failed": "Det gick inte att söka efter växelriktare. Kontrollera din anslutning och försök igen."
+      "scan_failed": "Det gick inte att söka efter växelriktare. Kontrollera din anslutning och försök igen.",
+      "no_inverter_selected": "Välj minst en växelriktare."
     },
     "abort": {
       "already_configured": "Värd och port är redan konfigurerade i en annan hubb.",
       "cannot_connect": "Det gick inte att ansluta till den upptäckta enheten.",
+      "scan_failed": "Det gick inte att söka efter växelriktare. Kontrollera din anslutning och försök igen.",
+      "no_inverters_found": "Inga SolarEdge-växelriktare hittades på den upptäckta adressen.",
       "reconfigure_successful": "Omkonfigurationen lyckades"
     },
     "progress": {

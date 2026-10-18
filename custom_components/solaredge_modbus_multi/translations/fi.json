@@ -21,6 +21,13 @@
           "name": "Anturin etuliite"
         }
       },
+      "zeroconf_select": {
+        "title": "Löydetyt invertterit",
+        "description": "Valitse lisättävät invertterit.",
+        "data": {
+          "device_list": "Invertterin laite-ID:t"
+        }
+      },
       "manual": {
         "title": "Manuaalinen Modbus-asetus",
         "data": {
@@ -67,11 +74,14 @@
       "invalid_range_format": "Merkintä näyttää alueelta, mutta vain yksi '-' on sallittu aluetta kohden.",
       "invalid_range_lte": "Alueen alkutunnuksen on oltava pienempi tai yhtä suuri kuin lopputunnus.",
       "empty_device_id": "Tunnusluettelo sisältää tyhjän tai määrittämättömän arvon.",
-      "scan_failed": "Vaihtosuuntaajien haku epäonnistui. Tarkista yhteytesi ja yritä uudelleen."
+      "scan_failed": "Vaihtosuuntaajien haku epäonnistui. Tarkista yhteytesi ja yritä uudelleen.",
+      "no_inverter_selected": "Valitse vähintään yksi invertteri."
     },
     "abort": {
       "already_configured": "Isäntä ja portti on jo määritetty toisessa keskittimessä.",
       "cannot_connect": "Löydettyyn laitteeseen ei saatu yhteyttä.",
+      "scan_failed": "Vaihtosuuntaajien haku epäonnistui. Tarkista yhteytesi ja yritä uudelleen.",
+      "no_inverters_found": "Löydetystä osoitteesta ei löytynyt SolarEdge-invertterejä.",
       "reconfigure_successful": "Uudelleenmääritys onnistui"
     },
     "progress": {
