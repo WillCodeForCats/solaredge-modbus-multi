@@ -10,13 +10,17 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers import issue_registry as ir
 from modbus_connection import ModbusTcpParams
 
+from custom_components.solaredge_modbus_multi.config_flow import (
+    SolaredgeModbusMultiConfigFlow,
+)
 from custom_components.solaredge_modbus_multi.const import DOMAIN
+from custom_components.solaredge_modbus_multi.helpers import other_modbus_holders
 from custom_components.solaredge_modbus_multi.hub import (
     SharedUnits,
     SolarEdgeModbusMultiHub,
 )
 
-INFO = "custom_components.solaredge_modbus_multi.hub.async_get_connection_info"
+INFO = "custom_components.solaredge_modbus_multi.helpers.async_get_connection_info"
 ENTRY_DATA = {CONF_NAME: "SolarEdge", CONF_HOST: "Inverter.Local", CONF_PORT: 1502}
 ENDPOINT = ModbusTcpParams(host="inverter.local", port=1502).endpoint
 
@@ -88,3 +92,45 @@ async def test_direct_connection_is_not_checked(hass):
         hub._warn_if_shared()
 
     info.assert_not_called()
+
+
+async def test_config_flow_scans_over_a_socket_when_another_holds_it(hass):
+    """Test the setup scan avoids the shared connection when it is shared."""
+    flow = SolaredgeModbusMultiConfigFlow()
+    flow.hass = hass
+    user_input = {CONF_HOST: "Inverter.Local", CONF_PORT: 1502}
+    _entries(hass, {"other": "solaredge_modbus"})
+
+    with patch(INFO, return_value=_info({"other": [1]})):
+        assert flow._use_socket_scan(user_input) is True
+
+    with patch(INFO, return_value=_info({})):
+        assert flow._use_socket_scan(user_input) is False
+
+
+async def test_missing_connection_info_finds_no_holders(hass):
+    """Test no holders are reported when core does not offer the lookup."""
+    with patch(INFO, None):
+        assert other_modbus_holders(hass, "inverter.local", 1502) == set()
+
+
+async def test_missing_connection_info_leaves_the_hub_working(hass):
+    """Test the hub raises no issue and does not fail without the lookup."""
+    hub = _make_hub(hass, SharedUnits({}))
+
+    with patch(INFO, None):
+        hub._warn_if_shared()
+
+    assert _issue(hass) is None
+
+
+async def test_missing_connection_info_leaves_the_config_flow_working(hass):
+    """Test the setup scan stays on the shared connection without the lookup."""
+    flow = SolaredgeModbusMultiConfigFlow()
+    flow.hass = hass
+
+    with patch(INFO, None):
+        assert (
+            flow._use_socket_scan({CONF_HOST: "inverter.local", CONF_PORT: 1502})
+            is False
+        )
