@@ -92,10 +92,12 @@ class SolarEdgeDeviceScanner:
     device's single TCP connection, but the shared connection applies the
     highest timeout any integration asked for to every request. The built-in
     SolarEdge Modbus integration asks for 30 seconds and its timeout cannot be
-    configured, so our scan_timeout cannot shorten it. A scan waits out the
-    full timeout for every Device ID with no device, on each of its attempts:
-    30 seconds with 3 attempts is 90 seconds per empty ID. Worst case with a
-    30 second timeout and 1 inverter, by scan_retries (attempts per ID):
+    configured, and a unit can only raise the timeout, so our scan_timeout
+    only takes effect when we are the first on the connection; otherwise it
+    cannot shorten the other's. A scan waits out the full timeout for every
+    Device ID with no device, on each of its attempts: 30 seconds with 3
+    attempts is 90 seconds per empty ID. Worst case with a 30 second timeout
+    and 1 inverter, by scan_retries (attempts per ID):
 
         Scan           IDs scanned   3 (90 s/ID)   2 (60 s/ID)   1 (30 s/ID)
         Fast Scan      1-32          ~45 minutes   ~30 minutes   ~15 minutes
@@ -400,8 +402,9 @@ class SolarEdgeDeviceScanner:
 
         Args:
             device_id: The Modbus device ID to scan (1-247).
-            timeout: Maximum time in seconds to wait for a response. Not used
-                with temporary units, which have the shared connection's.
+            timeout: Maximum time in seconds to wait for a response. With
+                temporary units this is only a request: the shared connection
+                uses the highest timeout any holder asked for.
 
         Returns:
             FOUND_INV (2) if a SolarEdge inverter was detected.
@@ -414,13 +417,18 @@ class SolarEdgeDeviceScanner:
         """
         if self._use_socket:
             return await self._scan_device_id_socket(device_id, timeout)
-        return await self._scan_device_id_unit(device_id)
+        return await self._scan_device_id_unit(device_id, timeout)
 
-    async def _scan_device_id_unit(self, device_id: int) -> int:
+    async def _scan_device_id_unit(self, device_id: int, timeout: float) -> int:
         """Scan a device ID with a temporary unit; see scan_device_id."""
         async with async_get_temporary_unit(
             self._hass, self._params, device_id
         ) as unit:
+            # A unit can only raise the link's timeout, so this holds when we
+            # are the first on the connection and has no effect when another
+            # holder already asked for a longer one.
+            unit.require_timeout(timeout)
+
             link_failed = False
 
             for attempt in range(1, self._scan_retries + 1):
