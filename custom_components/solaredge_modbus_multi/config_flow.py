@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import logging
 import re
 from typing import Any
 
@@ -44,8 +45,15 @@ from .const import (
     ConfName,
     ConnectionMode,
 )
-from .helpers import device_list_from_string, get_connection_mode, host_valid
+from .helpers import (
+    device_list_from_string,
+    get_connection_mode,
+    host_valid,
+    other_modbus_holders,
+)
 from .scanner import SIGNATURE_ADDRESS, ScannerConnectionError, SolarEdgeDeviceScanner
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -136,6 +144,25 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except asyncio.CancelledError:
             pass
 
+    def _use_socket_scan(self, user_input: dict[str, Any]) -> bool:
+        """Return True to scan over our own socket instead of the shared one.
+
+        Another integration on the shared connection may have raised its
+        timeout, which a scan on it would wait out for every empty Device ID.
+        """
+        holders = other_modbus_holders(
+            self.hass, user_input[CONF_HOST], user_input[CONF_PORT]
+        )
+        if holders:
+            _LOGGER.warning(
+                "%s share(s) %s:%s, scanning over our own socket to avoid "
+                "their timeout",
+                ", ".join(sorted(holders)),
+                user_input[CONF_HOST],
+                user_input[CONF_PORT],
+            )
+        return bool(holders)
+
     async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
         """Scanner job for async_create_task."""
         scanner = SolarEdgeDeviceScanner(
@@ -144,6 +171,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             port=user_input[CONF_PORT],
             scan_retries=2,
             scan_timeout=0.7,
+            use_socket=self._use_socket_scan(user_input),
         )
 
         try:
@@ -427,6 +455,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     port=user_input[CONF_PORT],
                     scan_retries=3,
                     scan_timeout=0.5,
+                    use_socket=self._use_socket_scan(user_input),
                 )
 
                 try:

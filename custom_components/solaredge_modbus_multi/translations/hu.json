@@ -151,9 +151,9 @@
       "title": "Érvénytelen Inverter Eszközazonosító",
       "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen nem válaszol, vagy nem érvényes SolarEdge inverter. Ki lett hagyva. Ha az eszközt kicserélték, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. Ellenkező esetben ellenőrizze az eszközt és a Modbus/TCP kapcsolatot."
     },
-    "shared_connection_slow": {
-      "title": "A megosztott Modbus-kapcsolat lassú",
-      "description": "A(z) {host} beállítása vagy olvasása a vártnál jóval tovább tart. Valószínűleg egy másik, ugyanazt az invertert használó integráció, például a beépített SolarEdge Modbus integráció foglalja le a megosztott kapcsolatot. Ez lassú vagy kimaradó frissítéseket okozhat.\n\nTiltsa le a másik integrációt ennél az inverternél, majd indítsa újra a Home Assistantot. A megosztott kapcsolat addig megtartja a hosszú időkorlátot, amíg újra nem nyílik. Ha mindkettőre szüksége van, válassza ennek az integrációnak a beállításaiban a Modbus-kapcsolatnál a „Közvetlen kapcsolat használata” lehetőséget, hogy közvetlen kapcsolatot használjon. További részletekért lásd a README-t."
+    "shared_connection_other_integration": {
+      "title": "Egy másik integráció osztozik ezen az inverteren",
+      "description": "A(z) {integrations} integráció(k) ugyanazt a Modbus-kapcsolatot használja(k) a(z) {host} eszközhöz. Ha valamelyik hosszú időtúllépést kér, például a beépített SolarEdge Modbus integráció (30 másodperc), az a megosztott kapcsolat minden kérésére vonatkozik, ennek az integrációnak a kéréseire is. Ez lassú vagy elmaradó frissítéseket okozhat, és nem ez az integráció okozza.\n\nA hosszú időtúllépés a Home Assistant újraindításáig megmarad, akkor is, ha a másik integrációt letiltják vagy eltávolítják. Ha mindkettőt használni szeretné, az integráció beállításaiban a „Modbus-kapcsolat” alatt válassza a „Közvetlen kapcsolat használata” lehetőséget. A részleteket lásd a README-ben."
     },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",

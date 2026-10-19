@@ -151,9 +151,9 @@
       "title": "ID de Dispositivo do Inversor Inválido",
       "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está respondendo ou não é um inversor SolarEdge válido. Ele foi ignorado. Se o dispositivo foi substituído ou seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a conexão Modbus/TCP."
     },
-    "shared_connection_slow": {
-      "title": "A conexão Modbus compartilhada está lenta",
-      "description": "A configuração ou a leitura de {host} está demorando muito mais do que o esperado. Outra integração que usa o mesmo inversor, como a integração SolarEdge Modbus integrada, provavelmente está ocupando a conexão compartilhada. Isso pode causar atualizações lentas ou perdidas.\n\nDesative a outra integração para este inversor e reinicie o Home Assistant. A conexão compartilhada mantém o tempo limite longo até ser reaberta. Se precisar de ambas, escolha “Usar conexão direta” como Conexão Modbus nas opções desta integração para que ela use uma conexão direta. Consulte o README para mais detalhes."
+    "shared_connection_other_integration": {
+      "title": "Outra integração compartilha este inversor",
+      "description": "As integrações {integrations} usam a mesma conexão Modbus com {host}. Se uma delas solicitar um tempo limite longo, como a integração SolarEdge Modbus integrada (30 segundos), esse tempo se aplica a todas as solicitações da conexão compartilhada, inclusive as desta integração. Isso pode causar atualizações lentas ou perdidas e não é causado por esta integração.\n\nO tempo limite longo permanece até o Home Assistant ser reiniciado, mesmo que a outra integração seja desativada ou removida. Para usar as duas, escolha \"Usar conexão direta\" em \"Conexão Modbus\" nas opções desta integração. Consulte o README para mais detalhes."
     },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controle Dinâmico de Energia Global (Inversor {device_id})",

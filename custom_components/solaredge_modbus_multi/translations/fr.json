@@ -151,9 +151,9 @@
       "title": "ID d'appareil onduleur invalide",
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
     },
-    "shared_connection_slow": {
-      "title": "La connexion Modbus partagée est lente",
-      "description": "La configuration ou la lecture de {host} prend beaucoup plus de temps que prévu. Une autre intégration utilisant le même onduleur, comme l'intégration SolarEdge Modbus intégrée, occupe probablement la connexion partagée. Cela peut provoquer des mises à jour lentes ou manquées.\n\nDésactivez l'autre intégration pour cet onduleur, puis redémarrez Home Assistant. La connexion partagée conserve le long délai d'attente tant qu'elle n'est pas rouverte. Si vous avez besoin des deux, choisissez « Utiliser une connexion directe » comme Connexion Modbus dans les options de cette intégration afin qu'elle utilise une connexion directe. Consultez le README pour plus de détails."
+    "shared_connection_other_integration": {
+      "title": "Une autre intégration partage cet onduleur",
+      "description": "Les intégrations {integrations} utilisent la même connexion Modbus vers {host}. Si l'une d'elles demande un délai d'attente long, comme l'intégration SolarEdge Modbus intégrée (30 secondes), ce délai s'applique à toutes les requêtes de la connexion partagée, y compris celles de cette intégration. Cela peut provoquer des mises à jour lentes ou manquées, et ce n'est pas causé par cette intégration.\n\nLe délai d'attente long reste en vigueur jusqu'au redémarrage de Home Assistant, même si l'autre intégration est désactivée ou supprimée. Pour utiliser les deux, choisissez « Utiliser une connexion directe » dans « Connexion Modbus » dans les options de cette intégration. Consultez le README pour plus de détails."
     },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",

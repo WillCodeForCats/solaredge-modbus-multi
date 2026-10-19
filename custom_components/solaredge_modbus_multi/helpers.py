@@ -5,9 +5,18 @@ from __future__ import annotations
 import ipaddress
 import struct
 
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from modbus_connection import ModbusTcpParams
 
-from .const import DOMAIN_REGEX, ConfName, ConnectionMode
+try:
+    # Not in the modbus integration's __all__, so core may move it. Without
+    # it we simply cannot tell who shares a connection.
+    from homeassistant.components.modbus.connection import async_get_connection_info
+except ImportError:  # pragma: no cover
+    async_get_connection_info = None
+
+from .const import DOMAIN, DOMAIN_REGEX, ConfName, ConnectionMode
 
 
 def float_to_hex(f: float) -> str:
@@ -19,6 +28,29 @@ def float_to_hex(f: float) -> str:
         return hex(struct.unpack("<I", struct.pack("<f", float(f)))[0])
     except struct.error as e:
         raise ValueError(f"Error converting {f} to hex: {e}") from e
+
+
+def other_modbus_holders(hass: HomeAssistant, host: str, port: int) -> set[str]:
+    """Return the domains of other integrations sharing a Modbus/TCP connection.
+
+    The modbus integration lists the config entries holding units on each
+    device but not the link's timeout, so another holder is the closest sign
+    that a long timeout may be forced on the connection. Our own integration
+    is not counted.
+    """
+    if async_get_connection_info is None:
+        return set()
+
+    endpoint = ModbusTcpParams(host=host, port=port).endpoint
+    domains = set()
+    for info in async_get_connection_info(hass):
+        if info.endpoint != endpoint:
+            continue
+        for entry_id in info.units:
+            entry = hass.config_entries.async_get_entry(entry_id)
+            if entry is not None and entry.domain != DOMAIN:
+                domains.add(entry.domain)
+    return domains
 
 
 def host_valid(host):

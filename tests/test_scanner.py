@@ -56,6 +56,7 @@ async def test_matching_signature_is_an_inverter():
     unit = _unit()
     assert await _scan(unit) == SolarEdgeDeviceScanner.FOUND_INV
     unit.read_holding_registers.assert_awaited_once_with(40000, len(SIGNATURE))
+    unit.require_timeout.assert_called_once_with(0.5)
 
 
 async def test_other_signature_is_another_device():

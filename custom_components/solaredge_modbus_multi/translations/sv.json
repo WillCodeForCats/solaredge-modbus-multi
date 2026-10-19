@@ -151,9 +151,9 @@
       "title": "Ogiltigt enhets-ID för växelriktare",
       "description": "Växelriktarens enhets-ID {device_id} på {host} svarar inte eller är inte en giltig SolarEdge-växelriktare. Den har hoppats över. Om enheten byttes ut eller dess ID ändrades, uppdatera listan över växelriktarnas enhets-ID i hubbens konfiguration. Kontrollera annars enheten och Modbus/TCP-anslutningen."
     },
-    "shared_connection_slow": {
-      "title": "Den delade Modbus-anslutningen är långsam",
-      "description": "Konfigurering eller läsning från {host} tar mycket längre tid än väntat. En annan integration som använder samma växelriktare, till exempel den inbyggda SolarEdge Modbus-integrationen, håller sannolikt den delade anslutningen upptagen. Det kan ge långsamma eller missade uppdateringar.\n\nInaktivera den andra integrationen för den här växelriktaren och starta sedan om Home Assistant. Den delade anslutningen behåller den långa tidsgränsen tills den öppnas igen. Om du behöver båda väljer du ”Använd direkt anslutning” som Modbus-anslutning i den här integrationens alternativ så att den använder en direkt anslutning. Se README för mer information."
+    "shared_connection_other_integration": {
+      "title": "En annan integration delar den här växelriktaren",
+      "description": "Integrationerna {integrations} använder samma Modbus-anslutning till {host}. Om någon av dem begär en lång timeout, till exempel den inbyggda SolarEdge Modbus-integrationen (30 sekunder), gäller den för alla förfrågningar på den delade anslutningen, även den här integrationens. Det kan ge långsamma eller uteblivna uppdateringar och orsakas inte av den här integrationen.\n\nDen långa timeouten finns kvar tills Home Assistant startas om, även om den andra integrationen inaktiveras eller tas bort. Om du vill använda båda väljer du ”Använd direkt anslutning” under ”Modbus-anslutning” i den här integrationens inställningar. Se README för detaljer."
     },
     "detect_timeout_gpc": {
       "title": "Tidsgräns för global dynamisk effektstyrning (växelriktare {device_id})",

@@ -151,9 +151,9 @@
       "title": "ID de Dispozitiv al Invertorului Nevalid",
       "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu răspunde sau nu este un invertor SolarEdge valid. A fost omis. Dacă dispozitivul a fost înlocuit sau ID-ul acestuia s-a schimbat, actualizați Lista de ID-uri de Dispozitiv ale Invertoarelor din configurația hub-ului. În caz contrar, verificați dispozitivul și conexiunea Modbus/TCP."
     },
-    "shared_connection_slow": {
-      "title": "Conexiunea Modbus partajată este lentă",
-      "description": "Configurarea sau citirea de la {host} durează mult mai mult decât se aștepta. Probabil o altă integrare care folosește același invertor, de exemplu integrarea SolarEdge Modbus încorporată, ocupă conexiunea partajată. Aceasta poate cauza actualizări lente sau ratate.\n\nDezactivați cealaltă integrare pentru acest invertor, apoi reporniți Home Assistant. Conexiunea partajată păstrează timpul de expirare lung până când este redeschisă. Dacă aveți nevoie de ambele, alegeți „Utilizați conexiune directă” ca Conexiune Modbus în opțiunile acestei integrări, astfel încât să folosească o conexiune directă. Consultați README pentru detalii."
+    "shared_connection_other_integration": {
+      "title": "O altă integrare partajează acest invertor",
+      "description": "Integrările {integrations} folosesc aceeași conexiune Modbus către {host}. Dacă una dintre ele solicită un timp de expirare lung, cum este integrarea SolarEdge Modbus încorporată (30 de secunde), acesta se aplică tuturor cererilor de pe conexiunea partajată, inclusiv celor ale acestei integrări. Aceasta poate cauza actualizări lente sau pierdute și nu este provocată de această integrare.\n\nTimpul de expirare lung rămâne până la repornirea Home Assistant, chiar dacă cealaltă integrare este dezactivată sau eliminată. Pentru a le folosi pe amândouă, alegeți „Utilizați conexiune directă” la „Conexiune Modbus” în opțiunile acestei integrări. Consultați README pentru detalii."
     },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",

@@ -151,9 +151,9 @@
       "title": "ID de Dispositivo do Inversor Inválido",
       "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está a responder ou não é um inversor SolarEdge válido. Foi ignorado. Se o dispositivo foi substituído ou o seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a ligação Modbus/TCP."
     },
-    "shared_connection_slow": {
-      "title": "A ligação Modbus partilhada está lenta",
-      "description": "A configuração ou a leitura de {host} está a demorar muito mais do que o esperado. Outra integração que utiliza o mesmo inversor, como a integração SolarEdge Modbus incorporada, provavelmente está a ocupar a ligação partilhada. Isto pode causar atualizações lentas ou perdidas.\n\nDesative a outra integração para este inversor e reinicie o Home Assistant. A ligação partilhada mantém o tempo limite longo até ser reaberta. Se precisar de ambas, escolha “Utilizar ligação direta” como Ligação Modbus nas opções desta integração para que utilize uma ligação direta. Consulte o README para mais detalhes."
+    "shared_connection_other_integration": {
+      "title": "Outra integração partilha este inversor",
+      "description": "As integrações {integrations} utilizam a mesma ligação Modbus a {host}. Se uma delas pedir um tempo limite longo, como a integração SolarEdge Modbus incorporada (30 segundos), esse tempo aplica-se a todos os pedidos da ligação partilhada, incluindo os desta integração. Isto pode causar atualizações lentas ou perdidas e não é causado por esta integração.\n\nO tempo limite longo mantém-se até o Home Assistant ser reiniciado, mesmo que a outra integração seja desativada ou removida. Para utilizar as duas, escolha \"Utilizar ligação direta\" em \"Ligação Modbus\" nas opções desta integração. Consulte o README para mais detalhes."
     },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controlo Dinâmico de Potência Global (Inversor {device_id})",

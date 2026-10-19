@@ -151,9 +151,9 @@
       "title": "逆变器设备 ID 无效",
       "description": "{host} 上的逆变器设备 ID {device_id} 无响应，或不是有效的 SolarEdge 逆变器，已被跳过。如果设备已更换或其 ID 已更改，请在集线器配置中更新逆变器设备 ID 列表。否则，请检查设备和 Modbus/TCP 连接。"
     },
-    "shared_connection_slow": {
-      "title": "共享 Modbus 连接缓慢",
-      "description": "设置或读取 {host} 的耗时远超预期。使用同一台逆变器的其他集成（例如内置的 SolarEdge Modbus 集成）很可能占用了共享连接，这可能导致更新缓慢或丢失。\n\n请为此逆变器禁用另一个集成，然后重启 Home Assistant。共享连接在重新打开之前会一直保留较长的超时设置。如果两者都需要，请在此集成的选项中将 Modbus 连接设为“使用直接连接”，使其使用直接连接。详情请参阅 README。"
+    "shared_connection_other_integration": {
+      "title": "另一个集成共享此逆变器",
+      "description": "集成 {integrations} 使用与 {host} 相同的 Modbus 连接。如果其中之一请求较长的超时，例如内置的 SolarEdge Modbus 集成（30 秒），该超时将应用于共享连接上的所有请求，包括此集成的请求。这可能导致更新缓慢或丢失，并非由此集成引起。\n\n较长的超时会一直保持到 Home Assistant 重启，即使另一个集成已被禁用或移除。如需同时使用两者，请在此集成的选项中将“Modbus 连接”设为“使用直接连接”。详见 README。"
     },
     "detect_timeout_gpc": {
       "title": "全局动态功率控制超时（逆变器 {device_id}）",

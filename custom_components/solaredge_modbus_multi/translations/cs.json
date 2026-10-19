@@ -151,9 +151,9 @@
       "title": "Neplatné ID zařízení střídače",
       "description": "ID zařízení střídače {device_id} na {host} neodpovídá nebo se nejedná o platný střídač SolarEdge. Bylo přeskočeno. Pokud bylo zařízení vyměněno nebo se změnilo jeho ID, aktualizujte seznam ID zařízení střídačů v konfiguraci hubu. V opačném případě zkontrolujte zařízení a připojení Modbus/TCP."
     },
-    "shared_connection_slow": {
-      "title": "Sdílené připojení Modbus je pomalé",
-      "description": "Nastavení nebo čtení z {host} trvá mnohem déle, než se očekávalo. Jiná integrace používající stejný střídač, například vestavěná integrace SolarEdge Modbus, pravděpodobně blokuje sdílené připojení. To může způsobit pomalé nebo vynechané aktualizace.\n\nZakažte pro tento střídač druhou integraci a poté restartujte Home Assistant. Sdílené připojení si dlouhý časový limit ponechá, dokud není znovu otevřeno. Pokud potřebujete obě, zvolte v nastavení této integrace jako Připojení Modbus možnost „Použít přímé připojení“, aby tato integrace používala přímé připojení. Podrobnosti najdete v souboru README."
+    "shared_connection_other_integration": {
+      "title": "Jiná integrace sdílí tento střídač",
+      "description": "Integrace {integrations} používají stejné připojení Modbus k {host}. Pokud některá z nich požaduje dlouhý časový limit, například vestavěná integrace SolarEdge Modbus (30 sekund), platí tento limit pro každý požadavek na sdíleném připojení, včetně požadavků této integrace. To může způsobit pomalé nebo vynechané aktualizace a nezpůsobuje to tato integrace.\n\nDlouhý časový limit zůstane platit do restartu Home Assistantu, i když je druhá integrace zakázána nebo odebrána. Chcete-li používat obě, zvolte v nastavení této integrace u položky „Připojení Modbus“ možnost „Použít přímé připojení“. Podrobnosti najdete v souboru README."
     },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",

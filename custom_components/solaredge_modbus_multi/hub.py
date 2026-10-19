@@ -6,7 +6,6 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 import logging
-import time
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
@@ -55,7 +54,6 @@ from .const import (
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
     REFRESH_WATCHDOG,
-    SLOW_REFRESH,
     STATUS_VENDOR4_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
@@ -66,7 +64,7 @@ from .const import (
     RetrySettings,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, get_connection_mode
+from .helpers import float_to_hex, get_connection_mode, other_modbus_holders
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -553,44 +551,36 @@ class SolarEdgeModbusMultiHub:
 
         self.initalized = True
 
-    def _warn_if_slow(self, what: str, started: float) -> None:
-        """Warn when a setup or refresh took long enough to be held up."""
-        elapsed = time.monotonic() - started
-        if elapsed <= SLOW_REFRESH:
+    def _warn_if_shared(self) -> None:
+        """Raise a repair issue when another integration holds our connection.
+
+        The issue stays after the other integration unloads, because the long
+        timeout it asked for stays until Home Assistant restarts. It is cleared
+        when this entry sets up again.
+        """
+        if not isinstance(self.connection, SharedUnits):
             return
 
-        shared = isinstance(self.connection, SharedUnits)
-        _LOGGER.warning(
-            "%s took %.0f seconds.%s",
-            what,
-            elapsed,
-            (
-                " Another integration sharing this connection, such as the "
-                "built-in SolarEdge Modbus integration, may be holding it up. "
-                "Disable the other integration for this inverter, then restart "
-                "Home Assistant to clear the long timeout."
-                if shared
-                else ""
-            ),
-        )
+        if not (domains := other_modbus_holders(self._hass, self._host, self._port)):
+            return
 
-        if shared:
-            # Cleared when the entry sets up again, so it stays while it keeps
-            # happening instead of coming and going with each fast refresh.
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                f"shared_connection_slow_{self._entry_id}",
-                is_fixable=False,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="shared_connection_slow",
-                translation_placeholders={"host": self.hub_host},
-                data={"entry_id": self._entry_id},
-            )
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            f"shared_connection_other_integration_{self._entry_id}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="shared_connection_other_integration",
+            translation_placeholders={
+                "host": self.hub_host,
+                "integrations": ", ".join(sorted(domains)),
+            },
+        )
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
-        started = time.monotonic()
+        # The other integration may set up after this one, so look every time.
+        self._warn_if_shared()
 
         if not self.initalized:
             try:
@@ -614,8 +604,6 @@ class SolarEdgeModbusMultiHub:
             ir.async_delete_issue(
                 self._hass, DOMAIN, f"check_configuration_{self._entry_id}"
             )
-
-            self._warn_if_slow("Setup", started)
 
             return True
 
@@ -653,8 +641,6 @@ class SolarEdgeModbusMultiHub:
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
             raise DataUpdateFailed(f"Timeout error: {e}") from e
-
-        self._warn_if_slow("Refresh", started)
 
         if self.close_after_polling:
             await self.connection.disconnect()
