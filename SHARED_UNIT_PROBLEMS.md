@@ -67,7 +67,9 @@ for 30 seconds, the timeout stays until the restart.
 Scanning for inverters goes through temporary units on the shared connection,
 so `scan_timeout` can only shorten the wait if we are the first on the
 connection (a unit can only raise the timeout). A scan waits out the full timeout
-for every Device ID with no device, on each attempt (`scan_retries`).
+for every silent Device ID (one that does not answer), on each attempt
+(`scan_retries`). IDs where the gateway answers with `GatewayPathUnavailableError`
+or `GatewayTargetError` return `NOT_FOUND` immediately, without retrying.
 
 Worst case with a 30 second timeout and 1 inverter:
 
