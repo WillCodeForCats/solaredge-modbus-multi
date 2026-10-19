@@ -84,13 +84,16 @@
         "title": "SolarEdge Modbus-indstillinger",
         "data": {
           "scan_interval": "Pollingfrekvens (sekunder)",
-          "close_after_polling": "Luk forbindelsen efter polling",
           "detect_meters": "Automatisk registrering af målere",
           "detect_batteries": "Automatisk registrering af batterier",
           "detect_extras": "Automatisk registrering af yderligere enheder",
           "advanced_power_control": "Effektstyringsindstillinger",
           "request_timeout": "Modbus-forespørgselstimeout (sekunder)",
-          "sleep_after_write": "Forsinkelse for inverterkommando (sekunder)"
+          "sleep_after_write": "Forsinkelse for inverterkommando (sekunder)",
+          "connection_mode": "Modbus-forbindelse"
+        },
+        "data_description": {
+          "connection_mode": "Hvordan SolarEdge Modbus Multi forbinder til inverteren. En anden integration, der bruger den samme inverter, kan gøre en delt forbindelse langsom. Se README for flere oplysninger."
         }
       },
       "adv_pwr_ctl": {
@@ -148,6 +151,10 @@
       "title": "Ugyldigt enheds-ID for inverter",
       "description": "Inverterens enheds-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-inverter. Den er blevet sprunget over. Hvis enheden er blevet udskiftet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Kontrollér ellers enheden og Modbus/TCP-forbindelsen."
     },
+    "shared_connection_other_integration": {
+      "title": "En anden integration deler denne inverter",
+      "description": "Integrationerne {integrations} bruger den samme Modbus-forbindelse til {host}. Hvis en af dem beder om en lang timeout, f.eks. den indbyggede SolarEdge Modbus-integration (30 sekunder), gælder den timeout for alle forespørgsler på den delte forbindelse, også denne integrations. Det kan give langsomme eller manglende opdateringer, og det skyldes ikke denne integration.\n\nDen lange timeout bliver, indtil Home Assistant genstarter, også selvom den anden integration deaktiveres eller fjernes. Hvis du vil bruge begge, skal du under „Modbus-forbindelse“ i denne integrations indstillinger vælge „Brug direkte forbindelse“. Se README for detaljer."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout for global dynamisk effektstyring (Inverter {device_id})",
       "fix_flow": {
@@ -176,7 +183,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Indstillingen \"Hold Modbus-forbindelsen åben\" er erstattet",
-      "description": "Indstillingen \"Hold Modbus-forbindelsen åben\" er blevet erstattet af \"Luk forbindelsen efter polling\" i denne integrations konfiguration. Gennemgå den nye indstilling, hvis du har brug for den samme funktionsmåde."
+      "description": "Indstillingen \"Hold Modbus-forbindelsen åben\" bruges ikke længere. Denne integration deler nu forbindelsen fra modbus-integrationen. Hvis du selv vil styre forbindelsen, skal du vælge „Brug direkte forbindelse“ eller „Brug direkte forbindelse og luk den efter hver aflæsning“ som Modbus-forbindelse i denne integrations indstillinger."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "En anden integration er allerede forbundet til {host}:{port} med andre forbindelsesindstillinger, og én forbindelse kan ikke bruge begge. Fjern eller omkonfigurer den anden integration, og genindlæs derefter denne."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Brug Home Assistants delte Modbus-forbindelse",
+        "own": "Brug direkte forbindelse",
+        "own_close_after_polling": "Brug direkte forbindelse og luk den efter hver aflæsning"
+      }
     }
   }
 }

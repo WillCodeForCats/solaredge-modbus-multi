@@ -1,15 +1,81 @@
 """Device ID scanner for SolarEdge Modbus Multi.
 
 Based on work by thargy: https://github.com/thargy/modbus-scanner
+
+By default requests go through temporary units on the modbus integration's
+shared connection, so a scan never competes with a loaded entry for the
+device's single TCP connection. With use_socket the scanner opens its own
+socket instead, which gives up that protection but is not slowed by the
+timeout other integrations ask the shared connection for.
 """
 
 from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from contextlib import AsyncExitStack
 import logging
 
+from homeassistant.components.modbus import async_get_temporary_unit
+from homeassistant.core import HomeAssistant
+from modbus_connection import (
+    GatewayPathUnavailableError,
+    GatewayTargetError,
+    ModbusConnectionError,
+    ModbusExceptionError,
+    ModbusProtocolError,
+    ModbusTcpParams,
+    ModbusTimeoutError,
+)
+
 _LOGGER = logging.getLogger(__name__)
+
+# SunSpec common block header and the start of the manufacturer string.
+SIGNATURE_ADDRESS = 40000
+SIGNATURE = [
+    0x5375,  # C_SunSpec_ID "Su"
+    0x6E53,  # C_SunSpec_ID "nS"
+    0x0001,  # C_SunSpec_DID
+    0x0041,  # C_SunSpec_Length
+    0x536F,  # C_Manufacturer "So"
+    0x6C61,  # C_Manufacturer "la"
+    0x7245,  # C_Manufacturer "rE"
+    0x6467,  # C_Manufacturer "dg"
+    0x6520,  # C_Manufacturer "e "
+]
+
+# Read holding registers (function 3) request for SIGNATURE, as Modbus/TCP:
+# transaction (2 bytes), protocol (2), length (2), device ID, function,
+# address (2), register count (2). Transaction and device ID are filled in
+# per scan.
+REQUEST = [
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x6,
+    0x0,
+    0x3,
+    *SIGNATURE_ADDRESS.to_bytes(2, "big"),
+    *len(SIGNATURE).to_bytes(2, "big"),
+]
+
+# Response an inverter gives to REQUEST: the MBAP header, function, byte
+# count, then the SIGNATURE registers. Transaction and device ID are
+# filled in per scan.
+RESPONSE = [
+    0x0,  # transaction high
+    0x0,  # transaction low
+    0x0,
+    0x0,
+    0x0,
+    0x3 + 2 * len(SIGNATURE),  # remaining length
+    0x0,  # modbus address
+    0x3,
+    2 * len(SIGNATURE),  # byte count
+    *b"".join(word.to_bytes(2, "big") for word in SIGNATURE),
+]
 
 
 class ScannerConnectionError(Exception):
@@ -17,42 +83,43 @@ class ScannerConnectionError(Exception):
 
 
 class SolarEdgeDeviceScanner:
-    # Device scanning request
-    """Solar edge device scanner."""
+    """Solar edge device scanner.
 
-    REQUEST = [0x0, 0x0, 0x0, 0x0, 0x0, 0x6, 0x0, 0x3, 0x9C, 0x40, 0x0, 0x09]
+    Two ways to scan are available, chosen with use_socket:
 
-    # Device scanning response (inverter signature)
-    # 00 02 00 00 00 15 02 03 12 53 75 6e 53 00 01 00 41 53 6f 6c 61 72 45 64 67 65 20
-    RESPONSE = [
-        0x0,  # transaction high
-        0x0,  # transaction low
-        0x0,
-        0x0,
-        0x0,
-        0x15,
-        0x0,  # modbus address
-        0x3,
-        0x12,  # C_SunSpec_ID
-        0x53,  # C_SunSpec_ID
-        0x75,  # C_SunSpec_ID
-        0x6E,  # C_SunSpec_ID
-        0x53,  # C_SunSpec_ID
-        0x0,  # C_SunSpec_DID
-        0x1,  # C_SunSpec_DID
-        0x0,  # C_SunSpec_Length
-        0x41,  # C_SunSpec_Length
-        0x53,  # C_Manufacturer
-        0x6F,  # C_Manufacturer
-        0x6C,  # C_Manufacturer
-        0x61,  # C_Manufacturer
-        0x72,  # C_Manufacturer
-        0x45,  # C_Manufacturer
-        0x64,  # C_Manufacturer
-        0x67,  # C_Manufacturer
-        0x65,  # C_Manufacturer
-        0x20,
-    ]
+    Temporary units (default): requests go through the Home Assistant modbus
+    shared connection. A scan never competes with a loaded entry for the
+    device's single TCP connection, but the shared connection applies the
+    highest timeout any integration asked for to every request. The built-in
+    SolarEdge Modbus integration asks for 30 seconds and its timeout cannot be
+    configured, and a unit can only raise the timeout, so our scan_timeout
+    only takes effect when we are the first on the connection; otherwise it
+    cannot shorten the other's. A scan waits out the full timeout for every
+    Device ID with no device, on each of its attempts: 30 seconds with 3
+    attempts is 90 seconds per empty ID. Worst case with a 30 second timeout
+    and 1 inverter, by scan_retries (attempts per ID):
+
+        Scan           IDs scanned   3 (90 s/ID)   2 (60 s/ID)   1 (30 s/ID)
+        Fast Scan      1-32          ~45 minutes   ~30 minutes   ~15 minutes
+        Complete Scan  1-247         ~6 hours      ~4 hours      ~2 hours
+
+    These figures assume 1 inverter, so all other IDs time out at 30 seconds
+    per attempt. Any ID with a detected device will not wait the timeout.
+
+    With the default 3 second timeout the same scans take a few minutes.
+    Setup can look stalled, and other integrations on the connection queue
+    behind the scan. The long timeout stays until the connection is closed and
+    reopened, which means a Home Assistant restart after the other integration
+    is disabled. To avoid it, use the manual setup with known Device IDs,
+    which does not scan, or disable the other integration and restart Home
+    Assistant before scanning. Or use Socket scanning mode.
+
+    Socket (use_socket): the scanner opens its own TCP socket, so scan_timeout
+    is honored and empty IDs fail fast. The cost is that the scan does not
+    coordinate with the shared connection: an inverter accepts few TCP
+    connections at once, so scanning while another client holds it can fail
+    to connect.
+    """
 
     DEVICE_ID_INDEX = 6
     TRANS_HIGH_INDEX = 0
@@ -63,26 +130,35 @@ class SolarEdgeDeviceScanner:
 
     def __init__(
         self,
+        hass: HomeAssistant,
         host: str,
         port: int,
-        connect_timeout: float = 5.0,
         scan_retries: int = 3,
         scan_timeout: float = 3.0,
+        use_socket: bool = False,
+        connect_timeout: float = 5.0,
     ):
         """Initialize the SolarEdge device scanner.
 
         Args:
+            hass: Home Assistant instance.
             host: Target host address.
             port: Target port number.
-            timeout: Connection timeout in seconds.
-            scan_retries: Number of retry attempts for failed scans.
+            scan_retries: Number of attempts for each device ID.
+            scan_timeout: Request timeout in seconds.
+            use_socket: Scan over our own TCP socket instead of temporary
+                units on the shared connection.
+            connect_timeout: Socket connection timeout in seconds, only
+                used with use_socket.
 
         """
-        self._connect_timeout = connect_timeout
+        self._hass = hass
+        self._params = ModbusTcpParams(host=host, port=port)
         self._scan_retries = scan_retries
         self._scan_timeout = scan_timeout
-        self._host = host
-        self._port = port
+        self._use_socket = use_socket
+        self._connect_timeout = connect_timeout
+        self._stack: AsyncExitStack | None = None
         self._reader = None
         self._writer = None
         self._transaction = 0
@@ -156,38 +232,82 @@ class SolarEdgeDeviceScanner:
             "no_response": no_response,
         }
 
+    def _raise_connection_error(self) -> None:
+        """Raise ScannerConnectionError for the device being scanned."""
+        raise ScannerConnectionError(
+            f"Unable to connect to {self._params.host}:{self._params.port} "
+            f"after {self._scan_retries} attempts."
+        )
+
     async def connect(self) -> None:
+        """Connect for the length of the scan.
+
+        With use_socket this opens the socket; otherwise it holds the shared
+        connection open.
+        """
+        if self._use_socket:
+            await self._connect_socket()
+        else:
+            await self._connect_shared()
+
+    async def disconnect(self) -> None:
+        """Close the socket, or release the hold on the shared connection."""
+        if self._use_socket:
+            await self._disconnect_socket()
+        else:
+            await self._disconnect_shared()
+
+    async def _connect_shared(self) -> None:
+        """Hold the shared connection open for the length of the scan.
+
+        Without a hold, the connection would close and reopen around every
+        device ID. Raises HomeAssistantError if the device is already in use
+        over different link settings.
+        """
+        if self._stack is not None:
+            return
+
+        stack = AsyncExitStack()
+        # The hold is on the connection, not on the unit.
+        await stack.enter_async_context(
+            async_get_temporary_unit(self._hass, self._params, 1)
+        )
+        self._stack = stack
+
+    async def _disconnect_shared(self) -> None:
+        """Release the hold; the connection closes if nothing else holds it."""
+        if self._stack is not None:
+            stack, self._stack = self._stack, None
+            await stack.aclose()
+
+    async def _connect_socket(self) -> None:
         """Establish TCP connection to the Modbus device."""
         attempt = 1
 
         while self._writer is None and attempt <= self._scan_retries:
             try:
-                _LOGGER.debug("Connecting to %s:%s ...", self._host, self._port)
+                _LOGGER.debug(
+                    "Connecting to %s:%s ...", self._params.host, self._params.port
+                )
                 self._reader, self._writer = await asyncio.wait_for(
-                    asyncio.open_connection(self._host, self._port),
+                    asyncio.open_connection(self._params.host, self._params.port),
                     timeout=self._connect_timeout,
                 )
-            except asyncio.TimeoutError:  # noqa: PERF203
-                await self.disconnect()
+            except (TimeoutError, OSError) as e:  # noqa: PERF203
+                await self._disconnect_socket()
                 attempt += 1
                 await asyncio.sleep(1.0)
                 _LOGGER.warning(
-                    "Timeout occurred while connecting to %s:%s", self._host, self._port
-                )
-            except OSError as e:
-                await self.disconnect()
-                attempt += 1
-                await asyncio.sleep(1.0)
-                _LOGGER.warning(
-                    "Network error connecting to %s:%s: %s", self._host, self._port, e
+                    "Error connecting to %s:%s: %s",
+                    self._params.host,
+                    self._params.port,
+                    e or "timeout",
                 )
 
         if attempt > self._scan_retries:
-            raise ScannerConnectionError(
-                f"Unable to connect to {self._host}:{self._port} after {attempt - 1} attempts."
-            )
+            self._raise_connection_error()
 
-    async def disconnect(self) -> None:
+    async def _disconnect_socket(self) -> None:
         """Close the TCP connection to the Modbus device."""
         if self._writer is not None:
             self._writer.close()
@@ -213,35 +333,21 @@ class SolarEdgeDeviceScanner:
         if len(response) < 7 or len(request) < self.DEVICE_ID_INDEX:
             return self.NOT_FOUND
 
-        expected = self.RESPONSE.copy()
+        expected = RESPONSE.copy()
         expected[self.TRANS_HIGH_INDEX] = request[0]
         expected[self.TRANS_LOW_INDEX] = request[1]
         expected[self.DEVICE_ID_INDEX] = request[self.DEVICE_ID_INDEX]
 
-        index = 0
-        for a in response:
+        for index, a in enumerate(response):
             if index >= len(expected):
-                return self.FOUND if index >= 7 else 0
+                return self.FOUND if index >= 7 else self.NOT_FOUND
             if a != expected[index]:
                 return self.NOT_FOUND
-            index = index + 1
 
         return self.FOUND_INV
 
-    async def scan_device_id(self, device_id: int, timeout: float = 5.0) -> int:
-        """Scan a specific Modbus device ID for a SolarEdge inverter.
-
-        Args:
-            device_id: The Modbus device ID to scan (1-247).
-            timeout: Maximum time in seconds to wait for a response.
-
-        Returns:
-            FOUND_INV (2) if a SolarEdge inverter was detected.
-            FOUND (1) if a non-inverter Modbus device responded.
-            NOT_FOUND (0) if no valid response was received.
-
-        Raises:
-            ScannerConnectionError: If the connection cannot be established.
+    async def _scan_device_id_socket(self, device_id: int, timeout: float) -> int:
+        """Scan a device ID over our own socket; see scan_device_id.
 
         Credit: https://github.com/thargy/modbus-scanner/blob/main/scan.py
 
@@ -249,7 +355,7 @@ class SolarEdgeDeviceScanner:
 
         # Update request
         self._transaction = (self._transaction + 1) % 65536
-        request = self.REQUEST.copy()
+        request = REQUEST.copy()
         request[self.TRANS_HIGH_INDEX] = int(self._transaction / 256)
         request[self.TRANS_LOW_INDEX] = self._transaction % 256
         request[self.DEVICE_ID_INDEX] = device_id
@@ -257,7 +363,7 @@ class SolarEdgeDeviceScanner:
         attempt = 1
 
         if self._writer is None:
-            await self.connect()
+            await self._connect_socket()
 
         while attempt <= self._scan_retries:
             try:
@@ -282,13 +388,103 @@ class SolarEdgeDeviceScanner:
 
                     return self.FOUND
 
-            except asyncio.TimeoutError:  # noqa: PERF203
-                _LOGGER.debug("Timed out after %ss", timeout)
+            except (TimeoutError, OSError) as e:  # noqa: PERF203
+                _LOGGER.debug("Attempt failed (timeout %ss): %r", timeout, e)
                 attempt += 1
 
-            except OSError as e:
-                _LOGGER.debug("FAILED: %s", e)
-                attempt += 1
+        _LOGGER.debug("No device found at ID %s", device_id)
+        return self.NOT_FOUND
+
+    async def scan_device_id(self, device_id: int, timeout: float = 5.0) -> int:
+        """Scan a specific Modbus device ID for a SolarEdge inverter.
+
+        Uses our own socket with use_socket, otherwise a temporary unit.
+
+        Args:
+            device_id: The Modbus device ID to scan (1-247).
+            timeout: Maximum time in seconds to wait for a response. With
+                temporary units this is only a request: the shared connection
+                uses the highest timeout any holder asked for.
+
+        Returns:
+            FOUND_INV (2) if a SolarEdge inverter was detected.
+            FOUND (1) if a non-inverter Modbus device responded.
+            NOT_FOUND (0) if no valid response was received.
+
+        Raises:
+            ScannerConnectionError: If the connection cannot be established.
+
+        """
+        if self._use_socket:
+            return await self._scan_device_id_socket(device_id, timeout)
+        return await self._scan_device_id_unit(device_id, timeout)
+
+    async def _scan_device_id_unit(self, device_id: int, timeout: float) -> int:
+        """Scan a device ID with a temporary unit; see scan_device_id."""
+        async with async_get_temporary_unit(
+            self._hass, self._params, device_id
+        ) as unit:
+            # A unit can only raise the link's timeout, so this holds when we
+            # are the first on the connection and has no effect when another
+            # holder already asked for a longer one.
+            unit.require_timeout(timeout)
+
+            link_failed = False
+
+            for attempt in range(1, self._scan_retries + 1):
+                _LOGGER.debug("Scanning ID: %s ...", device_id)
+                try:
+                    registers = await unit.read_holding_registers(
+                        SIGNATURE_ADDRESS, len(SIGNATURE)
+                    )
+
+                except (GatewayPathUnavailableError, GatewayTargetError):
+                    # The gateway itself says nothing is at this ID.
+                    _LOGGER.debug("No device found at ID %s", device_id)
+                    return self.NOT_FOUND
+
+                except ModbusExceptionError as err:
+                    _LOGGER.debug(
+                        "ID %s answered with an exception: %s", device_id, err
+                    )
+                    return self.FOUND
+
+                except ModbusTimeoutError as err:
+                    # A connect timeout is also a timeout, so ask the unit
+                    # whether the link ever came up.
+                    link_failed = not unit.connected
+                    _LOGGER.debug(
+                        "ID %s attempt %s of %s timed out: %s",
+                        device_id,
+                        attempt,
+                        self._scan_retries,
+                        err,
+                    )
+
+                except (ModbusConnectionError, ModbusProtocolError, OSError) as err:
+                    link_failed = not unit.connected
+                    _LOGGER.debug(
+                        "ID %s attempt %s of %s failed: %s",
+                        device_id,
+                        attempt,
+                        self._scan_retries,
+                        err,
+                    )
+
+                else:
+                    if registers == SIGNATURE:
+                        _LOGGER.debug("%s is INVERTER", device_id)
+                        return self.FOUND_INV
+
+                    _LOGGER.warning(
+                        "Scanned device %s did not match signature: %s",
+                        device_id,
+                        " ".join(format(x, "04x") for x in registers),
+                    )
+                    return self.FOUND
+
+        if link_failed:
+            self._raise_connection_error()
 
         _LOGGER.debug("No device found at ID %s", device_id)
         return self.NOT_FOUND

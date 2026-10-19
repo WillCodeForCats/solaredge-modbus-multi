@@ -84,13 +84,16 @@
         "title": "SolarEdge Modbus-alternativer",
         "data": {
           "scan_interval": "Avstemningsfrekvens (sekunder)",
-          "close_after_polling": "Lukk tilkoblingen etter avstemning",
           "detect_meters": "Automatisk oppdagelse av målere",
           "detect_batteries": "Automatisk gjenkjenning av batterier",
           "detect_extras": "Automatisk oppdage flere enheter",
           "advanced_power_control": "Strømkontrollalternativer",
           "request_timeout": "Tidsavbrudd for Modbus-forespørsel (sekunder)",
-          "sleep_after_write": "Inverter Command Delay (sekunder)"
+          "sleep_after_write": "Inverter Command Delay (sekunder)",
+          "connection_mode": "Modbus-tilkobling"
+        },
+        "data_description": {
+          "connection_mode": "Hvordan SolarEdge Modbus Multi kobler til omformeren. En annen integrasjon som bruker den samme omformeren kan gjøre en delt tilkobling treg. Se README for mer informasjon."
         }
       },
       "adv_pwr_ctl": {
@@ -148,6 +151,10 @@
       "title": "Ugyldig omformer-enhets-ID",
       "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."
     },
+    "shared_connection_other_integration": {
+      "title": "En annen integrasjon deler denne vekselretteren",
+      "description": "Integrasjonene {integrations} bruker samme Modbus-tilkobling til {host}. Hvis en av dem ber om en lang tidsavbrudd, for eksempel den innebygde SolarEdge Modbus-integrasjonen (30 sekunder), gjelder det for alle forespørsler på den delte tilkoblingen, også denne integrasjonens. Dette kan gi trege eller manglende oppdateringer, og det skyldes ikke denne integrasjonen.\n\nDet lange tidsavbruddet varer til Home Assistant startes på nytt, selv om den andre integrasjonen deaktiveres eller fjernes. Hvis du vil bruke begge, velger du «Bruk direkte tilkobling» under «Modbus-tilkobling» i innstillingene for denne integrasjonen. Se README for detaljer."
+    },
     "detect_timeout_gpc": {
       "title": "Global dynamisk kraftkontroll timeout (Omformer {device_id})",
       "fix_flow": {
@@ -176,7 +183,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet",
-      "description": "Alternativet «Hold Modbus-tilkoblingen åpen» er erstattet av «Lukk tilkoblingen etter avstemning» i konfigurasjonen til denne integrasjonen. Se på det nye alternativet hvis du trenger samme oppførsel."
+      "description": "Alternativet «Hold Modbus-tilkoblingen åpen» brukes ikke lenger. Denne integrasjonen deler nå tilkoblingen til modbus-integrasjonen. Hvis du vil styre tilkoblingen selv, velger du «Bruk direkte tilkobling» eller «Bruk direkte tilkobling og lukk den etter hver avlesning» som Modbus-tilkobling i innstillingene til denne integrasjonen."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "En annen integrasjon er allerede koblet til {host}:{port} med andre tilkoblingsinnstillinger, og én tilkobling kan ikke bruke begge. Fjern eller konfigurer den andre integrasjonen på nytt, og last deretter denne inn på nytt."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Bruk Home Assistants delte Modbus-tilkobling",
+        "own": "Bruk direkte tilkobling",
+        "own_close_after_polling": "Bruk direkte tilkobling og lukk den etter hver avlesning"
+      }
     }
   }
 }
