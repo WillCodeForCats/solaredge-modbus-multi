@@ -1,0 +1,17 @@
+solaredge-modbus-multi
+Copyright 2021-2026 WillCodeForCats (Seth Mattinen)
+
+This project was developed as a substantial rewrite and extension
+of an earlier fork of binsentsu/home-assistant-solaredge-modbus
+available at https://github.com/WillCodeForCats/home-assistant-solaredge-modbus.
+
+Significant development beyond both previous works includes multi-device
+and multi-inverter support, Synergy support, meter and battery
+integration, expanded register coverage, with numerous operational
+improvements developed through direct testing with real SolarEdge
+hardware, Home Assistant development, and user feedback and contributors
+across multiple firmware versions over a period of 4+ years.
+
+The device detection logic, and operational edge case handling
+documented in this project represent original research conducted
+with real SolarEdge hardware.

@@ -1,11 +1,11 @@
+"""The SolarEdge Modbus Multi hub module."""
+
 from __future__ import annotations
 
 import asyncio
-import importlib.metadata
-import inspect
 import logging
 
-from awesomeversion import AwesomeVersion
+from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
     AwesomeVersionCompareException,
     AwesomeVersionStrategyException,
@@ -13,121 +13,188 @@ from awesomeversion.exceptions import (
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
-from pymodbus.client import AsyncModbusTcpClient
-from pymodbus.client.mixin import ModbusClientMixin
-from pymodbus.exceptions import ConnectionException, ModbusIOException
+from modbus_connection.exceptions import (
+    IllegalDataAddressError,
+    IllegalDataValueError,
+    IllegalFunctionError,
+    ModbusConnectionError,
+    ModbusError,
+    ModbusExceptionError,
+    ModbusProtocolError,
+    ModbusTimeoutError,
+)
+from modbus_connection.model.sunspec import SunSpecError, scan as suns_scan
 
-try:
-    # for pymodbus 3.11.1 and newer
-    from pymodbus.pdu.pdu import ExceptionResponse
-except ImportError:
-    # or backwards compatibility
-    from pymodbus.pdu import ExceptionResponse
-
+from .components import (
+    AdvancedPowerControl,
+    BatteryData,
+    BatteryInfo,
+    DERStorageCapacity,
+    EvseCommon,
+    GlobalDynamicPowerControl,
+    InverterCommon,
+    InverterData,
+    MeterData,
+    MeterInfo,
+    MmpptCommon,
+    MmpptData,
+    SiteLimitControl,
+    StorageControl,
+    component_field_names,
+)
 from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
     DOMAIN,
     METER_REG_BASE,
-    PYMODBUS_REQUIRED_VERSION,
+    MMPPT_UNITS_VERSION,
     STATUS_VENDOR4_VERSION,
+    WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
-    ModbusDefaults,
-    ModbusExceptions,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, int_list_to_string
+from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
-pymodbus_version = importlib.metadata.version("pymodbus")
 
 
 class SolarEdgeException(Exception):
-    """Base class for other exceptions"""
-
-    pass
+    """Base class for other exceptions."""
 
 
 class HubInitFailed(SolarEdgeException):
-    """Raised when an error happens during init"""
-
-    pass
-
-
-class DeviceInitFailed(SolarEdgeException):
-    """Raised when a device can't be initialized"""
-
-    pass
+    """Raised when an error happens during init."""
 
 
 class DeviceIsEVSE(SolarEdgeException):
-    """Raised when an inverter device matches a EVSE model"""
-
-    pass
-
-
-class ModbusReadError(SolarEdgeException):
-    """Raised when a modbus read fails (generic)"""
-
-    pass
-
-
-class ModbusIllegalFunction(SolarEdgeException):
-    """Raised when a modbus address is invalid"""
-
-    pass
-
-
-class ModbusIllegalAddress(SolarEdgeException):
-    """Raised when a modbus address is invalid"""
-
-    pass
-
-
-class ModbusIllegalValue(SolarEdgeException):
-    """Raised when a modbus address is invalid"""
-
-    pass
-
-
-class ModbusIOError(SolarEdgeException):
-    """Raised when a modbus IO error occurs"""
-
-    pass
-
-
-class ModbusWriteError(SolarEdgeException):
-    """Raised when a modbus write fails (generic)"""
-
-    pass
+    """Raised when an inverter device matches a EVSE model."""
 
 
 class DataUpdateFailed(SolarEdgeException):
-    """Raised when an update cycle fails"""
-
-    pass
+    """Raised when an update cycle fails."""
 
 
 class DeviceInvalid(SolarEdgeException):
-    """Raised when a device is not usable or invalid"""
+    """Raised when a device is not usable or invalid."""
 
-    pass
+
+async def async_update_with_retry(component) -> None:
+    """Call component.async_update(), retrying connection/timeout errors.
+
+    modbus-connection has no built-in per-request retry, unlike pymodbus's
+    `retries` option, so this method mimics that behavior.
+    """
+    for attempt in range(1, RetrySettings.RequestRetries + 1):
+        try:
+            await component.async_update()
+
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+            _LOGGER.debug(
+                "%s.async_update() attempt %s of %s failed: %s",
+                type(component).__name__,
+                attempt,
+                RetrySettings.RequestRetries,
+                e,
+            )
+
+            if attempt >= RetrySettings.RequestRetries:
+                raise
+
+        else:
+            return
+
+
+async def async_write_with_retry(component, field: str, value) -> None:
+    """Call component.write(field, value), retrying connection/timeout errors.
+
+    Like async_update_with_retry() but for writes.
+    """
+    for attempt in range(1, RetrySettings.RequestRetries + 1):
+        try:
+            await component.write(field, value)
+
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+            _LOGGER.debug(
+                "%s.write(%r) attempt %s of %s failed: %s",
+                type(component).__name__,
+                field,
+                attempt,
+                RetrySettings.RequestRetries,
+                e,
+            )
+
+            if attempt >= RetrySettings.RequestRetries:
+                raise
+
+        else:
+            return
+
+
+async def async_suns_scan_with_retry(connection, base_address: int):
+    """Call suns_scan(), retrying connection/timeout errors.
+
+    Like async_update_with_retry() but for the SunSpec model scan.
+    """
+    for attempt in range(1, RetrySettings.RequestRetries + 1):
+        try:
+            models = await suns_scan(connection, base_address)
+
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+            _LOGGER.debug(
+                "suns_scan() attempt %s of %s failed: %s",
+                attempt,
+                RetrySettings.RequestRetries,
+                e,
+            )
+
+            if attempt >= RetrySettings.RequestRetries:
+                raise
+
+        else:
+            return models
+
+    return None
+
+
+def _parse_se_version(version_str: str) -> AwesomeVersion:
+    """Strip zero-padding from SolarEdge firmware version strings."""
+    stripped = ".".join(str(int(p)) for p in version_str.split("."))
+    return AwesomeVersion(stripped, ensure_strategy=AwesomeVersionStrategy.SIMPLEVER)
+
+
+def _log_component_fields(prefix: str, component) -> None:
+    """Debug-log every field of a just-read component on one line, by name."""
+    if not _LOGGER.isEnabledFor(logging.DEBUG):
+        return
+
+    fields = []
+    for name in component_field_names(component):
+        value = getattr(component, name)
+        if isinstance(value, float):
+            display_value = float_to_hex(value)
+        elif isinstance(value, int):
+            display_value = hex(value)
+        else:
+            display_value = repr(value)
+        if isinstance(value, int):
+            fields.append(f"{name}={display_value}")
+        else:
+            fields.append(f"{name}={display_value}<{type(value).__name__}>")
+    _LOGGER.debug("%s: %s", prefix, " ".join(fields))
 
 
 class SolarEdgeModbusMultiHub:
+    """Solar edge modbus multi hub."""
+
     def __init__(
-        self,
-        hass: HomeAssistant,
-        entry_id: str,
-        entry_data,
-        entry_options,
+        self, hass: HomeAssistant, entry_id: str, entry_data, entry_options, connection
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
@@ -148,9 +215,6 @@ class SolarEdgeModbusMultiHub:
         self._detect_extras = entry_options.get(
             ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
         )
-        self._keep_modbus_open = entry_options.get(
-            ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
-        )
         self._adv_storage_control = entry_options.get(
             ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
         )
@@ -162,6 +226,9 @@ class SolarEdgeModbusMultiHub:
             ConfName.ALLOW_BATTERY_ENERGY_RESET,
             bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
         )
+        self._request_timeout = entry_options.get(
+            ConfName.REQUEST_TIMEOUT, ConfDefaultInt.REQUEST_TIMEOUT
+        )
         self._sleep_after_write = entry_options.get(
             ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
         )
@@ -172,21 +239,10 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
-        self._retry_limit = self._yaml_config.get("retry", {}).get(
-            "limit", RetrySettings.Limit
+        self._close_after_polling = entry_options.get(
+            ConfName.CLOSE_AFTER_POLLING, bool(ConfDefaultFlag.CLOSE_AFTER_POLLING)
         )
-        self._mb_reconnect_delay = self._yaml_config.get("modbus", {}).get(
-            "reconnect_delay", ModbusDefaults.ReconnectDelay
-        )
-        self._mb_reconnect_delay_max = self._yaml_config.get("modbus", {}).get(
-            "reconnect_delay_max", ModbusDefaults.ReconnectDelayMax
-        )
-        self._mb_timeout = self._yaml_config.get("modbus", {}).get(
-            "timeout", ModbusDefaults.Timeout
-        )
-        self._mb_retries = self._yaml_config.get("modbus", {}).get(
-            "retries", ModbusDefaults.Retries
-        )
+
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
         self.meters = []
@@ -194,92 +250,69 @@ class SolarEdgeModbusMultiHub:
         self.evses = []
         self.inverter_common = {}
         self.mmppt_common = {}
-        self.has_write = None
+        self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
-        self._online = True
-        self._timeout_counter = 0
+        self._coordinator_timeouts_count = 0
+        self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
 
-        self._client = None
-        self._connect_lock = asyncio.Lock()
-
-        self._pymodbus_version = pymodbus_version
+        self.connection = connection
 
         _LOGGER.debug(
-            (
-                f"{DOMAIN} configuration: "
-                f"inverter_list={self._inverter_list}, "
-                f"detect_meters={self._detect_meters}, "
-                f"detect_batteries={self._detect_batteries}, "
-                f"detect_extras={self._detect_extras}, "
-                f"keep_modbus_open={self._keep_modbus_open}, "
-                f"adv_storage_control={self._adv_storage_control}, "
-                f"adv_site_limit_control={self._adv_site_limit_control}, "
-                f"allow_battery_energy_reset={self._allow_battery_energy_reset}, "
-                f"sleep_after_write={self._sleep_after_write}, "
-                f"battery_rating_adjust={self._battery_rating_adjust}, "
-            ),
+            "%s configuration: inverter_list=%s, detect_meters=%s, "
+            "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
+            "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
+            "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
+            "close_after_polling=%s, ",
+            DOMAIN,
+            self._inverter_list,
+            self._detect_meters,
+            self._detect_batteries,
+            self._detect_extras,
+            self._adv_storage_control,
+            self._adv_site_limit_control,
+            self._allow_battery_energy_reset,
+            self._request_timeout,
+            self._sleep_after_write,
+            self._battery_rating_adjust,
+            self._close_after_polling,
         )
 
-        _LOGGER.debug(f"pymodbus version {self.pymodbus_version}")
-
-    async def _async_init_solaredge(self) -> None:
+    async def _async_init_solaredge(self) -> None:  # noqa: C901
         """Detect devices and load initial modbus data from inverters."""
-
-        pymodbus_version_tuple = self._safe_version_tuple(self.pymodbus_version)
-        required_version_tuple = self._safe_version_tuple(
-            self.pymodbus_required_version
-        )
-
-        if pymodbus_version_tuple < required_version_tuple:
-            raise HubInitFailed(
-                f"pymodbus version must be at least {self.pymodbus_required_version}, "
-                f"but {self.pymodbus_version} is installed. Please remove other custom "
-                "integrations that depend on an older version of pymodbus and restart."
-            )
-
-        if not self.is_connected:
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                "check_configuration",
-                is_fixable=True,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="check_configuration",
-                data={"entry_id": self._entry_id},
-            )
-            raise HubInitFailed(
-                f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
-            )
 
         if self.option_storage_control:
             _LOGGER.warning(
-                (
-                    "Power Control Options: Storage Control is enabled. "
-                    "Use at your own risk! "
-                    "Adjustable parameters in Modbus registers are intended for "
-                    "long-term storage. Periodic changes may damage the flash memory."
-                ),
+                "Power Control Options: Storage Control is enabled. "
+                "Use at your own risk! "
+                "Adjustable parameters in Modbus registers are intended for "
+                "long-term storage. Periodic changes may damage the flash memory."
             )
 
         if self.option_site_limit_control:
             _LOGGER.warning(
-                (
-                    "Power Control Options: Site Limit Control is enabled. "
-                    "Use at your own risk! "
-                    "Adjustable parameters in Modbus registers are intended for "
-                    "long-term storage. Periodic changes may damage the flash memory."
-                ),
+                "Power Control Options: Site Limit Control is enabled. "
+                "Use at your own risk! "
+                "Adjustable parameters in Modbus registers are intended for "
+                "long-term storage. Periodic changes may damage the flash memory."
             )
 
         for inverter_unit_id in self._inverter_list:
             try:
                 _LOGGER.debug(
-                    f"Looking for inverter at {self.hub_host} ID {inverter_unit_id}"
+                    "Looking for inverter at %s ID %s", self.hub_host, inverter_unit_id
                 )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
                 self.inverters.append(new_inverter)
+
+                # for via_device_id
+                device_registry = dr.async_get(self._hass)
+                inverter_device = device_registry.async_get_or_create(
+                    config_entry_id=self._entry_id,
+                    **new_inverter.device_info,
+                )
+                new_inverter.device_registry_id = inverter_device.id
 
                 ir.async_delete_issue(
                     self._hass,
@@ -287,14 +320,19 @@ class SolarEdgeModbusMultiHub:
                     self._setup_inverter_id_failed_issue(inverter_unit_id),
                 )
 
-            except (ModbusReadError, TimeoutError) as e:
-                await self.disconnect()
-                raise HubInitFailed(f"{e}")
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+            ) as e:
+                raise HubInitFailed(f"{e}") from e
 
             except DeviceInvalid as e:
                 # Inverters are mandatory, but if the Device ID is invalid or not responding
                 # skip it and warn the user instead of failing the entire hub setup
-                _LOGGER.error(f"Inverter at {self.hub_host} ID {inverter_unit_id}: {e}")
+                _LOGGER.error(
+                    "Inverter at %s ID %s: %s", self.hub_host, inverter_unit_id, e
+                )
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
@@ -312,20 +350,70 @@ class SolarEdgeModbusMultiHub:
 
             except DeviceIsEVSE as e:
                 _LOGGER.debug(
-                    f"Device model matches EVSE at {self.hub_host} ID {inverter_unit_id}: {e}"
+                    "Device model matches EVSE at %s ID %s: %s",
+                    self.hub_host,
+                    inverter_unit_id,
+                    e,
                 )
                 new_evse = SolarEdgeEVSE(inverter_unit_id, self)
                 await new_evse.init_device()
                 self.evses.append(new_evse)
 
+                try:
+                    _LOGGER.debug(
+                        "Scanning SunS models at %s ID %s",
+                        self.hub_host,
+                        inverter_unit_id,
+                    )
+                    new_evse.sunspec_models = await async_suns_scan_with_retry(
+                        self.connection.for_unit(inverter_unit_id), 40000
+                    )
+
+                    for model in new_evse.sunspec_models.chain:
+                        _LOGGER.debug(
+                            "E%s: found SunS model %s (length %s)",
+                            inverter_unit_id,
+                            model.model_id,
+                            model.length,
+                        )
+
+                except (ModbusError, SunSpecError) as e:
+                    _LOGGER.debug(
+                        "E%s: SunS model scan failed: %s", inverter_unit_id, e
+                    )
+
                 # Skip meter and battery detection if DeviceIsEVSE
+                new_evse.evse_common.restrict_fields(["C_Version"])
                 continue
+
+            try:
+                _LOGGER.debug(
+                    "Scanning SunS models at %s ID %s", self.hub_host, inverter_unit_id
+                )
+                suns_models = await async_suns_scan_with_retry(
+                    self.connection.for_unit(inverter_unit_id), 40000
+                )
+                new_inverter.sunspec_models = suns_models
+
+                der_storage_models = suns_models.get(713, []) if suns_models else []
+
+                for model in suns_models.chain:
+                    _LOGGER.debug(
+                        "I%s: found SunS model %s (length %s)",
+                        inverter_unit_id,
+                        model.model_id,
+                        model.length,
+                    )
+
+            except (ModbusError, SunSpecError) as e:
+                _LOGGER.debug("I%s: SunS model scan failed: %s", inverter_unit_id, e)
+                der_storage_models = []
 
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
                     try:
                         _LOGGER.debug(
-                            f"Looking for meter I{inverter_unit_id}M{meter_id}"
+                            "Looking for meter I%sM%s", inverter_unit_id, meter_id
                         )
                         new_meter = SolarEdgeMeter(inverter_unit_id, meter_id, self)
                         await new_meter.init_device()
@@ -334,29 +422,32 @@ class SolarEdgeModbusMultiHub:
                             # Allow duplicate serial number on meters PR#412
                             if new_meter.serial == meter.serial:
                                 _LOGGER.warning(
-                                    (
-                                        f"Duplicate serial {new_meter.serial} "
-                                        f"on I{inverter_unit_id}M{meter_id}"
-                                    ),
+                                    "Duplicate serial %s on I%sM%s",
+                                    new_meter.serial,
+                                    inverter_unit_id,
+                                    meter_id,
                                 )
 
-                        new_meter.via_device = new_inverter.uid_base
+                        new_meter.via_device_id = new_inverter.device_registry_id
                         self.meters.append(new_meter)
-                        _LOGGER.debug(f"Found I{inverter_unit_id}M{meter_id}")
+                        _LOGGER.debug("Found I%sM%s", inverter_unit_id, meter_id)
 
-                    except (ModbusReadError, TimeoutError) as e:
-                        await self.disconnect()
-                        raise HubInitFailed(f"{e}")
+                    except (  # noqa: PERF203
+                        ModbusConnectionError,
+                        ModbusProtocolError,
+                        ModbusTimeoutError,
+                    ) as e:
+                        raise HubInitFailed(f"{e}") from e
 
                     except DeviceInvalid as e:
-                        _LOGGER.debug(f"I{inverter_unit_id}M{meter_id}: {e}")
-                        pass
+                        _LOGGER.debug("I%sM%s: %s", inverter_unit_id, meter_id, e)
 
             if self._detect_batteries:
+                # SolarEdge proprietary battery block for up to three batteries.
                 for battery_id in BATTERY_REG_BASE:
                     try:
                         _LOGGER.debug(
-                            f"Looking for battery I{inverter_unit_id}B{battery_id}"
+                            "Looking for battery I%sB%s", inverter_unit_id, battery_id
                         )
                         new_battery = SolarEdgeBattery(
                             inverter_unit_id, battery_id, self
@@ -366,31 +457,47 @@ class SolarEdgeModbusMultiHub:
                         for battery in self.batteries:
                             if new_battery.serial == battery.serial:
                                 _LOGGER.warning(
-                                    (
-                                        f"Duplicate serial {new_battery.serial} "
-                                        f"on I{inverter_unit_id}B{battery_id}"
-                                    ),
+                                    "Duplicate serial %s on I%sB%s",
+                                    new_battery.serial,
+                                    inverter_unit_id,
+                                    battery_id,
                                 )
-                                raise DeviceInvalid(
+                                raise DeviceInvalid(  # noqa: TRY301
                                     f"Duplicate B{battery_id} serial "
                                     f"{new_battery.serial}"
                                 )
 
-                        new_battery.via_device = new_inverter.uid_base
+                        new_battery.via_device_id = new_inverter.device_registry_id
                         self.batteries.append(new_battery)
-                        _LOGGER.debug(f"Found I{inverter_unit_id}B{battery_id}")
+                        _LOGGER.debug("Found I%sB%s", inverter_unit_id, battery_id)
 
-                    except (ModbusReadError, TimeoutError) as e:
-                        await self.disconnect()
-                        raise HubInitFailed(f"{e}")
+                    except (  # noqa: PERF203
+                        ModbusConnectionError,
+                        ModbusProtocolError,
+                        ModbusTimeoutError,
+                    ) as e:
+                        raise HubInitFailed(f"{e}") from e
 
                     except DeviceInvalid as e:
-                        _LOGGER.debug(f"I{inverter_unit_id}B{battery_id}: {e}")
-                        pass
+                        _LOGGER.debug("I%sB%s: %s", inverter_unit_id, battery_id, e)
+
+            # DER Storage Capacity (SunSpec model 713). Independent of battery
+            # detection: it is read from the SunSpec chain and reported on the
+            # inverter device. Unlike HA core's solaredge_modbus, which only
+            # uses this block when no proprietary battery was found and SoC is
+            # above 0%, both are kept so they can coexist on the same inverter.
+            # They are also different values: the proprietary block is per
+            # battery (State of Energy), while model 713 is inverter level
+            # (State of Charge) and may cover one or more batteries.
+            # The block is served with SoC fixed at 0% when no battery is
+            # attached, so the SoC sensor is disabled by default for a 0% first
+            # value instead of being left out.
+            await new_inverter.init_der_storage(der_storage_models)
+
+            new_inverter.inverter_common.restrict_fields(["C_Version"])
 
         if not self.inverters:
             # fail the hub setup if there are no inverters
-            await self.disconnect()
             raise HubInitFailed(
                 f"No usable inverters found at {self.hub_host} for configured "
                 "Device ID(s). Check the repair issue(s) for details."
@@ -406,77 +513,44 @@ class SolarEdgeModbusMultiHub:
             for evse in self.evses:
                 await evse.read_modbus_data()
 
-        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
-            await self.disconnect()
-            raise HubInitFailed(f"Read error: {e}")
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            raise HubInitFailed(f"Read error: {e}") from e
 
         except DeviceInvalid as e:
-            await self.disconnect()
-            raise HubInitFailed(f"Invalid device: {e}")
-
-        except ConnectionException as e:
-            await self.disconnect()
-            raise HubInitFailed(f"Connection failed: {e}")
-
-        except ModbusIOException as e:
-            await self.disconnect()
-            raise HubInitFailed(f"Modbus error: {e}")
+            raise HubInitFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            await self.disconnect()
-            raise HubInitFailed(f"Timeout error: {e}")
+            raise HubInitFailed(f"Timeout error: {e}") from e
 
         self.initalized = True
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
 
-        await self.connect()
-
         if not self.initalized:
             try:
                 async with asyncio.timeout(self.coordinator_timeout):
                     await self._async_init_solaredge()
 
-            except (ConnectionException, ModbusIOException, TimeoutError) as e:
-                await self.disconnect()
+            except TimeoutError as err:
                 ir.async_create_issue(
                     self._hass,
                     DOMAIN,
-                    "check_configuration",
+                    f"check_configuration_{self._entry_id}",
                     is_fixable=True,
                     severity=ir.IssueSeverity.ERROR,
                     translation_key="check_configuration",
                     data={"entry_id": self._entry_id},
                 )
-                raise HubInitFailed(f"Setup failed: {e}")
+                raise HubInitFailed(
+                    f"Coordinator setup timed out after {self.coordinator_timeout} seconds."
+                ) from err
 
-            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-
-            if not self.keep_modbus_open and not self.has_write:
-                await self.disconnect()
+            ir.async_delete_issue(
+                self._hass, DOMAIN, f"check_configuration_{self._entry_id}"
+            )
 
             return True
-
-        if not self.is_connected:
-            self.online = False
-            ir.async_create_issue(
-                self._hass,
-                DOMAIN,
-                "check_configuration",
-                is_fixable=True,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="check_configuration",
-                data={"entry_id": self._entry_id},
-            )
-            raise DataUpdateFailed(
-                f"Modbus/TCP connect to {self.hub_host}:{self.hub_port} failed."
-            )
-
-        if not self.online:
-            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-
-        self.online = True
 
         try:
             async with asyncio.timeout(self.coordinator_timeout):
@@ -489,270 +563,133 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusReadError, ModbusIllegalFunction, ModbusIllegalValue) as e:
-            await self.disconnect()
-            raise DataUpdateFailed(f"Update failed: {e}")
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            await self.connection.disconnect()
+            raise DataUpdateFailed(f"Update failed: {e}") from e
 
         except DeviceInvalid as e:
-            await self.disconnect()
-            raise DataUpdateFailed(f"Invalid device: {e}")
-
-        except ConnectionException as e:
-            await self.disconnect()
-            raise DataUpdateFailed(f"Connection failed: {e}")
-
-        except ModbusIOException as e:
-            await self.disconnect()
-            raise DataUpdateFailed(f"Modbus error: {e}")
+            await self.connection.disconnect()
+            raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            await self.disconnect(clear_client=True)
-            self._timeout_counter += 1
+            await self.connection.disconnect()
+
+            self._coordinator_timeouts_count += 1
 
             _LOGGER.debug(
-                f"Refresh timeout {self._timeout_counter} limit {self._retry_limit}"
+                "Coordinator timeout %s limit %s",
+                self._coordinator_timeouts_count,
+                self._coordinator_timeouts_limit,
             )
 
-            if self._timeout_counter >= self._retry_limit:
-                self._timeout_counter = 0
-                raise TimeoutError
+            if self._coordinator_timeouts_count >= self._coordinator_timeouts_limit:
+                _LOGGER.warning(
+                    "Coordinator has timed out %s times in a row.",
+                    self._coordinator_timeouts_limit,
+                )
+                self._coordinator_timeouts_count = 0
 
-            raise DataUpdateFailed(f"Timeout error: {e}")
+            raise DataUpdateFailed(f"Timeout error: {e}") from e
 
-        if self._timeout_counter > 0:
+        if self._coordinator_timeouts_count > 0:
             _LOGGER.debug(
-                f"Timeout count {self._timeout_counter} limit {self._retry_limit}"
+                "Coordinator timeout count %s limit %s",
+                self._coordinator_timeouts_count,
+                self._coordinator_timeouts_limit,
             )
-            self._timeout_counter = 0
+            self._coordinator_timeouts_count = 0
 
-        if not self.keep_modbus_open and not self.has_write:
-            await self.disconnect()
+        if self.close_after_polling:
+            await self.connection.disconnect()
 
         return True
 
-    async def connect(self) -> None:
-        """Connect to inverter."""
-        async with self._connect_lock:
-            if self.is_connected:
-                return
-            if self._client is None:
-                _LOGGER.debug(
-                    "New AsyncModbusTcpClient: "
-                    f"reconnect_delay={self._mb_reconnect_delay} "
-                    f"reconnect_delay_max={self._mb_reconnect_delay_max} "
-                    f"timeout={self._mb_timeout} "
-                    f"retries={self._mb_retries}"
-                )
-                self._client = AsyncModbusTcpClient(
-                    host=self._host,
-                    port=self._port,
-                    reconnect_delay=self._mb_reconnect_delay,
-                    reconnect_delay_max=self._mb_reconnect_delay_max,
-                    timeout=self._mb_timeout,
-                    retries=self._mb_retries,
-                )
+    async def component_update(self, unit: int, component) -> None:
+        """Update a SolarEdge modbus Component and track write settle cycles.
 
-            _LOGGER.debug((f"Connecting to {self._host}:{self._port} ..."))
-            await self._client.connect()
+        Reads always happen inside the coordinator refresh loop.
 
-    async def disconnect(self, clear_client: bool = False) -> None:
-        """Disconnect from inverter."""
+        Future: if modbus-connection provides a way to get the unit id from the component,
+        do that instead of passing the unit separately. We need it to track settle cycles.
+        """
 
-        async with self._connect_lock:
-            if self._client is not None:
-                _LOGGER.debug(
-                    (
-                        f"Disconnecting from {self._host}:{self._port} "
-                        f"(clear_client={clear_client})."
-                    )
-                )
-                self._client.close()
+        await async_update_with_retry(component)
 
-                if clear_client:
-                    self._client = None
+        cycles_remaining = self._write_settle_cycles.get(unit)
+        if cycles_remaining is None:
+            return
 
-    async def shutdown(self) -> None:
-        """Shut down the hub and disconnect."""
-
-        self.online = False
-        await self.disconnect(clear_client=True)
-
-    async def modbus_read_holding_registers(self, unit, address, rcount):
-        """Read modbus registers from inverter."""
-
-        self._rr_unit = unit
-        self._rr_address = address
-        self._rr_count = rcount
-
-        sig = inspect.signature(self._client.read_holding_registers)
-
-        _LOGGER.debug(
-            f"unit={self._rr_unit}: modbus_read_holding_registers "
-            f"address={self._rr_address} count={self._rr_count}"
-        )
-
-        if "device_id" in sig.parameters:
-            result = await self._client.read_holding_registers(
-                address=self._rr_address, count=self._rr_count, device_id=self._rr_unit
-            )
+        if cycles_remaining <= 1:
+            _LOGGER.debug("Clearing unit %s request spacing.", unit)
+            self.connection.for_unit(unit).set_message_spacing(0)
+            del self._write_settle_cycles[unit]
         else:
-            result = await self._client.read_holding_registers(
-                address=self._rr_address, count=self._rr_count, slave=self._rr_unit
+            _LOGGER.debug(
+                "Unit %s has %s refreshes until clearing.", unit, cycles_remaining - 1
             )
+            self._write_settle_cycles[unit] = cycles_remaining - 1
 
-        _LOGGER.debug(f"unit={self._rr_unit}: result is error: {result.isError()} ")
+    async def component_write(self, unit: int, component, field: str, value) -> None:
+        """Write a SolarEdge modbus Component and set optional spacing.
 
-        if result.isError():
-            _LOGGER.debug(f"unit={self._rr_unit}: error result: {type(result)} ")
+        Writes are outside the refresh loop. SolarEdge inverters may not respond
+        (timeout) on errors instead of sending a modbus exception response.
 
-            if type(result) is ModbusIOException:
-                raise ModbusIOError(result)
+        Future: if modbus-connection provides a way to get the unit id from the component,
+        do that instead of passing the unit separately. We need it for sleep after write.
+        """
 
-            if type(result) is ExceptionResponse:
-                if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalAddress: {result}")
-                    raise ModbusIllegalAddress(result)
-
-                if result.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(
-                        f"unit={self._rr_unit} Read IllegalFunction: {result}"
-                    )
-                    raise ModbusIllegalFunction(result)
-
-                if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"unit={self._rr_unit} Read IllegalValue: {result}")
-                    raise ModbusIllegalValue(result)
-
-            raise ModbusReadError(result)
-
-        _LOGGER.debug(
-            f"unit={self._rr_unit}: Registers received={len(result.registers)} "
-            f"requested={self._rr_count} address={self._rr_address} "
-            f"result={result}"
-        )
-
-        if len(result.registers) != rcount:
-            raise ModbusReadError(
-                f"unit={self._rr_unit}: Registers received != requested : "
-                f"{len(result.registers)} != {self._rr_count} at {self._rr_address}"
+        if self.sleep_after_write > 0:
+            _LOGGER.debug(
+                "Spacing requests to unit %s for %s seconds after write to field %s.",
+                unit,
+                self.sleep_after_write,
+                field,
             )
-
-        return result
-
-    async def write_registers(self, unit: int, address: int, payload) -> None:
-        """Write modbus registers to inverter."""
-
-        self._wr_unit = unit
-        self._wr_address = address
-        self._wr_payload = payload
-
-        self.has_write = address
+            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
+            self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
         try:
-            await self.connect()
+            await async_write_with_retry(component, field, value)
 
-            sig = inspect.signature(self._client.write_registers)
-
-            if "device_id" in sig.parameters:
-                result = await self._client.write_registers(
-                    address=self._wr_address,
-                    values=self._wr_payload,
-                    device_id=self._wr_unit,
-                )
-            else:
-                result = await self._client.write_registers(
-                    address=self._wr_address,
-                    values=self._wr_payload,
-                    slave=self._wr_unit,
-                )
-
-            if self.sleep_after_write > 0:
-                _LOGGER.debug(
-                    f"Sleep {self.sleep_after_write} seconds after write {address}."
-                )
-                await asyncio.sleep(self.sleep_after_write)
-
-            _LOGGER.debug(f"Finished with write {address}.")
-
-        except ModbusIOException as e:
-            await self.disconnect()
-
+        except IllegalFunctionError as e:
+            _LOGGER.debug("Unit %s Write IllegalFunction: %s", unit, e)
             raise HomeAssistantError(
-                f"Error sending command to inverter ID {self._wr_unit}: {e}."
-            )
+                f"Function not supported by device at ID {unit}."
+            ) from e
 
-        except ConnectionException as e:
-            await self.disconnect()
-
-            _LOGGER.error(f"Connection failed: {e}")
+        except IllegalDataAddressError as e:
+            _LOGGER.debug("Unit %s Write IllegalAddress: %s", unit, e)
             raise HomeAssistantError(
-                f"Connection to inverter ID {self._wr_unit} failed."
-            )
+                f"Address not supported at device at ID {unit}."
+            ) from e
 
-        finally:
-            self.has_write = None
+        except IllegalDataValueError as e:
+            _LOGGER.debug("Unit %s Write IllegalValue: %s", unit, e)
+            raise HomeAssistantError(f"Value invalid for device at ID {unit}.") from e
 
-        if result.isError():
-            if type(result) is ModbusIOException:
-                await self.disconnect()
-                _LOGGER.error(
-                    f"Write failed: No response from inverter ID {self._wr_unit}."
-                )
-                raise HomeAssistantError(
-                    "No response from inverter ID {self._wr_unit}."
-                )
+        except ModbusExceptionError as e:
+            _LOGGER.debug("Unit %s Write rejected: %s", unit, e)
+            raise HomeAssistantError(
+                f"Write rejected by device at ID {unit}: {e}"
+            ) from e
 
-            if type(result) is ExceptionResponse:
-                if result.exception_code == ModbusExceptions.IllegalAddress:
-                    _LOGGER.debug(
-                        f"Unit {self._wr_unit} Write IllegalAddress: {result}"
-                    )
-                    raise HomeAssistantError(
-                        "Address not supported at device at ID {self._wr_unit}."
-                    )
+        except ModbusTimeoutError as e:
+            _LOGGER.error("Write failed: No response from inverter ID %s.", unit)
+            raise HomeAssistantError(f"No response from inverter ID {unit}.") from e
 
-                if result.exception_code == ModbusExceptions.IllegalFunction:
-                    _LOGGER.debug(
-                        f"Unit {self._wr_unit} Write IllegalFunction: {result}"
-                    )
-                    raise HomeAssistantError(
-                        "Function not supported by device at ID {self._wr_unit}."
-                    )
+        except (ModbusConnectionError, ModbusProtocolError) as e:
+            _LOGGER.error("Connection failed: %s", e)
+            raise HomeAssistantError(f"Connection to inverter ID {unit} failed.") from e
 
-                if result.exception_code == ModbusExceptions.IllegalValue:
-                    _LOGGER.debug(f"Unit {self._wr_unit} Write IllegalValue: {result}")
-                    raise HomeAssistantError(
-                        "Value invalid for device at ID {self._wr_unit}."
-                    )
-
-            await self.disconnect()
-            raise ModbusWriteError(result)
+        _LOGGER.debug("Finished with write %s.", field)
 
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
 
-    @staticmethod
-    def _safe_version_tuple(version_str: str) -> tuple[int, ...]:
-        try:
-            version_parts = version_str.split(".")
-            version_tuple = tuple(int(part) for part in version_parts)
-            return version_tuple
-        except ValueError:
-            raise ValueError(f"Invalid version string: {version_str}")
-
-    @property
-    def online(self):
-        return self._online
-
-    @online.setter
-    def online(self, value: bool) -> None:
-        if value is True:
-            self._online = True
-        else:
-            self._online = False
-
     @property
     def initalized(self):
+        """Return the initalized."""
         return self._initalized
 
     @initalized.setter
@@ -773,6 +710,16 @@ class SolarEdgeModbusMultiHub:
         return self._id
 
     @property
+    def hass(self) -> HomeAssistant:
+        """Return the Home Assistant instance."""
+        return self._hass
+
+    @property
+    def entry_id(self) -> str:
+        """Return the config entry ID."""
+        return self._entry_id
+
+    @property
     def hub_host(self) -> str:
         """Return the modbus client host."""
         return self._host
@@ -784,1077 +731,621 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def option_storage_control(self) -> bool:
+        """Return the option storage control."""
         return self._adv_storage_control
 
     @property
     def option_site_limit_control(self) -> bool:
+        """Return the option site limit control."""
         return self._adv_site_limit_control
 
     @property
     def option_detect_extras(self) -> bool:
+        """Return the option detect extras."""
         return self._detect_extras
 
     @property
-    def keep_modbus_open(self) -> bool:
-        return self._keep_modbus_open
-
-    @keep_modbus_open.setter
-    def keep_modbus_open(self, value: bool) -> None:
-        if value is True:
-            self._keep_modbus_open = True
-        else:
-            self._keep_modbus_open = False
-
-        _LOGGER.debug(f"keep_modbus_open={self._keep_modbus_open}")
-
-    @property
     def allow_battery_energy_reset(self) -> bool:
+        """Return the allow battery energy reset."""
         return self._allow_battery_energy_reset
 
     @property
     def battery_rating_adjust(self) -> int:
+        """Return the battery rating adjust."""
         return (self._battery_rating_adjust + 100) / 100
 
     @property
     def battery_energy_reset_cycles(self) -> int:
+        """Return the battery energy reset cycles."""
         return self._battery_energy_reset_cycles
 
     @property
+    def close_after_polling(self) -> bool:
+        """Return the close after polling."""
+        return self._close_after_polling
+
+    @property
     def number_of_meters(self) -> int:
+        """Return the number of meters."""
         return len(self.meters)
 
     @property
     def number_of_batteries(self) -> int:
+        """Return the number of batteries."""
         return len(self.batteries)
 
     @property
     def number_of_inverters(self) -> int:
+        """Return the number of inverters."""
         return len(self._inverter_list)
 
     @property
+    def request_timeout(self) -> int:
+        """Return the request timeout."""
+        return self._request_timeout
+
+    @property
     def sleep_after_write(self) -> int:
+        """Return the sleep after write."""
         return self._sleep_after_write
 
     @property
-    def pymodbus_required_version(self) -> str:
-        return PYMODBUS_REQUIRED_VERSION
-
-    @property
-    def pymodbus_version(self) -> str:
-        return self._pymodbus_version
-
-    @property
     def coordinator_timeout(self) -> int:
+        """Return the coordinator timeout."""
         if not self.initalized:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
             this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
-            this_timeout += (SolarEdgeTimeouts.Device * 2) * 2  # max 2 per inverter
+            this_timeout += (SolarEdgeTimeouts.Battery * 2) * 3  # max 3 per inverter
             if self.option_detect_extras:
                 this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
+            # SunS model-chain scan runs unconditionally, once per inverter at setup
+            this_timeout += (
+                SolarEdgeTimeouts.Read
+                * RetrySettings.RequestRetries
+                * self.number_of_inverters
+            )
 
         else:
             this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
             this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
-            this_timeout += SolarEdgeTimeouts.Device * self.number_of_batteries
+            this_timeout += SolarEdgeTimeouts.Battery * self.number_of_batteries
             if self.option_detect_extras:
                 this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
 
         this_timeout = this_timeout / 1000
 
-        _LOGGER.debug(f"coordinator timeout is {this_timeout}")
+        # The per-step timeouts were based on the default request_timeout;
+        # scale the coordinator timeout if the user changes the value
+        this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
+
+        # Add the sleep_after_write value to the coordinator timeout
+        this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES
+
+        _LOGGER.debug("coordinator timeout is %s", this_timeout)
         return this_timeout
-
-    @property
-    def is_connected(self) -> bool:
-        """Check modbus client connection status."""
-        if self._client is None:
-            return False
-
-        return self._client.connected
 
 
 class SolarEdgeInverter:
     """Defines a SolarEdge inverter."""
 
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
+        """Initialize the solar edge inverter."""
         self.inverter_unit_id = device_id
         self.hub = hub
+        self.device_registry_id: str | None = None
         self.mmppt_units = []
-        self.decoded_common = {}
-        self.decoded_model = {}
-        self.decoded_mmppt = {}
-        self.decoded_storage_control = None
         self.has_parent = False
         self.has_battery = None
+        self.sunspec_models = None
         self.global_power_control = None
         self.advanced_power_control = None
         self.site_limit_control = None
-        self._grid_status = None
+        self.storage_control = None
+        self.der_storage = []
+        self.der_storage_listeners = set()
+        self._gpc_timeouts_count = 0
+        self._apc_timeouts_count = 0
         self._use_status_vendor4 = False
+        self._use_mmppt_units = False
+        self.write_count = 0
+        self.write_count_listeners = set()
+
+        # Scan position of each retained der_storage block, for legacy DERB<n>
+        self.der_storage_scan_ids = []
+
+        self.inverter_common = InverterCommon(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.inverter_data = InverterData(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.mmppt_common = MmpptCommon(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.mmppt_data = MmpptData(self.hub.connection.for_unit(self.inverter_unit_id))
+        self.global_power_control_data = GlobalDynamicPowerControl(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.advanced_power_control_data = AdvancedPowerControl(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.site_limit_control_data = SiteLimitControl(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+        self.storage_control_data = StorageControl(
+            self.hub.connection.for_unit(self.inverter_unit_id)
+        )
+
+    def _feature_timeout_issue_id(self, feature: str) -> str:
+        return f"detect_timeout_{feature}_{self.hub.entry_id}_{self.inverter_unit_id}"
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
 
         try:
-            inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40000, rcount=69
+            _LOGGER.debug(
+                "Reading component InverterCommon(for_unit(%s))", self.inverter_unit_id
             )
+            await self.hub.component_update(self.inverter_unit_id, self.inverter_common)
 
-            self.decoded_common = dict(
-                [
-                    (
-                        "C_SunSpec_ID",
-                        ModbusClientMixin.convert_from_registers(
-                            inverter_data.registers[0:2],
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
-                    )
-                ]
-            )
+            _log_component_fields(f"I{self.inverter_unit_id}", self.inverter_common)
 
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "C_Device_address",
-            ]
-            uint16_data = inverter_data.registers[2:4] + [inverter_data.registers[68]]
-            self.decoded_common.update(
-                dict(
-                    zip(
-                        uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    )
-                )
-            )
+            self.hub.inverter_common[self.inverter_unit_id] = self.inverter_common
 
-            self.decoded_common.update(
-                dict(
-                    [
-                        (
-                            "C_Manufacturer",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[4:20],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Model",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[20:36],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Option",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[36:44],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Version",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[44:52],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_SerialNumber",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[52:68],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                    ]
-                )
-            )
+        except (ModbusConnectionError, ModbusProtocolError) as e:
+            raise DeviceInvalid(
+                f"Error reading inverter ID {self.inverter_unit_id} at InverterCommon: {e}"
+            ) from e
 
-            for name, value in iter(self.decoded_common.items()):
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                        f"{type(value)}"
-                    ),
-                )
+        except ModbusTimeoutError as err:
+            raise DeviceInvalid(
+                f"No response from Device ID {self.inverter_unit_id}"
+            ) from err
 
-            self.hub.inverter_common[self.inverter_unit_id] = self.decoded_common
-
-        except (ModbusIOError, ModbusIOException):
-            raise DeviceInvalid(f"No response from Device ID {self.inverter_unit_id}")
-
-        except ModbusIllegalAddress:
+        except ModbusExceptionError as err:
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
-            )
+            ) from err
 
-        if DETECT_EVSE_REGEX.match(self.decoded_common["C_Model"]):
-            raise DeviceIsEVSE(f"Model {self.decoded_common['C_Model']}")
+        if DETECT_EVSE_REGEX.match(self.inverter_common.C_Model):
+            raise DeviceIsEVSE(f"Model {self.inverter_common.C_Model}")
 
         if (
-            self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
-            or self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or self.decoded_common["C_SunSpec_ID"] != 0x53756E53
-            or self.decoded_common["C_SunSpec_DID"] != 0x0001
-            or self.decoded_common["C_SunSpec_Length"] != 65
+            self.inverter_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
+            or self.inverter_common.C_SunSpec_DID == SunSpecNotImpl.UINT16
+            or self.inverter_common.C_SunSpec_ID != 0x53756E53
+            or self.inverter_common.C_SunSpec_DID != 0x0001
+            or self.inverter_common.C_SunSpec_Length != 65
         ):
             raise DeviceInvalid(
                 f"ID {self.inverter_unit_id} is not a SunSpec inverter."
             )
 
-        try:
-            mmppt_common = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40121, rcount=9
-            )
-
-            self.decoded_mmppt = dict(
-                [
-                    (
-                        "mmppt_DID",
-                        ModbusClientMixin.convert_from_registers(
-                            [mmppt_common.registers[0]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "mmppt_Length",
-                        ModbusClientMixin.convert_from_registers(
-                            [mmppt_common.registers[1]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "mmppt_Units",
-                        ModbusClientMixin.convert_from_registers(
-                            [mmppt_common.registers[8]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                ]
-            )
-
-            for name, value in iter(self.decoded_mmppt.items()):
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id} MMPPT: "
-                        f"{name} {hex(value) if isinstance(value, int) else value} "
-                        f"{type(value)}"
-                    ),
-                )
-
-            if (
-                self.decoded_mmppt["mmppt_DID"] == SunSpecNotImpl.UINT16
-                or self.decoded_mmppt["mmppt_Units"] == SunSpecNotImpl.UINT16
-                or self.decoded_mmppt["mmppt_DID"] not in [160]
-                or self.decoded_mmppt["mmppt_Units"] not in [2, 3]
-            ):
-                _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
-                self.decoded_mmppt = None
-
-            else:
-                _LOGGER.debug(f"I{self.inverter_unit_id} is Multiple MPPT")
-
-        except ModbusIOError:
-            raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
-            )
-
-        except ModbusIllegalAddress:
-            _LOGGER.debug(f"I{self.inverter_unit_id} is NOT Multiple MPPT")
-            self.decoded_mmppt = None
-
-        self.hub.mmppt_common[self.inverter_unit_id] = self.decoded_mmppt
-
-        self.manufacturer = self.decoded_common["C_Manufacturer"]
-        self.model = self.decoded_common["C_Model"]
-        self.option = self.decoded_common["C_Option"]
-        self.serial = self.decoded_common["C_SerialNumber"]
-        self.device_address = self.decoded_common["C_Device_address"]
+        self.manufacturer = self.inverter_common.C_Manufacturer
+        self.model = self.inverter_common.C_Model
+        self.option = self.inverter_common.C_Option
+        self.serial = self.inverter_common.C_SerialNumber
+        self.device_address = self.inverter_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
         try:
-            this_ver = AwesomeVersion(self.decoded_common["C_Version"])
+            this_ver = _parse_se_version(self.inverter_common.C_Version)
             self._use_status_vendor4 = this_ver >= AwesomeVersion(
-                STATUS_VENDOR4_VERSION
+                STATUS_VENDOR4_VERSION,
+                ensure_strategy=AwesomeVersionStrategy.SIMPLEVER,
             )
-        except (AwesomeVersionCompareException, AwesomeVersionStrategyException) as e:
-            _LOGGER.error(
-                f"Error checking inverter version: {e}. Please report this issue."
+            self._use_mmppt_units = this_ver >= AwesomeVersion(
+                MMPPT_UNITS_VERSION,
+                ensure_strategy=AwesomeVersionStrategy.SIMPLEVER,
+            )
+        except (
+            AwesomeVersionCompareException,
+            AwesomeVersionStrategyException,
+            ValueError,
+        ) as e:
+            _LOGGER.warning(
+                "Could not parse inverter version %r: %s",
+                self.inverter_common.C_Version,
+                e,
+            )
+            self._use_status_vendor4 = False
+            self._use_mmppt_units = False
+
+        self.inverter_data.restrict_status_vendor4(self._use_status_vendor4)
+
+        is_multi_mppt = False
+
+        if self.use_mmppt_units:
+            try:
+                _LOGGER.debug(
+                    "Reading component MmpptCommon(for_unit(%s))", self.inverter_unit_id
+                )
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.mmppt_common
+                )
+
+                _log_component_fields(
+                    f"I{self.inverter_unit_id} MMPPT", self.mmppt_common
+                )
+
+                if (
+                    SunSpecNotImpl.UINT16
+                    in (self.mmppt_common.mmppt_DID, self.mmppt_common.mmppt_Units)
+                    or self.mmppt_common.mmppt_DID != 160
+                    or self.mmppt_common.mmppt_Units not in [2, 3]
+                ):
+                    _LOGGER.debug("I%s is NOT Multiple MPPT", self.inverter_unit_id)
+
+                else:
+                    _LOGGER.debug("I%s is Multiple MPPT", self.inverter_unit_id)
+                    is_multi_mppt = True
+
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
+                ) from e
+
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} at MmpptCommon: {e}"
+                ) from e
+
+            except ModbusExceptionError:
+                _LOGGER.debug("I%s is NOT Multiple MPPT", self.inverter_unit_id)
+        else:
+            _LOGGER.debug(
+                "I%s is NOT Multiple MPPT (firmware does not support MMPPT units)",
+                self.inverter_unit_id,
             )
 
-        if self.decoded_mmppt is not None:
-            for unit_index in range(self.decoded_mmppt["mmppt_Units"]):
+        self.hub.mmppt_common[self.inverter_unit_id] = (
+            self.mmppt_common if is_multi_mppt else None
+        )
+
+        if is_multi_mppt:
+            for unit_index in range(self.mmppt_common.mmppt_Units):
                 self.mmppt_units.append(SolarEdgeMMPPTUnit(self, self.hub, unit_index))
-                _LOGGER.debug(f"I{self.inverter_unit_id} MMPPT Unit {unit_index}")
+                _LOGGER.debug("I%s MMPPT Unit %s", self.inverter_unit_id, unit_index)
 
-    async def read_modbus_data(self) -> None:
+    async def init_der_storage(self, der_storage_models) -> None:
+        """Set up DER Storage Capacity (SunSpec model 713) blocks.
+
+        Not documented by SolarEdge. Reported in
+        https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/1055
+        Independent of the proprietary battery block; both can be present on the
+        same inverter. Every model 713 block that reads successfully is kept, in
+        scan order; its 1-based scan position is kept in der_storage_scan_ids.
+        """
+        for der_id, der_storage_model in enumerate(der_storage_models, 1):
+            der = DERStorageCapacity(
+                self.hub.connection.for_unit(self.inverter_unit_id),
+                der_storage_model,
+            )
+            try:
+                _LOGGER.debug(
+                    "Reading component DERStorageCapacity(for_unit(%s))",
+                    self.inverter_unit_id,
+                )
+                await self.hub.component_update(self.inverter_unit_id, der)
+
+            except (ModbusError, SunSpecError) as e:
+                _LOGGER.debug("I%s_storage_%s: %s", self.inverter_unit_id, der_id, e)
+                continue
+
+            _log_component_fields(f"I{self.inverter_unit_id}_storage_{der_id}", der)
+            self.der_storage.append(der)
+            self.der_storage_scan_ids.append(der_id)
+            _LOGGER.debug(
+                "Found I%s DER Storage Capacity %s", self.inverter_unit_id, der_id
+            )
+
+    async def read_der_storage(self) -> None:
+        """Refresh DER Storage Capacity blocks if any DER sensor is enabled."""
+        # Entities register as listeners only when enabled; skip the read if
+        # every DER sensor is disabled.
+        if not self.der_storage_listeners:
+            return
+
+        for der_id, der in enumerate(self.der_storage, 1):
+            try:
+                _LOGGER.debug(
+                    "Reading component DERStorageCapacity(for_unit(%s))",
+                    self.inverter_unit_id,
+                )
+                await self.hub.component_update(self.inverter_unit_id, der)
+
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} "
+                    f"at DERStorageCapacity: {e}"
+                ) from e
+
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} "
+                    f"at DERStorageCapacity: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} "
+                    f"at DERStorageCapacity: {e}"
+                ) from e
+
+            except SunSpecError as e:
+                raise ModbusProtocolError(
+                    "DER Storage Capacity model shifted or invalid reading "
+                    f"inverter ID {self.inverter_unit_id} at DERStorageCapacity: {e}"
+                ) from e
+
+            _log_component_fields(f"I{self.inverter_unit_id}_storage_{der_id}", der)
+
+    async def read_modbus_data(self) -> None:  # noqa: C901
         """Read and update dynamic modbus registers."""
 
         try:
-            inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40044, rcount=8
+            _LOGGER.debug(
+                "Reading component InverterCommon(for_unit(%s))", self.inverter_unit_id
             )
+            await self.hub.component_update(self.inverter_unit_id, self.inverter_common)
 
-            self.decoded_common["C_Version"] = int_list_to_string(
-                ModbusClientMixin.convert_from_registers(
-                    inverter_data.registers[0:8],
-                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                )
+            _LOGGER.debug(
+                "Reading component InverterData(for_unit(%s))", self.inverter_unit_id
             )
+            await self.hub.component_update(self.inverter_unit_id, self.inverter_data)
 
-            inverter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=40069, rcount=40
-            )
-
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "AC_Current",
-                "AC_Current_A",
-                "AC_Current_B",
-                "AC_Current_C",
-                "AC_Voltage_AB",
-                "AC_Voltage_BC",
-                "AC_Voltage_CA",
-                "AC_Voltage_AN",
-                "AC_Voltage_BN",
-                "AC_Voltage_CN",
-                "AC_Frequency",
-                "AC_Energy_WH_SF",
-                "I_DC_Current",
-                "I_DC_Voltage",
-                "I_Status",
-                "I_Status_Vendor",
-            ]
-            uint16_data = (
-                inverter_data.registers[0:6]
-                + inverter_data.registers[7:13]
-                + [inverter_data.registers[16]]
-                + inverter_data.registers[26:28]
-                + [inverter_data.registers[29]]
-                + inverter_data.registers[38:40]
-            )
-            self.decoded_model = dict(
-                zip(
-                    uint16_fields,
-                    ModbusClientMixin.convert_from_registers(
-                        uint16_data,
-                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                    ),
-                    strict=True,
-                )
-            )
-
-            int16_fields = [
-                "AC_Current_SF",
-                "AC_Voltage_SF",
-                "AC_Power",
-                "AC_Power_SF",
-                "AC_Frequency_SF",
-                "AC_VA",
-                "AC_VA_SF",
-                "AC_var",
-                "AC_var_SF",
-                "AC_PF",
-                "AC_PF_SF",
-                "I_DC_Current_SF",
-                "I_DC_Voltage_SF",
-                "I_DC_Power",
-                "I_DC_Power_SF",
-                "I_Temp_Cab",
-                "I_Temp_Sink",
-                "I_Temp_Trns",
-                "I_Temp_Other",
-                "I_Temp_SF",
-            ]
-            int16_data = (
-                [inverter_data.registers[6]]
-                + inverter_data.registers[13:16]
-                + inverter_data.registers[17:24]
-                + [inverter_data.registers[28]]
-                + inverter_data.registers[30:38]
-            )
-
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        int16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            int16_data,
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                        strict=True,
-                    )
-                )
-            )
-
-            self.decoded_model.update(
-                dict(
-                    [
-                        (
-                            "AC_Energy_WH",
-                            ModbusClientMixin.convert_from_registers(
-                                inverter_data.registers[24:26],
-                                data_type=ModbusClientMixin.DATATYPE.UINT32,
-                            ),
-                        ),
-                    ]
-                )
-            )
-
-            if self.use_status_vendor4:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40119, rcount=2
-                )
-                self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "I_Status_Vendor4",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0:2],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                ),
-                            ),
-                        ]
-                    )
-                )
+            _log_component_fields(f"I{self.inverter_unit_id}", self.inverter_data)
 
             if (
-                self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-                or self.decoded_model["C_SunSpec_DID"] not in [101, 102, 103]
-                or self.decoded_model["C_SunSpec_Length"] != 50
+                self.inverter_data.C_SunSpec_DID == SunSpecNotImpl.UINT16
+                or self.inverter_data.C_SunSpec_DID not in [101, 102, 103]
+                or self.inverter_data.C_SunSpec_Length != 50
             ):
                 raise DeviceInvalid(f"Inverter {self.inverter_unit_id} not usable.")
 
-        except ModbusIOError:
-            raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
-            )
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
+            ) from e
+
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
+            ) from e
+
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading inverter ID {self.inverter_unit_id} at InverterData: {e}"
+            ) from e
+
+        await self.read_der_storage()
 
         """ Multiple MPPT Extension """
-        if self.decoded_mmppt is not None:
-            if self.decoded_mmppt["mmppt_Units"] == 2:
-                mmppt_registers = 48
-                mmppt_unit_ids = [0, 1]
-
-            elif self.decoded_mmppt["mmppt_Units"] == 3:
-                mmppt_registers = 68
-                mmppt_unit_ids = [0, 1, 2]
-
-            else:
-                self.decoded_mmppt = None
-                raise DeviceInvalid(
-                    f"Inverter {self.inverter_unit_id} MMPPT must be 2 or 3 units"
-                )
-
+        if (
+            self.use_mmppt_units
+            and self.hub.mmppt_common[self.inverter_unit_id] is not None
+        ):
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40123, rcount=mmppt_registers
+                _LOGGER.debug(
+                    "Reading component MmpptData(for_unit(%s))", self.inverter_unit_id
                 )
+                await self.hub.component_update(self.inverter_unit_id, self.mmppt_data)
 
-                if self.decoded_mmppt["mmppt_Units"] in [2, 3]:
-                    int16_fields = [
-                        "mmppt_DCA_SF",
-                        "mmppt_DCV_SF",
-                        "mmppt_DCW_SF",
-                        "mmppt_DCWH_SF",
-                        "mmppt_TmsPer",
-                    ]
-                    int16_data = inverter_data.registers[0:4] + [
-                        inverter_data.registers[7]
-                    ]
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                int16_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    int16_data,
-                                    data_type=ModbusClientMixin.DATATYPE.INT16,
-                                ),
-                                strict=True,
-                            )
-                        )
+                _log_component_fields(f"I{self.inverter_unit_id}", self.mmppt_data)
+
+                for unit_index, mmppt_unit_data in enumerate(self.mmppt_data.units):
+                    _log_component_fields(
+                        f"I{self.inverter_unit_id} MMPPT{unit_index}", mmppt_unit_data
                     )
 
-                    self.decoded_model.update(
-                        dict(
-                            [
-                                (
-                                    "mmppt_Events",
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[4:6],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
-                                ),
-                            ]
-                        )
-                    )
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
+                ) from e
 
-                    for mmppt_unit_id in mmppt_unit_ids:
-                        unit_offset = mmppt_unit_id * 20
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
+                ) from e
 
-                        mmppt_unit_data = dict(
-                            [
-                                (
-                                    "IDStr",  # string(16)
-                                    int_list_to_string(
-                                        ModbusClientMixin.convert_from_registers(
-                                            inverter_data.registers[
-                                                9 + unit_offset : 17 + unit_offset
-                                            ],
-                                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                        )
-                                    ),
-                                ),
-                                (
-                                    "Tmp",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[24 + unit_offset]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                    ),
-                                ),
-                            ]
-                        )
-
-                        uint16_fields = [
-                            "ID",
-                            "DCA",
-                            "DCV",
-                            "DCW",
-                            "DCSt",
-                        ]
-                        uint16_data = (
-                            [inverter_data.registers[8 + unit_offset]]
-                            + [inverter_data.registers[17 + unit_offset]]
-                            + [inverter_data.registers[18 + unit_offset]]
-                            + [inverter_data.registers[19 + unit_offset]]
-                            + [inverter_data.registers[25 + unit_offset]]
-                        )
-                        mmppt_unit_data.update(
-                            dict(
-                                zip(
-                                    uint16_fields,
-                                    ModbusClientMixin.convert_from_registers(
-                                        uint16_data,
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    ),
-                                    strict=True,
-                                )
-                            )
-                        )
-
-                        uint32_fields = [
-                            "DCWH",
-                            "Tms",
-                            "DCEvt",
-                        ]
-                        uint32_data = (
-                            inverter_data.registers[20 + unit_offset : 22 + unit_offset]
-                            + inverter_data.registers[
-                                22 + unit_offset : 24 + unit_offset
-                            ]
-                            + inverter_data.registers[
-                                26 + unit_offset : 28 + unit_offset
-                            ]
-                        )
-                        mmppt_unit_data.update(
-                            dict(
-                                zip(
-                                    uint32_fields,
-                                    ModbusClientMixin.convert_from_registers(
-                                        uint32_data,
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    ),
-                                    strict=True,
-                                )
-                            )
-                        )
-
-                        self.decoded_model.update(
-                            dict([(f"mmppt_{mmppt_unit_id}", mmppt_unit_data)])
-                        )
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} at MmpptData: {e}"
+                ) from e
 
         """ Global Dynamic Power Control and Status """
-        if self.hub.option_detect_extras is True and (
-            self.global_power_control is True or self.global_power_control is None
-        ):
+        if self.hub.option_detect_extras and self.global_power_control is not False:
             try:
-                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = await self.hub.modbus_read_holding_registers(
-                        unit=self.inverter_unit_id, address=61440, rcount=4
-                    )
+                _LOGGER.debug(
+                    "Reading component GlobalDynamicPowerControl(for_unit(%s))",
+                    self.inverter_unit_id,
+                )
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.global_power_control_data
+                )
+                self.global_power_control = True
+                self._gpc_timeouts_count = 0
 
-                    self.decoded_model.update(
-                        dict(
-                            [
-                                (
-                                    "I_RRCR",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[0]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                        word_order="little",
-                                    ),
-                                ),
-                                (
-                                    "I_Power_Limit",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[1]],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                        word_order="little",
-                                    ),
-                                ),
-                                (
-                                    "I_CosPhi",
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[2:4],
-                                        data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                        word_order="little",
-                                    ),
-                                ),
-                            ]
-                        )
-                    )
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.global_power_control_data
+                )
 
-                    self.global_power_control = True
+                ir.async_delete_issue(
+                    self.hub.hass, DOMAIN, self._feature_timeout_issue_id("gpc")
+                )
 
-            except ModbusIllegalAddress:
+            except (IllegalDataAddressError, IllegalFunctionError):
                 self.global_power_control = False
+                self._gpc_timeouts_count = 0
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: global power control NOT available"
+                    "I%s: global power control NOT available", self.inverter_unit_id
                 )
 
-            except (TimeoutError, ModbusIOException):
-                ir.async_create_issue(
-                    self.hub._hass,
-                    DOMAIN,
-                    "detect_timeout_gpc",
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.WARNING,
-                    translation_key="detect_timeout_gpc",
-                    data={"entry_id": self.hub._entry_id},
-                )
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: The inverter did not respond while "
-                    "reading data for Global Dynamic Power Controls. These entities "
-                    "will be unavailable."
-                )
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+                ModbusExceptionError,
+            ):
+                # Anything other than a definitive rejection above is treated
+                self._gpc_timeouts_count += 1
+                give_up = self._gpc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
 
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
+                if give_up:
+                    self.global_power_control = False
+                    self._gpc_timeouts_count = 0
+                    ir.async_create_issue(
+                        self.hub.hass,
+                        DOMAIN,
+                        self._feature_timeout_issue_id("gpc"),
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.WARNING,
+                        translation_key="detect_timeout_gpc",
+                        translation_placeholders={
+                            "device_id": str(self.inverter_unit_id),
+                            "host": self.hub.hub_host,
+                        },
+                        data={
+                            "entry_id": self.hub.entry_id,
+                            "inverter_unit_id": self.inverter_unit_id,
+                        },
+                    )
+                    _LOGGER.debug(
+                        "I%s: The inverter did not respond while reading data for "
+                        "Global Dynamic Power Controls. These entities will be "
+                        "unavailable.",
+                        self.inverter_unit_id,
+                    )
+                else:
+                    _LOGGER.debug(
+                        "I%s: global power control read failed (%s of %s times) before "
+                        "disabling.",
+                        self.inverter_unit_id,
+                        self._gpc_timeouts_count,
+                        RetrySettings.FeatureProbeTimeouts,
+                    )
 
-            finally:
-                await self.hub.connect()
-
-        """ Advanced Power Control """
-        """ Power Control Block """
-        if self.hub.option_detect_extras is True and (
-            self.advanced_power_control is True or self.advanced_power_control is None
-        ):
+        """ Advanced Power Control: Power Control Block """
+        if self.hub.option_detect_extras and self.advanced_power_control is not False:
             try:
-                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = await self.hub.modbus_read_holding_registers(
-                        unit=self.inverter_unit_id, address=61696, rcount=86
-                    )
+                _LOGGER.debug(
+                    "Reading component AdvancedPowerControl(for_unit(%s))",
+                    self.inverter_unit_id,
+                )
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.advanced_power_control_data
+                )
+                self.advanced_power_control = True
+                self._apc_timeouts_count = 0
 
-                    int32_fields = [
-                        "PwrFrqDeratingConfig",
-                        "ReactivePwrConfig",
-                        "ActivePwrGrad",
-                        "AdvPwrCtrlEn",
-                        "FrtEn",
-                    ]
-                    int32_data = (
-                        inverter_data.registers[2:6]
-                        + inverter_data.registers[8:10]
-                        + inverter_data.registers[66:70]
-                    )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                int32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    int32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.INT32,
-                                    word_order="little",
-                                ),
-                                strict=True,
-                            )
-                        )
-                    )
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.advanced_power_control_data
+                )
 
-                    float32_fields = [
-                        "FixedCosPhiPhase",
-                        "FixedReactPwr",
-                        "ReactCosPhiVsPX_0",
-                        "ReactCosPhiVsPX_1",
-                        "ReactCosPhiVsPX_2",
-                        "ReactCosPhiVsPX_3",
-                        "ReactCosPhiVsPX_4",
-                        "ReactCosPhiVsPX_5",
-                        "ReactCosPhiVsPY_0",
-                        "ReactCosPhiVsPY_1",
-                        "ReactCosPhiVsPY_2",
-                        "ReactCosPhiVsPY_3",
-                        "ReactCosPhiVsPY_4",
-                        "ReactCosPhiVsPY_5",
-                        "ReactQVsVgX_0",
-                        "ReactQVsVgX_1",
-                        "ReactQVsVgX_2",
-                        "ReactQVsVgX_3",
-                        "ReactQVsVgX_4",
-                        "ReactQVsVgX_5",
-                        "ReactQVsVgY_0",
-                        "ReactQVsVgY_1",
-                        "ReactQVsVgY_2",
-                        "ReactQVsVgY_3",
-                        "ReactQVsVgY_4",
-                        "ReactQVsVgY_5",
-                        "FRT_KFactor",
-                        "PowerReduce",
-                        "MaxWakeupFreq",
-                        "MinWakeupFreq",
-                        "MaxWakeupVg",
-                        "MinWakeupVg",
-                        "Vnom",
-                        "Inom",
-                        "PwrVsFreqX_0",
-                        "PwrVsFreqX_1",
-                    ]
-                    float32_data = (
-                        inverter_data.registers[10:66] + inverter_data.registers[70:86]
-                    )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                float32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    float32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
-                                strict=True,
-                            )
-                        )
-                    )
+                ir.async_delete_issue(
+                    self.hub.hass, DOMAIN, self._feature_timeout_issue_id("apc")
+                )
 
-                    self.decoded_model.update(
-                        dict(
-                            [
-                                (
-                                    "CommitPwrCtlSettings",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[0]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                        word_order="little",
-                                    ),
-                                ),
-                                (
-                                    "RestorePwrCtlDefaults",
-                                    ModbusClientMixin.convert_from_registers(
-                                        [inverter_data.registers[1]],
-                                        data_type=ModbusClientMixin.DATATYPE.INT16,
-                                        word_order="little",
-                                    ),
-                                ),
-                                (
-                                    "ReactPwrIterTime",
-                                    ModbusClientMixin.convert_from_registers(
-                                        inverter_data.registers[6:8],
-                                        data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                        word_order="little",
-                                    ),
-                                ),
-                            ]
-                        )
-                    )
-
-                async with asyncio.timeout(SolarEdgeTimeouts.Read / 1000):
-                    inverter_data = await self.hub.modbus_read_holding_registers(
-                        unit=self.inverter_unit_id, address=61782, rcount=84
-                    )
-
-                    float32_fields = [
-                        "PwrVsFreqY_0",
-                        "PwrVsFreqY_1",
-                        "ResetFreq",
-                        "MaxFreq",
-                        "ReactQVsPX_0",
-                        "ReactQVsPX_1",
-                        "ReactQVsPX_2",
-                        "ReactQVsPX_3",
-                        "ReactQVsPX_4",
-                        "ReactQVsPX_5",
-                        "ReactQVsPY_0",
-                        "ReactQVsPY_1",
-                        "ReactQVsPY_2",
-                        "ReactQVsPY_3",
-                        "ReactQVsPY_4",
-                        "ReactQVsPY_5",
-                        "ReactCosPhiVsPVgLockInMax",
-                        "ReactCosPhiVsPVgLockInMin",
-                        "ReactCosPhiVsPVgLockOutMax",
-                        "ReactCosPhiVsPVgLockOutMin",
-                        "ReactQVsVgPLockInMax",
-                        "ReactQVsVgPLockInMin",
-                        "ReactQVsVgPLockOutMax",
-                        "ReactQVsVgPLockOutMin",
-                        "MaxCurrent",
-                        "PwrVsVgX_0",
-                        "PwrVsVgX_1",
-                        "PwrVsVgX_2",
-                        "PwrVsVgX_3",
-                        "PwrVsVgX_4",
-                        "PwrVsVgX_5",
-                        "PwrVsVgY_0",
-                        "PwrVsVgY_1",
-                        "PwrVsVgY_2",
-                        "PwrVsVgY_3",
-                        "PwrVsVgY_4",
-                        "PwrVsVgY_5",
-                        "DisconnectAtZeroPwrLim",
-                    ]
-                    float32_data = (
-                        inverter_data.registers[0:32]
-                        + inverter_data.registers[36:52]
-                        + inverter_data.registers[56:84]
-                    )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                float32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    float32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
-                                strict=True,
-                            )
-                        )
-                    )
-
-                    uint32_fields = [
-                        "PwrFrqDeratingResetTime",
-                        "PwrFrqDeratingGradTime",
-                        "ReactQVsVgType",
-                        "PwrSoftStartTime",
-                    ]
-                    uint32_data = (
-                        inverter_data.registers[32:36] + inverter_data.registers[52:56]
-                    )
-                    self.decoded_model.update(
-                        dict(
-                            zip(
-                                uint32_fields,
-                                ModbusClientMixin.convert_from_registers(
-                                    uint32_data,
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
-                                strict=True,
-                            )
-                        )
-                    )
-
-                    self.advanced_power_control = True
-
-            except ModbusIllegalAddress:
+            except (IllegalDataAddressError, IllegalFunctionError):
                 self.advanced_power_control = False
+                self._apc_timeouts_count = 0
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: advanced power control NOT available"
+                    "I%s: advanced power control NOT available", self.inverter_unit_id
                 )
 
-            except (TimeoutError, ModbusIOException):
-                ir.async_create_issue(
-                    self.hub._hass,
-                    DOMAIN,
-                    "detect_timeout_apc",
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.WARNING,
-                    translation_key="detect_timeout_apc",
-                    data={"entry_id": self.hub._entry_id},
-                )
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: The inverter did not respond while "
-                    "reading data for Advanced Power Controls. These entities "
-                    "will be unavailable."
-                )
+            except (
+                ModbusConnectionError,
+                ModbusProtocolError,
+                ModbusTimeoutError,
+                ModbusExceptionError,
+            ):
+                self._apc_timeouts_count += 1
+                give_up = self._apc_timeouts_count >= RetrySettings.FeatureProbeTimeouts
 
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
-
-            finally:
-                await self.hub.connect()
+                if give_up:
+                    self.advanced_power_control = False
+                    self._apc_timeouts_count = 0
+                    ir.async_create_issue(
+                        self.hub.hass,
+                        DOMAIN,
+                        self._feature_timeout_issue_id("apc"),
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.WARNING,
+                        translation_key="detect_timeout_apc",
+                        translation_placeholders={
+                            "device_id": str(self.inverter_unit_id),
+                            "host": self.hub.hub_host,
+                        },
+                        data={
+                            "entry_id": self.hub.entry_id,
+                            "inverter_unit_id": self.inverter_unit_id,
+                        },
+                    )
+                    _LOGGER.debug(
+                        "I%s: The inverter did not respond while reading data for "
+                        "Advanced Power Controls. These entities will be unavailable.",
+                        self.inverter_unit_id,
+                    )
+                else:
+                    _LOGGER.debug(
+                        "I%s: advanced power control read failed (%s of %s times) "
+                        "before disabling.",
+                        self.inverter_unit_id,
+                        self._apc_timeouts_count,
+                        RetrySettings.FeatureProbeTimeouts,
+                    )
 
         """ Power Control Options: Site Limit Control """
-        if (
-            self.hub.option_site_limit_control is True
-            and self.site_limit_control is not False
-        ):
-            """Site Limit and Mode"""
+        if self.hub.option_site_limit_control and self.site_limit_control is not False:
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57344, rcount=4
+                _LOGGER.debug(
+                    "Reading component SiteLimitControl(for_unit(%s))",
+                    self.inverter_unit_id,
                 )
-
-                self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "E_Lim_Ctl_Mode",
-                                ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[0]],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    word_order="little",
-                                ),
-                            ),
-                            (
-                                "E_Lim_Ctl",
-                                ModbusClientMixin.convert_from_registers(
-                                    [inverter_data.registers[1]],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                    word_order="little",
-                                ),
-                            ),
-                            (
-                                "E_Site_Limit",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[2:4],
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
-                            ),
-                        ]
-                    )
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.site_limit_control_data
                 )
-
                 self.site_limit_control = True
 
-            except ModbusIllegalAddress:
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.site_limit_control_data
+                )
+
+            except ModbusExceptionError:
+                # Before v4.0.0 we were reading Ext_Prod_Max in its own detection block.
+                # revisit with own block or exclude Ext_Prod_Max and retry
                 self.site_limit_control = False
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: site limit control NOT available"
+                    "I%s: site limit control NOT available", self.inverter_unit_id
                 )
 
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} "
+                    f"at SiteLimitControl: {e}"
+                ) from e
 
-            """ External Production Max Power """
-            try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57362, rcount=2
-                )
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} "
+                    f"at SiteLimitControl: {e}"
+                ) from e
 
-                self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "Ext_Prod_Max",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0:2],
-                                    data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                    word_order="little",
-                                ),
-                            ),
-                        ]
-                    )
-                )
-
-            except ModbusIllegalAddress:
-                try:
-                    del self.decoded_model["Ext_Prod_Max"]
-                except KeyError:
-                    pass
-
-                _LOGGER.debug(f"I{self.inverter_unit_id}: Ext_Prod_Max NOT available")
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
-
-        """ Grid On/Off Status """
-        if self._grid_status is not False:
-            try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=40113, rcount=2
-                )
-
-                self.decoded_model.update(
-                    dict(
-                        [
-                            (
-                                "I_Grid_Status",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[0:2],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    word_order="little",
-                                ),
-                            ),
-                        ]
-                    )
-                )
-                self._grid_status = True
-
-            except ModbusIllegalAddress:
-                self._grid_status = False
-                _LOGGER.debug(f"I{self.inverter_unit_id}: Grid On/Off NOT available")
-
-            except ModbusIOException as e:
-                _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: A modbus I/O exception occurred "
-                    "while reading data for Grid On/Off Status. This entity "
-                    f"will be unavailable: {e}"
-                )
-
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
-                )
-
-            finally:
-                await self.hub.connect()
-
-        for name, value in iter(self.decoded_model.items()):
-            if isinstance(value, float):
-                display_value = float_to_hex(value)
-            else:
-                display_value = hex(value) if isinstance(value, int) else value
-            _LOGGER.debug(
-                f"I{self.inverter_unit_id}: {name} {display_value} {type(value)}"
-            )
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} "
+                    f"at SiteLimitControl: {e}"
+                ) from e
 
         """ Power Control Options: Storage Control """
-        if (
-            self.hub.option_storage_control is True
-            and self.decoded_storage_control is not False
-        ):
+        if self.hub.option_storage_control and self.storage_control is not False:
             if self.has_battery is None:
                 self.has_battery = False
                 for battery in self.hub.batteries:
@@ -1862,107 +1353,64 @@ class SolarEdgeInverter:
                         self.has_battery = True
 
             try:
-                inverter_data = await self.hub.modbus_read_holding_registers(
-                    unit=self.inverter_unit_id, address=57348, rcount=14
-                )
-
-                uint16_fields = [
-                    "control_mode",
-                    "ac_charge_policy",
-                    "default_mode",
-                    "command_mode",
-                ]
-                uint16_data = (
-                    inverter_data.registers[0:2]
-                    + [inverter_data.registers[6]]
-                    + [inverter_data.registers[9]]
-                )
-                self.decoded_storage_control = dict(
-                    zip(
-                        uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                            word_order="little",
-                        ),
-                        strict=True,
-                    )
-                )
-
-                float32_fields = [
-                    "ac_charge_limit",
-                    "backup_reserve",
-                    "charge_limit",
-                    "discharge_limit",
-                ]
-                float32_data = (
-                    inverter_data.registers[2:6] + inverter_data.registers[10:14]
-                )
-                self.decoded_storage_control.update(
-                    dict(
-                        zip(
-                            float32_fields,
-                            ModbusClientMixin.convert_from_registers(
-                                float32_data,
-                                data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                                word_order="little",
-                            ),
-                            strict=True,
-                        )
-                    )
-                )
-
-                self.decoded_storage_control.update(
-                    dict(
-                        [
-                            (
-                                "command_timeout",
-                                ModbusClientMixin.convert_from_registers(
-                                    inverter_data.registers[7:9],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT32,
-                                    word_order="little",
-                                ),
-                            ),
-                        ]
-                    )
-                )
-
-                for name, value in iter(self.decoded_storage_control.items()):
-                    if isinstance(value, float):
-                        display_value = float_to_hex(value)
-                    else:
-                        display_value = hex(value) if isinstance(value, int) else value
-                    _LOGGER.debug(
-                        f"I{self.inverter_unit_id}: "
-                        f"{name} {display_value} {type(value)}"
-                    )
-
-            except ModbusIllegalAddress:
-                self.decoded_storage_control = False
                 _LOGGER.debug(
-                    f"I{self.inverter_unit_id}: storage control NOT available"
+                    "Reading component StorageControl(for_unit(%s))",
+                    self.inverter_unit_id,
+                )
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.storage_control_data
+                )
+                self.storage_control = True
+
+                _log_component_fields(
+                    f"I{self.inverter_unit_id}", self.storage_control_data
                 )
 
-            except ModbusIOError:
-                raise ModbusReadError(
-                    f"No response from inverter ID {self.inverter_unit_id}"
+            except ModbusExceptionError:
+                self.storage_control = False
+                _LOGGER.debug(
+                    "I%s: storage control NOT available", self.inverter_unit_id
                 )
 
-    async def write_registers(self, address, payload) -> None:
-        """Write inverter register."""
-        await self.hub.write_registers(self.inverter_unit_id, address, payload)
+            except ModbusConnectionError as e:
+                raise ModbusConnectionError(
+                    f"Connection error reading inverter ID {self.inverter_unit_id} "
+                    f"at StorageControl: {e}"
+                ) from e
 
-    @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
+            except ModbusProtocolError as e:
+                raise ModbusProtocolError(
+                    f"Protocol error reading inverter ID {self.inverter_unit_id} "
+                    f"at StorageControl: {e}"
+                ) from e
+
+            except ModbusTimeoutError as e:
+                raise ModbusTimeoutError(
+                    f"Timeout error reading inverter ID {self.inverter_unit_id} "
+                    f"at StorageControl: {e}"
+                ) from e
+
+    async def write(
+        self, component, field: str, value, count_write: bool = True
+    ) -> None:
+        """Write a Component field.
+
+        count_write=False is for dynamic setpoints that don't count against
+        flash wear the write count sensor is meant to track.
+        """
+        await self.hub.component_write(self.inverter_unit_id, component, field, value)
+
+        if not count_write:
+            return
+
+        self.write_count += 1
+        for listener in list(self.write_count_listeners):
+            listener()
 
     @property
     def fw_version(self) -> str | None:
-        if "C_Version" in self.decoded_common:
-            return self.decoded_common["C_Version"]
-
-        return None
+        """Return the fw version."""
+        return getattr(self.inverter_common, "C_Version", None)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1979,14 +1427,38 @@ class SolarEdgeInverter:
 
     @property
     def is_mmppt(self) -> bool:
-        if self.decoded_mmppt is None:
-            return False
-
-        return True
+        """Return True if mmppt."""
+        return self.hub.mmppt_common[self.inverter_unit_id] is not None
 
     @property
     def use_status_vendor4(self) -> bool:
+        """Return the use status vendor4."""
         return self._use_status_vendor4
+
+    @property
+    def use_mmppt_units(self) -> bool:
+        """Return the use mmppt units."""
+        return self._use_mmppt_units
+
+    @property
+    def has_storage_control(self) -> bool | None:
+        """Return True if storage control."""
+        return self.storage_control
+
+    @property
+    def has_global_power_control(self) -> bool | None:
+        """Return True if global power control."""
+        return self.global_power_control
+
+    @property
+    def has_advanced_power_control(self) -> bool | None:
+        """Return True if advanced power control."""
+        return self.advanced_power_control
+
+    @property
+    def has_site_limit_control(self) -> bool | None:
+        """Return True if site limit control."""
+        return self.site_limit_control
 
 
 class SolarEdgeMMPPTUnit:
@@ -1995,15 +1467,11 @@ class SolarEdgeMMPPTUnit:
     def __init__(
         self, inverter: SolarEdgeInverter, hub: SolarEdgeModbusMultiHub, unit: int
     ) -> None:
+        """Initialize the solar edge mmppt unit."""
         self.inverter = inverter
         self.hub = hub
         self.unit = unit
         self.mmppt_key = f"mmppt_{self.unit}"
-
-    @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online and self.inverter.is_mmppt and self.inverter.online
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -2015,16 +1483,18 @@ class SolarEdgeMMPPTUnit:
             model=self.inverter.model,
             hw_version=f"ID {self.mmppt_id}",
             serial_number=f"{self.mmppt_idstr}",
-            via_device=(DOMAIN, self.inverter.uid_base),
+            via_device_id=self.inverter.device_registry_id,
         )
 
     @property
     def mmppt_id(self) -> str:
-        return self.inverter.decoded_model[self.mmppt_key]["ID"]
+        """Return the mmppt id."""
+        return self.inverter.mmppt_data.units[self.unit].ID
 
     @property
     def mmppt_idstr(self) -> str:
-        return self.inverter.decoded_model[self.mmppt_key]["IDStr"]
+        """Return the mmppt idstr."""
+        return self.inverter.mmppt_data.units[self.unit].IDStr
 
 
 class SolarEdgeMeter:
@@ -2033,317 +1503,125 @@ class SolarEdgeMeter:
     def __init__(
         self, device_id: int, meter_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
+        """Initialize the solar edge meter."""
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = {}
-        self.decoded_model = {}
         self.meter_id = meter_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
-        self._via_device = None
+        self._via_device_id = None
 
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
-        except KeyError:
-            raise DeviceInvalid(f"Invalid meter_id {self.meter_id}")
+        except KeyError as err:
+            raise DeviceInvalid(f"Invalid meter_id {self.meter_id}") from err
 
         if self.mmppt_common is not None:
-            if self.mmppt_common["mmppt_Units"] == 2:
+            if self.mmppt_common.mmppt_Units == 2:
                 self.start_address = self.start_address + 50
-
-            elif self.mmppt_common["mmppt_Units"] == 3:
+            elif self.mmppt_common.mmppt_Units == 3:
                 self.start_address = self.start_address + 70
-
             else:
                 raise DeviceInvalid(
-                    f"Invalid mmppt_Units value {self.mmppt_common['mmppt_Units']}"
+                    f"Invalid mmppt_Units value {self.mmppt_common.mmppt_Units}"
                 )
+
+        self.base_offset = self.start_address - METER_REG_BASE[1]
+
+        self.meter_info = MeterInfo(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
+        self.meter_data = MeterData(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
 
     async def init_device(self) -> None:
+        """Init device."""
         try:
-            meter_info = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id,
-                address=self.start_address,
-                rcount=67,
+            _LOGGER.debug(
+                "Reading component MeterInfo(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
-            if meter_info.isError():
-                _LOGGER.debug(meter_info)
-                raise ModbusReadError(meter_info)
+            await self.hub.component_update(self.inverter_unit_id, self.meter_info)
 
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "C_Device_address",
-            ]
-            uint16_data = meter_info.registers[0:2] + [meter_info.registers[66]]
-
-            self.decoded_common = dict(
-                zip(
-                    uint16_fields,
-                    ModbusClientMixin.convert_from_registers(
-                        uint16_data,
-                        data_type=ModbusClientMixin.DATATYPE.UINT16,
-                    ),
-                )
+            _log_component_fields(
+                f"I{self.inverter_unit_id}M{self.meter_id}", self.meter_info
             )
-
-            self.decoded_common.update(
-                dict(
-                    [
-                        (
-                            "C_Manufacturer",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[2:18],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Model",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[18:34],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Option",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[34:42],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Version",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[42:50],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_SerialNumber",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    meter_info.registers[50:66],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                    ]
-                )
-            )
-
-            for name, value in iter(self.decoded_common.items()):
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id}M{self.meter_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value} "
-                        f"{type(value)}"
-                    ),
-                )
 
             if (
-                self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-                or self.decoded_common["C_SunSpec_DID"] != 0x0001
-                or self.decoded_common["C_SunSpec_Length"] != 65
+                self.meter_info.C_SunSpec_DID == SunSpecNotImpl.UINT16
+                or self.meter_info.C_SunSpec_DID != 0x0001
+                or self.meter_info.C_SunSpec_Length != 65
             ):
                 raise DeviceInvalid(
-                    f"Meter {self.meter_id} ident incorrect or not installed."
+                    f"Meter I{self.inverter_unit_id}M{self.meter_id} ident incorrect or not installed."
                 )
 
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            raise DeviceInvalid(
+                f"Error reading MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
+            ) from e
 
-        except ModbusIllegalAddress:
-            raise DeviceInvalid(f"Meter {self.meter_id}: unsupported address")
+        except ModbusExceptionError as err:
+            raise DeviceInvalid(
+                f"Meter I{self.inverter_unit_id}M{self.meter_id}: unsupported address"
+            ) from err
 
-        self.manufacturer = self.decoded_common["C_Manufacturer"]
-        self.model = self.decoded_common["C_Model"]
-        self.option = self.decoded_common["C_Option"]
-        self.fw_version = self.decoded_common["C_Version"]
-        self.serial = self.decoded_common["C_SerialNumber"]
-        self.device_address = self.decoded_common["C_Device_address"]
+        self.manufacturer = self.meter_info.C_Manufacturer
+        self.model = self.meter_info.C_Model
+        self.option = self.meter_info.C_Option
+        self.fw_version = self.meter_info.C_Version
+        self.serial = self.meter_info.C_SerialNumber
+        self.device_address = self.meter_info.C_Device_address
         self.name = (
             f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
 
-        inverter_model = self.inverter_common["C_Model"]
-        inerter_serial = self.inverter_common["C_SerialNumber"]
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
         self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
     async def read_modbus_data(self) -> None:
+        """Read modbus data."""
         try:
-            meter_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id,
-                address=self.start_address + 67,
-                rcount=107,
-            )
-
-            self.decoded_model = dict(
-                [
-                    (
-                        "C_SunSpec_DID",
-                        ModbusClientMixin.convert_from_registers(
-                            [meter_data.registers[0]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                    (
-                        "C_SunSpec_Length",
-                        ModbusClientMixin.convert_from_registers(
-                            [meter_data.registers[1]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    ),
-                ]
-            )
-
-            int16_fields = [
-                "AC_Current",
-                "AC_Current_A",
-                "AC_Current_B",
-                "AC_Current_C",
-                "AC_Current_SF",
-                "AC_Voltage_LN",
-                "AC_Voltage_AN",
-                "AC_Voltage_BN",
-                "AC_Voltage_CN",
-                "AC_Voltage_LL",
-                "AC_Voltage_AB",
-                "AC_Voltage_BC",
-                "AC_Voltage_CA",
-                "AC_Voltage_SF",
-                "AC_Frequency",
-                "AC_Frequency_SF",
-                "AC_Power",
-                "AC_Power_A",
-                "AC_Power_B",
-                "AC_Power_C",
-                "AC_Power_SF",
-                "AC_VA",
-                "AC_VA_A",
-                "AC_VA_B",
-                "AC_VA_C",
-                "AC_VA_SF",
-                "AC_var",
-                "AC_var_A",
-                "AC_var_B",
-                "AC_var_C",
-                "AC_var_SF",
-                "AC_PF",
-                "AC_PF_A",
-                "AC_PF_B",
-                "AC_PF_C",
-                "AC_PF_SF",
-                "AC_Energy_WH_SF",
-                "M_VAh_SF",
-                "M_varh_SF",
-            ]
-            int16_data = (
-                meter_data.registers[2:38]
-                + [meter_data.registers[54]]
-                + [meter_data.registers[71]]
-                + [meter_data.registers[104]]
-            )
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        int16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            int16_data,
-                            data_type=ModbusClientMixin.DATATYPE.INT16,
-                        ),
-                    )
-                )
-            )
-
-            uint32_fields = [
-                "AC_Energy_WH_Exported",
-                "AC_Energy_WH_Exported_A",
-                "AC_Energy_WH_Exported_B",
-                "AC_Energy_WH_Exported_C",
-                "AC_Energy_WH_Imported",
-                "AC_Energy_WH_Imported_A",
-                "AC_Energy_WH_Imported_B",
-                "AC_Energy_WH_Imported_C",
-                "M_VAh_Exported",
-                "M_VAh_Exported_A",
-                "M_VAh_Exported_B",
-                "M_VAh_Exported_C",
-                "M_VAh_Imported",
-                "M_VAh_Imported_A",
-                "M_VAh_Imported_B",
-                "M_VAh_Imported_C",
-                "M_varh_Import_Q1",
-                "M_varh_Import_Q1_A",
-                "M_varh_Import_Q1_B",
-                "M_varh_Import_Q1_C",
-                "M_varh_Import_Q2",
-                "M_varh_Import_Q2_A",
-                "M_varh_Import_Q2_B",
-                "M_varh_Import_Q2_C",
-                "M_varh_Export_Q3",
-                "M_varh_Export_Q3_A",
-                "M_varh_Export_Q3_B",
-                "M_varh_Export_Q3_C",
-                "M_varh_Export_Q4",
-                "M_varh_Export_Q4_A",
-                "M_varh_Export_Q4_B",
-                "M_varh_Export_Q4_C",
-                "M_Events",
-            ]
-            uint32_data = (
-                meter_data.registers[38:54]
-                + meter_data.registers[55:70]
-                + meter_data.registers[71:104]
-                + meter_data.registers[105:107]
-            )
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint32_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint32_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
-                    )
-                )
-            )
-
-        except ModbusIOError:
-            raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
-            )
-
-        for name, value in iter(self.decoded_model.items()):
             _LOGGER.debug(
-                (
-                    f"I{self.inverter_unit_id}M{self.meter_id}: "
-                    f"{name} {hex(value) if isinstance(value, int) else value} "
-                    f"{type(value)}"
-                ),
+                "Reading component MeterData(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
+            await self.hub.component_update(self.inverter_unit_id, self.meter_data)
+
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
+            ) from e
+
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
+            ) from e
+
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading inverter ID {self.inverter_unit_id} at MeterData: {e}"
+            ) from e
+
+        _log_component_fields(
+            f"I{self.inverter_unit_id}M{self.meter_id}", self.meter_data
+        )
 
         if (
-            self.decoded_model["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or self.decoded_model["C_SunSpec_DID"] not in [201, 202, 203, 204]
-            or self.decoded_model["C_SunSpec_Length"] != 105
+            self.meter_data.C_SunSpec_DID == SunSpecNotImpl.UINT16
+            or self.meter_data.C_SunSpec_DID not in [201, 202, 203, 204]
+            or self.meter_data.C_SunSpec_Length != 105
         ):
             raise DeviceInvalid(
                 f"Meter {self.meter_id} ident incorrect or not installed."
             )
-
-    @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -2356,16 +1634,17 @@ class SolarEdgeMeter:
             serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
-            via_device=self.via_device,
+            via_device_id=self.via_device_id,
         )
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
+    def via_device_id(self) -> str | None:
+        """Return the device registry ID of the parent device."""
+        return self._via_device_id
 
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    @via_device_id.setter
+    def via_device_id(self, device_registry_id: str | None) -> None:
+        self._via_device_id = device_registry_id
 
 
 class SolarEdgeBattery:
@@ -2374,271 +1653,110 @@ class SolarEdgeBattery:
     def __init__(
         self, device_id: int, battery_id: int, hub: SolarEdgeModbusMultiHub
     ) -> None:
+        """Initialize the solar edge battery."""
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.decoded_common = {}
-        self.decoded_model = {}
-        self.start_address = None
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self._via_device = None
+        self._via_device_id = None
 
         try:
-            self.start_address = BATTERY_REG_BASE[self.battery_id]
-        except KeyError:
-            raise DeviceInvalid(f"Invalid battery_id {self.battery_id}")
+            self.base_offset = BATTERY_REG_BASE[self.battery_id] - BATTERY_REG_BASE[1]
+        except KeyError as err:
+            raise DeviceInvalid(f"Invalid battery_id {self.battery_id}") from err
+
+        self.battery_info = BatteryInfo(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
+        self.battery_data = BatteryData(
+            self.hub.connection.for_unit(self.inverter_unit_id),
+            base_offset=self.base_offset,
+        )
 
     async def init_device(self) -> None:
+        """Init device."""
         try:
-            battery_info = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id, address=self.start_address, rcount=68
+            _LOGGER.debug(
+                "Reading component BatteryInfo(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
-
-            self.decoded_common = dict(
-                [
-                    (
-                        "B_Manufacturer",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[0:16],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
-                    ),
-                    (
-                        "B_Model",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[16:32],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
-                    ),
-                    (
-                        "B_Version",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[32:48],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
-                    ),
-                    (
-                        "B_SerialNumber",  # string(32)
-                        int_list_to_string(
-                            ModbusClientMixin.convert_from_registers(
-                                battery_info.registers[48:64],
-                                data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                word_order="little",
-                            )
-                        ),
-                    ),
-                    (
-                        "B_Device_Address",
-                        ModbusClientMixin.convert_from_registers(
-                            [battery_info.registers[64]],
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                            word_order="little",
-                        ),
-                    ),
-                    (
-                        "B_RatedEnergy",
-                        ModbusClientMixin.convert_from_registers(
-                            battery_info.registers[66:68],
-                            data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                            word_order="little",
-                        ),
-                    ),
-                ]
-            )
-
-            for name, value in iter(self.decoded_common.items()):
-                if isinstance(value, float):
-                    display_value = float_to_hex(value)
-                else:
-                    display_value = hex(value) if isinstance(value, int) else value
-                _LOGGER.debug(
-                    (
-                        f"I{self.inverter_unit_id}B{self.battery_id}: "
-                        f"{name} {display_value} {type(value)}"
-                    ),
+            async with asyncio.timeout(self.hub.request_timeout):
+                # only try battery once during init, otherwise this takes too long
+                await self.hub.component_update(
+                    self.inverter_unit_id, self.battery_info
                 )
 
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from inverter ID {self.inverter_unit_id}")
+            _log_component_fields(
+                f"I{self.inverter_unit_id}B{self.battery_id}", self.battery_info
+            )
 
-        except ModbusIllegalAddress:
-            raise DeviceInvalid(f"Battery {self.battery_id} unsupported address")
+        except TimeoutError as err:
+            raise DeviceInvalid(
+                f"Timeout BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
+            ) from err
 
-        self.decoded_common["B_Manufacturer"] = self.decoded_common[
-            "B_Manufacturer"
-        ].removesuffix(self.decoded_common["B_SerialNumber"])
-        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].removesuffix(
-            self.decoded_common["B_SerialNumber"]
-        )
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            raise DeviceInvalid(
+                f"Error reading BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
+            ) from e
 
-        # Remove ASCII control characters from descriptive strings
-        ascii_ctrl_chars = dict.fromkeys(range(32))
-        self.decoded_common["B_Manufacturer"] = self.decoded_common[
-            "B_Manufacturer"
-        ].translate(ascii_ctrl_chars)
-        self.decoded_common["B_Model"] = self.decoded_common["B_Model"].translate(
-            ascii_ctrl_chars
-        )
-        self.decoded_common["B_SerialNumber"] = self.decoded_common[
-            "B_SerialNumber"
-        ].translate(ascii_ctrl_chars)
+        except ModbusExceptionError as err:
+            raise DeviceInvalid(
+                f"Battery I{self.inverter_unit_id}B{self.battery_id}: unsupported address"
+            ) from err
 
         if (
-            float_to_hex(self.decoded_common["B_RatedEnergy"])
-            == hex(SunSpecNotImpl.FLOAT32)
-            or self.decoded_common["B_RatedEnergy"] <= 0
+            float_to_hex(self.battery_info.B_RatedEnergy) == hex(SunSpecNotImpl.FLOAT32)
+            or self.battery_info.B_RatedEnergy <= 0
         ):
             raise DeviceInvalid(f"Battery {self.battery_id} not usable (rating <=0)")
 
-        self.manufacturer = self.decoded_common["B_Manufacturer"]
-        self.model = self.decoded_common["B_Model"]
+        self.manufacturer = self.battery_info.B_Manufacturer
+        self.model = self.battery_info.B_Model
         self.option = ""
-        self.fw_version = self.decoded_common["B_Version"]
-        self.serial = self.decoded_common["B_SerialNumber"]
-        self.device_address = self.decoded_common["B_Device_Address"]
+        self.fw_version = self.battery_info.B_Version
+        self.serial = self.battery_info.B_SerialNumber
+        self.device_address = self.battery_info.B_Device_Address
         self.name = (
             f"{self.hub.hub_id.capitalize()} "
             f"I{self.inverter_unit_id} B{self.battery_id}"
         )
 
-        inverter_model = self.inverter_common["C_Model"]
-        inerter_serial = self.inverter_common["C_SerialNumber"]
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
         self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
     async def read_modbus_data(self) -> None:
+        """Read modbus data."""
         try:
-            battery_data = await self.hub.modbus_read_holding_registers(
-                unit=self.inverter_unit_id,
-                address=self.start_address + 68,
-                rcount=86,
-            )
-
-            float32_fields = [
-                "B_MaxChargePower",
-                "B_MaxDischargePower",
-                "B_MaxChargePeakPower",
-                "B_MaxDischargePeakPower",
-                "B_Temp_Average",
-                "B_Temp_Max",
-                "B_DC_Voltage",
-                "B_DC_Current",
-                "B_DC_Power",
-                "B_Energy_Max",
-                "B_Energy_Available",
-                "B_SOH",
-                "B_SOE",
-            ]
-            float32_data = (
-                battery_data.registers[0:8]
-                + battery_data.registers[40:50]
-                + battery_data.registers[58:66]
-            )
-            self.decoded_model = dict(
-                zip(
-                    float32_fields,
-                    ModbusClientMixin.convert_from_registers(
-                        float32_data,
-                        data_type=ModbusClientMixin.DATATYPE.FLOAT32,
-                        word_order="little",
-                    ),
-                )
-            )
-
-            uint64_fields = [
-                "B_Export_Energy_WH",
-                "B_Import_Energy_WH",
-            ]
-            uint64_data = battery_data.registers[50:58]
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint64_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint64_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT64,
-                            word_order="little",
-                        ),
-                    )
-                )
-            )
-
-            uint32_fields = ["B_Status", "B_Status_Vendor"]
-            uint32_data = battery_data.registers[66:70]
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint32_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint32_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                            word_order="little",
-                        ),
-                    )
-                )
-            )
-
-            uint16_fields = [
-                "B_Event_Log1",
-                "B_Event_Log2",
-                "B_Event_Log3",
-                "B_Event_Log4",
-                "B_Event_Log5",
-                "B_Event_Log6",
-                "B_Event_Log7",
-                "B_Event_Log8",
-                "B_Event_Log_Vendor1",
-                "B_Event_Log_Vendor2",
-                "B_Event_Log_Vendor3",
-                "B_Event_Log_Vendor4",
-                "B_Event_Log_Vendor5",
-                "B_Event_Log_Vendor6",
-                "B_Event_Log_Vendor7",
-                "B_Event_Log_Vendor8",
-            ]
-            uint16_data = battery_data.registers[70:86]
-            self.decoded_model.update(
-                dict(
-                    zip(
-                        uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                            word_order="little",
-                        ),
-                    )
-                )
-            )
-
-        except ModbusIOError:
-            raise ModbusReadError(
-                f"No response from inverter ID {self.inverter_unit_id}"
-            )
-
-        for name, value in iter(self.decoded_model.items()):
-            if isinstance(value, float):
-                display_value = float_to_hex(value)
-            else:
-                display_value = hex(value) if isinstance(value, int) else value
-
             _LOGGER.debug(
-                f"I{self.inverter_unit_id}B{self.battery_id}: "
-                f"{name} {display_value} {type(value)}"
+                "Reading component BatteryData(for_unit(%s),base_offset=%s)",
+                self.inverter_unit_id,
+                self.base_offset,
             )
+            await self.hub.component_update(self.inverter_unit_id, self.battery_data)
 
-    @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
+            ) from e
+
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
+            ) from e
+
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading inverter ID {self.inverter_unit_id} at BatteryData: {e}"
+            ) from e
+
+        _log_component_fields(
+            f"I{self.inverter_unit_id}B{self.battery_id}", self.battery_data
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -2650,27 +1768,31 @@ class SolarEdgeBattery:
             model=self.model,
             serial_number=self.serial,
             sw_version=self.fw_version,
-            via_device=self.via_device,
+            via_device_id=self.via_device_id,
         )
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        return self._via_device
+    def via_device_id(self) -> str | None:
+        """Return the device registry ID of the parent device."""
+        return self._via_device_id
 
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    @via_device_id.setter
+    def via_device_id(self, device_registry_id: str | None) -> None:
+        self._via_device_id = device_registry_id
 
     @property
     def allow_battery_energy_reset(self) -> bool:
+        """Return the allow battery energy reset."""
         return self.hub.allow_battery_energy_reset
 
     @property
     def battery_rating_adjust(self) -> int:
+        """Return the battery rating adjust."""
         return self.hub.battery_rating_adjust
 
     @property
     def battery_energy_reset_cycles(self) -> int:
+        """Return the battery energy reset cycles."""
         return self.hub.battery_energy_reset_cycles
 
 
@@ -2678,131 +1800,47 @@ class SolarEdgeEVSE:
     """Class that defines a SolarEdge EVSE."""
 
     def __init__(self, device_id: int, hub: SolarEdgeModbusMultiHub) -> None:
+        """Initialize the solar edge evse."""
         self.evse_unit_id = device_id
         self.hub = hub
-        self.decoded_common = {}
-        self.decoded_model = {}
         self.has_parent = False
+        self.sunspec_models = None
+
+        self.evse_common = EvseCommon(self.hub.connection.for_unit(self.evse_unit_id))
 
     async def init_device(self) -> None:
         """Set up data about the device from modbus."""
 
         try:
-            evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=40000, rcount=69
+            _LOGGER.debug(
+                "Reading component EvseCommon(for_unit(%s))", self.evse_unit_id
             )
+            await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
-            self.decoded_common = dict(
-                [
-                    (
-                        "C_SunSpec_ID",
-                        ModbusClientMixin.convert_from_registers(
-                            evse_data.registers[0:2],
-                            data_type=ModbusClientMixin.DATATYPE.UINT32,
-                        ),
-                    )
-                ]
-            )
+            _log_component_fields(f"E{self.evse_unit_id}", self.evse_common)
 
-            uint16_fields = [
-                "C_SunSpec_DID",
-                "C_SunSpec_Length",
-                "C_Device_address",
-            ]
-            uint16_data = evse_data.registers[2:4] + [evse_data.registers[68]]
-            self.decoded_common.update(
-                dict(
-                    zip(
-                        uint16_fields,
-                        ModbusClientMixin.convert_from_registers(
-                            uint16_data,
-                            data_type=ModbusClientMixin.DATATYPE.UINT16,
-                        ),
-                    )
-                )
-            )
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+            raise DeviceInvalid(
+                f"Error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            ) from e
 
-            self.decoded_common.update(
-                dict(
-                    [
-                        (
-                            "C_Manufacturer",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[4:20],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Model",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[20:36],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Option",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[36:44],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_Version",  # string(16)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[44:52],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                        (
-                            "C_SerialNumber",  # string(32)
-                            int_list_to_string(
-                                ModbusClientMixin.convert_from_registers(
-                                    evse_data.registers[52:68],
-                                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                                )
-                            ),
-                        ),
-                    ]
-                )
-            )
-
-            for name, value in iter(self.decoded_common.items()):
-                _LOGGER.debug(
-                    (
-                        f"E{self.evse_unit_id}: "
-                        f"{name} {hex(value) if isinstance(value, int) else value}"
-                        f"{type(value)}"
-                    ),
-                )
-
-        except ModbusIOError:
-            raise DeviceInvalid(f"No response from evse ID {self.evse_unit_id}")
-
-        except ModbusIllegalAddress:
-            raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
+        except ModbusExceptionError as err:
+            raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.") from err
 
         if (
-            self.decoded_common["C_SunSpec_ID"] == SunSpecNotImpl.UINT32
-            or self.decoded_common["C_SunSpec_DID"] == SunSpecNotImpl.UINT16
-            or self.decoded_common["C_SunSpec_ID"] != 0x53756E53
-            or self.decoded_common["C_SunSpec_DID"] != 0x0001
-            or self.decoded_common["C_SunSpec_Length"] != 65
+            self.evse_common.C_SunSpec_ID == SunSpecNotImpl.UINT32
+            or self.evse_common.C_SunSpec_DID == SunSpecNotImpl.UINT16
+            or self.evse_common.C_SunSpec_ID != 0x53756E53
+            or self.evse_common.C_SunSpec_DID != 0x0001
+            or self.evse_common.C_SunSpec_Length != 65
         ):
             raise DeviceInvalid(f"ID {self.evse_unit_id} is not SunSpec.")
 
-        self.manufacturer = self.decoded_common["C_Manufacturer"]
-        self.model = self.decoded_common["C_Model"]
-        self.option = self.decoded_common["C_Option"]
-        self.serial = self.decoded_common["C_SerialNumber"]
-        self.device_address = self.decoded_common["C_Device_address"]
+        self.manufacturer = self.evse_common.C_Manufacturer
+        self.model = self.evse_common.C_Model
+        self.option = self.evse_common.C_Option
+        self.serial = self.evse_common.C_SerialNumber
+        self.device_address = self.evse_common.C_Device_address
         self.name = f"{self.hub.hub_id.capitalize()} E{self.evse_unit_id}"
         self.uid_base = f"{self.model}_{self.serial}"
 
@@ -2810,43 +1848,35 @@ class SolarEdgeEVSE:
         """Read and update dynamic modbus registers."""
 
         try:
-            evse_data = await self.hub.modbus_read_holding_registers(
-                unit=self.evse_unit_id, address=40044, rcount=16
+            _LOGGER.debug(
+                "Reading component EvseCommon(for_unit(%s))", self.evse_unit_id
             )
+            await self.hub.component_update(self.evse_unit_id, self.evse_common)
 
-            self.decoded_common["C_Version"] = int_list_to_string(
-                ModbusClientMixin.convert_from_registers(
-                    evse_data.registers[0:8],
-                    data_type=ModbusClientMixin.DATATYPE.UINT16,
-                )
-            )
+            _log_component_fields(f"E{self.evse_unit_id}", self.evse_common)
 
-            for name, value in iter(self.decoded_model.items()):
-                if isinstance(value, float):
-                    display_value = float_to_hex(value)
-                else:
-                    display_value = hex(value) if isinstance(value, int) else value
-                _LOGGER.debug(
-                    f"E{self.evse_unit_id}: {name} {display_value} {type(value)}"
-                )
+        except ModbusExceptionError:
+            _LOGGER.error("E%s: EVSE register(s) NOT available", self.evse_unit_id)
 
-        except ModbusIllegalAddress:
-            _LOGGER.error(f"E{self.evse_unit_id}: EVSE register(s) NOT available")
+        except ModbusConnectionError as e:
+            raise ModbusConnectionError(
+                f"Connection error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            ) from e
 
-        except ModbusIOError:
-            raise ModbusReadError(f"No response from EVSE ID {self.evse_unit_id}")
+        except ModbusProtocolError as e:
+            raise ModbusProtocolError(
+                f"Protocol error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            ) from e
 
-    @property
-    def online(self) -> bool:
-        """Device is online."""
-        return self.hub.online
+        except ModbusTimeoutError as e:
+            raise ModbusTimeoutError(
+                f"Timeout error reading evse ID {self.evse_unit_id} at EvseCommon: {e}"
+            ) from e
 
     @property
     def fw_version(self) -> str | None:
-        if "C_Version" in self.decoded_common:
-            return self.decoded_common["C_Version"]
-
-        return None
+        """Return the fw version."""
+        return getattr(self.evse_common, "C_Version", None)
 
     @property
     def device_info(self) -> DeviceInfo:
