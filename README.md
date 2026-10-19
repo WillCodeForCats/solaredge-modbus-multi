@@ -85,7 +85,9 @@ Scanning for inverters during setup uses the shared connection too, so while ano
 set a high timeout, even the fast scan can take a long time. A scan has to wait out the full timeout
 for every Device ID that has no device, and it tries each ID more than once before giving up on it. With
 a 30 second timeout a Fast Scan can take tens of minutes and a Complete Scan hours, while with the
-default 3 second timeout the same scans take a few minutes. A long scan can look like setup
+default 3 second timeout the same scans take a few minutes. For example, with an effective 3 second
+timeout and two attempts for each of up to 246 silent IDs, a Complete Scan can take about 24.6 minutes
+before overhead. IDs for which a gateway reports an error return sooner. A long scan can look like setup
 has stalled, and the scan cannot shorten the wait because the shared connection applies the highest
 timeout to every request, including the scan's own. Requests from other integrations on the same
 connection are queued with the scan, so they are held up as well.
