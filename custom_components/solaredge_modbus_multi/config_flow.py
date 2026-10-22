@@ -72,7 +72,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 2
-    MINOR_VERSION = 3
+    MINOR_VERSION = 4
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -727,17 +727,13 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
 
         else:
             user_input = {
-                ConfName.ALLOW_BATTERY_ENERGY_RESET: self.config_entry.options.get(
-                    ConfName.ALLOW_BATTERY_ENERGY_RESET,
-                    bool(ConfDefaultFlag.ALLOW_BATTERY_ENERGY_RESET),
+                ConfName.BATTERY_RATING_ADJUST: self.config_entry.options.get(
+                    ConfName.BATTERY_RATING_ADJUST,
+                    ConfDefaultInt.BATTERY_RATING_ADJUST,
                 ),
                 ConfName.BATTERY_ENERGY_RESET_CYCLES: self.config_entry.options.get(
                     ConfName.BATTERY_ENERGY_RESET_CYCLES,
                     ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
-                ),
-                ConfName.BATTERY_RATING_ADJUST: self.config_entry.options.get(
-                    ConfName.BATTERY_RATING_ADJUST,
-                    ConfDefaultInt.BATTERY_RATING_ADJUST,
                 ),
             }
 
@@ -746,17 +742,13 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        f"{ConfName.ALLOW_BATTERY_ENERGY_RESET}",
-                        default=user_input[ConfName.ALLOW_BATTERY_ENERGY_RESET],
-                    ): cv.boolean,
-                    vol.Optional(
-                        f"{ConfName.BATTERY_ENERGY_RESET_CYCLES}",
-                        default=user_input[ConfName.BATTERY_ENERGY_RESET_CYCLES],
-                    ): vol.Coerce(int),
-                    vol.Optional(
                         f"{ConfName.BATTERY_RATING_ADJUST}",
                         default=user_input[ConfName.BATTERY_RATING_ADJUST],
                     ): vol.Coerce(int),
+                    vol.Optional(
+                        f"{ConfName.BATTERY_ENERGY_RESET_CYCLES}",
+                        default=user_input[ConfName.BATTERY_ENERGY_RESET_CYCLES],
+                    ): vol.All(vol.Coerce(int), vol.Range(min=2)),
                 }
             ),
             errors=errors,
