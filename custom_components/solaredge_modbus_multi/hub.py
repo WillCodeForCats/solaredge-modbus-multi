@@ -1431,8 +1431,8 @@ class SolarEdgeInverter:
     @property
     def device_registry_id(self) -> str | None:
         """Return the current device registry ID, or None if not registered."""
-        device = dr.async_get(self.hub.hass).async_get_device(
-            identifiers={(DOMAIN, self.uid_base)}
+        device = dr.async_get(self.hub.hass).async_get_device_by_identifier(
+            (DOMAIN, self.uid_base), self.hub.entry_id
         )
         return device.id if device is not None else None
 
