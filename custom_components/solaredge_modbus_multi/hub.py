@@ -314,9 +314,10 @@ class SolarEdgeModbusMultiHub:
                         **new_inverter.device_info,
                     )
                 except HomeAssistantError as e:
-                    _LOGGER.warning(
-                        "I%s: could not pre-register device: %s", inverter_unit_id, e
-                    )
+                    # Inverters are mandatory, so do not continue without one.
+                    raise HubInitFailed(
+                        f"I{inverter_unit_id}: could not register device: {e}"
+                    ) from e
 
                 ir.async_delete_issue(
                     self._hass,
