@@ -304,7 +304,6 @@ class SolarEdgeModbusMultiHub:
                 )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
-                self.inverters.append(new_inverter)
 
                 # Register the inverter device so child devices can
                 # reference it with via_device_id when their entities are added.
@@ -318,6 +317,8 @@ class SolarEdgeModbusMultiHub:
                     raise HubInitFailed(
                         f"I{inverter_unit_id}: could not register device: {e}"
                     ) from e
+
+                self.inverters.append(new_inverter)
 
                 ir.async_delete_issue(
                     self._hass,

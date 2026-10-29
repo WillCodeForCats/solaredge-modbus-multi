@@ -48,3 +48,4 @@ async def test_inverter_registration_error_fails_hub_init(hass):
         await hub._async_init_solaredge()
 
     get_or_create.assert_called_once()
+    assert hub.inverters == []
