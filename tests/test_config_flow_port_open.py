@@ -69,3 +69,13 @@ async def test_port_in_use_over_other_link_settings_counts_as_open():
         yield
 
     assert await _probe(_conflict) is True
+
+
+@pytest.mark.parametrize(("exists", "asks"), [(False, True), (True, False)])
+async def test_port_probe_only_asks_for_timeout_on_a_link_it_opens(exists, asks):
+    """Test the probe leaves the timeout of an already open link alone."""
+    unit = MagicMock(connected=True, read_holding_registers=AsyncMock(return_value=[0]))
+    with patch(f"{CONFIG_FLOW}.modbus_connection_exists", return_value=exists):
+        assert await _probe(_temporary_units(unit)) is True
+
+    assert unit.require_timeout.called is asks
