@@ -53,6 +53,20 @@ def other_modbus_holders(hass: HomeAssistant, host: str, port: int) -> set[str]:
     return domains
 
 
+def modbus_connection_exists(hass: HomeAssistant, host: str, port: int) -> bool:
+    """Return True if the modbus integration already has a connection open.
+
+    A timeout asked for on a connection we did not open replaces the one any
+    other holder of the same device ID asked for. Assumes there is one when
+    the modbus integration cannot tell us.
+    """
+    if async_get_connection_info is None:
+        return True
+
+    endpoint = ModbusTcpParams(host=host, port=port).endpoint
+    return any(info.endpoint == endpoint for info in async_get_connection_info(hass))
+
+
 def host_valid(host):
     """Return True if hostname or IP address is valid."""
     try:

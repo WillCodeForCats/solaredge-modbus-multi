@@ -49,6 +49,7 @@ from .helpers import (
     device_list_from_string,
     get_connection_mode,
     host_valid,
+    modbus_connection_exists,
     other_modbus_holders,
 )
 from .scanner import SIGNATURE_ADDRESS, ScannerConnectionError, SolarEdgeDeviceScanner
@@ -116,9 +117,14 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         the one the device uses, so expect to wait out the whole timeout.
         """
         params = ModbusTcpParams(host=host, port=port)
+        first_on = not modbus_connection_exists(self.hass, host, port)
         try:
             async with async_get_temporary_unit(self.hass, params, 1) as unit:
-                unit.require_timeout(ZEROCONF_PROBE_TIMEOUT)
+                # A timeout is kept per device ID, so only ask for ours on a
+                # link we open: on one already open it would replace the
+                # timeout another holder of ID 1 asked for, and outlast us.
+                if first_on:
+                    unit.require_timeout(ZEROCONF_PROBE_TIMEOUT)
                 try:
                     # The shared request timeout may be longer than ours, so
                     # limit the probe with its own deadline.
