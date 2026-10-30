@@ -85,6 +85,14 @@ class DataUpdateFailed(SolarEdgeException):
     """Raised when an update cycle fails."""
 
 
+class DataUpdateTimedOut(SolarEdgeException):
+    """Raised when an update cycle does not finish within the watchdog.
+
+    Not a DataUpdateFailed, so the coordinator does not retry it: whatever held
+    up this cycle would hold up each retry for the whole watchdog as well.
+    """
+
+
 class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid."""
 
@@ -647,7 +655,7 @@ class SolarEdgeModbusMultiHub:
             _LOGGER.warning("Refresh did not finish in %s seconds.", REFRESH_WATCHDOG)
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
-            raise DataUpdateFailed(f"Timeout error: {e}") from e
+            raise DataUpdateTimedOut(f"Timeout error: {e}") from e
 
         if self.close_after_polling:
             await self.connection.disconnect()
