@@ -22,10 +22,6 @@ ZEROCONF_PROBE_TIMEOUT = 3.0
 # spacing active before clearing it back to 0.
 WRITE_SETTLE_CYCLES: Final = 2
 
-# raise a startup exception if library versions are less than this
-TMODBUS_REQUIRED_VERSION = "0.6.1"
-MODBUS_CONNECTION_REQUIRED_VERSION = "4.10.0"
-
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 
@@ -58,6 +54,13 @@ INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 # at the same time. Set to 0 to disable.
 MESSAGE_SPACING = 0.1
 
+# Seconds a setup or refresh may run before it is given up on as wedged. This
+# is not sized to the devices: every request has its own timeout, and on a
+# shared connection a refresh can wait out the stuck requests of other holders,
+# which has been seen to take over two minutes. Kept under the 300 seconds
+# Home Assistant allows for setting up a config entry.
+REFRESH_WATCHDOG = 240
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
@@ -66,18 +69,7 @@ class RetrySettings(IntEnum):
     Ratio = 2  # time multiplier between each attempt
     Limit = 6  # number of attempts before failing
     RequestRetries = 3  # max attempts for a single modbus request
-    CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
     FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
-
-
-class SolarEdgeTimeouts(IntEnum):
-    """Timeouts in milliseconds."""
-
-    Inverter = 8400
-    Device = 1200
-    Battery = 3200
-    Init = 1200
-    Read = 6000
 
 
 class BatteryLimit(IntEnum):
@@ -114,13 +106,21 @@ class ConfDefaultFlag(IntEnum):
     ADV_STORAGE_CONTROL = 0
     ADV_SITE_LIMIT_CONTROL = 0
     ALLOW_BATTERY_ENERGY_RESET = 0
-    CLOSE_AFTER_POLLING = 0
+
+
+class ConnectionMode(StrEnum):
+    """How this integration connects to the inverter."""
+
+    SHARED = "shared"
+    OWN = "own"
+    OWN_CLOSE_AFTER_POLLING = "own_close_after_polling"
 
 
 class ConfDefaultStr(StrEnum):
     """Defaults for options that are strings."""
 
     DEVICE_LIST = "1"
+    CONNECTION_MODE = "shared"
 
 
 class ConfName(StrEnum):
@@ -136,9 +136,9 @@ class ConfName(StrEnum):
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     REQUEST_TIMEOUT = "request_timeout"
     SLEEP_AFTER_WRITE = "sleep_after_write"
+    CONNECTION_MODE = "connection_mode"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
-    CLOSE_AFTER_POLLING = "close_after_polling"
 
     # Old config entry names for migration
     NUMBER_INVERTERS = "number_of_inverters"

@@ -84,13 +84,16 @@
         "title": "Opciones de Modbus de SolarEdge",
         "data": {
           "scan_interval": "Frecuencia de sondeo (segundos)",
-          "close_after_polling": "Cerrar la conexión después de sondear",
           "detect_meters": "Detección automática de medidores",
           "detect_batteries": "Detección automática de baterías",
           "detect_extras": "Detección automática de entidades adicionales",
           "advanced_power_control": "Opciones de control de energía",
           "request_timeout": "Tiempo de espera de solicitud Modbus (segundos)",
-          "sleep_after_write": "Retardo de comandos del inversor (segundos)"
+          "sleep_after_write": "Retardo de comandos del inversor (segundos)",
+          "connection_mode": "Conexión Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Cómo se conecta SolarEdge Modbus Multi al inversor. Otra integración que use el mismo inversor puede ralentizar una conexión compartida. Consulte el README para más información."
         }
       },
       "adv_pwr_ctl": {
@@ -148,6 +151,10 @@
       "title": "ID de dispositivo del inversor no válido",
       "description": "El ID de dispositivo del inversor {device_id} en {host} no responde o no es un inversor SolarEdge válido. Se ha omitido. Si el dispositivo fue reemplazado o su ID cambió, actualice la Lista de ID de dispositivo de los inversores en la configuración del hub. De lo contrario, verifique el dispositivo y la conexión Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Otra integración comparte este inversor",
+      "description": "Las integraciones {integrations} usan la misma conexión Modbus con {host}. Si una de ellas solicita un tiempo de espera largo, como la integración SolarEdge Modbus incorporada (30 segundos), ese tiempo se aplica a todas las solicitudes de la conexión compartida, incluidas las de esta integración. Esto puede causar actualizaciones lentas o perdidas, y no lo causa esta integración.\n\nEl tiempo de espera largo se mantiene hasta que se reinicie Home Assistant, aunque la otra integración se desactive o se elimine. Para usar ambas, elige «Usar conexión directa» en «Conexión Modbus» en las opciones de esta integración. Consulta el README para más detalles."
+    },
     "detect_timeout_gpc": {
       "title": "Tiempo de espera agotado del control dinámico de energía global (Inversor {device_id})",
       "fix_flow": {
@@ -176,7 +183,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Se reemplazó la opción Mantener abierta la conexión Modbus",
-      "description": "La opción \"Mantener abierta la conexión Modbus\" ha sido reemplazada por \"Cerrar la conexión después de sondear\" en la configuración de esta integración. Revise la nueva opción si necesita el mismo comportamiento."
+      "description": "La opción \"Mantener abierta la conexión Modbus\" ya no se usa. Esta integración ahora comparte la conexión de la integración modbus. Para controlar la conexión usted mismo, elija «Usar conexión directa» o «Usar conexión directa y cerrarla tras cada sondeo» como Conexión Modbus en las opciones de esta integración."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Otra integración ya está conectada a {host}:{port} con una configuración de conexión distinta, y una misma conexión no puede usar ambas. Elimine o reconfigure la otra integración y vuelva a cargar esta."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Usar la conexión Modbus compartida de Home Assistant",
+        "own": "Usar conexión directa",
+        "own_close_after_polling": "Usar conexión directa y cerrarla tras cada sondeo"
+      }
     }
   }
 }

@@ -84,13 +84,16 @@
         "title": "Options SolarEdge Modbus",
         "data": {
           "scan_interval": "Fréquence de rafraichissement (en secondes)",
-          "close_after_polling": "Fermer la connexion après le rafraichissement",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
           "advanced_power_control": "Options de contrôle de l'alimentation",
           "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
-          "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
+          "sleep_after_write": "Délai de commande de l'onduleur (en secondes)",
+          "connection_mode": "Connexion Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Comment SolarEdge Modbus Multi se connecte à l'onduleur. Une autre intégration utilisant le même onduleur peut ralentir une connexion partagée. Consultez le README pour plus de détails."
         }
       },
       "adv_pwr_ctl": {
@@ -148,6 +151,10 @@
       "title": "ID d'appareil onduleur invalide",
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Une autre intégration partage cet onduleur",
+      "description": "Les intégrations {integrations} utilisent la même connexion Modbus vers {host}. Si l'une d'elles demande un délai d'attente long, comme l'intégration SolarEdge Modbus intégrée (30 secondes), ce délai s'applique à toutes les requêtes de la connexion partagée, y compris celles de cette intégration. Cela peut provoquer des mises à jour lentes ou manquées, et ce n'est pas causé par cette intégration.\n\nLe délai d'attente long reste en vigueur jusqu'au redémarrage de Home Assistant, même si l'autre intégration est désactivée ou supprimée. Pour utiliser les deux, choisissez « Utiliser une connexion directe » dans « Connexion Modbus » dans les options de cette intégration. Consultez le README pour plus de détails."
+    },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
       "fix_flow": {
@@ -176,7 +183,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Option « Garder la connexion Modbus ouverte » remplacée",
-      "description": "L'option « Garder la connexion Modbus ouverte » a été remplacée par « Fermer la connexion après le rafraichissement » dans la configuration de cette intégration. Consultez la nouvelle option si vous avez besoin du même comportement."
+      "description": "L'option « Garder la connexion Modbus ouverte » n'est plus utilisée. Cette intégration partage désormais la connexion de l'intégration modbus. Pour gérer vous-même la connexion, choisissez « Utiliser une connexion directe » ou « Utiliser une connexion directe et la fermer après chaque interrogation » comme Connexion Modbus dans les options de cette intégration."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Une autre intégration est déjà connectée à {host}:{port} avec des paramètres de connexion différents, et une même connexion ne peut pas utiliser les deux. Supprimez ou reconfigurez l'autre intégration, puis rechargez celle-ci."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Utiliser la connexion Modbus partagée de Home Assistant",
+        "own": "Utiliser une connexion directe",
+        "own_close_after_polling": "Utiliser une connexion directe et la fermer après chaque interrogation"
+      }
     }
   }
 }

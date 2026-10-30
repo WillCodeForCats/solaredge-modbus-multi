@@ -84,13 +84,16 @@
         "title": "Možnosti Modbus SolarEdge",
         "data": {
           "scan_interval": "Frekvence dotazování (sekundy)",
-          "close_after_polling": "Zavřít připojení po dotazování",
           "detect_meters": "Automatická detekce měřičů",
           "detect_batteries": "Automatická detekce baterií",
           "detect_extras": "Automatická detekce dalších entit",
           "advanced_power_control": "Možnosti řízení výkonu",
           "request_timeout": "Časový limit požadavku Modbus (sekundy)",
-          "sleep_after_write": "Zpoždění příkazu střídače (sekundy)"
+          "sleep_after_write": "Zpoždění příkazu střídače (sekundy)",
+          "connection_mode": "Připojení Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Jak se SolarEdge Modbus Multi připojuje ke střídači. Jiná integrace používající stejný střídač může sdílené připojení zpomalit. Podrobnosti najdete v souboru README."
         }
       },
       "adv_pwr_ctl": {
@@ -148,6 +151,10 @@
       "title": "Neplatné ID zařízení střídače",
       "description": "ID zařízení střídače {device_id} na {host} neodpovídá nebo se nejedná o platný střídač SolarEdge. Bylo přeskočeno. Pokud bylo zařízení vyměněno nebo se změnilo jeho ID, aktualizujte seznam ID zařízení střídačů v konfiguraci hubu. V opačném případě zkontrolujte zařízení a připojení Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Jiná integrace sdílí tento střídač",
+      "description": "Integrace {integrations} používají stejné připojení Modbus k {host}. Pokud některá z nich požaduje dlouhý časový limit, například vestavěná integrace SolarEdge Modbus (30 sekund), platí tento limit pro každý požadavek na sdíleném připojení, včetně požadavků této integrace. To může způsobit pomalé nebo vynechané aktualizace a nezpůsobuje to tato integrace.\n\nDlouhý časový limit zůstane platit do restartu Home Assistantu, i když je druhá integrace zakázána nebo odebrána. Chcete-li používat obě, zvolte v nastavení této integrace u položky „Připojení Modbus“ možnost „Použít přímé připojení“. Podrobnosti najdete v souboru README."
+    },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",
       "fix_flow": {
@@ -176,7 +183,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Možnost „Udržovat připojení Modbus otevřené“ byla nahrazena",
-      "description": "Možnost „Udržovat připojení Modbus otevřené“ byla v konfiguraci této integrace nahrazena možností „Zavřít připojení po dotazování“. Pokud potřebujete stejné chování, zkontrolujte novou možnost."
+      "description": "Možnost „Udržovat připojení Modbus otevřené“ se již nepoužívá. Tato integrace nyní sdílí připojení integrace modbus. Chcete-li připojení řídit sami, zvolte v nastavení této integrace jako Připojení Modbus možnost „Použít přímé připojení“ nebo „Použít přímé připojení a po každém dotazu ho zavřít“."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Jiná integrace je již připojena k {host}:{port} s jiným nastavením připojení a jedno připojení nemůže použít obě. Odeberte nebo přenastavte druhou integraci a poté tuto znovu načtěte."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Použít sdílené připojení Modbus služby Home Assistant",
+        "own": "Použít přímé připojení",
+        "own_close_after_polling": "Použít přímé připojení a po každém dotazu ho zavřít"
+      }
     }
   }
 }

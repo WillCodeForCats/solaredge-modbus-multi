@@ -84,13 +84,16 @@
         "title": "Opcje SolarEdge Modbus",
         "data": {
           "scan_interval": "Częstotliwość odczytu (sekundy)",
-          "close_after_polling": "Zamknij połączenie po odczycie",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
           "advanced_power_control": "Opcje kontroli mocy",
           "request_timeout": "Limit czasu żądania Modbus (sekundy)",
-          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
+          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)",
+          "connection_mode": "Połączenie Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Jak SolarEdge Modbus Multi łączy się z falownikiem. Inna integracja korzystająca z tego samego falownika może spowalniać współdzielone połączenie. Szczegóły znajdziesz w pliku README."
         }
       },
       "adv_pwr_ctl": {
@@ -148,6 +151,10 @@
       "title": "Nieprawidłowy identyfikator falownika",
       "description": "Identyfikator falownika {device_id} na {host} nie odpowiada lub nie jest prawidłowym falownikiem SolarEdge. Został pominięty. Jeśli urządzenie zostało wymienione lub jego identyfikator się zmienił, zaktualizuj listę identyfikatorów falowników w konfiguracji huba. W przeciwnym razie sprawdź urządzenie i połączenie Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Inna integracja współdzieli ten falownik",
+      "description": "Integracje {integrations} używają tego samego połączenia Modbus z {host}. Jeśli któraś z nich żąda długiego limitu czasu, jak wbudowana integracja SolarEdge Modbus (30 sekund), obowiązuje on dla każdego żądania na współdzielonym połączeniu, także tej integracji. Może to powodować wolne lub pomijane aktualizacje i nie jest to wina tej integracji.\n\nDługi limit czasu obowiązuje do ponownego uruchomienia Home Assistanta, nawet jeśli druga integracja zostanie wyłączona lub usunięta. Aby używać obu, wybierz w opcjach tej integracji w polu „Połączenie Modbus” ustawienie „Użyj połączenia bezpośredniego”. Szczegóły znajdziesz w README."
+    },
     "detect_timeout_gpc": {
       "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
       "fix_flow": {
@@ -176,7 +183,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",
-      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" została zastąpiona opcją \"Zamknij połączenie po odczycie\" w konfiguracji tej integracji. Sprawdź nową opcję, jeśli potrzebujesz tego samego zachowania."
+      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" nie jest już używana. Ta integracja współdzieli teraz połączenie integracji modbus. Aby samodzielnie zarządzać połączeniem, wybierz w opcjach tej integracji jako Połączenie Modbus opcję „Użyj połączenia bezpośredniego” lub „Użyj połączenia bezpośredniego i zamykaj je po każdym odczycie”."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Inna integracja jest już połączona z {host}:{port} przy użyciu innych ustawień połączenia, a jedno połączenie nie może obsłużyć obu. Usuń lub skonfiguruj ponownie drugą integrację, a następnie załaduj ponownie tę."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Użyj współdzielonego połączenia Modbus Home Assistant",
+        "own": "Użyj połączenia bezpośredniego",
+        "own_close_after_polling": "Użyj połączenia bezpośredniego i zamykaj je po każdym odczycie"
+      }
     }
   }
 }

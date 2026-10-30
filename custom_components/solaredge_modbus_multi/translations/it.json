@@ -84,13 +84,16 @@
         "title": "Opzioni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequenza di polling (secondi)",
-          "close_after_polling": "Chiudi la connessione dopo il polling",
           "detect_meters": "Misuratori di rilevamento automatico",
           "detect_batteries": "Rilevamento automatico delle batterie",
           "detect_extras": "Rileva automaticamente entità aggiuntive",
           "advanced_power_control": "Opzioni di controllo della potenza",
           "request_timeout": "Timeout richiesta Modbus (secondi)",
-          "sleep_after_write": "Ritardo comando inverter (secondi)"
+          "sleep_after_write": "Ritardo comando inverter (secondi)",
+          "connection_mode": "Connessione Modbus"
+        },
+        "data_description": {
+          "connection_mode": "Come SolarEdge Modbus Multi si connette all'inverter. Un'altra integrazione che usa lo stesso inverter può rallentare una connessione condivisa. Consulta il README per i dettagli."
         }
       },
       "adv_pwr_ctl": {
@@ -148,6 +151,10 @@
       "title": "ID dispositivo inverter non valido",
       "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Un'altra integrazione condivide questo inverter",
+      "description": "Le integrazioni {integrations} usano la stessa connessione Modbus verso {host}. Se una di esse richiede un timeout lungo, come l'integrazione SolarEdge Modbus integrata (30 secondi), tale timeout si applica a ogni richiesta sulla connessione condivisa, comprese quelle di questa integrazione. Questo può causare aggiornamenti lenti o mancanti e non è causato da questa integrazione.\n\nIl timeout lungo resta fino al riavvio di Home Assistant, anche se l'altra integrazione viene disattivata o rimossa. Per usarle entrambe, scegli «Usa una connessione diretta» in «Connessione Modbus» nelle opzioni di questa integrazione. Consulta il README per i dettagli."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",
       "fix_flow": {
@@ -176,7 +183,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",
-      "description": "L'opzione \"Mantieni aperta la connessione Modbus\" è stata sostituita da \"Chiudi la connessione dopo il polling\" nella configurazione di questa integrazione. Controlla la nuova opzione se hai bisogno dello stesso comportamento."
+      "description": "L'opzione \"Mantieni aperta la connessione Modbus\" non viene più utilizzata. Questa integrazione ora condivide la connessione dell'integrazione modbus. Per gestire la connessione manualmente, scegli «Usa una connessione diretta» o «Usa una connessione diretta e chiudila dopo ogni lettura» come Connessione Modbus nelle opzioni di questa integrazione."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Un'altra integrazione è già connessa a {host}:{port} con impostazioni di connessione diverse e una singola connessione non può usarle entrambe. Rimuovi o riconfigura l'altra integrazione, poi ricarica questa."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Usa la connessione Modbus condivisa di Home Assistant",
+        "own": "Usa una connessione diretta",
+        "own_close_after_polling": "Usa una connessione diretta e chiudila dopo ogni lettura"
+      }
     }
   }
 }

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
+from functools import partial
 import logging
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
@@ -48,19 +50,21 @@ from .const import (
     BATTERY_REG_BASE,
     DETECT_EVSE_REGEX,
     DOMAIN,
+    MESSAGE_SPACING,
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
+    REFRESH_WATCHDOG,
     STATUS_VENDOR4_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
+    ConnectionMode,
     RetrySettings,
-    SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex
+from .helpers import float_to_hex, get_connection_mode, other_modbus_holders
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,14 +89,19 @@ class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid."""
 
 
-async def async_update_with_retry(component) -> None:
+async def async_update_with_retry(
+    component, before_attempt: Callable[[], None] | None = None
+) -> None:
     """Call component.async_update(), retrying connection/timeout errors.
 
     modbus-connection has no built-in per-request retry, unlike pymodbus's
-    `retries` option, so this method mimics that behavior.
+    `retries` option, so this method mimics that behavior. before_attempt is
+    called right before each attempt.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
             await component.async_update()
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
@@ -111,13 +120,20 @@ async def async_update_with_retry(component) -> None:
             return
 
 
-async def async_write_with_retry(component, field: str, value) -> None:
+async def async_write_with_retry(
+    component,
+    field: str,
+    value,
+    before_attempt: Callable[[], None] | None = None,
+) -> None:
     """Call component.write(field, value), retrying connection/timeout errors.
 
     Like async_update_with_retry() but for writes.
     """
     for attempt in range(1, RetrySettings.RequestRetries + 1):
         try:
+            if before_attempt:
+                before_attempt()
             await component.write(field, value)
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
@@ -190,6 +206,25 @@ def _log_component_fields(prefix: str, component) -> None:
     _LOGGER.debug("%s: %s", prefix, " ".join(fields))
 
 
+class SharedUnits:
+    """The units this entry holds on the modbus integration's shared connection."""
+
+    def __init__(self, units: dict) -> None:
+        """Initialize with a unit per device ID."""
+        self._units = units
+
+    def for_unit(self, unit_id: int):
+        """Return the unit for a device ID."""
+        return self._units[unit_id]
+
+    async def disconnect(self) -> None:
+        """Drop the link so the next request reopens it.
+
+        The connection is shared, so this closes it for every unit on it.
+        """
+        await next(iter(self._units.values())).disconnect()
+
+
 class SolarEdgeModbusMultiHub:
     """Solar edge modbus multi hub."""
 
@@ -198,7 +233,6 @@ class SolarEdgeModbusMultiHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._yaml_config = hass.data[DOMAIN]["yaml"]
         self._name = entry_data[CONF_NAME]
         self._host = entry_data[CONF_HOST]
         self._port = entry_data[CONF_PORT]
@@ -206,6 +240,7 @@ class SolarEdgeModbusMultiHub:
         self._inverter_list = entry_data.get(
             ConfName.DEVICE_LIST, [ConfDefaultStr.DEVICE_LIST]
         )
+        self._entry_options = entry_options
         self._detect_meters = entry_options.get(
             ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
         )
@@ -239,9 +274,6 @@ class SolarEdgeModbusMultiHub:
             ConfName.BATTERY_ENERGY_RESET_CYCLES,
             ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         )
-        self._close_after_polling = entry_options.get(
-            ConfName.CLOSE_AFTER_POLLING, bool(ConfDefaultFlag.CLOSE_AFTER_POLLING)
-        )
 
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
@@ -253,8 +285,6 @@ class SolarEdgeModbusMultiHub:
         self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
-        self._coordinator_timeouts_count = 0
-        self._coordinator_timeouts_limit = RetrySettings.CoordinatorTimeouts
 
         self.connection = connection
 
@@ -263,7 +293,7 @@ class SolarEdgeModbusMultiHub:
             "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
             "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
             "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
-            "close_after_polling=%s, ",
+            "close_after_polling=%s",
             DOMAIN,
             self._inverter_list,
             self._detect_meters,
@@ -275,7 +305,7 @@ class SolarEdgeModbusMultiHub:
             self._request_timeout,
             self._sleep_after_write,
             self._battery_rating_adjust,
-            self._close_after_polling,
+            self.close_after_polling,
         )
 
     async def _async_init_solaredge(self) -> None:  # noqa: C901
@@ -525,17 +555,42 @@ class SolarEdgeModbusMultiHub:
         except DeviceInvalid as e:
             raise HubInitFailed(f"Invalid device: {e}") from e
 
-        except TimeoutError as e:
-            raise HubInitFailed(f"Timeout error: {e}") from e
-
         self.initalized = True
+
+    def _warn_if_shared(self) -> None:
+        """Raise a repair issue when another integration holds our connection.
+
+        The issue stays after the other integration unloads, because the long
+        timeout it asked for stays until Home Assistant restarts. It is cleared
+        when this entry sets up again.
+        """
+        if not isinstance(self.connection, SharedUnits):
+            return
+
+        if not (domains := other_modbus_holders(self._hass, self._host, self._port)):
+            return
+
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            f"shared_connection_other_integration_{self._entry_id}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="shared_connection_other_integration",
+            translation_placeholders={
+                "host": self.hub_host,
+                "integrations": ", ".join(sorted(domains)),
+            },
+        )
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
+        # The other integration may set up after this one, so look every time.
+        self._warn_if_shared()
 
         if not self.initalized:
             try:
-                async with asyncio.timeout(self.coordinator_timeout):
+                async with asyncio.timeout(REFRESH_WATCHDOG):
                     await self._async_init_solaredge()
 
             except TimeoutError as err:
@@ -549,7 +604,7 @@ class SolarEdgeModbusMultiHub:
                     data={"entry_id": self._entry_id},
                 )
                 raise HubInitFailed(
-                    f"Coordinator setup timed out after {self.coordinator_timeout} seconds."
+                    f"Setup timed out after {REFRESH_WATCHDOG} seconds."
                 ) from err
 
             ir.async_delete_issue(
@@ -559,7 +614,7 @@ class SolarEdgeModbusMultiHub:
             return True
 
         try:
-            async with asyncio.timeout(self.coordinator_timeout):
+            async with asyncio.timeout(REFRESH_WATCHDOG):
                 for inverter in self.inverters:
                     await inverter.read_modbus_data()
                 for meter in self.meters:
@@ -569,41 +624,29 @@ class SolarEdgeModbusMultiHub:
                 for evse in self.evses:
                     await evse.read_modbus_data()
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
+        except ModbusTimeoutError as e:
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
+            raise DataUpdateFailed(f"Update failed: {e}") from e
+
+        except (ModbusConnectionError, ModbusProtocolError) as e:
             await self.connection.disconnect()
             raise DataUpdateFailed(f"Update failed: {e}") from e
 
         except DeviceInvalid as e:
-            await self.connection.disconnect()
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
         except TimeoutError as e:
-            await self.connection.disconnect()
-
-            self._coordinator_timeouts_count += 1
-
-            _LOGGER.debug(
-                "Coordinator timeout %s limit %s",
-                self._coordinator_timeouts_count,
-                self._coordinator_timeouts_limit,
-            )
-
-            if self._coordinator_timeouts_count >= self._coordinator_timeouts_limit:
-                _LOGGER.warning(
-                    "Coordinator has timed out %s times in a row.",
-                    self._coordinator_timeouts_limit,
-                )
-                self._coordinator_timeouts_count = 0
-
+            # The refresh is wedged: every request has its own timeout, so this
+            # is something else holding it up, such as waiting behind another
+            # holder of a shared connection. Recycling that connection would
+            # wait for the request in flight, so only our own is recycled.
+            _LOGGER.warning("Refresh did not finish in %s seconds.", REFRESH_WATCHDOG)
+            if not isinstance(self.connection, SharedUnits):
+                await self.connection.disconnect()
             raise DataUpdateFailed(f"Timeout error: {e}") from e
-
-        if self._coordinator_timeouts_count > 0:
-            _LOGGER.debug(
-                "Coordinator timeout count %s limit %s",
-                self._coordinator_timeouts_count,
-                self._coordinator_timeouts_limit,
-            )
-            self._coordinator_timeouts_count = 0
 
         if self.close_after_polling:
             await self.connection.disconnect()
@@ -619,15 +662,23 @@ class SolarEdgeModbusMultiHub:
         do that instead of passing the unit separately. We need it to track settle cycles.
         """
 
-        await async_update_with_retry(component)
-
         cycles_remaining = self._write_settle_cycles.get(unit)
+
+        # A shared unit's spacing can be changed by another holder, so
+        # enforce ours before every attempt instead of trusting the last set.
+        spacing = (
+            MESSAGE_SPACING if cycles_remaining is None else self.sleep_after_write
+        )
+        await async_update_with_retry(
+            component,
+            partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+        )
+
         if cycles_remaining is None:
             return
 
         if cycles_remaining <= 1:
             _LOGGER.debug("Clearing unit %s request spacing.", unit)
-            self.connection.for_unit(unit).set_message_spacing(0)
             del self._write_settle_cycles[unit]
         else:
             _LOGGER.debug(
@@ -652,11 +703,21 @@ class SolarEdgeModbusMultiHub:
                 self.sleep_after_write,
                 field,
             )
-            self.connection.for_unit(unit).set_message_spacing(self.sleep_after_write)
             self._write_settle_cycles[unit] = WRITE_SETTLE_CYCLES
 
+        # Enforce our spacing before each attempt; another holder may have
+        # changed it.
+        spacing = (
+            self.sleep_after_write if self.sleep_after_write > 0 else MESSAGE_SPACING
+        )
+
         try:
-            await async_write_with_retry(component, field, value)
+            await async_write_with_retry(
+                component,
+                field,
+                value,
+                partial(self.connection.for_unit(unit).set_message_spacing, spacing),
+            )
 
         except IllegalFunctionError as e:
             _LOGGER.debug("Unit %s Write IllegalFunction: %s", unit, e)
@@ -767,8 +828,15 @@ class SolarEdgeModbusMultiHub:
 
     @property
     def close_after_polling(self) -> bool:
-        """Return the close after polling."""
-        return self._close_after_polling
+        """Return whether to close the connection after polling.
+
+        Only for a direct connection: a shared connection belongs to the modbus
+        integration and other entries may be using it.
+        """
+        return (
+            get_connection_mode(self._entry_options)
+            == ConnectionMode.OWN_CLOSE_AFTER_POLLING
+        )
 
     @property
     def number_of_meters(self) -> int:
@@ -794,42 +862,6 @@ class SolarEdgeModbusMultiHub:
     def sleep_after_write(self) -> int:
         """Return the sleep after write."""
         return self._sleep_after_write
-
-    @property
-    def coordinator_timeout(self) -> int:
-        """Return the coordinator timeout."""
-        if not self.initalized:
-            this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
-            this_timeout += SolarEdgeTimeouts.Init * self.number_of_inverters
-            this_timeout += (SolarEdgeTimeouts.Device * 2) * 3  # max 3 per inverter
-            this_timeout += (SolarEdgeTimeouts.Battery * 2) * 3  # max 3 per inverter
-            if self.option_detect_extras:
-                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
-            # SunS model-chain scan runs unconditionally, once per inverter at setup
-            this_timeout += (
-                SolarEdgeTimeouts.Read
-                * RetrySettings.RequestRetries
-                * self.number_of_inverters
-            )
-
-        else:
-            this_timeout = SolarEdgeTimeouts.Inverter * self.number_of_inverters
-            this_timeout += SolarEdgeTimeouts.Device * self.number_of_meters
-            this_timeout += SolarEdgeTimeouts.Battery * self.number_of_batteries
-            if self.option_detect_extras:
-                this_timeout += (SolarEdgeTimeouts.Read * 3) * self.number_of_inverters
-
-        this_timeout = this_timeout / 1000
-
-        # The per-step timeouts were based on the default request_timeout;
-        # scale the coordinator timeout if the user changes the value
-        this_timeout *= self.request_timeout / ConfDefaultInt.REQUEST_TIMEOUT
-
-        # Add the sleep_after_write value to the coordinator timeout
-        this_timeout += self.sleep_after_write * WRITE_SETTLE_CYCLES
-
-        _LOGGER.debug("coordinator timeout is %s", this_timeout)
-        return this_timeout
 
 
 class SolarEdgeInverter:
@@ -1694,7 +1726,15 @@ class SolarEdgeBattery:
                 self.inverter_unit_id,
                 self.base_offset,
             )
-            async with asyncio.timeout(self.hub.request_timeout):
+            # On a shared connection the request can wait in line behind other
+            # consumers, which request_timeout does not account for. There the
+            # per-request timeouts and the setup watchdog bound the probe.
+            probe_timeout = (
+                None
+                if isinstance(self.hub.connection, SharedUnits)
+                else self.hub.request_timeout
+            )
+            async with asyncio.timeout(probe_timeout):
                 # only try battery once during init, otherwise this takes too long
                 await self.hub.component_update(
                     self.inverter_unit_id, self.battery_info

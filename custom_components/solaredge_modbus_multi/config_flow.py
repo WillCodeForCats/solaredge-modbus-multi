@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import logging
 import re
 from typing import Any
 
 from homeassistant import config_entries
+from homeassistant.components.modbus import async_get_temporary_unit
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlowResult,
@@ -19,7 +21,13 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
+from modbus_connection import ModbusError, ModbusTcpParams
 import voluptuous as vol
 
 from .const import (
@@ -35,9 +43,17 @@ from .const import (
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
+    ConnectionMode,
 )
-from .helpers import device_list_from_string, host_valid
-from .scanner import ScannerConnectionError, SolarEdgeDeviceScanner
+from .helpers import (
+    device_list_from_string,
+    get_connection_mode,
+    host_valid,
+    other_modbus_holders,
+)
+from .scanner import SIGNATURE_ADDRESS, ScannerConnectionError, SolarEdgeDeviceScanner
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -72,7 +88,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 2
-    MINOR_VERSION = 3
+    MINOR_VERSION = 4
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -89,30 +105,37 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for SolarEdge Modbus Multi."""
         return SolaredgeModbusMultiOptionsFlowHandler()
 
-    @staticmethod
-    async def _async_port_open(
-        host: str, port: int, timeout: float = ZEROCONF_PROBE_TIMEOUT
-    ) -> bool:
-        """Check if a TCP port actually accepts connections.
+    async def _async_port_open(self, host: str, port: int) -> bool:
+        """Check if a Modbus connection to the device actually opens.
 
         mDNS only confirms a device advertised itself, not that its Modbus TCP
-        port is actually reachable.
+        port is actually reachable. Sends a single read to device ID 1: any
+        answer, an error response or no answer at all, still means the link
+        came up. Only a link that never opened counts as closed. No ID can be
+        counted on to exist, since the ID advertised over mDNS is not always
+        the one the device uses, so expect to wait out the whole timeout.
         """
+        params = ModbusTcpParams(host=host, port=port)
         try:
-            _reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(host, port), timeout=timeout
-            )
-        except (OSError, asyncio.TimeoutError):
-            return False
-
-        try:
-            writer.close()
-            await writer.wait_closed()
-        except OSError:
-            pass
+            async with async_get_temporary_unit(self.hass, params, 1) as unit:
+                unit.require_timeout(ZEROCONF_PROBE_TIMEOUT)
+                try:
+                    # The shared request timeout may be longer than ours, so
+                    # limit the probe with its own deadline.
+                    await asyncio.wait_for(
+                        unit.read_holding_registers(SIGNATURE_ADDRESS, 1),
+                        timeout=ZEROCONF_PROBE_TIMEOUT,
+                    )
+                except (ModbusError, OSError, asyncio.TimeoutError):
+                    is_open = unit.connected
+                else:
+                    is_open = True
+        except HomeAssistantError:
+            # In use over different link settings: the device is there.
+            return True
 
         await asyncio.sleep(1.0)
-        return True
+        return is_open
 
     async def _async_update_progress_bar(self, scanned: int, total: int) -> None:
         try:
@@ -121,13 +144,34 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except asyncio.CancelledError:
             pass
 
+    def _use_socket_scan(self, user_input: dict[str, Any]) -> bool:
+        """Return True to scan over our own socket instead of the shared one.
+
+        Another integration on the shared connection may have raised its
+        timeout, which a scan on it would wait out for every empty Device ID.
+        """
+        holders = other_modbus_holders(
+            self.hass, user_input[CONF_HOST], user_input[CONF_PORT]
+        )
+        if holders:
+            _LOGGER.warning(
+                "%s share(s) %s:%s, scanning over our own socket to avoid "
+                "their timeout",
+                ", ".join(sorted(holders)),
+                user_input[CONF_HOST],
+                user_input[CONF_PORT],
+            )
+        return bool(holders)
+
     async def _async_scan_devices(self, user_input: dict[str, Any]) -> list[int]:
         """Scanner job for async_create_task."""
         scanner = SolarEdgeDeviceScanner(
+            self.hass,
             host=user_input[CONF_HOST],
             port=user_input[CONF_PORT],
             scan_retries=2,
             scan_timeout=0.7,
+            use_socket=self._use_socket_scan(user_input),
         )
 
         try:
@@ -406,10 +450,12 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         return await self.async_step_features_info()
             else:
                 scanner = SolarEdgeDeviceScanner(
+                    self.hass,
                     host=user_input[CONF_HOST],
                     port=user_input[CONF_PORT],
                     scan_retries=3,
                     scan_timeout=0.5,
+                    use_socket=self._use_socket_scan(user_input),
                 )
 
                 try:
@@ -639,10 +685,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
-                ConfName.CLOSE_AFTER_POLLING: self.config_entry.options.get(
-                    ConfName.CLOSE_AFTER_POLLING,
-                    bool(ConfDefaultFlag.CLOSE_AFTER_POLLING),
-                ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
                     ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
@@ -661,6 +703,9 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE
                 ),
+                ConfName.CONNECTION_MODE: get_connection_mode(
+                    self.config_entry.options
+                ).value,
             }
 
         return self.async_show_form(
@@ -671,10 +716,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                         CONF_SCAN_INTERVAL,
                         default=user_input[CONF_SCAN_INTERVAL],
                     ): vol.Coerce(int),
-                    vol.Optional(
-                        f"{ConfName.CLOSE_AFTER_POLLING}",
-                        default=user_input[ConfName.CLOSE_AFTER_POLLING],
-                    ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.DETECT_METERS}",
                         default=user_input[ConfName.DETECT_METERS],
@@ -699,6 +740,16 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                         f"{ConfName.SLEEP_AFTER_WRITE}",
                         default=user_input[ConfName.SLEEP_AFTER_WRITE],
                     ): vol.Coerce(int),
+                    vol.Optional(
+                        f"{ConfName.CONNECTION_MODE}",
+                        default=user_input[ConfName.CONNECTION_MODE],
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[mode.value for mode in ConnectionMode],
+                            mode=SelectSelectorMode.DROPDOWN,
+                            translation_key=ConfName.CONNECTION_MODE,
+                        )
+                    ),
                 },
             ),
             errors=errors,
