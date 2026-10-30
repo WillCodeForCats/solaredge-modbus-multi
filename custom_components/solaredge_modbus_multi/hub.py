@@ -301,7 +301,7 @@ class SolarEdgeModbusMultiHub:
             "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
             "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
             "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
-            "close_after_polling=%s",
+            "connection_mode=%s",
             DOMAIN,
             self._inverter_list,
             self._detect_meters,
@@ -313,7 +313,7 @@ class SolarEdgeModbusMultiHub:
             self._request_timeout,
             self._sleep_after_write,
             self._battery_rating_adjust,
-            self.close_after_polling,
+            get_connection_mode(self._entry_options),
         )
 
     async def _async_init_solaredge(self) -> None:  # noqa: C901
