@@ -21,6 +21,7 @@ from custom_components.solaredge_modbus_multi.const import (
 )
 from custom_components.solaredge_modbus_multi.hub import (
     DataUpdateFailed,
+    DataUpdateTimedOut,
     HubInitFailed,
     SharedUnits,
     SolarEdgeModbusMultiHub,
@@ -232,7 +233,7 @@ async def test_watchdog_timeout_does_not_disconnect_shared_units(hass):
     unit.disconnect = AsyncMock()
     hub = _refresh_hub(hass, SharedUnits({1: unit}), TimeoutError())
 
-    with pytest.raises(DataUpdateFailed):
+    with pytest.raises(DataUpdateTimedOut):
         await hub.async_refresh_modbus_data()
 
     unit.disconnect.assert_not_called()
@@ -244,7 +245,7 @@ async def test_watchdog_timeout_disconnects_own_connection(hass):
     connection.disconnect = AsyncMock()
     hub = _refresh_hub(hass, connection, TimeoutError())
 
-    with pytest.raises(DataUpdateFailed):
+    with pytest.raises(DataUpdateTimedOut):
         await hub.async_refresh_modbus_data()
 
     connection.disconnect.assert_awaited_once()
@@ -262,7 +263,7 @@ async def test_refresh_gives_up_after_the_watchdog(hass):
 
     with (
         patch("custom_components.solaredge_modbus_multi.hub.REFRESH_WATCHDOG", 0.05),
-        pytest.raises(DataUpdateFailed),
+        pytest.raises(DataUpdateTimedOut),
     ):
         await hub.async_refresh_modbus_data()
 
