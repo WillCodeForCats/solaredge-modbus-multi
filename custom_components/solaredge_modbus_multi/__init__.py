@@ -8,6 +8,7 @@ import importlib.metadata
 import logging
 from typing import TYPE_CHECKING
 
+from awesomeversion import AwesomeVersion
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -15,6 +16,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     EVENT_HOMEASSISTANT_STOP,
     Platform,
+    __version__ as HA_VERSION,
 )
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError
@@ -33,6 +35,7 @@ import voluptuous as vol
 
 from .const import (
     DOMAIN,
+    HA_REQUIRED_VERSION,
     MESSAGE_SPACING,
     MODBUS_CONNECTION_REQUIRED_VERSION,
     TMODBUS_REQUIRED_VERSION,
@@ -46,6 +49,16 @@ if TYPE_CHECKING:
     from .hub import SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _check_ha_version() -> None:
+    """Fail early if Home Assistant is older than this release supports."""
+    if AwesomeVersion(HA_VERSION) < AwesomeVersion(HA_REQUIRED_VERSION):
+        raise ConfigEntryError(
+            f"Home Assistant {HA_REQUIRED_VERSION} or newer is required, but "
+            f"{HA_VERSION} is running. Update Home Assistant, or install a "
+            "release of this integration that supports your version."
+        )
 
 
 def _check_dependency_versions() -> dict[str, str]:
@@ -217,6 +230,8 @@ def _async_remove_legacy_der_devices(
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
+
+    _check_ha_version()
 
     # importlib.metadata does blocking file I/O, and modbus_connection/.hub
     # aren't safe to import until we know the versions are good -- see
