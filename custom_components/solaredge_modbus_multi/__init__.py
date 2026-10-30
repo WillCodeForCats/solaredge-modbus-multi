@@ -511,7 +511,7 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
         while True:
             try:
                 return await self._hub.async_refresh_modbus_data()
-            except Exception as ex:
+            except Exception as ex:  # noqa: PERF203
                 if not isinstance(ex, ex_type):
                     raise
                 if 0 < limit <= attempt:

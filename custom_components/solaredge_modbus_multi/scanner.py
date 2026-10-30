@@ -293,7 +293,7 @@ class SolarEdgeDeviceScanner:
                     asyncio.open_connection(self._params.host, self._params.port),
                     timeout=self._connect_timeout,
                 )
-            except (TimeoutError, OSError) as e:
+            except (TimeoutError, OSError) as e:  # noqa: PERF203
                 await self._disconnect_socket()
                 attempt += 1
                 await asyncio.sleep(1.0)
@@ -388,7 +388,7 @@ class SolarEdgeDeviceScanner:
 
                     return self.FOUND
 
-            except (TimeoutError, OSError) as e:
+            except (TimeoutError, OSError) as e:  # noqa: PERF203
                 _LOGGER.debug("Attempt failed (timeout %ss): %r", timeout, e)
                 attempt += 1
 

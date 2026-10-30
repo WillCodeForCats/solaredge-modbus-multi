@@ -126,7 +126,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         unit.read_holding_registers(SIGNATURE_ADDRESS, 1),
                         timeout=ZEROCONF_PROBE_TIMEOUT,
                     )
-                except (TimeoutError, ModbusError, OSError):
+                except (ModbusError, OSError, asyncio.TimeoutError):
                     is_open = unit.connected
                 else:
                     is_open = True
@@ -242,7 +242,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 addr_info = await asyncio.wait_for(
                     self.hass.loop.getaddrinfo(existing_host, None), timeout=5.0
                 )
-            except (TimeoutError, OSError):
+            except (OSError, asyncio.TimeoutError):
                 continue
 
             if {info[4][0].lower() for info in addr_info} & discovered_ips:
