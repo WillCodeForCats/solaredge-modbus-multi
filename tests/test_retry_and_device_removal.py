@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from modbus_connection.exceptions import ModbusConnectionError, ModbusTimeoutError
 from modbus_connection.model.sunspec import SunSpecError
 import pytest
@@ -20,6 +21,7 @@ from custom_components.solaredge_modbus_multi import (
 from custom_components.solaredge_modbus_multi.const import DOMAIN, RetrySettings
 from custom_components.solaredge_modbus_multi.hub import (
     DataUpdateFailed,
+    DataUpdateTimedOut,
     async_suns_scan_with_retry,
     async_update_with_retry,
     async_write_with_retry,
@@ -210,6 +212,38 @@ async def test_coordinator_retry_does_not_retry_unexpected_error_types(hass):
         )
 
     refresh.assert_awaited_once()
+
+
+async def test_coordinator_does_not_retry_a_watchdog_timeout(hass):
+    """Test a refresh that hit the watchdog fails the update without retrying."""
+    refresh = AsyncMock(side_effect=DataUpdateTimedOut("wedged"))
+    coordinator = _make_coordinator(hass, refresh)
+
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.asyncio.sleep", new=AsyncMock()
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+    refresh.assert_awaited_once()
+
+
+async def test_coordinator_still_retries_a_failed_update(hass):
+    """Test an ordinary failed update is still retried up to the limit."""
+    refresh = AsyncMock(side_effect=DataUpdateFailed("down"))
+    coordinator = _make_coordinator(hass, refresh)
+
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.asyncio.sleep", new=AsyncMock()
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+    assert refresh.await_count == RetrySettings.Limit
 
 
 def _device(*identifiers):
