@@ -14,7 +14,10 @@ from custom_components.solaredge_modbus_multi.config_flow import (
     SolaredgeModbusMultiConfigFlow,
 )
 from custom_components.solaredge_modbus_multi.const import DOMAIN
-from custom_components.solaredge_modbus_multi.helpers import other_modbus_holders
+from custom_components.solaredge_modbus_multi.helpers import (
+    modbus_connection_exists,
+    other_modbus_holders,
+)
 from custom_components.solaredge_modbus_multi.hub import (
     SharedUnits,
     SolarEdgeModbusMultiHub,
@@ -134,3 +137,22 @@ async def test_missing_connection_info_leaves_the_config_flow_working(hass):
             flow._use_socket_scan({CONF_HOST: "inverter.local", CONF_PORT: 1502})
             is False
         )
+
+
+async def test_connection_exists_on_same_endpoint(hass):
+    """Test a connection to the same endpoint is found, even with no units."""
+    with patch(INFO, return_value=_info({})):
+        assert modbus_connection_exists(hass, "Inverter.Local", 1502) is True
+
+
+async def test_connection_exists_ignores_other_endpoint(hass):
+    """Test a connection to a different endpoint is not ours."""
+    other = ModbusTcpParams(host="other.local", port=1502).endpoint
+    with patch(INFO, return_value=_info({"other": [1]}, endpoint=other)):
+        assert modbus_connection_exists(hass, "Inverter.Local", 1502) is False
+
+
+async def test_connection_exists_assumed_without_connection_info(hass):
+    """Test a connection is assumed when the modbus integration cannot tell."""
+    with patch(INFO, None):
+        assert modbus_connection_exists(hass, "Inverter.Local", 1502) is True
