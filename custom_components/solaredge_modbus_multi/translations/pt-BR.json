@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Outra integração compartilha este inversor",
-      "description": "As integrações {integrations} usam a mesma conexão Modbus com {host}. Se uma delas solicitar um tempo limite longo, como a integração SolarEdge Modbus integrada (30 segundos), esse tempo se aplica a todas as solicitações da conexão compartilhada, inclusive as desta integração. Isso pode causar atualizações lentas ou perdidas e não é causado por esta integração.\n\nO tempo limite longo permanece até o Home Assistant ser reiniciado, mesmo que a outra integração seja desativada ou removida. Para usar as duas, escolha \"Usar conexão direta\" em \"Conexão Modbus\" nas opções desta integração. Consulte o README para mais detalhes."
+      "description": "As integrações {integrations} usam a mesma conexão Modbus com {host}. O Home Assistant mantém um tempo limite por ID de dispositivo em uma conexão compartilhada, então integrações que solicitam tempos limite diferentes, como a integração SolarEdge Modbus integrada (30 segundos), sobrescrevem umas às outras dependendo de qual foi configurada por último. Isso pode causar atualizações lentas ou perdidas.\n\nPara usar as duas, escolha \"Usar conexão direta\" em \"Conexão Modbus\" nas opções desta integração. Caso contrário, desative a outra integração e recarregue esta. Consulte o README para mais detalhes."
     },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controle Dinâmico de Energia Global (Inversor {device_id})",

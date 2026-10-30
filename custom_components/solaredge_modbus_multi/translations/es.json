@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Otra integración comparte este inversor",
-      "description": "Las integraciones {integrations} usan la misma conexión Modbus con {host}. Si una de ellas solicita un tiempo de espera largo, como la integración SolarEdge Modbus incorporada (30 segundos), ese tiempo se aplica a todas las solicitudes de la conexión compartida, incluidas las de esta integración. Esto puede causar actualizaciones lentas o perdidas, y no lo causa esta integración.\n\nEl tiempo de espera largo se mantiene hasta que se reinicie Home Assistant, aunque la otra integración se desactive o se elimine. Para usar ambas, elige «Usar conexión directa» en «Conexión Modbus» en las opciones de esta integración. Consulta el README para más detalles."
+      "description": "Las integraciones {integrations} usan la misma conexión Modbus con {host}. Home Assistant guarda un tiempo de espera por cada ID de dispositivo en una conexión compartida, por lo que las integraciones que solicitan tiempos de espera distintos, como la integración SolarEdge Modbus incorporada (30 segundos), se sobrescriben entre sí según cuál se haya configurado en último lugar. Esto puede causar actualizaciones lentas o perdidas.\n\nPara usar ambas, elige «Usar conexión directa» en «Conexión Modbus» en las opciones de esta integración. De lo contrario, desactiva la otra integración y vuelve a cargar esta. Consulta el README para más detalles."
     },
     "detect_timeout_gpc": {
       "title": "Tiempo de espera agotado del control dinámico de energía global (Inversor {device_id})",

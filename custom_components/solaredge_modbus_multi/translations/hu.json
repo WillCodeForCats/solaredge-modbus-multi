@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Egy másik integráció osztozik ezen az inverteren",
-      "description": "A(z) {integrations} integráció(k) ugyanazt a Modbus-kapcsolatot használja(k) a(z) {host} eszközhöz. Ha valamelyik hosszú időtúllépést kér, például a beépített SolarEdge Modbus integráció (30 másodperc), az a megosztott kapcsolat minden kérésére vonatkozik, ennek az integrációnak a kéréseire is. Ez lassú vagy elmaradó frissítéseket okozhat, és nem ez az integráció okozza.\n\nA hosszú időtúllépés a Home Assistant újraindításáig megmarad, akkor is, ha a másik integrációt letiltják vagy eltávolítják. Ha mindkettőt használni szeretné, az integráció beállításaiban a „Modbus-kapcsolat” alatt válassza a „Közvetlen kapcsolat használata” lehetőséget. A részleteket lásd a README-ben."
+      "description": "A(z) {integrations} integráció(k) ugyanazt a Modbus-kapcsolatot használja(k) a(z) {host} eszközhöz. A Home Assistant megosztott kapcsolaton eszközazonosítónként egy időtúllépést tárol, így az eltérő időtúllépést kérő integrációk, például a beépített SolarEdge Modbus integráció (30 másodperc), felülírják egymást attól függően, hogy melyik lett utoljára beállítva. Ez lassú vagy elmaradó frissítéseket okozhat.\n\nHa mindkettőt használni szeretné, az integráció beállításaiban a „Modbus-kapcsolat” alatt válassza a „Közvetlen kapcsolat használata” lehetőséget. Ellenkező esetben tiltsa le a másik integrációt, és töltse be újra ezt az integrációt. A részleteket lásd a README-ben."
     },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",

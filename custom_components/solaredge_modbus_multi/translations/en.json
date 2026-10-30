@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Another Integration Shares This Inverter",
-      "description": "The integration(s) {integrations} use the same Modbus connection to {host}. If one of them asks for a long timeout, such as the built-in SolarEdge Modbus integration (30 seconds), that timeout applies to every request on the shared connection, including this integration's. This can cause slow or missed updates, and is not caused by this integration.\n\nThe long timeout stays until Home Assistant restarts, even if the other integration is disabled or removed. To run both, choose \"Use direct connection\" as the Modbus Connection in this integration's options. See the README for details."
+      "description": "The integration(s) {integrations} use the same Modbus connection to {host}. Home Assistant keeps one timeout per Device ID on a shared connection, so integrations that ask for different timeouts, such as the built-in SolarEdge Modbus integration (30 seconds), override each other depending on which set up last. This can cause slow or missed updates.\n\nTo run both, choose \"Use direct connection\" as the Modbus Connection in this integration's options. Otherwise, disable the other integration and reload this one. See the README for details."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Inverter {device_id})",

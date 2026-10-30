@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "O altă integrare partajează acest invertor",
-      "description": "Integrările {integrations} folosesc aceeași conexiune Modbus către {host}. Dacă una dintre ele solicită un timp de expirare lung, cum este integrarea SolarEdge Modbus încorporată (30 de secunde), acesta se aplică tuturor cererilor de pe conexiunea partajată, inclusiv celor ale acestei integrări. Aceasta poate cauza actualizări lente sau pierdute și nu este provocată de această integrare.\n\nTimpul de expirare lung rămâne până la repornirea Home Assistant, chiar dacă cealaltă integrare este dezactivată sau eliminată. Pentru a le folosi pe amândouă, alegeți „Utilizați conexiune directă” la „Conexiune Modbus” în opțiunile acestei integrări. Consultați README pentru detalii."
+      "description": "Integrările {integrations} folosesc aceeași conexiune Modbus către {host}. Home Assistant păstrează pe o conexiune partajată un timp de expirare pentru fiecare ID de dispozitiv, astfel încât integrările care solicită timpi de expirare diferiți, cum este integrarea SolarEdge Modbus încorporată (30 de secunde), se suprascriu reciproc în funcție de care a fost configurată ultima. Aceasta poate cauza actualizări lente sau pierdute.\n\nPentru a le folosi pe amândouă, alegeți „Utilizați conexiune directă” la „Conexiune Modbus” în opțiunile acestei integrări. În caz contrar, dezactivați cealaltă integrare și reîncărcați-o pe aceasta. Consultați README pentru detalii."
     },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",

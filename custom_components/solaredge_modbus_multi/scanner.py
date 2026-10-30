@@ -91,32 +91,14 @@ class SolarEdgeDeviceScanner:
 
     Temporary units (default): requests go through the Home Assistant modbus
     shared connection. A scan never competes with a loaded entry for the
-    device's single TCP connection, but the shared connection applies the
-    highest timeout any integration asked for to every request. The built-in
-    SolarEdge Modbus integration asks for 30 seconds and its timeout cannot be
-    configured. A timeout is kept per device ID, so asking for ours on a
-    connection someone else opened would replace theirs for every ID we scan:
+    device's single TCP connection. The connection keeps a timeout per device
+    ID and uses the longest for every request, so asking for ours on a
+    connection someone else opened would replace theirs for every ID we scan.
     scan_timeout is only asked for when the scan is the first on the
-    connection, and otherwise the timeout already there applies. A scan waits
-    out the full timeout for every Device ID with no device, on each of its
-    attempts: 30 seconds with 3
-    attempts is 90 seconds per empty ID. Worst case with a 30 second timeout
-    and 1 inverter, by scan_retries (attempts per ID):
-
-        Scan           IDs scanned   3 (90 s/ID)   2 (60 s/ID)   1 (30 s/ID)
-        Fast Scan      1-32          ~45 minutes   ~30 minutes   ~15 minutes
-        Complete Scan  1-247         ~6 hours      ~4 hours      ~2 hours
-
-    These figures assume 1 inverter, so all other IDs time out at 30 seconds
-    per attempt. Any ID with a detected device will not wait the timeout.
-
-    With the default 3 second timeout the same scans take a few minutes.
-    Setup can look stalled, and other integrations on the connection queue
-    behind the scan. The long timeout stays until the connection is closed and
-    reopened, which means a Home Assistant restart after the other integration
-    is disabled. To avoid it, use the manual setup with known Device IDs,
-    which does not scan, or disable the other integration and restart Home
-    Assistant before scanning. Or use Socket scanning mode.
+    connection; otherwise the timeout already there applies, and a scan waits
+    it out for every empty ID on each attempt. The built-in SolarEdge Modbus
+    integration asks for 30 seconds, so the config flow scans with use_socket
+    whenever another integration holds the connection.
 
     Socket (use_socket): the scanner opens its own TCP socket, so scan_timeout
     is honored and empty IDs fail fast. The cost is that the scan does not

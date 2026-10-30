@@ -55,45 +55,39 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 > [!WARNING]
 > Running SolarEdge Modbus Multi and Home Assistant's built-in SolarEdge Modbus integration
-> (`solaredge_modbus`) for the same inverter is not recommended. The built-in integration requests a
-> high timeout (30 seconds), and Home Assistant applies it to the shared connection, so it is forced on
-> SolarEdge Modbus Multi as well, which can cause slow or missed updates. If SolarEdge Modbus Multi
-> raises the "Another Integration Shares This Inverter" repair issue, disable the other integration for this
-> inverter and then restart Home Assistant: the shared connection keeps the long timeout until it is
-> closed and reopened. Home Assistant may offer to set up the built-in integration when it discovers
-> your inverter: check that you are adding the one you intend to use.
->
-> Even trying the built-in integration briefly and then disabling or removing it still raises the
-> timeout. The shared connection keeps the 30 second timeout after the other integration is gone, so
-> restart Home Assistant afterwards.
+> (`solaredge_modbus`) for the same inverter is not recommended. Home Assistant shares one Modbus/TCP
+> connection between them, and they ask for very different timeouts. If SolarEdge Modbus Multi raises
+> the "Another Integration Shares This Inverter" repair issue, either disable the other integration and
+> reload SolarEdge Modbus Multi, or change SolarEdge Modbus Multi to a direct connection (see below).
+> Home Assistant may offer to set up the built-in integration when it discovers your inverter: check
+> that you are adding the one you intend to use.
 
-Home Assistant shares a single Modbus/TCP connection per host and port between integrations, and the
-connection's timing settings are shared too. The built-in integration requests a 30 second timeout,
-which is much higher than the default of SolarEdge Modbus Multi of 3 seconds. The built-in
-integration's timeout is fixed and cannot be configured, while the Modbus Request Timeout of
-SolarEdge Modbus Multi can be changed in its options. The shared connection
-will use the highest timeout any integration asks for, so 30 seconds applies to every request on it,
-including those of SolarEdge Modbus Multi. A request that is slow to fail can then hold up polling by
-SolarEdge Modbus Multi, and either integration can change the other's message spacing. The result can
-be refreshes that take minutes, slow or missed updates, and unavailable entities.
+Home Assistant shares a single Modbus/TCP connection per host and port between integrations. The
+connection keeps a request timeout for each Device ID and uses the longest of them for every request.
+The built-in integration asks for 30 seconds, which cannot be configured. SolarEdge Modbus Multi asks
+for its Modbus Request Timeout, 3 seconds by default. Both normally use Device ID 1, so whichever
+integration sets up last decides the timeout for that ID:
 
-Disabling the other integration does not shorten the timeout right away. The shared connection keeps
-the highest timeout it was given until it is closed and reopened, so restart Home Assistant after
-disabling it.
+- If the built-in integration sets up last, 30 seconds applies to SolarEdge Modbus Multi as well. A
+  request that is slow to fail can then hold up polling, causing slow or missed updates and unavailable
+  entities.
+- If SolarEdge Modbus Multi sets up last, its shorter timeout applies to the built-in integration too,
+  which may then give up on requests it expected to wait for.
 
-Scanning for inverters during setup uses the shared connection too, so while another integration has
-set a high timeout, even the fast scan can take a long time. A scan has to wait out the full timeout
-for every Device ID that has no device, and it tries each ID more than once before giving up on it. With
-a 30 second timeout a Fast Scan can take tens of minutes and a Complete Scan hours, while with the
-default 3 second timeout the same scans take a few minutes. For example, with an effective 3 second
-timeout and two attempts for each of up to 246 silent IDs, a Complete Scan can take about 24.6 minutes
-before overhead. IDs for which a gateway reports an error return sooner. A long scan can look like setup
-has stalled, and the scan cannot shorten the wait because the shared connection applies the highest
-timeout to every request, including the scan's own. Requests from other integrations on the same
-connection are queued with the scan, so they are held up as well.
+Which one sets up last can change from one Home Assistant start to the next, and reloading either
+integration makes it the last one. Message spacing is also kept per Device ID: SolarEdge Modbus Multi
+applies its own before every request, which changes it for the other integration too.
 
-If you know your inverter Device IDs, use the manual setup instead, which does not scan. Otherwise, if
-you can, disable the other integration and restart Home Assistant before adding SolarEdge Modbus Multi.
+Disabling or removing the other integration does not clear the timeout it asked for while the
+connection stays open. Reload SolarEdge Modbus Multi afterwards: if nothing else is using the
+connection, it is closed and reopened with only SolarEdge Modbus Multi's timeout. Restarting Home
+Assistant also works.
+
+When another integration is already using the connection, scanning for inverters during setup opens a
+separate connection to the inverter instead, so the scan is not slowed by the other integration's
+timeout. An inverter accepts only a few connections at once, so this scan can fail to connect while
+another client is connected. If it does, use the manual setup, which only checks the Device IDs you
+enter.
 
 If you want to run both, open the options of SolarEdge Modbus Multi and change the Modbus Connection.
 It has three choices:

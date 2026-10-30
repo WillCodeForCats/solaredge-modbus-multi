@@ -560,9 +560,10 @@ class SolarEdgeModbusMultiHub:
     def _warn_if_shared(self) -> None:
         """Raise a repair issue when another integration holds our connection.
 
-        The issue stays after the other integration unloads, because the long
-        timeout it asked for stays until Home Assistant restarts. It is cleared
-        when this entry sets up again.
+        The issue stays after the other integration unloads, because the
+        timeout it asked for stays while the connection is open. It is cleared
+        when this entry sets up again, which also reopens the connection if
+        nothing else holds it.
         """
         if not isinstance(self.connection, SharedUnits):
             return

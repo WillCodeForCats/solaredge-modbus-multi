@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Toinen integraatio jakaa tämän invertterin",
-      "description": "Integraatiot {integrations} käyttävät samaa Modbus-yhteyttä laitteeseen {host}. Jos jokin niistä pyytää pitkää aikakatkaisua, kuten sisäänrakennettu SolarEdge Modbus -integraatio (30 sekuntia), se koskee kaikkia jaetun yhteyden pyyntöjä, myös tämän integraation pyyntöjä. Tämä voi aiheuttaa hitaita tai puuttuvia päivityksiä, eikä tämä integraatio aiheuta sitä.\n\nPitkä aikakatkaisu pysyy voimassa, kunnes Home Assistant käynnistetään uudelleen, vaikka toinen integraatio poistettaisiin käytöstä tai poistettaisiin. Jos haluat käyttää molempia, valitse tämän integraation asetuksissa kohdassa ”Modbus-yhteys” vaihtoehto ”Käytä suoraa yhteyttä”. Lisätietoja on README-tiedostossa."
+      "description": "Integraatiot {integrations} käyttävät samaa Modbus-yhteyttä laitteeseen {host}. Home Assistant säilyttää jaetulla yhteydellä yhden aikakatkaisun kutakin laitetunnusta kohden, joten eri aikakatkaisuja pyytävät integraatiot, kuten sisäänrakennettu SolarEdge Modbus -integraatio (30 sekuntia), korvaavat toistensa aikakatkaisut sen mukaan, mikä niistä otettiin käyttöön viimeisenä. Tämä voi aiheuttaa hitaita tai puuttuvia päivityksiä.\n\nJos haluat käyttää molempia, valitse tämän integraation asetuksissa kohdassa ”Modbus-yhteys” vaihtoehto ”Käytä suoraa yhteyttä”. Muussa tapauksessa poista toinen integraatio käytöstä ja lataa tämä integraatio uudelleen. Lisätietoja on README-tiedostossa."
     },
     "detect_timeout_gpc": {
       "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",

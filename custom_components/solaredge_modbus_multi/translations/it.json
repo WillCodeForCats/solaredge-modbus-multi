@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Un'altra integrazione condivide questo inverter",
-      "description": "Le integrazioni {integrations} usano la stessa connessione Modbus verso {host}. Se una di esse richiede un timeout lungo, come l'integrazione SolarEdge Modbus integrata (30 secondi), tale timeout si applica a ogni richiesta sulla connessione condivisa, comprese quelle di questa integrazione. Questo può causare aggiornamenti lenti o mancanti e non è causato da questa integrazione.\n\nIl timeout lungo resta fino al riavvio di Home Assistant, anche se l'altra integrazione viene disattivata o rimossa. Per usarle entrambe, scegli «Usa una connessione diretta» in «Connessione Modbus» nelle opzioni di questa integrazione. Consulta il README per i dettagli."
+      "description": "Le integrazioni {integrations} usano la stessa connessione Modbus verso {host}. Home Assistant mantiene un timeout per ogni ID dispositivo su una connessione condivisa, quindi le integrazioni che richiedono timeout diversi, come l'integrazione SolarEdge Modbus integrata (30 secondi), si sovrascrivono a vicenda a seconda di quale è stata configurata per ultima. Questo può causare aggiornamenti lenti o mancanti.\n\nPer usarle entrambe, scegli «Usa una connessione diretta» in «Connessione Modbus» nelle opzioni di questa integrazione. Altrimenti, disattiva l'altra integrazione e ricarica questa. Consulta il README per i dettagli."
     },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",

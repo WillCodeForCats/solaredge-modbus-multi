@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Une autre intégration partage cet onduleur",
-      "description": "Les intégrations {integrations} utilisent la même connexion Modbus vers {host}. Si l'une d'elles demande un délai d'attente long, comme l'intégration SolarEdge Modbus intégrée (30 secondes), ce délai s'applique à toutes les requêtes de la connexion partagée, y compris celles de cette intégration. Cela peut provoquer des mises à jour lentes ou manquées, et ce n'est pas causé par cette intégration.\n\nLe délai d'attente long reste en vigueur jusqu'au redémarrage de Home Assistant, même si l'autre intégration est désactivée ou supprimée. Pour utiliser les deux, choisissez « Utiliser une connexion directe » dans « Connexion Modbus » dans les options de cette intégration. Consultez le README pour plus de détails."
+      "description": "Les intégrations {integrations} utilisent la même connexion Modbus vers {host}. Home Assistant conserve un délai d'attente par ID d'appareil sur une connexion partagée, de sorte que les intégrations qui demandent des délais différents, comme l'intégration SolarEdge Modbus intégrée (30 secondes), se remplacent mutuellement selon celle qui a été configurée en dernier. Cela peut provoquer des mises à jour lentes ou manquées.\n\nPour utiliser les deux, choisissez « Utiliser une connexion directe » dans « Connexion Modbus » dans les options de cette intégration. Sinon, désactivez l'autre intégration et rechargez celle-ci. Consultez le README pour plus de détails."
     },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",

@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Inna integracja współdzieli ten falownik",
-      "description": "Integracje {integrations} używają tego samego połączenia Modbus z {host}. Jeśli któraś z nich żąda długiego limitu czasu, jak wbudowana integracja SolarEdge Modbus (30 sekund), obowiązuje on dla każdego żądania na współdzielonym połączeniu, także tej integracji. Może to powodować wolne lub pomijane aktualizacje i nie jest to wina tej integracji.\n\nDługi limit czasu obowiązuje do ponownego uruchomienia Home Assistanta, nawet jeśli druga integracja zostanie wyłączona lub usunięta. Aby używać obu, wybierz w opcjach tej integracji w polu „Połączenie Modbus” ustawienie „Użyj połączenia bezpośredniego”. Szczegóły znajdziesz w README."
+      "description": "Integracje {integrations} używają tego samego połączenia Modbus z {host}. Home Assistant przechowuje na współdzielonym połączeniu jeden limit czasu dla każdego identyfikatora urządzenia, więc integracje żądające różnych limitów czasu, jak wbudowana integracja SolarEdge Modbus (30 sekund), nadpisują się nawzajem w zależności od tego, która została skonfigurowana jako ostatnia. Może to powodować wolne lub pomijane aktualizacje.\n\nAby używać obu, wybierz w opcjach tej integracji w polu „Połączenie Modbus” ustawienie „Użyj połączenia bezpośredniego”. W przeciwnym razie wyłącz drugą integrację i ponownie załaduj tę. Szczegóły znajdziesz w README."
     },
     "detect_timeout_gpc": {
       "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",

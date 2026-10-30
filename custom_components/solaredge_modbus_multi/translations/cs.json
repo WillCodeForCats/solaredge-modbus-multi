@@ -153,7 +153,7 @@
     },
     "shared_connection_other_integration": {
       "title": "Jiná integrace sdílí tento střídač",
-      "description": "Integrace {integrations} používají stejné připojení Modbus k {host}. Pokud některá z nich požaduje dlouhý časový limit, například vestavěná integrace SolarEdge Modbus (30 sekund), platí tento limit pro každý požadavek na sdíleném připojení, včetně požadavků této integrace. To může způsobit pomalé nebo vynechané aktualizace a nezpůsobuje to tato integrace.\n\nDlouhý časový limit zůstane platit do restartu Home Assistantu, i když je druhá integrace zakázána nebo odebrána. Chcete-li používat obě, zvolte v nastavení této integrace u položky „Připojení Modbus“ možnost „Použít přímé připojení“. Podrobnosti najdete v souboru README."
+      "description": "Integrace {integrations} používají stejné připojení Modbus k {host}. Home Assistant u sdíleného připojení uchovává jeden časový limit pro každé ID zařízení, takže integrace, které požadují různé časové limity, například vestavěná integrace SolarEdge Modbus (30 sekund), se navzájem přepisují podle toho, která byla nastavena jako poslední. To může způsobit pomalé nebo vynechané aktualizace.\n\nChcete-li používat obě, zvolte v nastavení této integrace u položky „Připojení Modbus“ možnost „Použít přímé připojení“. Jinak druhou integraci zakažte a tuto znovu načtěte. Podrobnosti najdete v souboru README."
     },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",
