@@ -334,15 +334,21 @@ class SolarEdgeModbusMultiHub:
                 )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
-                self.inverters.append(new_inverter)
 
-                # for via_device_id
-                device_registry = dr.async_get(self._hass)
-                inverter_device = device_registry.async_get_or_create(
-                    config_entry_id=self._entry_id,
-                    **new_inverter.device_info,
-                )
-                new_inverter.device_registry_id = inverter_device.id
+                # Register the inverter device so child devices can
+                # reference it with via_device_id when their entities are added.
+                try:
+                    dr.async_get(self._hass).async_get_or_create(
+                        config_entry_id=self._entry_id,
+                        **new_inverter.device_info,
+                    )
+                except HomeAssistantError as e:
+                    # Inverters are mandatory, so do not continue without one.
+                    raise HubInitFailed(
+                        f"I{inverter_unit_id}: could not register device: {e}"
+                    ) from e
+
+                self.inverters.append(new_inverter)
 
                 ir.async_delete_issue(
                     self._hass,
@@ -458,7 +464,7 @@ class SolarEdgeModbusMultiHub:
                                     meter_id,
                                 )
 
-                        new_meter.via_device_id = new_inverter.device_registry_id
+                        new_meter.parent_inverter = new_inverter
                         self.meters.append(new_meter)
                         _LOGGER.debug("Found I%sM%s", inverter_unit_id, meter_id)
 
@@ -497,7 +503,7 @@ class SolarEdgeModbusMultiHub:
                                     f"{new_battery.serial}"
                                 )
 
-                        new_battery.via_device_id = new_inverter.device_registry_id
+                        new_battery.parent_inverter = new_inverter
                         self.batteries.append(new_battery)
                         _LOGGER.debug("Found I%sB%s", inverter_unit_id, battery_id)
 
@@ -865,7 +871,6 @@ class SolarEdgeInverter:
         """Initialize the solar edge inverter."""
         self.inverter_unit_id = device_id
         self.hub = hub
-        self.device_registry_id: str | None = None
         self.mmppt_units = []
         self.has_parent = False
         self.has_battery = None
@@ -1458,6 +1463,14 @@ class SolarEdgeInverter:
         )
 
     @property
+    def device_registry_id(self) -> str | None:
+        """Return the current device registry ID, or None if not registered."""
+        device = dr.async_get(self.hub.hass).async_get_device_by_identifier(
+            (DOMAIN, self.uid_base), self.hub.entry_id
+        )
+        return device.id if device is not None else None
+
+    @property
     def is_mmppt(self) -> bool:
         """Return True if mmppt."""
         return self.hub.mmppt_common[self.inverter_unit_id] is not None
@@ -1542,7 +1555,7 @@ class SolarEdgeMeter:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
-        self._via_device_id = None
+        self.parent_inverter: SolarEdgeInverter | None = None
 
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
@@ -1672,11 +1685,9 @@ class SolarEdgeMeter:
     @property
     def via_device_id(self) -> str | None:
         """Return the device registry ID of the parent device."""
-        return self._via_device_id
-
-    @via_device_id.setter
-    def via_device_id(self, device_registry_id: str | None) -> None:
-        self._via_device_id = device_registry_id
+        if self.parent_inverter is None:
+            return None
+        return self.parent_inverter.device_registry_id
 
 
 class SolarEdgeBattery:
@@ -1691,7 +1702,7 @@ class SolarEdgeBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self._via_device_id = None
+        self.parent_inverter: SolarEdgeInverter | None = None
 
         try:
             self.base_offset = BATTERY_REG_BASE[self.battery_id] - BATTERY_REG_BASE[1]
@@ -1814,11 +1825,9 @@ class SolarEdgeBattery:
     @property
     def via_device_id(self) -> str | None:
         """Return the device registry ID of the parent device."""
-        return self._via_device_id
-
-    @via_device_id.setter
-    def via_device_id(self, device_registry_id: str | None) -> None:
-        self._via_device_id = device_registry_id
+        if self.parent_inverter is None:
+            return None
+        return self.parent_inverter.device_registry_id
 
     @property
     def allow_battery_energy_reset(self) -> bool:
