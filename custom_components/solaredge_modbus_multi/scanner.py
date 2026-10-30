@@ -28,6 +28,8 @@ from modbus_connection import (
     ModbusTimeoutError,
 )
 
+from .helpers import modbus_connection_exists
+
 _LOGGER = logging.getLogger(__name__)
 
 # SunSpec common block header and the start of the manufacturer string.
@@ -92,10 +94,12 @@ class SolarEdgeDeviceScanner:
     device's single TCP connection, but the shared connection applies the
     highest timeout any integration asked for to every request. The built-in
     SolarEdge Modbus integration asks for 30 seconds and its timeout cannot be
-    configured, and a unit can only raise the timeout, so our scan_timeout
-    only takes effect when we are the first on the connection; otherwise it
-    cannot shorten the other's. A scan waits out the full timeout for every
-    Device ID with no device, on each of its attempts: 30 seconds with 3
+    configured. A timeout is kept per device ID, so asking for ours on a
+    connection someone else opened would replace theirs for every ID we scan:
+    scan_timeout is only asked for when the scan is the first on the
+    connection, and otherwise the timeout already there applies. A scan waits
+    out the full timeout for every Device ID with no device, on each of its
+    attempts: 30 seconds with 3
     attempts is 90 seconds per empty ID. Worst case with a 30 second timeout
     and 1 inverter, by scan_retries (attempts per ID):
 
@@ -159,6 +163,7 @@ class SolarEdgeDeviceScanner:
         self._use_socket = use_socket
         self._connect_timeout = connect_timeout
         self._stack: AsyncExitStack | None = None
+        self._first_on = False
         self._reader = None
         self._writer = None
         self._transaction = 0
@@ -267,6 +272,11 @@ class SolarEdgeDeviceScanner:
         if self._stack is not None:
             return
 
+        # Checked right before the hold is taken, so nothing can open the
+        # connection in between.
+        self._first_on = not modbus_connection_exists(
+            self._hass, self._params.host, self._params.port
+        )
         stack = AsyncExitStack()
         # The hold is on the connection, not on the unit.
         await stack.enter_async_context(
@@ -403,8 +413,9 @@ class SolarEdgeDeviceScanner:
         Args:
             device_id: The Modbus device ID to scan (1-247).
             timeout: Maximum time in seconds to wait for a response. With
-                temporary units this is only a request: the shared connection
-                uses the highest timeout any holder asked for.
+                temporary units it is only asked for when the scan is the
+                first on the connection; otherwise the shared connection's
+                timeout applies.
 
         Returns:
             FOUND_INV (2) if a SolarEdge inverter was detected.
@@ -421,13 +432,22 @@ class SolarEdgeDeviceScanner:
 
     async def _scan_device_id_unit(self, device_id: int, timeout: float) -> int:
         """Scan a device ID with a temporary unit; see scan_device_id."""
+        # Without a hold from connect(), each ID takes its own.
+        first_on = (
+            self._first_on
+            if self._stack is not None
+            else not modbus_connection_exists(
+                self._hass, self._params.host, self._params.port
+            )
+        )
         async with async_get_temporary_unit(
             self._hass, self._params, device_id
         ) as unit:
-            # A unit can only raise the link's timeout, so this holds when we
-            # are the first on the connection and has no effect when another
-            # holder already asked for a longer one.
-            unit.require_timeout(timeout)
+            # A timeout is kept per device ID, so only ask for ours on a
+            # connection we opened: on one already open it would replace the
+            # timeout another holder of this ID asked for, and outlast us.
+            if first_on:
+                unit.require_timeout(timeout)
 
             link_failed = False
 
