@@ -120,3 +120,34 @@ async def test_connect_holds_one_unit_until_disconnect():
         await scanner.disconnect()
 
     assert (len(entered), len(exited)) == (1, 1)
+
+
+EXISTS = "custom_components.solaredge_modbus_multi.scanner.modbus_connection_exists"
+
+
+@pytest.mark.parametrize(("exists", "asks"), [(False, True), (True, False)])
+async def test_scan_only_asks_for_timeout_on_a_link_it_opens(exists, asks):
+    """Test a scan leaves the timeout of an already open link alone."""
+    unit = _unit()
+    with patch(EXISTS, return_value=exists):
+        assert await _scan(unit) == SolarEdgeDeviceScanner.FOUND_INV
+
+    assert unit.require_timeout.called is asks
+
+
+@pytest.mark.parametrize(("exists", "asks"), [(False, True), (True, False)])
+async def test_held_scan_checks_the_link_before_its_own_hold(exists, asks):
+    """Test a scan holding the link decides by what was there before its hold."""
+    unit = _unit()
+    scanner = SolarEdgeDeviceScanner(MagicMock(), "127.0.0.1", 1502)
+    with (
+        patch(TEMP_UNIT, _temporary_units(unit)),
+        patch(EXISTS, return_value=exists) as connection_exists,
+    ):
+        await scanner.connect()
+        # Our own hold now keeps a connection open either way.
+        connection_exists.return_value = True
+        assert await scanner.scan_device_id(3, 0.5) == SolarEdgeDeviceScanner.FOUND_INV
+        await scanner.disconnect()
+
+    assert unit.require_timeout.called is asks
