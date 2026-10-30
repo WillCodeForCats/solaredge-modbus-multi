@@ -101,7 +101,7 @@ class ConfDefaultInt(IntEnum):
     REQUEST_TIMEOUT = 3
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
-    BATTERY_ENERGY_RESET_CYCLES = 0
+    BATTERY_ENERGY_RESET_CYCLES = 2
 
 
 class ConfDefaultFlag(IntEnum):
@@ -113,7 +113,6 @@ class ConfDefaultFlag(IntEnum):
     ADV_PWR_CONTROL = 0
     ADV_STORAGE_CONTROL = 0
     ADV_SITE_LIMIT_CONTROL = 0
-    ALLOW_BATTERY_ENERGY_RESET = 0
     CLOSE_AFTER_POLLING = 0
 
 
@@ -133,7 +132,6 @@ class ConfName(StrEnum):
     ADV_PWR_CONTROL = "advanced_power_control"
     ADV_STORAGE_CONTROL = "adv_storage_control"
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
-    ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     REQUEST_TIMEOUT = "request_timeout"
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"

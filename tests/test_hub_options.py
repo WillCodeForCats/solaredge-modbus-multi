@@ -45,7 +45,6 @@ async def test_options_default_to_int(hass):
     for attr in (
         "_sleep_after_write",
         "_battery_rating_adjust",
-        "_battery_energy_reset_cycles",
     ):
         value = getattr(hub, attr)
         assert value == 0
