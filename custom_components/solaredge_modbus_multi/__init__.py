@@ -40,7 +40,13 @@ from .const import (
     RetrySettings,
 )
 from .helpers import get_connection_mode
-from .hub import DataUpdateFailed, HubInitFailed, SharedUnits, SolarEdgeModbusMultiHub
+from .hub import (
+    DataUpdateFailed,
+    DataUpdateTimedOut,
+    HubInitFailed,
+    SharedUnits,
+    SolarEdgeModbusMultiHub,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -485,6 +491,9 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
             raise UpdateFailed(f"{e}") from e
 
         except DataUpdateFailed as e:
+            raise UpdateFailed(f"{e}") from e
+
+        except DataUpdateTimedOut as e:
             raise UpdateFailed(f"{e}") from e
 
     async def _refresh_modbus_data_with_retry(
