@@ -136,6 +136,8 @@ async def test_setup_own_connection_from_the_option(hass, setup_mocks):
         patch("modbus_connection.tmodbus.ModbusConnection") as connection_cls,
         patch.object(hass.config_entries, "async_forward_entry_setups", AsyncMock()),
     ):
+        # The stop handler awaits close when Home Assistant shuts down.
+        connection_cls.return_value.close = AsyncMock()
         assert await async_setup_entry(hass, entry)
 
     get_unit.assert_not_called()
