@@ -120,7 +120,6 @@ class ConfDefaultStr(StrEnum):
     """Defaults for options that are strings."""
 
     DEVICE_LIST = "1"
-    CONNECTION_MODE = "shared"
 
 
 class ConfName(StrEnum):
