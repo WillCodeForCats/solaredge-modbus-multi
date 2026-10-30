@@ -104,7 +104,7 @@ async def async_update_with_retry(
                 before_attempt()
             await component.async_update()
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             _LOGGER.debug(
                 "%s.async_update() attempt %s of %s failed: %s",
                 type(component).__name__,
@@ -136,7 +136,7 @@ async def async_write_with_retry(
                 before_attempt()
             await component.write(field, value)
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             _LOGGER.debug(
                 "%s.write(%r) attempt %s of %s failed: %s",
                 type(component).__name__,
@@ -162,7 +162,7 @@ async def async_suns_scan_with_retry(connection, base_address: int):
         try:
             models = await suns_scan(connection, base_address)
 
-        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:  # noqa: PERF203
+        except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
             _LOGGER.debug(
                 "suns_scan() attempt %s of %s failed: %s",
                 attempt,
@@ -468,7 +468,7 @@ class SolarEdgeModbusMultiHub:
                         self.meters.append(new_meter)
                         _LOGGER.debug("Found I%sM%s", inverter_unit_id, meter_id)
 
-                    except (  # noqa: PERF203
+                    except (
                         ModbusConnectionError,
                         ModbusProtocolError,
                         ModbusTimeoutError,
@@ -507,7 +507,7 @@ class SolarEdgeModbusMultiHub:
                         self.batteries.append(new_battery)
                         _LOGGER.debug("Found I%sB%s", inverter_unit_id, battery_id)
 
-                    except (  # noqa: PERF203
+                    except (
                         ModbusConnectionError,
                         ModbusProtocolError,
                         ModbusTimeoutError,

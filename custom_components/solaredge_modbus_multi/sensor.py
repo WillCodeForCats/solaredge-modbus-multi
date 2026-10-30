@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import contextlib
-import datetime
+import datetime as dt
 import logging
 import re
 
@@ -2159,7 +2159,7 @@ class MeterEvents(SolarEdgeSensorBase):
                     if value & (1 << i):
                         m_events_active.append(METER_EVENTS[i])
 
-                except KeyError:  # noqa: PERF203
+                except KeyError:
                     pass
 
         return {
@@ -2207,7 +2207,7 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
                 try:
                     if value & (1 << i):
                         mmppt_events_active.append(MMPPT_EVENTS[i])
-                except KeyError:  # noqa: PERF203
+                except KeyError:
                     pass
 
         return {
@@ -3276,6 +3276,6 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
         return False
 
     @property
-    def native_value(self) -> datetime.datetime | None:
+    def native_value(self) -> dt.datetime | None:
         """Return the native value."""
         return self.coordinator.last_update_success_time
