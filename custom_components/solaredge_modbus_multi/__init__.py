@@ -214,10 +214,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     mode = get_connection_mode(entry.options)
 
-    # Ensure the modbus connection closes when Home Assistant stops
-    async def _async_handle_shutdown(event: Event) -> None:
-        await connection.close()
-
     if mode != ConnectionMode.SHARED:
         # Optional: we can open a direct connection instead of sharing
         # one from the core modbus integration.
@@ -231,6 +227,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
         entry.async_on_unload(connection.close)
+
+        # Ensure the modbus connection closes when Home Assistant stops
+        async def _async_handle_shutdown(event: Event) -> None:
+            await connection.close()
 
         entry.async_on_unload(
             hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_handle_shutdown)
