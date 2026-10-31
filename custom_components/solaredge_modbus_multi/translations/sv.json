@@ -104,7 +104,6 @@
       "battery_options": {
         "title": "Batterialternativ",
         "data": {
-          "allow_battery_energy_reset": "Tillåt återställning av batterienergi",
           "battery_energy_reset_cycles": "Uppdateringscykler för att återställa batterienergi",
           "battery_rating_adjust": "Justering av batterikapacitet (procent)"
         }
@@ -173,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus YAML-konfiguration stöds inte längre",
       "description": "Avsnittet `modbus` under `solaredge_modbus_multi` i `configuration.yaml` stöds inte längre och ignoreras. Ta bort det från din YAML-konfiguration."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cykler för återställning av batterienergi ändrade",
+      "description": "Alternativet ”Uppdateringscykler för att återställa batterienergi” anger nu hur många på varandra följande avläsningar ett lägre batterienergivärde måste bestå innan det godtas som en återställning. Minimum är 2. Ditt värde på {old_value} har ändrats till {new_value}. Granska alternativet under batteriinställningar om du vill ha ett annat värde."
     },
     "deprecated_keep_modbus_open": {
       "title": "Alternativet Håll Modbus-anslutningen öppen har ersatts",

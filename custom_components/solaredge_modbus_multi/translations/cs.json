@@ -104,7 +104,6 @@
       "battery_options": {
         "title": "Možnosti baterie",
         "data": {
-          "allow_battery_energy_reset": "Povolit reset energie baterie",
           "battery_energy_reset_cycles": "Aktualizační cykly pro reset energie baterie",
           "battery_rating_adjust": "Úprava kapacity baterie (procenta)"
         }
@@ -173,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Konfigurace Modbus přes YAML již není podporována",
       "description": "Sekce `modbus` pod `solaredge_modbus_multi` v souboru `configuration.yaml` již není podporována a je ignorována. Odstraňte ji prosím ze své konfigurace YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Změna počtu cyklů pro reset energie baterie",
+      "description": "Volba „Aktualizační cykly pro reset energie baterie“ nyní určuje, kolik po sobě jdoucích dotazů musí nižší hodnota energie baterie vydržet, než bude přijata jako reset. Minimum jsou 2. Vaše hodnota {old_value} byla změněna na {new_value}. Pokud chcete jinou hodnotu, zkontrolujte volbu v nastavení baterie."
     },
     "deprecated_keep_modbus_open": {
       "title": "Možnost „Udržovat připojení Modbus otevřené“ byla nahrazena",

@@ -104,7 +104,6 @@
       "battery_options": {
         "title": "Opções de Bateria",
         "data": {
-          "allow_battery_energy_reset": "Permitir Redefinição da Energia da Bateria",
           "battery_energy_reset_cycles": "Ciclos de Atualização para Redefinir a Energia da Bateria",
           "battery_rating_adjust": "Ajuste de Capacidade da Bateria (porcentagem)"
         }
@@ -173,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "Configuração YAML do Modbus Não É Mais Suportada",
       "description": "A seção `modbus` em `solaredge_modbus_multi` no `configuration.yaml` não é mais suportada e está sendo ignorada. Remova-a da sua configuração YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Ciclos de redefinição da energia da bateria alterados",
+      "description": "A opção \"Ciclos de Atualização para Redefinir a Energia da Bateria\" agora define quantas leituras consecutivas um valor de energia da bateria mais baixo deve persistir antes de ser aceito como uma redefinição. O mínimo é 2. Seu valor de {old_value} foi alterado para {new_value}. Revise a opção nas opções da bateria se quiser outro valor."
     },
     "deprecated_keep_modbus_open": {
       "title": "Opção Manter Conexão Modbus Aberta Substituída",

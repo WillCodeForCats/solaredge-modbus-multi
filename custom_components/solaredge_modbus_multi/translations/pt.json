@@ -104,7 +104,6 @@
       "battery_options": {
         "title": "Opções de Bateria",
         "data": {
-          "allow_battery_energy_reset": "Permitir a Reposição da Energia da Bateria",
           "battery_energy_reset_cycles": "Ciclos de Atualização para Repor a Energia da Bateria",
           "battery_rating_adjust": "Ajuste da Capacidade da Bateria (percentagem)"
         }
@@ -173,6 +172,10 @@
     "deprecated_yaml_modbus": {
       "title": "A Configuração YAML do Modbus Já Não É Suportada",
       "description": "A secção `modbus` em `solaredge_modbus_multi` no `configuration.yaml` já não é suportada e está a ser ignorada. Remova-a da sua configuração YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Ciclos de reposição da energia da bateria alterados",
+      "description": "A opção \"Ciclos de Atualização para Repor a Energia da Bateria\" define agora quantas leituras consecutivas um valor de energia da bateria mais baixo tem de persistir antes de ser aceite como uma reposição. O mínimo é 2. O seu valor de {old_value} foi alterado para {new_value}. Reveja a opção nas opções da bateria se pretender outro valor."
     },
     "deprecated_keep_modbus_open": {
       "title": "A Opção Manter a Ligação Modbus Aberta Foi Substituída",
