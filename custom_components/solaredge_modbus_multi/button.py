@@ -76,16 +76,13 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:refresh"
+    _attr_name = "Refresh"
 
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}_refresh"
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Refresh"
 
     @property
     def available(self) -> bool:
@@ -102,16 +99,13 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:content-save-cog-outline"
+    _attr_name = "Commit Power Settings"
 
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}bt_commit_pwr_settings"
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Commit Power Settings"
 
     @property
     def available(self) -> bool:
@@ -133,21 +127,14 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:restore-alert"
+    _attr_name = "Default Power Settings"
+    _attr_entity_registry_enabled_default = False
 
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}bt_default_pwr_settings"
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Default Power Settings"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
 
     @property
     def available(self) -> bool:

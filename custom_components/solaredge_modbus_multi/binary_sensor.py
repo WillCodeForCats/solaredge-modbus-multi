@@ -72,6 +72,7 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
     """Grid Control boolean status. This is "AdvancedPwrControlEn" in specs."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_name = "Advanced Power Control"
 
     @property
     def available(self) -> bool:
@@ -88,11 +89,6 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
         return f"{self._platform.uid_base}_adv_pwr_ctrl_en"
 
     @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Advanced Power Control"
-
-    @property
     def is_on(self) -> bool:
         """Return True if on."""
         return self._platform.advanced_power_control_data.AdvPwrCtrlEn == 0x1
@@ -103,6 +99,7 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
     _attr_device_class = BinarySensorDeviceClass.POWER
     _attr_icon = "mdi:transmission-tower"
+    _attr_name = "Grid Status"
 
     @property
     def available(self) -> bool:
@@ -119,11 +116,6 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
         return f"{self._platform.uid_base}_grid_status_on_off"
 
     @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Grid Status"
-
-    @property
     def entity_registry_enabled_default(self) -> bool:
         """Return the entity registry enabled default."""
         return self._platform.inverter_data.I_Grid_Status is not None
@@ -138,6 +130,7 @@ class InverterProblem(SolarEdgeBinarySensorBase):
     """On when the inverter status reports a fault."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_name = "Problem"
 
     @property
     def available(self) -> bool:
@@ -154,11 +147,6 @@ class InverterProblem(SolarEdgeBinarySensorBase):
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}_problem"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Problem"
 
     @property
     def is_on(self) -> bool:

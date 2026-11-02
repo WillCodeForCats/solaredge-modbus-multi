@@ -77,6 +77,8 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     """External Production switch. Indicates a non-SolarEdge power sorce in system."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "External Production"
+    _attr_entity_registry_enabled_default = False
 
     @property
     def available(self) -> bool:
@@ -93,16 +95,6 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}_external_production"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "External Production"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
 
     @property
     def is_on(self) -> bool:
@@ -138,6 +130,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     """Negative Site Limit switch. Sets minimum import power when enabled."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Negative Site Limit"
 
     @property
     def available(self) -> bool:
@@ -154,11 +147,6 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}_negative_site_limit"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Negative Site Limit"
 
     @property
     def is_on(self) -> bool:
@@ -194,6 +182,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     """Grid Control boolean switch. This is "AdvancedPwrControlEn" in specs."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Advanced Power Control"
 
     @property
     def available(self) -> bool:
@@ -208,11 +197,6 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}_adv_pwr_ctrl"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Advanced Power Control"
 
     @property
     def is_on(self) -> bool:

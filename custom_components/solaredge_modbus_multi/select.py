@@ -101,6 +101,8 @@ class SolarEdgeSelectBase(CoordinatorEntity, SelectEntity):
 class StorageControlMode(SolarEdgeSelectBase):
     """Representation of a storage control mode."""
 
+    _attr_name = "Storage Control Mode"
+
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the storage control mode."""
         super().__init__(platform, config_entry, coordinator)
@@ -112,10 +114,6 @@ class StorageControlMode(SolarEdgeSelectBase):
         """Return the unique id."""
         return f"{self._platform.uid_base}_storage_control_mode"
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Storage Control Mode"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -151,6 +149,8 @@ class StorageControlMode(SolarEdgeSelectBase):
 class StorageACChargePolicy(SolarEdgeSelectBase):
     """Representation of a storage ac charge policy."""
 
+    _attr_name = "AC Charge Policy"
+
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the storage ac charge policy."""
         super().__init__(platform, config_entry, coordinator)
@@ -162,10 +162,6 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         """Return the unique id."""
         return f"{self._platform.uid_base}_ac_charge_policy"
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "AC Charge Policy"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -201,6 +197,8 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
 class StorageDefaultMode(SolarEdgeSelectBase):
     """Representation of a storage default mode."""
 
+    _attr_name = "Storage Default Mode"
+
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the storage default mode."""
         super().__init__(platform, config_entry, coordinator)
@@ -212,10 +210,6 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         """Return the unique id."""
         return f"{self._platform.uid_base}_storage_default_mode"
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Storage Default Mode"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -253,6 +247,8 @@ class StorageDefaultMode(SolarEdgeSelectBase):
 class StorageCommandMode(SolarEdgeSelectBase):
     """Representation of a storage command mode."""
 
+    _attr_name = "Storage Command Mode"
+
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the storage command mode."""
         super().__init__(platform, config_entry, coordinator)
@@ -264,10 +260,6 @@ class StorageCommandMode(SolarEdgeSelectBase):
         """Return the unique id."""
         return f"{self._platform.uid_base}_storage_command_mode"
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Storage Command Mode"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -308,6 +300,8 @@ class StorageCommandMode(SolarEdgeSelectBase):
 class SolaredgeLimitControlMode(SolarEdgeSelectBase):
     """Representation of a solaredge limit control mode."""
 
+    _attr_name = "Limit Control Mode"
+
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the solaredge limit control mode."""
         super().__init__(platform, config_entry, coordinator)
@@ -329,11 +323,6 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}_limit_control_mode"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Limit Control Mode"
 
     @property
     def current_option(self) -> str:
@@ -373,6 +362,8 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
 class SolaredgeLimitControl(SolarEdgeSelectBase):
     """Representation of a solaredge limit control."""
 
+    _attr_name = "Limit Control"
+
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the solaredge limit control."""
         super().__init__(platform, config_entry, coordinator)
@@ -396,11 +387,6 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         return f"{self._platform.uid_base}_limit_control"
 
     @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Limit Control"
-
-    @property
     def current_option(self) -> str:
         """Return the current option."""
         return self._options[self._platform.site_limit_control_data.E_Lim_Ctl]
@@ -417,6 +403,8 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
 
 class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
     """Representation of a solar edge reactive power mode."""
+
+    _attr_name = "Reactive Power Mode"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the solar edge reactive power mode."""
@@ -440,11 +428,6 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
     def unique_id(self) -> str:
         """Return the unique id."""
         return f"{self._platform.uid_base}_reactive_power_mode"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Reactive Power Mode"
 
     @property
     def current_option(self) -> str:
