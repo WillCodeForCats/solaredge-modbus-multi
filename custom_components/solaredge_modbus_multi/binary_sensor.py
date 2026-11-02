@@ -74,6 +74,11 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Advanced Power Control"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_adv_pwr_ctrl_en"
+
     @property
     def available(self) -> bool:
         """Return the available."""
@@ -82,11 +87,6 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
             and self._platform.has_advanced_power_control
             and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_adv_pwr_ctrl_en"
 
     @property
     def is_on(self) -> bool:
@@ -101,6 +101,11 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
     _attr_icon = "mdi:transmission-tower"
     _attr_name = "Grid Status"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_grid_status_on_off"
+
     @property
     def available(self) -> bool:
         """Return the available."""
@@ -109,11 +114,6 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
             and self._platform.inverter_data.I_Grid_Status is not None
             and self._platform.inverter_data.I_Grid_Status != SunSpecNotImpl.UINT32
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_grid_status_on_off"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -132,6 +132,11 @@ class InverterProblem(SolarEdgeBinarySensorBase):
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_name = "Problem"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_problem"
+
     @property
     def available(self) -> bool:
         """Return the available."""
@@ -142,11 +147,6 @@ class InverterProblem(SolarEdgeBinarySensorBase):
             and value != SunSpecNotImpl.UINT16
             and value in DEVICE_STATUS
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_problem"
 
     @property
     def is_on(self) -> bool:

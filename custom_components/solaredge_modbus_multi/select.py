@@ -108,12 +108,7 @@ class StorageControlMode(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_CONTROL_MODE
         self._attr_options = list(self._options.values())
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_control_mode"
-
+        self._attr_unique_id = f"{platform.uid_base}_storage_control_mode"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -156,12 +151,7 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_AC_CHARGE_POLICY
         self._attr_options = list(self._options.values())
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_ac_charge_policy"
-
+        self._attr_unique_id = f"{platform.uid_base}_ac_charge_policy"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -204,12 +194,7 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE
         self._attr_options = list(self._options.values())
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_default_mode"
-
+        self._attr_unique_id = f"{platform.uid_base}_storage_default_mode"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -254,12 +239,7 @@ class StorageCommandMode(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = STORAGE_MODE
         self._attr_options = list(self._options.values())
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_command_mode"
-
+        self._attr_unique_id = f"{platform.uid_base}_storage_command_mode"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -307,6 +287,7 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = LIMIT_CONTROL_MODE
         self._attr_options = list(self._options.values())
+        self._attr_unique_id = f"{platform.uid_base}_limit_control_mode"
 
     @property
     def available(self) -> bool:
@@ -318,11 +299,6 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_limit_control_mode"
 
     @property
     def current_option(self) -> str:
@@ -369,6 +345,7 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = LIMIT_CONTROL
         self._attr_options = list(self._options.values())
+        self._attr_unique_id = f"{platform.uid_base}_limit_control"
 
     @property
     def available(self) -> bool:
@@ -380,11 +357,6 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_limit_control"
 
     @property
     def current_option(self) -> str:
@@ -411,6 +383,7 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
         super().__init__(platform, config_entry, coordinator)
         self._options = REACTIVE_POWER_CONFIG
         self._attr_options = list(self._options.values())
+        self._attr_unique_id = f"{platform.uid_base}_reactive_power_mode"
 
     @property
     def available(self) -> bool:
@@ -423,11 +396,6 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
             and value != SunSpecNotImpl.INT32
             and value in self._options
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_reactive_power_mode"
 
     @property
     def current_option(self) -> str:

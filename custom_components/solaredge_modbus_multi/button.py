@@ -78,11 +78,10 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
     _attr_icon = "mdi:refresh"
     _attr_name = "Refresh"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_refresh"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_refresh"
 
     @property
     def available(self) -> bool:
@@ -101,11 +100,10 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
     _attr_icon = "mdi:content-save-cog-outline"
     _attr_name = "Commit Power Settings"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}bt_commit_pwr_settings"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}bt_commit_pwr_settings"
 
     @property
     def available(self) -> bool:
@@ -130,11 +128,10 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
     _attr_name = "Default Power Settings"
     _attr_entity_registry_enabled_default = False
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}bt_default_pwr_settings"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}bt_default_pwr_settings"
 
     @property
     def available(self) -> bool:

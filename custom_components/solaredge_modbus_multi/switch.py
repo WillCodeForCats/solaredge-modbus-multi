@@ -80,6 +80,11 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     _attr_name = "External Production"
     _attr_entity_registry_enabled_default = False
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_external_production"
+
     @property
     def available(self) -> bool:
         """Return the available."""
@@ -90,11 +95,6 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_external_production"
 
     @property
     def is_on(self) -> bool:
@@ -132,6 +132,11 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_name = "Negative Site Limit"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_negative_site_limit"
+
     @property
     def available(self) -> bool:
         """Return the available."""
@@ -142,11 +147,6 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_negative_site_limit"
 
     @property
     def is_on(self) -> bool:
@@ -184,6 +184,11 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_name = "Advanced Power Control"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_adv_pwr_ctrl"
+
     @property
     def available(self) -> bool:
         """Return the available."""
@@ -192,11 +197,6 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
             and self._platform.has_advanced_power_control
             and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_adv_pwr_ctrl"
 
     @property
     def is_on(self) -> bool:

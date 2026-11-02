@@ -332,11 +332,10 @@ class SolarEdgeDevice(SolarEdgeSensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Device"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_device"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_device"
 
     @property
     def native_value(self):
@@ -431,11 +430,10 @@ class Version(SolarEdgeSensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Version"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_version"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_version"
 
     @property
     def native_value(self):
@@ -1225,11 +1223,10 @@ class DCCurrent(SolarEdgeSensorBase):
     _attr_icon = "mdi:current-dc"
     _attr_name = "DC Current"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_dc_current"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_dc_current"
 
     @property
     def available(self) -> bool:
@@ -1272,11 +1269,11 @@ class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
     _attr_icon = "mdi:current-dc"
     _attr_name = "DC Current"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return (
-            f"{self._platform.inverter.uid_base}_dc_current_mmppt{self._platform.unit}"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = (
+            f"{platform.inverter.uid_base}_dc_current_mmppt{platform.unit}"
         )
 
     @property
@@ -1316,11 +1313,10 @@ class DCVoltage(SolarEdgeSensorBase):
     _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
     _attr_name = "DC Voltage"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_dc_voltage"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_dc_voltage"
 
     @property
     def available(self) -> bool:
@@ -1358,11 +1354,11 @@ class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
     _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
     _attr_name = "DC Voltage"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return (
-            f"{self._platform.inverter.uid_base}_dc_voltage_mmppt{self._platform.unit}"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = (
+            f"{platform.inverter.uid_base}_dc_voltage_mmppt{platform.unit}"
         )
 
     @property
@@ -1403,11 +1399,10 @@ class DCPower(SolarEdgeSensorBase):
     _attr_icon = "mdi:solar-power"
     _attr_name = "DC Power"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_dc_power"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_dc_power"
 
     @property
     def available(self) -> bool:
@@ -1446,11 +1441,12 @@ class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
     _attr_icon = "mdi:solar-power"
     _attr_name = "DC Power"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.inverter.uid_base}_dc_power_mmppt{self._platform.unit}"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = (
+            f"{platform.inverter.uid_base}_dc_power_mmppt{platform.unit}"
+        )
 
     @property
     def available(self) -> bool:
@@ -1490,11 +1486,10 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Temperature"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_temp_sink"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_temp_sink"
 
     @property
     def available(self) -> bool:
@@ -1534,11 +1529,10 @@ class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
     _attr_suggested_display_precision = 0
     _attr_name = "Temperature"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.inverter.uid_base}_tmp_mmppt{self._platform.unit}"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.inverter.uid_base}_tmp_mmppt{platform.unit}"
 
     @property
     def available(self) -> bool:
@@ -1567,11 +1561,10 @@ class SolarEdgeWriteCount(RestoreEntity, SolarEdgeSensorBase):
     _attr_icon = "mdi:file-document-edit-outline"
     _attr_name = "Write Count"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_write_count"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_write_count"
 
     @property
     def available(self) -> bool:
@@ -1614,11 +1607,10 @@ class SolarEdgeStatusSensor(SolarEdgeSensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Status"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_status"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_status"
 
 
 class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
@@ -1885,11 +1877,10 @@ class StatusVendor4(SolarEdgeSensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Status Vendor 4"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_status_vendor4"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_status_vendor4"
 
     @property
     def available(self) -> bool:
@@ -1937,12 +1928,12 @@ class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
 class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
     """Representation of a solar edge rrcr."""
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_rrcr"
     _attr_name = "RRCR Status"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_rrcr"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1986,11 +1977,10 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
     _attr_icon = "mdi:percent"
     _attr_name = "Active Power Limit"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_active_power_limit"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_active_power_limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -2022,11 +2012,10 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
     _attr_icon = "mdi:angle-acute"
     _attr_name = "CosPhi"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_cosphi"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_cosphi"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -2056,11 +2045,10 @@ class MeterEvents(SolarEdgeSensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Meter Events"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_meter_events"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_meter_events"
 
     @property
     def available(self) -> bool:
@@ -2102,11 +2090,10 @@ class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "MMPPT Events"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_mmppt_events"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_mmppt_events"
 
     @property
     def available(self) -> bool:
@@ -2337,11 +2324,10 @@ class SolarEdgeBatteryAvgTemp(SolarEdgeSensorBase):
     _attr_suggested_display_precision = 1
     _attr_name = "Average Temperature"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_avg_temp"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_avg_temp"
 
     @property
     def available(self) -> bool:
@@ -2371,10 +2357,10 @@ class SolarEdgeBatteryMaxTemp(SolarEdgeSensorBase):
     _attr_name = "Max Temperature"
     _attr_entity_registry_enabled_default = False
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_max_temp"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_max_temp"
 
     @property
     def available(self) -> bool:
@@ -2402,11 +2388,10 @@ class SolarEdgeBatteryVoltage(SolarEdgeSensorBase):
     _attr_suggested_display_precision = 2
     _attr_name = "DC Voltage"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_dc_voltage"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_dc_voltage"
 
     @property
     def available(self) -> bool:
@@ -2436,11 +2421,10 @@ class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
     _attr_icon = "mdi:current-dc"
     _attr_name = "DC Current"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_dc_current"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_dc_current"
 
     @property
     def available(self) -> bool:
@@ -2470,11 +2454,10 @@ class SolarEdgeBatteryPower(SolarEdgeSensorBase):
     _attr_icon = "mdi:lightning-bolt"
     _attr_name = "DC Power"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_dc_power"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_dc_power"
 
     @property
     def available(self) -> bool:
@@ -2560,12 +2543,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase, RestoreSensor):
         self._last = None
         self._count = 0
         self._log_once = False
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_energy_export"
-
+        self._attr_unique_id = f"{platform.uid_base}_energy_export"
 
     @property
     def available(self) -> bool:
@@ -2663,12 +2641,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase, RestoreSensor):
         self._last = None
         self._count = 0
         self._log_once = False
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_energy_import"
-
+        self._attr_unique_id = f"{platform.uid_base}_energy_import"
 
     @property
     def available(self) -> bool:
@@ -2751,11 +2724,10 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     _attr_suggested_display_precision = 3
     _attr_name = "Maximum Energy"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_max_energy"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_max_energy"
 
     @property
     def available(self) -> bool:
@@ -2789,12 +2761,12 @@ class SolarEdgeBatteryPowerBase(SolarEdgeSensorBase):
 class SolarEdgeBatteryMaxChargePower(SolarEdgeBatteryPowerBase):
     """Representation of a solar edge battery max charge power."""
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_max_charge_power"
     _attr_name = "Max Charge Power"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_max_charge_power"
 
     @property
     def available(self):
@@ -2816,12 +2788,12 @@ class SolarEdgeBatteryMaxChargePower(SolarEdgeBatteryPowerBase):
 class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeBatteryPowerBase):
     """Representation of a solar edge battery max charge peak power."""
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_max_charge_peak_power"
     _attr_name = "Peak Charge Power"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_max_charge_peak_power"
 
     @property
     def available(self):
@@ -2843,12 +2815,12 @@ class SolarEdgeBatteryMaxChargePeakPower(SolarEdgeBatteryPowerBase):
 class SolarEdgeBatteryMaxDischargePower(SolarEdgeBatteryPowerBase):
     """Representation of a solar edge battery max discharge power."""
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_max_discharge_power"
     _attr_name = "Max Discharge Power"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_max_discharge_power"
 
     @property
     def available(self):
@@ -2870,12 +2842,12 @@ class SolarEdgeBatteryMaxDischargePower(SolarEdgeBatteryPowerBase):
 class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeBatteryPowerBase):
     """Representation of a solar edge battery max discharge peak power."""
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_max_discharge_peak_power"
     _attr_name = "Peak Discharge Power"
 
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_max_discharge_peak_power"
 
     @property
     def available(self):
@@ -2908,12 +2880,7 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
         """Initialize the solar edge battery available energy."""
         super().__init__(platform, config_entry, coordinator)
         self._log_warning = True
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_avail_energy"
-
+        self._attr_unique_id = f"{platform.uid_base}_avail_energy"
 
     @property
     def available(self) -> bool:
@@ -2960,11 +2927,10 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
     _attr_icon = "mdi:battery-heart-outline"
     _attr_name = "State of Health"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_battery_soh"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_battery_soh"
 
     @property
     def available(self) -> bool:
@@ -2992,11 +2958,10 @@ class SolarEdgeBatterySOE(SolarEdgeSensorBase):
     _attr_suggested_display_precision = 0
     _attr_name = "State of Energy"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_battery_soe"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_battery_soe"
 
     @property
     def available(self) -> bool:
@@ -3031,11 +2996,10 @@ class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
     _attr_icon = "mdi:content-save-cog-outline"
     _attr_name = "Commit Power Settings"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_commit_pwr_settings"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_commit_pwr_settings"
 
     @property
     def available(self) -> bool:
@@ -3076,11 +3040,10 @@ class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
     _attr_icon = "mdi:restore-alert"
     _attr_name = "Default Power Settings"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_default_pwr_settings"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_default_pwr_settings"
 
     @property
     def available(self) -> bool:
@@ -3118,11 +3081,10 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
     _attr_name = "Last Update"
     _attr_entity_registry_enabled_default = False
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_last_update_timestamp"
-
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_last_update_timestamp"
 
     @property
     def available(self) -> bool:
