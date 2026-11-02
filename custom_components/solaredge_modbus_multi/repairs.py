@@ -161,6 +161,9 @@ async def async_create_fix_flow(
 ) -> RepairsFlow:
     """Create flow."""
 
+    if not data or "entry_id" not in data:
+        return ConfirmRepairFlow()
+
     entry_id = cast(str, data["entry_id"])
 
     if (entry := hass.config_entries.async_get_entry(entry_id)) is not None:

@@ -112,6 +112,14 @@ async def test_unknown_issue_falls_back_to_confirm_flow(hass):
     assert isinstance(flow, ConfirmRepairFlow)
 
 
+@pytest.mark.parametrize("data", [None, {}])
+async def test_missing_issue_data_falls_back_to_confirm_flow(hass, data):
+    """Test an issue without data or entry_id returns a no-op confirm flow."""
+    flow = await async_create_fix_flow(hass, "check_configuration_x", data)
+
+    assert isinstance(flow, ConfirmRepairFlow)
+
+
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_fix_flow_for_deleted_entry_opens_confirm_dialog(hass, hass_client):
     """Test opening the repair for an issue whose entry was deleted.
