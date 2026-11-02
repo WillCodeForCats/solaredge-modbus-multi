@@ -54,11 +54,7 @@ class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
         """Initialize the sensor."""
         self._platform = platform
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._platform.device_info
+        self._attr_device_info = platform.device_info
 
     @property
     def config_entry_id(self):

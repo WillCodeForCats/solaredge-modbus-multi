@@ -305,15 +305,11 @@ class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
 
         self._platform = platform
         self._config_entry = config_entry
+        self._attr_device_info = platform.device_info
 
     def scale_factor(self, x: int, y: int):
         """Scale factor."""
         return x * (10**y)
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._platform.device_info
 
     @property
     def config_entry_id(self):
