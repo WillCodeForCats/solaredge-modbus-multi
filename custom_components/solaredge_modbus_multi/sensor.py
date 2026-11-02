@@ -453,13 +453,14 @@ class ACCurrentSensor(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
         if self._phase is None:
-            return f"{self._platform.uid_base}_ac_current"
-        return f"{self._platform.uid_base}_ac_current_{self._phase.lower()}"
+            self._attr_unique_id = f"{platform.uid_base}_ac_current"
+            self._attr_name = "AC Current"
+        else:
+            self._attr_unique_id = (
+                f"{platform.uid_base}_ac_current_{self._phase.lower()}"
+            )
+            self._attr_name = f"AC Current {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -476,13 +477,6 @@ class ACCurrentSensor(SolarEdgeSensorBase):
             return True
 
         return False
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            return "AC Current"
-        return f"AC Current {self._phase.upper()}"
 
     @property
     def _model_key(self) -> str:
@@ -549,13 +543,14 @@ class VoltageSensor(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
         if self._phase is None:
-            return f"{self._platform.uid_base}_ac_voltage"
-        return f"{self._platform.uid_base}_ac_voltage_{self._phase.lower()}"
+            self._attr_unique_id = f"{platform.uid_base}_ac_voltage"
+            self._attr_name = "AC Voltage"
+        else:
+            self._attr_unique_id = (
+                f"{platform.uid_base}_ac_voltage_{self._phase.lower()}"
+            )
+            self._attr_name = f"AC Voltage {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -577,13 +572,6 @@ class VoltageSensor(SolarEdgeSensorBase):
             return True
 
         return False
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            return "AC Voltage"
-        return f"AC Voltage {self._phase.upper()}"
 
     @property
     def _model_key(self) -> str:
@@ -651,13 +639,12 @@ class ACPower(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
         if self._phase is None:
-            return f"{self._platform.uid_base}_ac_power"
-        return f"{self._platform.uid_base}_ac_power_{self._phase.lower()}"
+            self._attr_unique_id = f"{platform.uid_base}_ac_power"
+            self._attr_name = "AC Power"
+        else:
+            self._attr_unique_id = f"{platform.uid_base}_ac_power_{self._phase.lower()}"
+            self._attr_name = f"AC Power {self._phase.upper()}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -674,13 +661,6 @@ class ACPower(SolarEdgeSensorBase):
             return True
 
         return False
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            return "AC Power"
-        return f"AC Power {self._phase.upper()}"
 
     @property
     def _model_key(self) -> str:
@@ -833,21 +813,12 @@ class ACVoltAmp(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
         if self._phase is None:
-            return f"{self._platform.uid_base}_ac_va"
-        return f"{self._platform.uid_base}_ac_va_{self._phase.lower()}"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            return "AC Apparent Power"
-        return f"AC Apparent Power {self._phase.upper()}"
-
+            self._attr_unique_id = f"{platform.uid_base}_ac_va"
+            self._attr_name = "AC Apparent Power"
+        else:
+            self._attr_unique_id = f"{platform.uid_base}_ac_va_{self._phase.lower()}"
+            self._attr_name = f"AC Apparent Power {self._phase.upper()}"
 
     @property
     def _model_key(self) -> str:
@@ -911,21 +882,12 @@ class ACVoltAmpReactive(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
         self._phase = phase
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
         if self._phase is None:
-            return f"{self._platform.uid_base}_ac_var"
-        return f"{self._platform.uid_base}_ac_var_{self._phase.lower()}"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            return "AC Reactive Power"
-        return f"AC Reactive Power {self._phase.upper()}"
-
+            self._attr_unique_id = f"{platform.uid_base}_ac_var"
+            self._attr_name = "AC Reactive Power"
+        else:
+            self._attr_unique_id = f"{platform.uid_base}_ac_var_{self._phase.lower()}"
+            self._attr_name = f"AC Reactive Power {self._phase.upper()}"
 
     @property
     def _model_key(self) -> str:
@@ -989,21 +951,12 @@ class ACPowerFactor(SolarEdgeSensorBase):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
         if self._phase is None:
-            return f"{self._platform.uid_base}_ac_pf"
-        return f"{self._platform.uid_base}_ac_pf_{self._phase.lower()}"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            return "AC Power Factor"
-        return f"AC Power Factor {self._phase.upper()}"
-
+            self._attr_unique_id = f"{platform.uid_base}_ac_pf"
+            self._attr_name = "AC Power Factor"
+        else:
+            self._attr_unique_id = f"{platform.uid_base}_ac_pf_{self._phase.lower()}"
+            self._attr_name = f"AC Power Factor {self._phase.upper()}"
 
     @property
     def _model_key(self) -> str:
@@ -1078,32 +1031,16 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase, RestoreSensor):
 
         if self._phase is None:
             self._model_key = "AC_Energy_WH"
+            self._attr_unique_id = f"{platform.uid_base}_ac_energy_kwh"
+            self._attr_name = "AC Energy"
         else:
             self._model_key = f"AC_Energy_WH_{self._phase}"
-
-    @property
-    def icon(self) -> str:
-        """Return the icon."""
-        if self._phase is None:
-            return None
-
-        if re.match("import", self._phase.lower()):
-            return "mdi:transmission-tower-export"
-
-        if re.match("export", self._phase.lower()):
-            return "mdi:transmission-tower-import"
-
-        return None
-
-    @property
-    def unique_id(self) -> str:
-        # older versions of the integration converted to kWh internally
-        # before home assistant had UI configurable units and precision
-        # changing the unique_id now would cause new entities to be created
-        """Return the unique id."""
-        if self._phase is None:
-            return f"{self._platform.uid_base}_ac_energy_kwh"
-        return f"{self._platform.uid_base}_{self._phase.lower()}_kwh"
+            self._attr_unique_id = f"{platform.uid_base}_{self._phase.lower()}_kwh"
+            self._attr_name = f"AC Energy {re.sub('_', ' ', self._phase)}"
+            if re.match("import", self._phase.lower()):
+                self._attr_icon = "mdi:transmission-tower-export"
+            elif re.match("export", self._phase.lower()):
+                self._attr_icon = "mdi:transmission-tower-import"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -1125,13 +1062,6 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase, RestoreSensor):
             return True
 
         return False
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            return "AC Energy"
-        return f"AC Energy {re.sub('_', ' ', self._phase)}"
 
     @property
     def available(self) -> bool:
@@ -2117,34 +2047,15 @@ class MeterVAhIE(SolarEdgeSensorBase, RestoreSensor):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-    @property
-    def icon(self) -> str:
-        """Return the icon."""
         if self._phase is None:
-            return None
+            raise NotImplementedError
 
+        self._attr_unique_id = f"{platform.uid_base}_{self._phase.lower()}_vah"
+        self._attr_name = f"Apparent Energy {re.sub('_', ' ', self._phase)}"
         if re.match("import", self._phase.lower()):
-            return "mdi:transmission-tower-export"
-
-        if re.match("export", self._phase.lower()):
-            return "mdi:transmission-tower-import"
-
-        return None
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        if self._phase is None:
-            raise NotImplementedError
-        return f"{self._platform.uid_base}_{self._phase.lower()}_vah"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            raise NotImplementedError
-        return f"Apparent Energy {re.sub('_', ' ', self._phase)}"
+            self._attr_icon = "mdi:transmission-tower-export"
+        elif re.match("export", self._phase.lower()):
+            self._attr_icon = "mdi:transmission-tower-import"
 
     @property
     def available(self) -> bool:
@@ -2210,34 +2121,15 @@ class MetervarhIE(SolarEdgeSensorBase, RestoreSensor):
         super().__init__(platform, config_entry, coordinator)
 
         self._phase = phase
-
-    @property
-    def icon(self) -> str:
-        """Return the icon."""
         if self._phase is None:
-            return None
+            raise NotImplementedError
 
+        self._attr_unique_id = f"{platform.uid_base}_{self._phase.lower()}_varh"
+        self._attr_name = f"Reactive Energy {re.sub('_', ' ', self._phase)}"
         if re.match("import", self._phase.lower()):
-            return "mdi:transmission-tower-export"
-
-        if re.match("export", self._phase.lower()):
-            return "mdi:transmission-tower-import"
-
-        return None
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        if self._phase is None:
-            raise NotImplementedError
-        return f"{self._platform.uid_base}_{self._phase.lower()}_varh"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        if self._phase is None:
-            raise NotImplementedError
-        return f"Reactive Energy {re.sub('_', ' ', self._phase)}"
+            self._attr_icon = "mdi:transmission-tower-export"
+        elif re.match("export", self._phase.lower()):
+            self._attr_icon = "mdi:transmission-tower-import"
 
     @property
     def available(self) -> bool:
