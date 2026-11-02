@@ -72,9 +72,8 @@ def get_key(d, search):
 class SolarEdgeSelectBase(CoordinatorEntity, SelectEntity):
     """Representation of a solar edge select base."""
 
-    should_poll = False
     _attr_has_entity_name = True
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, platform, config_entry, coordinator):
         """Pass coordinator to CoordinatorEntity."""

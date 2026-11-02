@@ -43,7 +43,6 @@ async def async_setup_entry(
 class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
     """Base class for SolarEdge binary sensor entities."""
 
-    should_poll = False
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -76,7 +75,7 @@ class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
 class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
     """Grid Control boolean status. This is "AdvancedPwrControlEn" in specs."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def available(self) -> bool:
@@ -106,8 +105,8 @@ class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
 class GridStatusOnOff(SolarEdgeBinarySensorBase):
     """Grid Status On Off. This is undocumented from discussions."""
 
-    device_class = BinarySensorDeviceClass.POWER
-    icon = "mdi:transmission-tower"
+    _attr_device_class = BinarySensorDeviceClass.POWER
+    _attr_icon = "mdi:transmission-tower"
 
     @property
     def available(self) -> bool:
@@ -142,7 +141,7 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 class InverterProblem(SolarEdgeBinarySensorBase):
     """On when the inverter status reports a fault."""
 
-    device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
 
     @property
     def available(self) -> bool:
