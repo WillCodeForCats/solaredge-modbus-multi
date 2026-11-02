@@ -6,7 +6,7 @@ import re
 from typing import cast
 
 from homeassistant import data_entry_flow
-from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -176,4 +176,4 @@ async def async_create_fix_flow(
             return RetryFeatureDetectionRepairFlow(
                 entry_id, cast(int, data["inverter_unit_id"]), "advanced_power_control"
             )
-    return None
+    return ConfirmRepairFlow()
