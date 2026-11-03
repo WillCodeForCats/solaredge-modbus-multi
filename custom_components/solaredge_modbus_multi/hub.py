@@ -439,6 +439,14 @@ class SolarEdgeModbusMultiHub:
                     ) as e:
                         raise HubInitFailed(f"{e}") from e
 
+                    except DeviceNotResponding as e:
+                        _LOGGER.warning(
+                            "Meter I%sM%s not detected, no response: %s",
+                            inverter_unit_id,
+                            meter_id,
+                            e,
+                        )
+
                     except DeviceInvalid as e:
                         _LOGGER.debug("I%sM%s: %s", inverter_unit_id, meter_id, e)
 
@@ -477,6 +485,14 @@ class SolarEdgeModbusMultiHub:
                         ModbusTimeoutError,
                     ) as e:
                         raise HubInitFailed(f"{e}") from e
+
+                    except DeviceNotResponding as e:
+                        _LOGGER.warning(
+                            "Battery I%sB%s not detected, no response: %s",
+                            inverter_unit_id,
+                            battery_id,
+                            e,
+                        )
 
                     except DeviceInvalid as e:
                         _LOGGER.debug("I%sB%s: %s", inverter_unit_id, battery_id, e)
