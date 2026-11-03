@@ -1561,7 +1561,7 @@ class SolarEdgeMeter:
                 )
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise DeviceInvalid(
+            raise DeviceNotResponding(
                 f"Error reading MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
             ) from e
 
@@ -1693,12 +1693,12 @@ class SolarEdgeBattery:
             )
 
         except TimeoutError as err:
-            raise DeviceInvalid(
+            raise DeviceNotResponding(
                 f"Timeout BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             ) from err
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise DeviceInvalid(
+            raise DeviceNotResponding(
                 f"Error reading BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
             ) from e
 
