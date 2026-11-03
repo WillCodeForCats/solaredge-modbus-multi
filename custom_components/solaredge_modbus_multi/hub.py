@@ -440,6 +440,11 @@ class SolarEdgeModbusMultiHub:
                         raise HubInitFailed(f"{e}") from e
 
                     except DeviceNotResponding as e:
+                        if self._is_registered_device(new_meter.uid_base):
+                            raise HubInitFailed(
+                                f"Meter I{inverter_unit_id}M{meter_id} was "
+                                f"detected before but did not respond: {e}"
+                            ) from e
                         _LOGGER.warning(
                             "Meter I%sM%s not detected, no response: %s",
                             inverter_unit_id,
@@ -487,6 +492,11 @@ class SolarEdgeModbusMultiHub:
                         raise HubInitFailed(f"{e}") from e
 
                     except DeviceNotResponding as e:
+                        if self._is_registered_device(new_battery.uid_base):
+                            raise HubInitFailed(
+                                f"Battery I{inverter_unit_id}B{battery_id} was "
+                                f"detected before but did not respond: {e}"
+                            ) from e
                         _LOGGER.warning(
                             "Battery I%sB%s not detected, no response: %s",
                             inverter_unit_id,
