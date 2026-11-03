@@ -85,6 +85,14 @@ class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid."""
 
 
+class DeviceNotResponding(SolarEdgeException):
+    """Raised when a device did not respond while being detected.
+
+    Unlike DeviceInvalid, this does not mean the device is absent: an empty
+    slot and a busy inverter can both fail to respond.
+    """
+
+
 async def async_update_with_retry(component) -> None:
     """Call component.async_update(), retrying connection/timeout errors.
 
