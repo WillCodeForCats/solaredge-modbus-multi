@@ -1548,6 +1548,12 @@ class SolarEdgeMeter:
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
         self._via_device = None
 
+        # Set before init_device() so the hub can look up a meter that
+        # did not respond in the device registry.
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
+        self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
+
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
         except KeyError as err:
@@ -1616,10 +1622,6 @@ class SolarEdgeMeter:
         self.name = (
             f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
-
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
     async def read_modbus_data(self) -> None:
         """Read modbus data."""
@@ -1697,6 +1699,12 @@ class SolarEdgeBattery:
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self._via_device = None
 
+        # Set before init_device() so the hub can look up a battery that
+        # did not respond in the device registry.
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
+        self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
+
         try:
             self.base_offset = BATTERY_REG_BASE[self.battery_id] - BATTERY_REG_BASE[1]
         except KeyError as err:
@@ -1760,10 +1768,6 @@ class SolarEdgeBattery:
             f"{self.hub.hub_id.capitalize()} "
             f"I{self.inverter_unit_id} B{self.battery_id}"
         )
-
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
     async def read_modbus_data(self) -> None:
         """Read modbus data."""
