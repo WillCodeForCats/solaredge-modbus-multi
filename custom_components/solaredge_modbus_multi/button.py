@@ -78,8 +78,8 @@ class SolarEdgeButtonBase(CoordinatorEntity, ButtonEntity):
 class SolarEdgeRefreshButton(SolarEdgeButtonBase):
     """Button to request an immediate device data update."""
 
-    entity_category = EntityCategory.CONFIG
-    icon = "mdi:refresh"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:refresh"
 
     @property
     def unique_id(self) -> str:
@@ -104,8 +104,8 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
 class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
     """Button to Commit Power Control Settings."""
 
-    entity_category = EntityCategory.CONFIG
-    icon = "mdi:content-save-cog-outline"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:content-save-cog-outline"
 
     @property
     def unique_id(self) -> str:
@@ -135,8 +135,8 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
 class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
     """Button to Restore Power Control Default Settings."""
 
-    entity_category = EntityCategory.CONFIG
-    icon = "mdi:restore-alert"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:restore-alert"
 
     @property
     def unique_id(self) -> str:

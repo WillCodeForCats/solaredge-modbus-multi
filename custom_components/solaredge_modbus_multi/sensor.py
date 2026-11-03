@@ -297,8 +297,6 @@ async def async_setup_entry(
 class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
     """Representation of a solar edge sensor base."""
 
-    should_poll = False
-    suggested_display_precision = None
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator):
@@ -335,7 +333,7 @@ class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
 class SolarEdgeDevice(SolarEdgeSensorBase):
     """Representation of a solar edge device."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -437,7 +435,7 @@ class SolarEdgeBatteryDevice(SolarEdgeDevice):
 class Version(SolarEdgeSensorBase):
     """Representation of a version."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -458,9 +456,9 @@ class Version(SolarEdgeSensorBase):
 class ACCurrentSensor(SolarEdgeSensorBase):
     """Base class for ACCurrentSensorInverter/ACCurrentSensorMeter."""
 
-    device_class = SensorDeviceClass.CURRENT
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_device_class = SensorDeviceClass.CURRENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the ac current sensor."""
@@ -554,9 +552,9 @@ class ACCurrentSensorMeter(ACCurrentSensor):
 class VoltageSensor(SolarEdgeSensorBase):
     """Base class for VoltageSensorInverter/VoltageSensorMeter."""
 
-    device_class = SensorDeviceClass.VOLTAGE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricPotential.VOLT
+    _attr_device_class = SensorDeviceClass.VOLTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the voltage sensor."""
@@ -655,10 +653,10 @@ class VoltageSensorMeter(VoltageSensor):
 class ACPower(SolarEdgeSensorBase):
     """Base class for ACPowerInverter/ACPowerMeter."""
 
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:solar-power"
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:solar-power"
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the ac power."""
@@ -787,9 +785,9 @@ class ACPowerInverted(ACPowerMeter):
 class ACFrequency(SolarEdgeSensorBase):
     """Base class for ACFrequencyInverter/ACFrequencyMeter."""
 
-    device_class = SensorDeviceClass.FREQUENCY
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfFrequency.HERTZ
+    _attr_device_class = SensorDeviceClass.FREQUENCY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfFrequency.HERTZ
 
     @property
     def unique_id(self) -> str:
@@ -849,9 +847,9 @@ class ACFrequencyMeter(ACFrequency):
 class ACVoltAmp(SolarEdgeSensorBase):
     """Base class for ACVoltAmpInverter/ACVoltAmpMeter."""
 
-    device_class = SensorDeviceClass.APPARENT_POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfApparentPower.VOLT_AMPERE
+    _attr_device_class = SensorDeviceClass.APPARENT_POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfApparentPower.VOLT_AMPERE
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the ac volt amp."""
@@ -930,9 +928,9 @@ class ACVoltAmpMeter(ACVoltAmp):
 class ACVoltAmpReactive(SolarEdgeSensorBase):
     """Base class for ACVoltAmpReactiveInverter/ACVoltAmpReactiveMeter."""
 
-    device_class = SensorDeviceClass.REACTIVE_POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfReactivePower.VOLT_AMPERE_REACTIVE
+    _attr_device_class = SensorDeviceClass.REACTIVE_POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfReactivePower.VOLT_AMPERE_REACTIVE
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the ac volt amp reactive."""
@@ -1011,9 +1009,9 @@ class ACVoltAmpReactiveMeter(ACVoltAmpReactive):
 class ACPowerFactor(SolarEdgeSensorBase):
     """Base class for ACPowerFactorInverter/ACPowerFactorMeter."""
 
-    device_class = SensorDeviceClass.POWER_FACTOR
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = PERCENTAGE
+    _attr_device_class = SensorDeviceClass.POWER_FACTOR
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the ac power factor."""
@@ -1098,11 +1096,11 @@ class SolarEdgeACEnergy(SolarEdgeSensorBase, RestoreSensor):
     Base class for SolarEdgeACEnergyInverter/SolarEdgeACEnergyMeter.
     """
 
-    device_class = SensorDeviceClass.ENERGY
-    state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    suggested_display_precision = 3
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 3
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the solar edge ac energy."""
@@ -1240,10 +1238,10 @@ class SolarEdgeACEnergyMeter(SolarEdgeACEnergy):
 class DCCurrent(SolarEdgeSensorBase):
     """DC Current for a SolarEdge inverter."""
 
-    device_class = SensorDeviceClass.CURRENT
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
-    icon = "mdi:current-dc"
+    _attr_device_class = SensorDeviceClass.CURRENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_icon = "mdi:current-dc"
 
     @property
     def unique_id(self) -> str:
@@ -1290,10 +1288,10 @@ class DCCurrent(SolarEdgeSensorBase):
 class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
     """DC Current for Synergy MMPPT units."""
 
-    device_class = SensorDeviceClass.CURRENT
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
-    icon = "mdi:current-dc"
+    _attr_device_class = SensorDeviceClass.CURRENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_icon = "mdi:current-dc"
 
     @property
     def unique_id(self) -> str:
@@ -1339,9 +1337,9 @@ class SolarEdgeDCCurrentMMPPT(SolarEdgeSensorBase):
 class DCVoltage(SolarEdgeSensorBase):
     """DC Voltage for a SolarEdge inverter."""
 
-    device_class = SensorDeviceClass.VOLTAGE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricPotential.VOLT
+    _attr_device_class = SensorDeviceClass.VOLTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     @property
     def unique_id(self) -> str:
@@ -1384,9 +1382,9 @@ class DCVoltage(SolarEdgeSensorBase):
 class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
     """DC Voltage for Synergy MMPPT units."""
 
-    device_class = SensorDeviceClass.VOLTAGE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricPotential.VOLT
+    _attr_device_class = SensorDeviceClass.VOLTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     @property
     def unique_id(self) -> str:
@@ -1432,10 +1430,10 @@ class SolarEdgeDCVoltageMMPPT(SolarEdgeSensorBase):
 class DCPower(SolarEdgeSensorBase):
     """DC Power for a SolarEdge inverter."""
 
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:solar-power"
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:solar-power"
 
     @property
     def unique_id(self) -> str:
@@ -1478,10 +1476,10 @@ class DCPower(SolarEdgeSensorBase):
 class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
     """DC Power for Synergy MMPPT units."""
 
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:solar-power"
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:solar-power"
 
     @property
     def unique_id(self) -> str:
@@ -1525,10 +1523,10 @@ class SolarEdgeDCPowerMMPPT(SolarEdgeSensorBase):
 class HeatSinkTemperature(SolarEdgeSensorBase):
     """Heat sink temperature for a SolarEdge inverter."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -1571,11 +1569,11 @@ class HeatSinkTemperature(SolarEdgeSensorBase):
 class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
     """Temperature for Synergy MMPPT units."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    entity_category = EntityCategory.DIAGNOSTIC
-    suggested_display_precision = 0
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_suggested_display_precision = 0
 
     @property
     def unique_id(self) -> str:
@@ -1609,9 +1607,9 @@ class SolarEdgeWriteCount(RestoreEntity, SolarEdgeSensorBase):
     https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/727
     """
 
-    entity_category = EntityCategory.DIAGNOSTIC
-    state_class = SensorStateClass.TOTAL_INCREASING
-    icon = "mdi:file-document-edit-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_icon = "mdi:file-document-edit-outline"
 
     @property
     def unique_id(self) -> str:
@@ -1660,8 +1658,8 @@ class SolarEdgeWriteCount(RestoreEntity, SolarEdgeSensorBase):
 class SolarEdgeStatusSensor(SolarEdgeSensorBase):
     """Representation of a solar edge status sensor."""
 
-    device_class = SensorDeviceClass.ENUM
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -1677,7 +1675,7 @@ class SolarEdgeStatusSensor(SolarEdgeSensorBase):
 class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
     """Representation of a solar edge inverter status."""
 
-    options = list(DEVICE_STATUS.values())
+    _attr_options = list(DEVICE_STATUS.values())
 
     @property
     def available(self) -> bool:
@@ -1711,7 +1709,7 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
 class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
     """Representation of a solar edge battery status."""
 
-    options = list(BATTERY_STATUS.values())
+    _attr_options = list(BATTERY_STATUS.values())
 
     @property
     def available(self) -> bool:
@@ -1782,10 +1780,10 @@ class SolarEdgeDERStorageBase(SolarEdgeSensorBase):
 class SolarEdgeDERStorageSOC(SolarEdgeDERStorageBase):
     """State of Charge from DER Storage Capacity (SunSpec model 713)."""
 
-    device_class = SensorDeviceClass.BATTERY
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = PERCENTAGE
-    suggested_display_precision = 0
+    _attr_device_class = SensorDeviceClass.BATTERY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_suggested_display_precision = 0
 
     @property
     def unique_id(self) -> str:
@@ -1820,11 +1818,11 @@ class SolarEdgeDERStorageSOC(SolarEdgeDERStorageBase):
 class SolarEdgeDERStorageSOH(SolarEdgeDERStorageBase):
     """State of Health from DER Storage Capacity (SunSpec model 713)."""
 
-    state_class = SensorStateClass.MEASUREMENT
-    entity_category = EntityCategory.DIAGNOSTIC
-    native_unit_of_measurement = PERCENTAGE
-    suggested_display_precision = 0
-    icon = "mdi:battery-heart-outline"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_suggested_display_precision = 0
+    _attr_icon = "mdi:battery-heart-outline"
 
     @property
     def unique_id(self) -> str:
@@ -1855,9 +1853,9 @@ class SolarEdgeDERStorageStatus(SolarEdgeDERStorageBase):
     this exists in case that changes in the future.
     """
 
-    device_class = SensorDeviceClass.ENUM
-    entity_category = EntityCategory.DIAGNOSTIC
-    options = list(DER_STORAGE_STATUS.values())
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_options = list(DER_STORAGE_STATUS.values())
 
     @property
     def unique_id(self) -> str:
@@ -1895,7 +1893,7 @@ class SolarEdgeDERStorageStatus(SolarEdgeDERStorageBase):
 class StatusVendor(SolarEdgeSensorBase):
     """Representation of a status vendor."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -1939,7 +1937,7 @@ class StatusVendor(SolarEdgeSensorBase):
 class StatusVendor4(SolarEdgeSensorBase):
     """Representation of a status vendor4."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -2043,10 +2041,10 @@ class SolarEdgeRRCR(SolarEdgeGlobalPowerControlBlock):
 class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
     """Global Dynamic Power Control: Inverter Active Power Limit."""
 
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = PERCENTAGE
-    suggested_display_precision = 0
-    icon = "mdi:percent"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_suggested_display_precision = 0
+    _attr_icon = "mdi:percent"
 
     @property
     def unique_id(self) -> str:
@@ -2083,9 +2081,9 @@ class SolarEdgeActivePowerLimit(SolarEdgeGlobalPowerControlBlock):
 class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
     """Global Dynamic Power Control: Inverter CosPhi."""
 
-    state_class = SensorStateClass.MEASUREMENT
-    suggested_display_precision = 1
-    icon = "mdi:angle-acute"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_suggested_display_precision = 1
+    _attr_icon = "mdi:angle-acute"
 
     @property
     def unique_id(self) -> str:
@@ -2122,7 +2120,7 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
 class MeterEvents(SolarEdgeSensorBase):
     """Representation of a meter events."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -2171,7 +2169,7 @@ class MeterEvents(SolarEdgeSensorBase):
 class SolarEdgeMMPPTEvents(SolarEdgeSensorBase):
     """Representation of a solar edge mmppt events."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
@@ -2223,9 +2221,9 @@ class MeterVAhIE(SolarEdgeSensorBase, RestoreSensor):
     https://home-assistant-libs.github.io/modbus-connection/home-assistant/integration/#the-coordinator
     """
 
-    device_class = SensorDeviceClass.ENERGY
-    state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_VOLT_AMPERE_HOUR
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = ENERGY_VOLT_AMPERE_HOUR
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the meter v ah ie."""
@@ -2320,9 +2318,9 @@ class MetervarhIE(SolarEdgeSensorBase, RestoreSensor):
     https://home-assistant-libs.github.io/modbus-connection/home-assistant/integration/#the-coordinator
     """
 
-    device_class = SensorDeviceClass.REACTIVE_ENERGY
-    state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR
+    _attr_device_class = SensorDeviceClass.REACTIVE_ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR
 
     def __init__(self, platform, config_entry, coordinator, phase: str | None = None):
         """Initialize the metervarh ie."""
@@ -2413,11 +2411,11 @@ class MetervarhIE(SolarEdgeSensorBase, RestoreSensor):
 class SolarEdgeBatteryAvgTemp(SolarEdgeSensorBase):
     """Representation of a solar edge battery avg temp."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    entity_category = EntityCategory.DIAGNOSTIC
-    suggested_display_precision = 1
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -2449,11 +2447,11 @@ class SolarEdgeBatteryAvgTemp(SolarEdgeSensorBase):
 class SolarEdgeBatteryMaxTemp(SolarEdgeSensorBase):
     """Representation of a solar edge battery max temp."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    entity_category = EntityCategory.DIAGNOSTIC
-    suggested_display_precision = 1
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -2490,10 +2488,10 @@ class SolarEdgeBatteryMaxTemp(SolarEdgeSensorBase):
 class SolarEdgeBatteryVoltage(SolarEdgeSensorBase):
     """Representation of a solar edge battery voltage."""
 
-    device_class = SensorDeviceClass.VOLTAGE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricPotential.VOLT
-    suggested_display_precision = 2
+    _attr_device_class = SensorDeviceClass.VOLTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
+    _attr_suggested_display_precision = 2
 
     @property
     def unique_id(self) -> str:
@@ -2526,11 +2524,11 @@ class SolarEdgeBatteryVoltage(SolarEdgeSensorBase):
 class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
     """Representation of a solar edge battery current."""
 
-    device_class = SensorDeviceClass.CURRENT
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
-    suggested_display_precision = 2
-    icon = "mdi:current-dc"
+    _attr_device_class = SensorDeviceClass.CURRENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_suggested_display_precision = 2
+    _attr_icon = "mdi:current-dc"
 
     @property
     def unique_id(self) -> str:
@@ -2563,11 +2561,11 @@ class SolarEdgeBatteryCurrent(SolarEdgeSensorBase):
 class SolarEdgeBatteryPower(SolarEdgeSensorBase):
     """Representation of a solar edge battery power."""
 
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    suggested_display_precision = 2
-    icon = "mdi:lightning-bolt"
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_suggested_display_precision = 2
+    _attr_icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self) -> str:
@@ -2648,12 +2646,12 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase, RestoreSensor):
     See allow_battery_energy_reset/battery_energy_reset_cycles.
     """
 
-    device_class = SensorDeviceClass.ENERGY
-    state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    suggested_display_precision = 3
-    icon = "mdi:battery-charging-20"
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 3
+    _attr_icon = "mdi:battery-charging-20"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the solar edge battery energy export."""
@@ -2754,12 +2752,12 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase, RestoreSensor):
     See allow_battery_energy_reset/battery_energy_reset_cycles.
     """
 
-    device_class = SensorDeviceClass.ENERGY
-    state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    suggested_display_precision = 3
-    icon = "mdi:battery-charging-100"
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 3
+    _attr_icon = "mdi:battery-charging-100"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the solar edge battery energy import."""
@@ -2853,11 +2851,11 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase, RestoreSensor):
 class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
     """Representation of a solar edge battery max energy."""
 
-    device_class = SensorDeviceClass.ENERGY_STORAGE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    suggested_display_precision = 3
+    _attr_device_class = SensorDeviceClass.ENERGY_STORAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 3
 
     @property
     def unique_id(self) -> str:
@@ -2891,11 +2889,11 @@ class SolarEdgeBatteryMaxEnergy(SolarEdgeSensorBase):
 class SolarEdgeBatteryPowerBase(SolarEdgeSensorBase):
     """Representation of a solar edge battery power base."""
 
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    entity_category = EntityCategory.DIAGNOSTIC
-    suggested_display_precision = 0
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_suggested_display_precision = 0
 
 
 class SolarEdgeBatteryMaxChargePower(SolarEdgeBatteryPowerBase):
@@ -3021,11 +3019,11 @@ class SolarEdgeBatteryMaxDischargePeakPower(SolarEdgeBatteryPowerBase):
 class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
     """Representation of a solar edge battery available energy."""
 
-    device_class = SensorDeviceClass.ENERGY_STORAGE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    suggested_display_precision = 3
+    _attr_device_class = SensorDeviceClass.ENERGY_STORAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 3
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the solar edge battery available energy."""
@@ -3080,11 +3078,11 @@ class SolarEdgeBatteryAvailableEnergy(SolarEdgeSensorBase):
 class SolarEdgeBatterySOH(SolarEdgeSensorBase):
     """Representation of a solar edge battery soh."""
 
-    state_class = SensorStateClass.MEASUREMENT
-    entity_category = EntityCategory.DIAGNOSTIC
-    native_unit_of_measurement = PERCENTAGE
-    suggested_display_precision = 0
-    icon = "mdi:battery-heart-outline"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_suggested_display_precision = 0
+    _attr_icon = "mdi:battery-heart-outline"
 
     @property
     def unique_id(self) -> str:
@@ -3116,10 +3114,10 @@ class SolarEdgeBatterySOH(SolarEdgeSensorBase):
 class SolarEdgeBatterySOE(SolarEdgeSensorBase):
     """Representation of a solar edge battery soe."""
 
-    device_class = SensorDeviceClass.BATTERY
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = PERCENTAGE
-    suggested_display_precision = 0
+    _attr_device_class = SensorDeviceClass.BATTERY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_suggested_display_precision = 0
 
     @property
     def unique_id(self) -> str:
@@ -3160,8 +3158,8 @@ class SolarEdgeAdvancedPowerControlBlock(SolarEdgeSensorBase):
 class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Commit Power Control Settings button."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
-    icon = "mdi:content-save-cog-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:content-save-cog-outline"
 
     @property
     def unique_id(self) -> str:
@@ -3208,8 +3206,8 @@ class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
 class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
     """Entity to show the results of Restore Power Control Default Settings button."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
-    icon = "mdi:restore-alert"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:restore-alert"
 
     @property
     def unique_id(self) -> str:
@@ -3252,8 +3250,8 @@ class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
 class SolarEdgeLastUpdate(SolarEdgeSensorBase):
     """Representation of a solar edge last update."""
 
-    device_class = SensorDeviceClass.TIMESTAMP
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def unique_id(self) -> str:
