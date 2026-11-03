@@ -13,7 +13,7 @@ from awesomeversion.exceptions import (
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
@@ -539,6 +539,17 @@ class SolarEdgeModbusMultiHub:
             raise HubInitFailed(f"Timeout error: {e}") from e
 
         self.initalized = True
+
+    def _is_registered_device(self, uid_base: str) -> bool:
+        """Return True if this config entry already has a device for uid_base.
+
+        Used to tell a known meter or battery that did not respond during
+        detection (retry setup) from an empty slot (skip it).
+        """
+        device = dr.async_get(self._hass).async_get_device(
+            identifiers={(DOMAIN, uid_base)}
+        )
+        return device is not None and self._entry_id in device.config_entries
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
