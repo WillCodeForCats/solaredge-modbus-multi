@@ -22,6 +22,10 @@ ZEROCONF_PROBE_TIMEOUT = 3.0
 # spacing active before clearing it back to 0.
 WRITE_SETTLE_CYCLES: Final = 2
 
+# raise a startup exception if Home Assistant is older than this; keep it the
+# same as "homeassistant" in hacs.json
+HA_REQUIRED_VERSION = "2026.10.0"
+
 # raise a startup exception if library versions are less than this
 TMODBUS_REQUIRED_VERSION = "0.6.1"
 MODBUS_CONNECTION_REQUIRED_VERSION = "4.10.0"

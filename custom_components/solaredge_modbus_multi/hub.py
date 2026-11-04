@@ -312,6 +312,20 @@ class SolarEdgeModbusMultiHub:
                 )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
+
+                # Register the inverter device so child devices can
+                # reference it with via_device_id when their entities are added.
+                try:
+                    dr.async_get(self._hass).async_get_or_create(
+                        config_entry_id=self._entry_id,
+                        **new_inverter.device_info,
+                    )
+                except HomeAssistantError as e:
+                    # Inverters are mandatory, so do not continue without one.
+                    raise HubInitFailed(
+                        f"I{inverter_unit_id}: could not register device: {e}"
+                    ) from e
+
                 self.inverters.append(new_inverter)
 
                 ir.async_delete_issue(
@@ -428,7 +442,7 @@ class SolarEdgeModbusMultiHub:
                                     meter_id,
                                 )
 
-                        new_meter.via_device = new_inverter.uid_base
+                        new_meter.parent_inverter = new_inverter
                         self.meters.append(new_meter)
                         _LOGGER.debug("Found I%sM%s", inverter_unit_id, meter_id)
 
@@ -480,7 +494,7 @@ class SolarEdgeModbusMultiHub:
                                     f"{new_battery.serial}"
                                 )
 
-                        new_battery.via_device = new_inverter.uid_base
+                        new_battery.parent_inverter = new_inverter
                         self.batteries.append(new_battery)
                         _LOGGER.debug("Found I%sB%s", inverter_unit_id, battery_id)
 
@@ -1462,6 +1476,14 @@ class SolarEdgeInverter:
         )
 
     @property
+    def device_registry_id(self) -> str | None:
+        """Return the current device registry ID, or None if not registered."""
+        device = dr.async_get(self.hub.hass).async_get_device_by_identifier(
+            (DOMAIN, self.uid_base), self.hub.entry_id
+        )
+        return device.id if device is not None else None
+
+    @property
     def is_mmppt(self) -> bool:
         """Return True if mmppt."""
         return self.hub.mmppt_common[self.inverter_unit_id] is not None
@@ -1519,7 +1541,7 @@ class SolarEdgeMMPPTUnit:
             model=self.inverter.model,
             hw_version=f"ID {self.mmppt_id}",
             serial_number=f"{self.mmppt_idstr}",
-            via_device=(DOMAIN, self.inverter.uid_base),
+            via_device_id=self.inverter.device_registry_id,
         )
 
     @property
@@ -1546,7 +1568,7 @@ class SolarEdgeMeter:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
-        self._via_device = None
+        self.parent_inverter: SolarEdgeInverter | None = None
 
         # Set before init_device() so the hub can look up a meter that
         # did not respond in the device registry.
@@ -1672,17 +1694,15 @@ class SolarEdgeMeter:
             serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
-            via_device=self.via_device,
+            via_device_id=self.via_device_id,
         )
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        """Return the via device."""
-        return self._via_device
-
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    def via_device_id(self) -> str | None:
+        """Return the device registry ID of the parent device."""
+        if self.parent_inverter is None:
+            return None
+        return self.parent_inverter.device_registry_id
 
 
 class SolarEdgeBattery:
@@ -1697,7 +1717,7 @@ class SolarEdgeBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self._via_device = None
+        self.parent_inverter: SolarEdgeInverter | None = None
 
         # Set before init_device() so the hub can look up a battery that
         # did not respond in the device registry.
@@ -1808,17 +1828,15 @@ class SolarEdgeBattery:
             model=self.model,
             serial_number=self.serial,
             sw_version=self.fw_version,
-            via_device=self.via_device,
+            via_device_id=self.via_device_id,
         )
 
     @property
-    def via_device(self) -> tuple[str, str]:
-        """Return the via device."""
-        return self._via_device
-
-    @via_device.setter
-    def via_device(self, device: str) -> None:
-        self._via_device = (DOMAIN, device)
+    def via_device_id(self) -> str | None:
+        """Return the device registry ID of the parent device."""
+        if self.parent_inverter is None:
+            return None
+        return self.parent_inverter.device_registry_id
 
     @property
     def allow_battery_energy_reset(self) -> bool:
