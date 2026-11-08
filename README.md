@@ -86,8 +86,9 @@ Assistant also works.
 When another integration is already using the connection, scanning for inverters during setup opens a
 separate connection to the inverter instead, so the scan is not slowed by the other integration's
 timeout. An inverter accepts only a few connections at once, so this scan can fail to connect while
-another client is connected. If it does, use the manual setup, which only checks the Device IDs you
-enter.
+another client is connected. The manual setup checks the Device IDs you enter over the same separate
+connection, so it can fail the same way. If you know your Device IDs, use the manual setup and select
+"Skip Device ID validation", or disable the other integration until setup is complete.
 
 If you want to run both, open the options of SolarEdge Modbus Multi and change the Modbus Connection.
 It has three choices:
