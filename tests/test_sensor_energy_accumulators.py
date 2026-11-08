@@ -34,6 +34,7 @@ def _make_ac_energy(raw_value, sf, phase=None, last=None):
     model_key = "AC_Energy_WH" if phase is None else f"AC_Energy_WH_{phase}"
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         inverter_data=SimpleNamespace(**{model_key: raw_value, "AC_Energy_WH_SF": sf}),
     )
     entity = SolarEdgeACEnergyInverter(platform, None, None, phase=phase)
@@ -111,6 +112,7 @@ class TestSolarEdgeACEnergyEnabledByDefault:
     def _make_meter(self, phase, did=201):
         platform = SimpleNamespace(
             uid_base="meter_1",
+            device_info=None,
             meter_data=SimpleNamespace(C_SunSpec_DID=did),
         )
         return SolarEdgeACEnergyMeter(platform, None, None, phase=phase)
@@ -143,6 +145,7 @@ METER_ENERGY_CLASSES = [(MeterVAhIE, "M_VAh"), (MetervarhIE, "M_varh")]
 def _make_meter_energy(cls, prefix, raw_value, sf, phase="Exported", last=None):
     platform = SimpleNamespace(
         uid_base="meter_1",
+        device_info=None,
         meter_data=SimpleNamespace(
             **{f"{prefix}_{phase}": raw_value, f"{prefix}_SF": sf}
         ),
@@ -200,17 +203,22 @@ class TestMeterEnergyAccumulators:
 
     def test_unique_id_and_name_require_a_phase(self, cls, prefix):
         """Test unique id and name require a phase."""
-        entity = cls(SimpleNamespace(uid_base="meter_1"), None, None, phase=None)
-
         with pytest.raises(NotImplementedError):
-            _ = entity.unique_id
-
-        with pytest.raises(NotImplementedError):
-            _ = entity.name
+            cls(
+                SimpleNamespace(uid_base="meter_1", device_info=None),
+                None,
+                None,
+                phase=None,
+            )
 
     def test_disabled_by_default(self, cls, prefix):
         """Test disabled by default."""
-        entity = cls(SimpleNamespace(uid_base="meter_1"), None, None, phase="Exported")
+        entity = cls(
+            SimpleNamespace(uid_base="meter_1", device_info=None),
+            None,
+            None,
+            phase="Exported",
+        )
         assert entity.entity_registry_enabled_default is False
 
 
@@ -224,6 +232,7 @@ def _make_battery_energy(cls, attr, value, total=None, prev_raw=None, cycles=2):
     platform = SimpleNamespace(
         uid_base="battery_1",
         battery_energy_reset_cycles=cycles,
+        device_info=None,
         battery_data=SimpleNamespace(**{attr: value}),
     )
     entity = cls(platform, None, None)
