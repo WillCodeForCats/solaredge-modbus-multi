@@ -591,10 +591,39 @@ class SolarEdgeModbusMultiHub:
             )
             self._coordinator_timeouts_count = 0
 
+        self._sync_device_versions()
+
         if self.close_after_polling:
             await self.connection.disconnect()
 
         return True
+
+    def _sync_device_versions(self) -> None:
+        """Update device registry sw_version when a polled version changes.
+
+        Home Assistant reads entity device_info only when an entity is added,
+        so a firmware update seen during polling must be pushed to the registry.
+        Only inverters and EVSEs re-read their version register after init.
+        """
+        dev_reg = dr.async_get(self._hass)
+
+        for device in (*self.inverters, *self.evses):
+            if (fw_version := device.fw_version) is None:
+                continue
+
+            entry = dev_reg.async_get_device_by_identifier(
+                (DOMAIN, device.uid_base), self._entry_id
+            )
+            if entry is None or entry.sw_version == fw_version:
+                continue
+
+            _LOGGER.debug(
+                "%s sw_version changed from %s to %s",
+                device.uid_base,
+                entry.sw_version,
+                fw_version,
+            )
+            dev_reg.async_update_device(entry.id, sw_version=fw_version)
 
     async def component_update(self, unit: int, component) -> None:
         """Update a SolarEdge modbus Component and track write settle cycles.
