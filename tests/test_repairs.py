@@ -2,7 +2,11 @@
 
 from types import SimpleNamespace
 
+from homeassistant.components.repairs import ConfirmRepairFlow
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import issue_registry as ir
+from homeassistant.setup import async_setup_component
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.const import DOMAIN
@@ -85,3 +89,64 @@ async def test_check_configuration_issue_routes_to_its_flow(hass):
     )
 
     assert isinstance(flow, CheckConfigurationRepairFlow)
+
+
+async def test_missing_entry_falls_back_to_confirm_flow(hass):
+    """Test an issue for a deleted config entry returns a no-op confirm flow."""
+    flow = await async_create_fix_flow(
+        hass, "check_configuration_deleted_entry", {"entry_id": "deleted_entry"}
+    )
+
+    assert isinstance(flow, ConfirmRepairFlow)
+
+
+async def test_unknown_issue_falls_back_to_confirm_flow(hass):
+    """Test an unknown issue ID returns a no-op confirm flow."""
+    entry = MockConfigEntry(domain=DOMAIN)
+    entry.add_to_hass(hass)
+
+    flow = await async_create_fix_flow(
+        hass, "unknown_issue", {"entry_id": entry.entry_id}
+    )
+
+    assert isinstance(flow, ConfirmRepairFlow)
+
+
+@pytest.mark.parametrize("data", [None, {}])
+async def test_missing_issue_data_falls_back_to_confirm_flow(hass, data):
+    """Test an issue without data or entry_id returns a no-op confirm flow."""
+    flow = await async_create_fix_flow(hass, "check_configuration_x", data)
+
+    assert isinstance(flow, ConfirmRepairFlow)
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_fix_flow_for_deleted_entry_opens_confirm_dialog(hass, hass_client):
+    """Test opening the repair for an issue whose entry was deleted.
+
+    Uses the endpoint the frontend calls when the user clicks Fix. Returning
+    None from async_create_fix_flow made HA fail with an AttributeError.
+    """
+    assert await async_setup_component(hass, "http", {})
+    assert await async_setup_component(hass, "repairs", {})
+    assert await async_setup_component(hass, DOMAIN, {})
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        "check_configuration_deleted_entry",
+        is_fixable=True,
+        severity=ir.IssueSeverity.ERROR,
+        translation_key="check_configuration",
+        data={"entry_id": "deleted_entry"},
+    )
+
+    client = await hass_client()
+    resp = await client.post(
+        "/api/repairs/issues/fix",
+        json={"handler": DOMAIN, "issue_id": "check_configuration_deleted_entry"},
+    )
+
+    assert resp.status == 200
+    result = await resp.json()
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "confirm"

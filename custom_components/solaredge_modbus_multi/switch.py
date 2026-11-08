@@ -48,7 +48,6 @@ async def async_setup_entry(
 class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
     """Representation of a solar edge switch base."""
 
-    should_poll = False
     _attr_has_entity_name = True
 
     def __init__(self, platform, config_entry, coordinator) -> None:
@@ -81,7 +80,7 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
 class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     """External Production switch. Indicates a non-SolarEdge power sorce in system."""
 
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
@@ -142,7 +141,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     """Negative Site Limit switch. Sets minimum import power when enabled."""
 
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:
@@ -198,7 +197,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 class SolarEdgeGridControl(SolarEdgeSwitchBase):
     """Grid Control boolean switch. This is "AdvancedPwrControlEn" in specs."""
 
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:

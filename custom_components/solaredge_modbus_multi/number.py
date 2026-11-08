@@ -67,9 +67,8 @@ async def async_setup_entry(
 class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
     """Representation of a solar edge number base."""
 
-    should_poll = False
     _attr_has_entity_name = True
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, platform, config_entry, coordinator):
         """Pass coordinator to CoordinatorEntity."""
@@ -101,7 +100,7 @@ class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
 class StorageACChargeLimit(SolarEdgeNumberBase):
     """Representation of a storage ac charge limit."""
 
-    icon = "mdi:lightning-bolt"
+    _attr_icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self) -> str:
@@ -174,10 +173,10 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 class StorageBackupReserve(SolarEdgeNumberBase):
     """Representation of a storage backup reserve."""
 
-    native_unit_of_measurement = PERCENTAGE
-    native_min_value = 0
-    native_max_value = 100
-    icon = "mdi:battery-positive"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_icon = "mdi:battery-positive"
 
     @property
     def unique_id(self) -> str:
@@ -223,10 +222,10 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 class StorageCommandTimeout(SolarEdgeNumberBase):
     """Representation of a storage command timeout."""
 
-    native_min_value = 0
-    native_max_value = 86400  # 24h
-    native_unit_of_measurement = UnitOfTime.SECONDS
-    icon = "mdi:clock-end"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 86400  # 24h
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_icon = "mdi:clock-end"
 
     @property
     def unique_id(self) -> str:
@@ -277,10 +276,10 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 class StorageChargeLimit(SolarEdgeNumberBase):
     """Representation of a storage charge limit."""
 
-    native_min_value = 0
-    native_step = 1.0
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_step = 1.0
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self) -> str:
@@ -336,10 +335,10 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 class StorageDischargeLimit(SolarEdgeNumberBase):
     """Representation of a storage discharge limit."""
 
-    native_min_value = 0
-    native_step = 1.0
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_step = 1.0
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self) -> str:
@@ -395,10 +394,10 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     """Representation of a solar edge site limit."""
 
-    native_min_value = 0
-    native_max_value = 1000000
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 1000000
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self) -> str:
@@ -448,10 +447,10 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     """Representation of a solar edge external production max."""
 
-    native_min_value = 0
-    native_max_value = 1000000
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 1000000
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self) -> str:
@@ -500,11 +499,11 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     """Global Dynamic Power Control: Set Inverter Active Power Limit."""
 
-    native_unit_of_measurement = PERCENTAGE
-    native_min_value = 0
-    native_max_value = 100
-    mode = "slider"
-    icon = "mdi:percent"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_mode = "slider"
+    _attr_icon = "mdi:percent"
 
     @property
     def unique_id(self) -> str:
@@ -553,11 +552,11 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
     """Global Dynamic Power Control: Set Inverter CosPhi."""
 
-    native_min_value = -1.0
-    native_max_value = 1.0
-    native_step = 0.1
-    mode = "slider"
-    icon = "mdi:angle-acute"
+    _attr_native_min_value = -1.0
+    _attr_native_max_value = 1.0
+    _attr_native_step = 0.1
+    _attr_mode = "slider"
+    _attr_icon = "mdi:angle-acute"
 
     @property
     def unique_id(self) -> str:
@@ -606,11 +605,11 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 class SolarEdgePowerReduce(SolarEdgeNumberBase):
     """Limits the inverter's maximum output power from 0-100%."""
 
-    native_unit_of_measurement = PERCENTAGE
-    native_min_value = 0
-    native_max_value = 100
-    mode = "slider"
-    icon = "mdi:percent"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_mode = "slider"
+    _attr_icon = "mdi:percent"
 
     @property
     def unique_id(self) -> str:
@@ -656,10 +655,10 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
 class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
     """Limits the inverter's maximum output current."""
 
-    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
-    native_min_value = 0
-    native_max_value = 256
-    icon = "mdi:current-ac"
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 256
+    _attr_icon = "mdi:current-ac"
 
     @property
     def unique_id(self) -> str:
