@@ -233,7 +233,9 @@ async def test_legacy_der_device_and_its_entities_removed(hass):
     assert entity_registry.async_get(model_sensor.entity_id) is None
     # the entity on the inverter device and the inverter device survive
     assert entity_registry.async_get(soc.entity_id) is not None
-    assert device_registry.async_get_device(identifiers={(DOMAIN, "inv")})
+    assert device_registry.async_get_device_by_identifier(
+        (DOMAIN, "inv"), entry.entry_id
+    )
 
 
 async def test_legacy_device_kept_when_no_der_block_found(hass):
@@ -259,8 +261,12 @@ async def test_other_devices_not_removed(hass):
     _async_remove_legacy_der_devices(hass, entry, hub)
 
     # DERB2 is not one of the blocks found, so it is left alone
-    assert device_registry.async_get_device(identifiers={(DOMAIN, "inv_DERB2")})
-    assert device_registry.async_get_device(identifiers={(DOMAIN, "inv")})
+    assert device_registry.async_get_device_by_identifier(
+        (DOMAIN, "inv_DERB2"), entry.entry_id
+    )
+    assert device_registry.async_get_device_by_identifier(
+        (DOMAIN, "inv"), entry.entry_id
+    )
 
 
 async def test_legacy_der_soc_keeps_entity_id_and_unsupported_removed(hass):
