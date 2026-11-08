@@ -85,6 +85,14 @@ class DeviceInvalid(SolarEdgeException):
     """Raised when a device is not usable or invalid."""
 
 
+class DeviceNotResponding(SolarEdgeException):
+    """Raised when a device did not respond while being detected.
+
+    Unlike DeviceInvalid, this does not mean the device is absent: an empty
+    slot and a busy inverter can both fail to respond.
+    """
+
+
 async def async_update_with_retry(component) -> None:
     """Call component.async_update(), retrying connection/timeout errors.
 
@@ -302,20 +310,6 @@ class SolarEdgeModbusMultiHub:
                 )
                 new_inverter = SolarEdgeInverter(inverter_unit_id, self)
                 await new_inverter.init_device()
-
-                # Register the inverter device so child devices can
-                # reference it with via_device_id when their entities are added.
-                try:
-                    dr.async_get(self._hass).async_get_or_create(
-                        config_entry_id=self._entry_id,
-                        **new_inverter.device_info,
-                    )
-                except HomeAssistantError as e:
-                    # Inverters are mandatory, so do not continue without one.
-                    raise HubInitFailed(
-                        f"I{inverter_unit_id}: could not register device: {e}"
-                    ) from e
-
                 self.inverters.append(new_inverter)
 
                 ir.async_delete_issue(
@@ -432,7 +426,7 @@ class SolarEdgeModbusMultiHub:
                                     meter_id,
                                 )
 
-                        new_meter.parent_inverter = new_inverter
+                        new_meter.via_device = new_inverter.uid_base
                         self.meters.append(new_meter)
                         _LOGGER.debug("Found I%sM%s", inverter_unit_id, meter_id)
 
@@ -442,6 +436,19 @@ class SolarEdgeModbusMultiHub:
                         ModbusTimeoutError,
                     ) as e:
                         raise HubInitFailed(f"{e}") from e
+
+                    except DeviceNotResponding as e:
+                        if self._is_registered_device(new_meter.uid_base):
+                            raise HubInitFailed(
+                                f"Meter I{inverter_unit_id}M{meter_id} was "
+                                f"detected before but did not respond: {e}"
+                            ) from e
+                        _LOGGER.warning(
+                            "Meter I%sM%s not detected, no response: %s",
+                            inverter_unit_id,
+                            meter_id,
+                            e,
+                        )
 
                     except DeviceInvalid as e:
                         _LOGGER.debug("I%sM%s: %s", inverter_unit_id, meter_id, e)
@@ -471,7 +478,7 @@ class SolarEdgeModbusMultiHub:
                                     f"{new_battery.serial}"
                                 )
 
-                        new_battery.parent_inverter = new_inverter
+                        new_battery.via_device = new_inverter.uid_base
                         self.batteries.append(new_battery)
                         _LOGGER.debug("Found I%sB%s", inverter_unit_id, battery_id)
 
@@ -481,6 +488,19 @@ class SolarEdgeModbusMultiHub:
                         ModbusTimeoutError,
                     ) as e:
                         raise HubInitFailed(f"{e}") from e
+
+                    except DeviceNotResponding as e:
+                        if self._is_registered_device(new_battery.uid_base):
+                            raise HubInitFailed(
+                                f"Battery I{inverter_unit_id}B{battery_id} was "
+                                f"detected before but did not respond: {e}"
+                            ) from e
+                        _LOGGER.warning(
+                            "Battery I%sB%s not detected, no response: %s",
+                            inverter_unit_id,
+                            battery_id,
+                            e,
+                        )
 
                     except DeviceInvalid as e:
                         _LOGGER.debug("I%sB%s: %s", inverter_unit_id, battery_id, e)
@@ -527,6 +547,17 @@ class SolarEdgeModbusMultiHub:
             raise HubInitFailed(f"Timeout error: {e}") from e
 
         self.initalized = True
+
+    def _is_registered_device(self, uid_base: str) -> bool:
+        """Return True if this config entry already has a device for uid_base.
+
+        Used to tell a known meter or battery that did not respond during
+        detection (retry setup) from an empty slot (skip it).
+        """
+        device = dr.async_get(self._hass).async_get_device(
+            identifiers={(DOMAIN, uid_base)}
+        )
+        return device is not None and self._entry_id in device.config_entries
 
     async def async_refresh_modbus_data(self) -> bool:
         """Refresh modbus data from inverters."""
@@ -1424,14 +1455,6 @@ class SolarEdgeInverter:
         )
 
     @property
-    def device_registry_id(self) -> str | None:
-        """Return the current device registry ID, or None if not registered."""
-        device = dr.async_get(self.hub.hass).async_get_device_by_identifier(
-            (DOMAIN, self.uid_base), self.hub.entry_id
-        )
-        return device.id if device is not None else None
-
-    @property
     def is_mmppt(self) -> bool:
         """Return True if mmppt."""
         return self.hub.mmppt_common[self.inverter_unit_id] is not None
@@ -1489,7 +1512,7 @@ class SolarEdgeMMPPTUnit:
             model=self.inverter.model,
             hw_version=f"ID {self.mmppt_id}",
             serial_number=f"{self.mmppt_idstr}",
-            via_device_id=self.inverter.device_registry_id,
+            via_device=(DOMAIN, self.inverter.uid_base),
         )
 
     @property
@@ -1516,7 +1539,13 @@ class SolarEdgeMeter:
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
         self.mmppt_common = self.hub.mmppt_common[self.inverter_unit_id]
-        self.parent_inverter: SolarEdgeInverter | None = None
+        self._via_device = None
+
+        # Set before init_device() so the hub can look up a meter that
+        # did not respond in the device registry.
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
+        self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
         try:
             self.start_address = METER_REG_BASE[self.meter_id]
@@ -1568,7 +1597,7 @@ class SolarEdgeMeter:
                 )
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise DeviceInvalid(
+            raise DeviceNotResponding(
                 f"Error reading MeterInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
             ) from e
 
@@ -1586,10 +1615,6 @@ class SolarEdgeMeter:
         self.name = (
             f"{self.hub.hub_id.capitalize()} I{self.inverter_unit_id} M{self.meter_id}"
         )
-
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_M{self.meter_id}"
 
     async def read_modbus_data(self) -> None:
         """Read modbus data."""
@@ -1640,15 +1665,17 @@ class SolarEdgeMeter:
             serial_number=self.serial,
             sw_version=self.fw_version,
             hw_version=self.option,
-            via_device_id=self.via_device_id,
+            via_device=self.via_device,
         )
 
     @property
-    def via_device_id(self) -> str | None:
-        """Return the device registry ID of the parent device."""
-        if self.parent_inverter is None:
-            return None
-        return self.parent_inverter.device_registry_id
+    def via_device(self) -> tuple[str, str]:
+        """Return the via device."""
+        return self._via_device
+
+    @via_device.setter
+    def via_device(self, device: str) -> None:
+        self._via_device = (DOMAIN, device)
 
 
 class SolarEdgeBattery:
@@ -1663,7 +1690,13 @@ class SolarEdgeBattery:
         self.battery_id = battery_id
         self.has_parent = True
         self.inverter_common = self.hub.inverter_common[self.inverter_unit_id]
-        self.parent_inverter: SolarEdgeInverter | None = None
+        self._via_device = None
+
+        # Set before init_device() so the hub can look up a battery that
+        # did not respond in the device registry.
+        inverter_model = self.inverter_common.C_Model
+        inerter_serial = self.inverter_common.C_SerialNumber
+        self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
         try:
             self.base_offset = BATTERY_REG_BASE[self.battery_id] - BATTERY_REG_BASE[1]
@@ -1698,12 +1731,12 @@ class SolarEdgeBattery:
             )
 
         except TimeoutError as err:
-            raise DeviceInvalid(
+            raise DeviceNotResponding(
                 f"Timeout BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset})"
             ) from err
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
-            raise DeviceInvalid(
+            raise DeviceNotResponding(
                 f"Error reading BatteryInfo(for_unit({self.inverter_unit_id}),base_offset={self.base_offset}): {e}"
             ) from e
 
@@ -1728,10 +1761,6 @@ class SolarEdgeBattery:
             f"{self.hub.hub_id.capitalize()} "
             f"I{self.inverter_unit_id} B{self.battery_id}"
         )
-
-        inverter_model = self.inverter_common.C_Model
-        inerter_serial = self.inverter_common.C_SerialNumber
-        self.uid_base = f"{inverter_model}_{inerter_serial}_B{self.battery_id}"
 
     async def read_modbus_data(self) -> None:
         """Read modbus data."""
@@ -1772,15 +1801,17 @@ class SolarEdgeBattery:
             model=self.model,
             serial_number=self.serial,
             sw_version=self.fw_version,
-            via_device_id=self.via_device_id,
+            via_device=self.via_device,
         )
 
     @property
-    def via_device_id(self) -> str | None:
-        """Return the device registry ID of the parent device."""
-        if self.parent_inverter is None:
-            return None
-        return self.parent_inverter.device_registry_id
+    def via_device(self) -> tuple[str, str]:
+        """Return the via device."""
+        return self._via_device
+
+    @via_device.setter
+    def via_device(self, device: str) -> None:
+        self._via_device = (DOMAIN, device)
 
     @property
     def battery_rating_adjust(self) -> int:
