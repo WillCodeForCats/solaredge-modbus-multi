@@ -13,7 +13,7 @@ from awesomeversion.exceptions import (
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from modbus_connection.exceptions import (
     IllegalDataAddressError,
