@@ -665,6 +665,9 @@ class SolarEdgeModbusMultiHub:
                 self._hass, DOMAIN, f"check_configuration_{self._entry_id}"
             )
 
+            if self.close_after_polling:
+                await self.connection.disconnect()
+
             return True
 
         try:
