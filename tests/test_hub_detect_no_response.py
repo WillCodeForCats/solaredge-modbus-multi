@@ -56,6 +56,10 @@ class _FakeInverter:
         self.init_der_storage = AsyncMock()
         self.read_modbus_data = AsyncMock()
 
+    @property
+    def device_info(self) -> dr.DeviceInfo:
+        return dr.DeviceInfo(identifiers={(DOMAIN, self.uid_base)})
+
     async def init_device(self):
         self.hub.inverter_common[self.inverter_unit_id] = SimpleNamespace(
             C_Model=INVERTER_MODEL, C_SerialNumber=INVERTER_SERIAL
