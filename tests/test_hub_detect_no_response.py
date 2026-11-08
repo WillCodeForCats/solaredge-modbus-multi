@@ -52,6 +52,7 @@ class _FakeInverter:
         self.inverter_unit_id = unit_id
         self.hub = hub
         self.uid_base = f"{INVERTER_MODEL}_{INVERTER_SERIAL}"
+        self.device_info = {"identifiers": {(DOMAIN, self.uid_base)}}
         self.inverter_common = MagicMock()
         self.init_der_storage = AsyncMock()
         self.read_modbus_data = AsyncMock()
