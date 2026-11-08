@@ -32,6 +32,7 @@ def _platform(mode=0):
     data = SimpleNamespace(E_Lim_Ctl_Mode=mode)
     return SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         site_limit_control_data=data,
         write=AsyncMock(),
     )
@@ -148,6 +149,7 @@ def test_rrcr_extra_state_attributes_list_active_inputs(value, expected):
     """Test rrcr extra state attributes list active inputs."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         global_power_control_data=SimpleNamespace(I_RRCR=value),
     )
     entity = SolarEdgeRRCR(platform, None, None)
@@ -170,6 +172,7 @@ def test_heat_sink_temperature_availability(value, sf, expected):
     """Test heat sink temperature availability."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         inverter_data=SimpleNamespace(I_Temp_Sink=value, I_Temp_SF=sf),
     )
     entity = HeatSinkTemperature(
@@ -226,6 +229,7 @@ def test_status_vendor4_availability(value, expected):
     """Test status vendor 4 availability."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         inverter_data=SimpleNamespace(I_Status_Vendor4=value),
     )
     entity = StatusVendor4(platform, None, SimpleNamespace(last_update_success=True))

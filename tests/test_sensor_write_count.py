@@ -26,6 +26,7 @@ from custom_components.solaredge_modbus_multi.sensor import SolarEdgeWriteCount
 def _make_platform(write_count=0):
     return SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         write_count=write_count,
         write_count_listeners=set(),
     )

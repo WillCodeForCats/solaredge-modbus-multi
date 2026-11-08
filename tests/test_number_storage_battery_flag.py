@@ -11,7 +11,9 @@ from custom_components.solaredge_modbus_multi.number import (
 
 
 def _make_platform(has_battery):
-    return SimpleNamespace(has_battery=has_battery)
+    return SimpleNamespace(
+        uid_base="inverter_1", device_info=None, has_battery=has_battery
+    )
 
 
 @pytest.mark.parametrize("entity_class", [StorageChargeLimit, StorageDischargeLimit])
