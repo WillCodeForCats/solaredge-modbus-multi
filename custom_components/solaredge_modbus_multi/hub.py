@@ -685,7 +685,7 @@ class SolarEdgeModbusMultiHub:
         except ModbusTimeoutError as e:
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
-            raise DataUpdateFailed(f"Update failed: {e}") from e
+            raise DataUpdateFailed(f"Timeout: {e}") from e
 
         except (ModbusConnectionError, ModbusProtocolError) as e:
             await self.connection.disconnect()
@@ -695,6 +695,11 @@ class SolarEdgeModbusMultiHub:
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}") from e
+
+        except ModbusExceptionError:
+            if self.close_after_polling:
+                await self.connection.disconnect()
+            raise DataUpdateFailed(f"Modbus exception: {e}") from e
 
         except TimeoutError as e:
             # The refresh is wedged: every request has its own timeout, so this
