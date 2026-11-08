@@ -651,7 +651,7 @@ class SolarEdgeModbusMultiHub:
                 await self.connection.disconnect()
             raise DataUpdateFailed(f"Invalid device: {e}") from e
 
-        except ModbusExceptionError:
+        except ModbusExceptionError as e:
             if self.close_after_polling:
                 await self.connection.disconnect()
             raise DataUpdateFailed(f"Modbus exception: {e}") from e
