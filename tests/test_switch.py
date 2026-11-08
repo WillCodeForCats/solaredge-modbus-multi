@@ -74,7 +74,10 @@ def _setup_hass(inverters, site_limit, detect_extras):
 )
 async def test_setup_entry_entities_per_inverter(site_limit, detect_extras, expected):
     """Entities per inverter follow the site limit and extras options."""
-    inverters = [SimpleNamespace(), SimpleNamespace()]
+    inverters = [
+        SimpleNamespace(uid_base="inv1", device_info=None),
+        SimpleNamespace(uid_base="inv2", device_info=None),
+    ]
     hass, entry = _setup_hass(inverters, site_limit, detect_extras)
     add = MagicMock()
     coordinator = hass.data[DOMAIN]["entry1"]["coordinator"]
@@ -106,7 +109,7 @@ def test_base_class_properties():
 
 def test_coordinator_update_writes_state():
     """A coordinator update writes the entity state."""
-    platform = SimpleNamespace(uid_base="inverter_1")
+    platform = SimpleNamespace(uid_base="inverter_1", device_info=None)
     entity = SolarEdgeGridControl(platform, None, _coordinator())
 
     with patch.object(entity, "async_write_ha_state") as write_state:
@@ -119,6 +122,7 @@ def _site_limit_platform(mode=0, supported=True):
     """Build a fake inverter platform with site limit control data."""
     return SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         has_site_limit_control=supported,
         site_limit_control_data=SimpleNamespace(E_Lim_Ctl_Mode=mode),
         write=AsyncMock(),
@@ -228,6 +232,7 @@ def _adv_platform(enabled=0, supported=True):
     """Build a fake inverter platform with advanced power control data."""
     return SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         has_advanced_power_control=supported,
         advanced_power_control_data=SimpleNamespace(AdvPwrCtrlEn=enabled),
         write=AsyncMock(),

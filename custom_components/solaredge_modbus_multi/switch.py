@@ -56,11 +56,7 @@ class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
         """Initialize the sensor."""
         self._platform = platform
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._platform.device_info
+        self._attr_device_info = platform.device_info
 
     @property
     def config_entry_id(self):
@@ -81,6 +77,13 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     """External Production switch. Indicates a non-SolarEdge power sorce in system."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "External Production"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_external_production"
 
     @property
     def available(self) -> bool:
@@ -92,21 +95,6 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_external_production"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "External Production"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
 
     @property
     def is_on(self) -> bool:
@@ -142,6 +130,12 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     """Negative Site Limit switch. Sets minimum import power when enabled."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Negative Site Limit"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_negative_site_limit"
 
     @property
     def available(self) -> bool:
@@ -153,16 +147,6 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_negative_site_limit"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Negative Site Limit"
 
     @property
     def is_on(self) -> bool:
@@ -198,6 +182,12 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
     """Grid Control boolean switch. This is "AdvancedPwrControlEn" in specs."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Advanced Power Control"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_adv_pwr_ctrl"
 
     @property
     def available(self) -> bool:
@@ -207,16 +197,6 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
             and self._platform.has_advanced_power_control
             and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_adv_pwr_ctrl"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Advanced Power Control"
 
     @property
     def is_on(self) -> bool:

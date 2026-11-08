@@ -35,6 +35,7 @@ from custom_components.solaredge_modbus_multi.sensor import (
 def _platform(*ders, scan_ids=None):
     return SimpleNamespace(
         uid_base="inv",
+        device_info=None,
         der_storage=list(ders),
         der_storage_scan_ids=(
             list(scan_ids) if scan_ids else list(range(1, len(ders) + 1))
