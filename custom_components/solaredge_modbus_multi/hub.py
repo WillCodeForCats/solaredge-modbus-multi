@@ -54,6 +54,7 @@ from .const import (
     METER_REG_BASE,
     MMPPT_UNITS_VERSION,
     REFRESH_WATCHDOG,
+    SHARED_BATTERY_PROBE_TIMEOUT,
     STATUS_VENDOR4_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
@@ -1793,9 +1794,9 @@ class SolarEdgeBattery:
             )
             # On a shared connection the request can wait in line behind other
             # consumers, which request_timeout does not account for. There the
-            # per-request timeouts and the setup watchdog bound the probe.
+            # probe gets a fixed limit, but never less than one of our requests.
             probe_timeout = (
-                None
+                max(SHARED_BATTERY_PROBE_TIMEOUT, self.hub.request_timeout)
                 if isinstance(self.hub.connection, SharedUnits)
                 else self.hub.request_timeout
             )

@@ -61,6 +61,11 @@ MESSAGE_SPACING = 0.1
 # Home Assistant allows for setting up a config entry.
 REFRESH_WATCHDOG = 240
 
+# Seconds a battery probe on a shared connection may take, retries included.
+# An empty battery slot can stay silent, and retrying it behind another
+# holder's longer timeout could use up the setup watchdog on its own.
+SHARED_BATTERY_PROBE_TIMEOUT = 10
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
