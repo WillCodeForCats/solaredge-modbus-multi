@@ -59,12 +59,14 @@ def _auto_mock_setup_entry(mock_setup_entry):
 
 
 async def _start_user_flow(hass):
+    """Start a user-initiated config flow."""
     return await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
 
 async def _choose(hass, result, next_step_id):
+    """Pick a menu option in the user step."""
     return await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": next_step_id}
     )
@@ -94,12 +96,14 @@ async def _run_scan(hass, setup_type, **overrides):
 
 
 async def _submit_manual(hass, result, **overrides):
+    """Submit the manual form with MANUAL_INPUT plus any overrides."""
     return await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input=MANUAL_INPUT | overrides
     )
 
 
 async def _start_manual(hass, **overrides):
+    """Drive the flow from the menu through one manual form submission."""
     result = await _choose(hass, await _start_user_flow(hass), SETUP_MANUAL)
     return await _submit_manual(hass, result, **overrides)
 
@@ -285,6 +289,7 @@ async def test_scan_reports_progress(hass, mock_scanner):
     """Scanner progress callbacks update the flow's progress bar."""
 
     async def scan_list(device_list, progress_callback):
+        """Report progress three times, then find one inverter."""
         for scanned in range(3):
             await progress_callback(scanned, 2)
         return [1]
@@ -305,6 +310,7 @@ async def test_scan_ignores_cancelled_progress_update(hass, mock_scanner):
     """A cancelled progress update doesn't stop the scan."""
 
     async def scan_list(device_list, progress_callback):
+        """Report progress once, then find one inverter."""
         await progress_callback(1, 2)
         return [1]
 
@@ -327,6 +333,7 @@ async def test_scan_progress_shown_while_scan_running(hass, mock_scanner):
     release = asyncio.Event()
 
     async def scan_list(device_list, progress_callback):
+        """Block until released, then find one inverter."""
         await release.wait()
         return [1]
 
