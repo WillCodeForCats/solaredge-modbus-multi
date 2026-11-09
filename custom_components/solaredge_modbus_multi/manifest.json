@@ -3,6 +3,7 @@
   "name": "SolarEdge Modbus Multi",
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
+  "categories": ["energy.solar_batteries"]
   "dependencies": [],
   "documentation": "https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki",
   "integration_type": "hub",
