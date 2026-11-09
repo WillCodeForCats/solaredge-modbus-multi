@@ -16,11 +16,7 @@ rules:
     comment: |
       Config flow exists, but most fields have no data_description in
       strings.json (only one is present).
-  config-flow-test-coverage:
-    status: todo
-    comment: |
-      Reconfigure and zeroconf steps are tested. The user menu, scan_*,
-      scan_complete and manual steps have no tests.
+  config-flow-test-coverage: done
   dependency-transparency: done
   docs-actions:
     status: exempt
