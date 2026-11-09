@@ -1,0 +1,116 @@
+rules:
+  # Bronze
+  action-setup:
+    status: exempt
+    comment: The integration does not register any service actions.
+  appropriate-polling: done
+  brands: done
+  common-modules:
+    status: todo
+    comment: |
+      The coordinator lives in __init__.py and each platform defines its own
+      entity base class. Move the coordinator to coordinator.py and shared
+      entity base code to entity.py.
+  config-flow:
+    status: todo
+    comment: |
+      Config flow exists, but most fields have no data_description in
+      strings.json (only one is present).
+  config-flow-test-coverage:
+    status: todo
+    comment: |
+      Reconfigure and zeroconf steps are tested. The user menu, scan_*,
+      scan_complete and manual steps have no tests.
+  dependency-transparency: done
+  docs-actions:
+    status: exempt
+    comment: The integration does not register any service actions.
+  docs-conditions:
+    status: exempt
+    comment: The integration does not provide device conditions.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions:
+    status: todo
+    comment: The wiki does not describe how to remove the integration.
+  docs-triggers:
+    status: exempt
+    comment: The integration does not provide device triggers.
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data:
+    status: todo
+    comment: Hub and coordinator are stored in hass.data[DOMAIN][entry_id].
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry: done
+
+  # Silver
+  action-exceptions: done
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates:
+    status: todo
+    comment: No platform sets PARALLEL_UPDATES.
+  reauthentication-flow:
+    status: exempt
+    comment: Modbus/TCP has no authentication.
+  test-coverage:
+    status: todo
+    comment: Coverage has not been measured against the 95% requirement.
+
+  # Gold
+  devices: done
+  diagnostics: done
+  discovery: done
+  discovery-update-info:
+    status: todo
+    comment: |
+      The config entry unique_id is host:port, so a discovery from a changed
+      IP address does not match the existing entry and cannot update it.
+      Depends on moving the unique_id to a value read from the device.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices: done
+  docs-supported-functions: done
+  docs-troubleshooting:
+    status: todo
+    comment: |
+      The wiki has Known Issues and Integration Diagnostics pages, but no
+      dedicated troubleshooting section.
+  docs-use-cases: done
+  dynamic-devices:
+    status: todo
+    comment: |
+      Devices are only found during setup. A new inverter, meter or battery
+      needs a reconfigure or reload.
+  entity-category: done
+  entity-device-class: done
+  entity-disabled-by-default: done
+  entity-translations:
+    status: todo
+    comment: Entity names are hardcoded with _attr_name instead of translation_key.
+  exception-translations:
+    status: todo
+    comment: HomeAssistantError and ConfigEntryError messages are not translated.
+  icon-translations:
+    status: todo
+    comment: Icons are set with _attr_icon instead of icons.json.
+  reconfiguration-flow: done
+  repair-issues: done
+  stale-devices: done
+
+  # Platinum
+  async-dependency: done
+  inject-websession:
+    status: exempt
+    comment: The integration uses Modbus/TCP, not HTTP.
+  strict-typing:
+    status: todo
+    comment: No py.typed marker and no mypy strict checking in CI.
