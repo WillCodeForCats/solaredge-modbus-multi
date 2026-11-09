@@ -2,14 +2,12 @@ name: Validate with Hassfest
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
   schedule:
     - cron: "0 0 * * *"
-permissions: read-all
+
+permissions: {}
+
 jobs:
   validate:
     runs-on: "ubuntu-latest"
