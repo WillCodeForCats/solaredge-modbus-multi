@@ -5,12 +5,7 @@ rules:
     comment: The integration does not register any service actions.
   appropriate-polling: done
   brands: done
-  common-modules:
-    status: todo
-    comment: |
-      The coordinator lives in __init__.py and each platform defines its own
-      entity base class. Move the coordinator to coordinator.py and shared
-      entity base code to entity.py.
+  common-modules: done
   config-flow:
     status: todo
     comment: |
