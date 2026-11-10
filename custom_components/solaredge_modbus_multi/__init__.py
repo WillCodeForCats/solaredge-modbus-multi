@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import timedelta
 import importlib.metadata
 import logging
 from typing import TYPE_CHECKING
@@ -27,13 +25,10 @@ from homeassistant.helpers import (
 )
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import (
-    TimestampDataUpdateCoordinator,
-    UpdateFailed,
-)
 import voluptuous as vol
 
 from .const import (
+    DATA_YAML,
     DOMAIN,
     HA_REQUIRED_VERSION,
     MESSAGE_SPACING,
@@ -41,7 +36,11 @@ from .const import (
     TMODBUS_REQUIRED_VERSION,
     ConfDefaultInt,
     ConfName,
-    RetrySettings,
+)
+from .coordinator import (
+    SolarEdgeConfigEntry,
+    SolarEdgeCoordinator,
+    SolarEdgeRuntimeData,
 )
 from .helpers import safe_version_tuple
 
@@ -134,10 +133,9 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up SolarEdge Modbus Muti advanced YAML config."""
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
+    hass.data[DATA_YAML] = config.get(DOMAIN, {})
 
-    if "modbus" in hass.data[DOMAIN]["yaml"]:
+    if "modbus" in hass.data[DATA_YAML]:
         ir.async_create_issue(
             hass,
             DOMAIN,
@@ -228,7 +226,7 @@ def _async_remove_legacy_der_devices(
             device_registry.async_remove_device(device.id)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
     _check_ha_version()
@@ -275,11 +273,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ir.async_delete_issue(hass, DOMAIN, "check_configuration")
     ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
 
-    hass.data[DOMAIN][entry.entry_id] = {
-        "hub": solaredge_hub,
-        "coordinator": coordinator,
-        "dependency_versions": installed_versions,
-    }
+    entry.runtime_data = SolarEdgeRuntimeData(
+        hub=solaredge_hub,
+        coordinator=coordinator,
+        dependency_versions=installed_versions,
+    )
 
     await coordinator.async_config_entry_first_refresh()
 
@@ -292,20 +290,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
+    hass: HomeAssistant, config_entry: SolarEdgeConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Remove a config entry from a device."""
-    solaredge_hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    solaredge_hub = config_entry.runtime_data.hub
 
     known_devices = []
 
@@ -451,86 +445,3 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     )
 
     return True
-
-
-class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
-    """Solar edge coordinator."""
-
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        hub: SolarEdgeModbusMultiHub,
-        scan_interval: int,
-    ):
-        """Initialize the solar edge coordinator."""
-        super().__init__(
-            hass,
-            _LOGGER,
-            name="SolarEdge Coordinator",
-            update_interval=timedelta(seconds=scan_interval),
-        )
-        self._hub = hub
-        self._yaml_config = hass.data[DOMAIN]["yaml"]
-
-    async def _async_update_data(self) -> bool:
-        from .hub import DataUpdateFailed, HubInitFailed  # noqa: PLC0415
-
-        try:
-            return await self._refresh_modbus_data_with_retry(
-                ex_type=DataUpdateFailed,
-                limit=self._yaml_config.get("retry", {}).get(
-                    "limit", RetrySettings.Limit
-                ),
-                wait_ms=self._yaml_config.get("retry", {}).get(
-                    "time", RetrySettings.Time
-                ),
-                wait_ratio=self._yaml_config.get("retry", {}).get(
-                    "ratio", RetrySettings.Ratio
-                ),
-            )
-
-        except HubInitFailed as e:
-            raise UpdateFailed(f"{e}") from e
-
-        except DataUpdateFailed as e:
-            raise UpdateFailed(f"{e}") from e
-
-    async def _refresh_modbus_data_with_retry(
-        self,
-        ex_type=Exception,
-        limit: int = 0,
-        wait_ms: int = 100,
-        wait_ratio: int = 2,
-    ) -> bool:
-        """Retry refresh until no exception occurs or retries exhaust.
-
-        :param ex_type: retry only if exception is subclass of this type
-        :param limit: maximum number of invocation attempts
-        :param wait_ms: initial wait time after each attempt in milliseconds.
-        :param wait_ratio: increase wait by multiplying by this after each try.
-        :return: result of first successful invocation
-        :raises: last invocation exception if attempts exhausted
-                 or exception is not an instance of ex_type
-
-        Credit: https://gist.github.com/davidohana/c0518ff6a6b95139e905c8a8caef9995
-        """
-        _LOGGER.debug("Retry limit=%s time=%s ratio=%s", limit, wait_ms, wait_ratio)
-        attempt = 1
-        while True:
-            try:
-                return await self._hub.async_refresh_modbus_data()
-            except Exception as ex:  # noqa: PERF203
-                if not isinstance(ex, ex_type):
-                    raise
-                if 0 < limit <= attempt:
-                    _LOGGER.debug("No more data refresh attempts (maximum %s)", limit)
-                    raise
-
-                _LOGGER.debug("Failed data refresh attempt %s", attempt)
-
-                attempt += 1
-                _LOGGER.debug(
-                    "Waiting %s ms before data refresh attempt %s", wait_ms, attempt
-                )
-                await asyncio.sleep(wait_ms / 1000)
-                wait_ms *= wait_ratio

@@ -19,6 +19,9 @@
         "description": "En SolarEdge Modbus/TCP-gateway hittades på {host}:{port}. Konfigurera den nu?",
         "data": {
           "name": "Sensorprefix"
+        },
+        "data_description": {
+          "name": "Läggs till i början av varje enhetsnamn, följt av enheten, t.ex. I1 för växelriktare 1. Entitets-ID:n skapas från dessa namn."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Hoppa över validering av enhets-ID"
         },
         "data_description": {
+          "name": "Läggs till i början av varje enhetsnamn, följt av enheten, t.ex. I1 för växelriktare 1. Entitets-ID:n skapas från dessa namn.",
+          "host": "IP-adress eller värdnamn för växelriktaren med Modbus/TCP aktiverat. Med flera växelriktare använder du ledarväxelriktaren.",
+          "port": "Modbus/TCP-porten som är inställd på växelriktaren. SolarEdge-standard är 1502.",
+          "device_list": "Modbus-enhets-ID:n för dina växelriktare. Använd en lista (1,3,10), ett intervall (1-4) eller båda (1-3,5,10). En enda växelriktare använder normalt 1.",
           "bypass_device_check": "Lägg till enhets-ID-listan utan att ansluta för att kontrollera att varje ID svarar som en SolarEdge-växelriktare. Använd detta endast om kontrollen misslyckas för en enhet som du vet är korrekt, till exempel en som är offline under installationen."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Sensorprefix",
           "host": "Växelriktarens IP-adress",
           "port": "Modbus/TCP-port"
+        },
+        "data_description": {
+          "name": "Läggs till i början av varje enhetsnamn, följt av enheten, t.ex. I1 för växelriktare 1. Entitets-ID:n skapas från dessa namn.",
+          "host": "IP-adress eller värdnamn för växelriktaren med Modbus/TCP aktiverat. Med flera växelriktare använder du ledarväxelriktaren.",
+          "port": "Modbus/TCP-porten som är inställd på växelriktaren. SolarEdge-standard är 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Växelriktarens IP-adress",
           "port": "Modbus/TCP-port",
           "device_list": "Lista över växelriktarnas enhets-ID"
+        },
+        "data_description": {
+          "host": "IP-adress eller värdnamn för växelriktaren med Modbus/TCP aktiverat. Med flera växelriktare använder du ledarväxelriktaren.",
+          "port": "Modbus/TCP-porten som är inställd på växelriktaren. SolarEdge-standard är 1502.",
+          "device_list": "Modbus-enhets-ID:n för dina växelriktare. Använd en lista (1,3,10), ett intervall (1-4) eller båda (1-3,5,10). En enda växelriktare använder normalt 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Effektstyrningsalternativ",
           "request_timeout": "Tidsgräns för Modbus-förfrågan (sekunder)",
           "sleep_after_write": "Fördröjning för växelriktarkommando (sekunder)"
+        },
+        "data_description": {
+          "scan_interval": "Hur ofta, i sekunder, data läses från växelriktarna.",
+          "close_after_polling": "Stäng Modbus/TCP-anslutningen efter varje lyckad avläsning. Aktivera detta om något annat också ansluter till växelriktaren, eftersom den bara accepterar en anslutning åt gången.",
+          "detect_meters": "Leta efter mätare anslutna till varje växelriktare när integrationen startar.",
+          "detect_batteries": "Leta efter batterier anslutna till varje växelriktare när integrationen startar. Batteristödet använder register som SolarEdge inte officiellt dokumenterar.",
+          "detect_extras": "Kontrollera om varje växelriktare stöder Global Dynamic Power Control och Advanced Power Control, och lägg till deras entiteter om de hittas.",
+          "advanced_power_control": "Visa steget Alternativ för effektstyrning härnäst, för att slå på eller av lagringsstyrning och styrning av anläggningsgräns.",
+          "request_timeout": "Hur länge, i sekunder, att vänta på svar på varje Modbus-förfrågan.",
+          "sleep_after_write": "Sekunder att vänta mellan förfrågningar till en växelriktare efter att ett kommando har skrivits till den. Vissa växelriktare behöver tid att behandla ett kommando innan de svarar igen. 0 stänger av detta."
         }
       },
       "adv_pwr_ctl": {
@@ -98,6 +125,10 @@
         "data": {
           "adv_storage_control": "Aktivera lagringsstyrning",
           "adv_site_limit_control": "Aktivera styrning av anläggningsgräns"
+        },
+        "data_description": {
+          "adv_storage_control": "Lägg till entiteter som ändrar inställningarna för batterilagringsstyrning på växelriktaren.",
+          "adv_site_limit_control": "Lägg till entiteter som ändrar anläggningens export- och produktionsgränser på växelriktaren."
         },
         "description": "Varning: Dessa alternativ kan bryta mot elavtal, ändra din elräkning, kräva särskild utrustning och skriva över SolarEdges eller din installatörs provisionering. Används på egen risk! Justerbara parametrar i Modbus-register är avsedda för långtidslagring. Regelbundna ändringar kan skada flashminnet."
       },
@@ -107,6 +138,11 @@
           "allow_battery_energy_reset": "Tillåt återställning av batterienergi",
           "battery_energy_reset_cycles": "Uppdateringscykler för att återställa batterienergi",
           "battery_rating_adjust": "Justering av batterikapacitet (procent)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Vissa batterier rapporterar energisummor som minskar eller nollställs. När av ignoreras ett lägre värde och det senaste värdet behålls. När på accepteras det lägre värdet.",
+          "battery_energy_reset_cycles": "Antal avläsningar i rad som ett lägre batterienergivärde måste ses innan det accepteras. Används bara när Tillåt nollställning av batterienergi är på.",
+          "battery_rating_adjust": "Procent över batteriets nominella energi som den tillgängliga energin får nå innan värdet behandlas som ogiltigt. Använd detta om ditt batteri rapporterar mer än sitt nominella värde."
         }
       }
     },
@@ -129,6 +165,11 @@
               "host": "Växelriktarens IP-adress",
               "port": "Modbus/TCP-port",
               "device_list": "Lista över växelriktarnas enhets-ID"
+            },
+            "data_description": {
+              "host": "IP-adress eller värdnamn för växelriktaren med Modbus/TCP aktiverat. Med flera växelriktare använder du ledarväxelriktaren.",
+              "port": "Modbus/TCP-porten som är inställd på växelriktaren. SolarEdge-standard är 1502.",
+              "device_list": "Modbus-enhets-ID:n för dina växelriktare. Använd en lista (1,3,10), ett intervall (1-4) eller båda (1-3,5,10). En enda växelriktare använder normalt 1."
             }
           }
         },
