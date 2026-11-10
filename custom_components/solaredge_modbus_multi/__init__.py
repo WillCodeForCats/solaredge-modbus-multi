@@ -26,6 +26,7 @@ from homeassistant.helpers.typing import ConfigType
 import voluptuous as vol
 
 from .const import (
+    DATA_YAML,
     DOMAIN,
     MESSAGE_SPACING,
     MODBUS_CONNECTION_REQUIRED_VERSION,
@@ -115,10 +116,9 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up SolarEdge Modbus Muti advanced YAML config."""
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
+    hass.data[DATA_YAML] = config.get(DOMAIN, {})
 
-    if "modbus" in hass.data[DOMAIN]["yaml"]:
+    if "modbus" in hass.data[DATA_YAML]:
         ir.async_create_issue(
             hass,
             DOMAIN,

@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 
 from .components import component_to_dict
 from .const import DOMAIN
+from .const import DATA_YAML
 from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
@@ -77,7 +78,7 @@ async def async_get_config_entry_diagnostics(
         "tmodbus_version": dependency_versions["tmodbus"],
         "modbus_connection_version": dependency_versions["modbus-connection"],
         "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
-        "yaml": async_redact_data(hass.data[DOMAIN]["yaml"], REDACT_CONFIG),
+        "yaml": async_redact_data(hass.data[DATA_YAML], REDACT_CONFIG),
     }
 
     for inverter in hub.inverters:
