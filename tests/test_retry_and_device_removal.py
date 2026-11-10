@@ -14,7 +14,11 @@ from modbus_connection.model.sunspec import SunSpecError
 import pytest
 
 from custom_components.solaredge_modbus_multi import async_remove_config_entry_device
-from custom_components.solaredge_modbus_multi.const import DOMAIN, RetrySettings
+from custom_components.solaredge_modbus_multi.const import (
+    DATA_YAML,
+    DOMAIN,
+    RetrySettings,
+)
 from custom_components.solaredge_modbus_multi.coordinator import SolarEdgeCoordinator
 from custom_components.solaredge_modbus_multi.hub import (
     DataUpdateFailed,
@@ -145,7 +149,7 @@ async def test_suns_scan_with_retry_does_not_retry_sunspec_errors():
 
 
 def _make_coordinator(hass, refresh):
-    hass.data[DOMAIN] = {"yaml": {}}
+    hass.data[DATA_YAML] = {}
     hub = SimpleNamespace(async_refresh_modbus_data=refresh)
     return SolarEdgeCoordinator(hass, hub, 30)
 
@@ -222,8 +226,7 @@ def _removal_hass(hass, entry_id="entry1"):
         meters=[_device((DOMAIN, "inverter_1_meter_1"))],
         batteries=[_device((DOMAIN, "inverter_1_battery_1"))],
     )
-    hass.data[DOMAIN] = {entry_id: {"hub": hub}}
-    return SimpleNamespace(entry_id=entry_id)
+    return SimpleNamespace(entry_id=entry_id, runtime_data=SimpleNamespace(hub=hub))
 
 
 @pytest.mark.parametrize(

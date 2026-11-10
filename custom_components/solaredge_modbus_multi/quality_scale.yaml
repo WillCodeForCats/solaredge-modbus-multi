@@ -28,9 +28,7 @@ rules:
   entity-event-setup: done
   entity-unique-id: done
   has-entity-name: done
-  runtime-data:
-    status: todo
-    comment: Hub and coordinator are stored in hass.data[DOMAIN][entry_id].
+  runtime-data: done
   test-before-configure: done
   test-before-setup: done
   unique-config-entry: done

@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .coordinator import SolarEdgeCoordinator
+from .coordinator import SolarEdgeConfigEntry, SolarEdgeCoordinator
 
 
 class SolarEdgeEntity(CoordinatorEntity[SolarEdgeCoordinator]):
@@ -14,7 +13,10 @@ class SolarEdgeEntity(CoordinatorEntity[SolarEdgeCoordinator]):
     _attr_has_entity_name = True
 
     def __init__(
-        self, platform, config_entry: ConfigEntry, coordinator: SolarEdgeCoordinator
+        self,
+        platform,
+        config_entry: SolarEdgeConfigEntry,
+        coordinator: SolarEdgeCoordinator,
     ) -> None:
         """Initialize the entity for a SolarEdge device."""
         super().__init__(coordinator)

@@ -3,22 +3,36 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 from datetime import timedelta
 import logging
 from typing import TYPE_CHECKING
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import (
     TimestampDataUpdateCoordinator,
     UpdateFailed,
 )
 
-from .const import DOMAIN, RetrySettings
+from .const import DATA_YAML, RetrySettings
 
 if TYPE_CHECKING:
     from .hub import SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@dataclass
+class SolarEdgeRuntimeData:
+    """Runtime data stored on a SolarEdge Modbus Multi config entry."""
+
+    hub: SolarEdgeModbusMultiHub
+    coordinator: SolarEdgeCoordinator
+    dependency_versions: dict[str, str]
+
+
+type SolarEdgeConfigEntry = ConfigEntry[SolarEdgeRuntimeData]
 
 
 class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
@@ -38,7 +52,7 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
         self._hub = hub
-        self._yaml_config = hass.data[DOMAIN]["yaml"]
+        self._yaml_config = hass.data[DATA_YAML]
 
     async def _async_update_data(self) -> bool:
         """Fetch new data from the hub, retrying with backoff on failure."""
