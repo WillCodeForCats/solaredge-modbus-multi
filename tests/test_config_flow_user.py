@@ -265,7 +265,12 @@ async def test_scan_creates_entry(hass, mock_scanner, setup_type, expected_range
     assert result["result"].unique_id == "192.168.1.50:1502"
 
     mock_scanner.cls.assert_called_once_with(
-        host="192.168.1.50", port=1502, scan_retries=2, scan_timeout=0.7
+        hass,
+        host="192.168.1.50",
+        port=1502,
+        scan_retries=2,
+        scan_timeout=0.7,
+        use_socket=False,
     )
     mock_scanner.connect.assert_awaited_once()
     assert mock_scanner.scan_list.await_args.args[0] == expected_range
@@ -483,7 +488,12 @@ async def test_manual_creates_entry_with_checked_ids(hass, mock_scanner):
     assert result["data"] == EXPECTED_DATA | {ConfName.DEVICE_LIST: [1, 2, 3]}
     assert result["result"].unique_id == "192.168.1.50:1502"
     mock_scanner.cls.assert_called_once_with(
-        host="192.168.1.50", port=1502, scan_retries=3, scan_timeout=0.5
+        hass,
+        host="192.168.1.50",
+        port=1502,
+        scan_retries=3,
+        scan_timeout=0.5,
+        use_socket=False,
     )
 
 
