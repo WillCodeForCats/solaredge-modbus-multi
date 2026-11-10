@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Justering av batterikapasitet (prosent)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Noen batterier rapporterer energitotaler som går ned eller nullstilles. Når av, ignoreres en lavere verdi og den siste verdien beholdes. Når på, godtas den lavere verdien.",
-          "battery_energy_reset_cycles": "Antall avlesninger på rad der en lavere batterienergiverdi må sees før den godtas. Brukes bare når Tillat nullstilling av batterienergi er slått på.",
+          "battery_energy_reset_cycles": "Antall avlesninger på rad der en lavere batterienergiverdi må sees før den regnes som en nullstilling av telleren. Totalen fortsetter deretter fra den nye verdien. Minimum 2.",
           "battery_rating_adjust": "Prosent over batteriets nominelle energi som tilgjengelig energi kan nå før verdien regnes som ugyldig. Bruk dette hvis batteriet ditt rapporterer mer enn den nominelle verdien."
         }
       }

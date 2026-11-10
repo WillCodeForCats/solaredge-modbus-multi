@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Akun kapasiteetin säätö (prosenttia)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Jotkin akut ilmoittavat energiasummia, jotka pienenevät tai nollautuvat. Kun pois päältä, pienempi arvo ohitetaan ja viimeisin arvo säilyy. Kun päällä, pienempi arvo hyväksytään.",
-          "battery_energy_reset_cycles": "Peräkkäisten kyselyjen määrä, joissa pienempi akun energia-arvo täytyy nähdä ennen kuin se hyväksytään. Käytetään vain, kun akun energian nollaus on sallittu.",
+          "battery_energy_reset_cycles": "Peräkkäisten kyselyjen määrä, joissa pienempi akun energia-arvo täytyy nähdä ennen kuin sitä pidetään laskurin nollautumisena. Kokonaismäärä jatkaa sitten laskemista uudesta arvosta. Vähintään 2.",
           "battery_rating_adjust": "Prosenttimäärä akun nimellisenergian yli, jonka käytettävissä oleva energia saa saavuttaa ennen kuin arvoa pidetään virheellisenä. Käytä tätä, jos akkusi ilmoittaa enemmän kuin nimellisarvonsa."
         }
       }

@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Úprava kapacity baterie (procenta)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Některé baterie hlásí součty energie, které klesají nebo se vynulují. Je-li vypnuto, nižší hodnota se ignoruje a zůstane poslední hodnota. Je-li zapnuto, nižší hodnota se přijme.",
-          "battery_energy_reset_cycles": "Počet po sobě jdoucích dotazování, během kterých musí být nižší hodnota energie baterie zjištěna, než se přijme. Použije se pouze, je-li zapnuto Povolit reset energie baterie.",
+          "battery_energy_reset_cycles": "Počet po sobě jdoucích dotazování, během kterých musí být zjištěna nižší hodnota energie baterie, než se považuje za vynulování čítače. Součet pak pokračuje od nové hodnoty. Minimum je 2.",
           "battery_rating_adjust": "O kolik procent nad jmenovitou energii baterie smí dostupná energie stoupnout, než se hodnota považuje za neplatnou. Použijte, pokud baterie hlásí více než svou jmenovitou hodnotu."
         }
       }

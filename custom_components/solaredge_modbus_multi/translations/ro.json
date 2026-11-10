@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Ajustare Capacitate Baterie (procent)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Unele baterii raportează totaluri de energie care scad sau se resetează la zero. Când este dezactivat, o valoare mai mică este ignorată și se păstrează ultima valoare. Când este activat, valoarea mai mică este acceptată.",
-          "battery_energy_reset_cycles": "Numărul de interogări consecutive în care o valoare mai mică a energiei bateriei trebuie văzută înainte de a fi acceptată. Folosit doar când Permite resetarea energiei bateriei este activat.",
+          "battery_energy_reset_cycles": "Numărul de interogări consecutive în care o valoare mai mică a energiei bateriei trebuie văzută înainte de a fi tratată ca o resetare a contorului. Totalul continuă apoi de la noua valoare. Minimum 2.",
           "battery_rating_adjust": "Procentul peste energia nominală a bateriei pe care energia disponibilă îl poate atinge înainte ca valoarea să fie considerată invalidă. Folosiți dacă bateria raportează mai mult decât valoarea nominală."
         }
       }

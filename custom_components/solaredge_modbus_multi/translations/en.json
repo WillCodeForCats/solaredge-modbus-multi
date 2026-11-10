@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Battery Rating Adjustment (percent)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Some batteries report energy totals that go down or reset to zero. When off, a lower value is ignored and the last value is kept. When on, the lower value is accepted.",
-          "battery_energy_reset_cycles": "Number of polls in a row that a lower battery energy value must be seen before it is accepted. Only used when Allow Battery Energy to Reset is on.",
+          "battery_energy_reset_cycles": "Number of polls in a row that a lower battery energy reading must be seen before it is treated as a counter reset. The total then continues counting from the new reading. Minimum 2.",
           "battery_rating_adjust": "Percent above the battery's rated energy that its available energy may reach before the value is treated as invalid. Use this if your battery reports more than its rating."
         }
       }

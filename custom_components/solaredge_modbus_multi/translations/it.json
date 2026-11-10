@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Regolazione della potenza della batteria (percentuale)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Alcune batterie riportano totali di energia che diminuiscono o si azzerano. Se disattivato, un valore inferiore viene ignorato e viene mantenuto l'ultimo valore. Se attivato, il valore inferiore viene accettato.",
-          "battery_energy_reset_cycles": "Numero di interrogazioni consecutive in cui deve essere visto un valore di energia della batteria inferiore prima che venga accettato. Usato solo quando Consenti l'azzeramento dell'energia della batteria è attivo.",
+          "battery_energy_reset_cycles": "Numero di interrogazioni consecutive in cui deve essere visto un valore di energia della batteria inferiore prima che venga considerato un azzeramento del contatore. Il totale continua poi a contare dal nuovo valore. Minimo 2.",
           "battery_rating_adjust": "Percentuale oltre l'energia nominale della batteria che la sua energia disponibile può raggiungere prima che il valore sia considerato non valido. Usalo se la tua batteria riporta più della sua capacità nominale."
         }
       }

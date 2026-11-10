@@ -139,8 +139,7 @@
           "battery_rating_adjust": "电池容量调整（百分比）"
         },
         "data_description": {
-          "allow_battery_energy_reset": "有些电池报告的能量总计会下降或归零。关闭时，忽略较低的值并保留上一个值。开启时，接受较低的值。",
-          "battery_energy_reset_cycles": "较低的电池能量值需要连续出现多少次轮询后才会被接受。仅在开启“允许电池能量重置”时使用。",
+          "battery_energy_reset_cycles": "较低的电池能量读数需要连续出现多少次轮询，才会被视为计数器重置。之后总计将从新读数继续累加。最小值为 2。",
           "battery_rating_adjust": "电池可用能量可超出其额定能量的百分比，超出后该值被视为无效。如果电池报告的值高于其额定值，请使用此项。"
         }
       }

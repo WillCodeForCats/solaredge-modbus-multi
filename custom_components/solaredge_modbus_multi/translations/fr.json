@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Ajustement de la capacité de la batterie (pourcentage)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Certaines batteries signalent des totaux d'énergie qui baissent ou reviennent à zéro. Si désactivé, une valeur inférieure est ignorée et la dernière valeur est conservée. Si activé, la valeur inférieure est acceptée.",
-          "battery_energy_reset_cycles": "Nombre d'interrogations consécutives pendant lesquelles une valeur d'énergie de batterie inférieure doit être vue avant d'être acceptée. Utilisé uniquement si Autoriser la réinitialisation de l'énergie de la batterie est activé.",
+          "battery_energy_reset_cycles": "Nombre d'interrogations consécutives pendant lesquelles une valeur d'énergie de batterie inférieure doit être vue avant d'être considérée comme une remise à zéro du compteur. Le total continue ensuite à partir de la nouvelle valeur. Minimum 2.",
           "battery_rating_adjust": "Pourcentage au-dessus de l'énergie nominale de la batterie que son énergie disponible peut atteindre avant que la valeur soit considérée comme non valide. Utilisez ceci si votre batterie signale plus que sa valeur nominale."
         }
       }

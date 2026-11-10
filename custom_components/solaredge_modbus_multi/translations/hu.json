@@ -139,8 +139,7 @@
           "battery_rating_adjust": "Akkumulátor Kapacitásának Beállítása (százalék)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Egyes akkumulátorok olyan energiaösszegeket jelentenek, amelyek csökkennek vagy nullázódnak. Kikapcsolva az alacsonyabb értéket figyelmen kívül hagyja, és megtartja az utolsó értéket. Bekapcsolva elfogadja az alacsonyabb értéket.",
-          "battery_energy_reset_cycles": "Hány egymást követő lekérdezésben kell alacsonyabb akkumulátor-energiaértéket látni, mielőtt elfogadja. Csak akkor használatos, ha az akkumulátorenergia nullázásának engedélyezése be van kapcsolva.",
+          "battery_energy_reset_cycles": "Hány egymást követő lekérdezésben kell alacsonyabb akkumulátor-energiaértéket látni, mielőtt számlálónullázásnak számít. Az összeg ezután az új értéktől számol tovább. Legalább 2.",
           "battery_rating_adjust": "Hány százalékkal haladhatja meg a rendelkezésre álló energia az akkumulátor névleges energiáját, mielőtt az érték érvénytelennek számít. Használja, ha akkumulátora többet jelent a névleges értékénél."
         }
       }
