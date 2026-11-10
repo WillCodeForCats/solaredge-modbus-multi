@@ -21,22 +21,20 @@ def _coordinator(last_update_success=True):
     """Build a fake coordinator with a mocked refresh request."""
     return SimpleNamespace(
         last_update_success=last_update_success,
-        async_request_refresh=AsyncMock(),
     )
 
 
-def _record_order(platform, coordinator):
-    """Record when the write and refresh complete, in order."""
+def _record_order(platform, entity):
+    """Record when the write completes and the refresh is scheduled, in order."""
     events = []
 
     async def write(*args, **kwargs):
         events.append("write")
 
-    async def refresh():
-        events.append("refresh")
-
     platform.write.side_effect = write
-    coordinator.async_request_refresh.side_effect = refresh
+    entity._async_schedule_refresh = MagicMock(
+        side_effect=lambda: events.append("refresh")
+    )
     return events
 
 
@@ -128,9 +126,10 @@ async def test_refresh_button():
     assert entity.name == "Refresh"
     assert entity.available is True
 
+    entity._async_schedule_refresh = MagicMock()
     await entity.async_press()
 
-    coordinator.async_request_refresh.assert_awaited_once_with()
+    entity._async_schedule_refresh.assert_called_once_with()
 
 
 @pytest.mark.parametrize(
@@ -204,10 +203,10 @@ class TestControlButtons:
         platform = self._platform()
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
-        events = _record_order(platform, coordinator)
+        events = _record_order(platform, entity)
 
         await entity.async_press()
 
         platform.write.assert_awaited_once_with("apc_data", register, 1)
-        coordinator.async_request_refresh.assert_awaited_once_with()
+        entity._async_schedule_refresh.assert_called_once_with()
         assert events == ["write", "refresh"]

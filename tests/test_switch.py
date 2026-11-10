@@ -22,22 +22,20 @@ def _coordinator(last_update_success=True):
     """Build a fake coordinator with a mocked refresh request."""
     return SimpleNamespace(
         last_update_success=last_update_success,
-        async_request_refresh=AsyncMock(),
     )
 
 
-def _record_order(platform, coordinator):
-    """Record when the write and refresh complete, in order."""
+def _record_order(platform, entity):
+    """Record when the write completes and the refresh is scheduled, in order."""
     events = []
 
     async def write(*args, **kwargs):
         events.append("write")
 
-    async def refresh():
-        events.append("refresh")
-
     platform.write.side_effect = write
-    coordinator.async_request_refresh.side_effect = refresh
+    entity._async_schedule_refresh = MagicMock(
+        side_effect=lambda: events.append("refresh")
+    )
     return events
 
 
@@ -202,14 +200,14 @@ class TestSiteLimitSwitches:
         platform = _site_limit_platform(other)
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
-        events = _record_order(platform, coordinator)
+        events = _record_order(platform, entity)
 
         await entity.async_turn_on()
 
         platform.write.assert_awaited_once_with(
             platform.site_limit_control_data, "E_Lim_Ctl_Mode", other | (1 << bit)
         )
-        coordinator.async_request_refresh.assert_awaited_once_with()
+        entity._async_schedule_refresh.assert_called_once_with()
         assert events == ["write", "refresh"]
 
     async def test_turn_off(self, cls, suffix, name, bit, enabled_default):
@@ -218,14 +216,14 @@ class TestSiteLimitSwitches:
         platform = _site_limit_platform(other | (1 << bit))
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
-        events = _record_order(platform, coordinator)
+        events = _record_order(platform, entity)
 
         await entity.async_turn_off()
 
         platform.write.assert_awaited_once_with(
             platform.site_limit_control_data, "E_Lim_Ctl_Mode", other
         )
-        coordinator.async_request_refresh.assert_awaited_once_with()
+        entity._async_schedule_refresh.assert_called_once_with()
         assert events == ["write", "refresh"]
 
 
@@ -280,12 +278,12 @@ async def test_grid_control_writes(method, value):
     platform = _adv_platform()
     coordinator = _coordinator()
     entity = SolarEdgeGridControl(platform, None, coordinator)
-    events = _record_order(platform, coordinator)
+    events = _record_order(platform, entity)
 
     await getattr(entity, method)()
 
     platform.write.assert_awaited_once_with(
         platform.advanced_power_control_data, "AdvPwrCtrlEn", value
     )
-    coordinator.async_request_refresh.assert_awaited_once_with()
+    entity._async_schedule_refresh.assert_called_once_with()
     assert events == ["write", "refresh"]
