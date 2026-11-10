@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .coordinator import SolarEdgeConfigEntry, SolarEdgeCoordinator
@@ -23,6 +24,15 @@ class SolarEdgeEntity(CoordinatorEntity[SolarEdgeCoordinator]):
         self._platform = platform
         self._config_entry = config_entry
         self._attr_device_info = platform.device_info
+
+    @callback
+    def _async_schedule_refresh(self) -> None:
+        """Request a coordinator refresh without waiting for it."""
+        self._config_entry.async_create_background_task(
+            self.hass,
+            self.coordinator.async_request_refresh(),
+            f"{self.entity_id} refresh after action",
+        )
 
     @property
     def config_entry_id(self):
