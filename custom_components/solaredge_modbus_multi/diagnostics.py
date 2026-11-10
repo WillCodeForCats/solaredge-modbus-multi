@@ -5,12 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .components import component_to_dict
-from .const import DOMAIN
 from .const import DATA_YAML
+from .coordinator import SolarEdgeConfigEntry
 from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
@@ -67,12 +66,11 @@ def _inverter_model(inverter) -> dict[str, Any]:
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, config_entry: ConfigEntry
+    hass: HomeAssistant, config_entry: SolarEdgeConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    hub = entry_data["hub"]
-    dependency_versions = entry_data["dependency_versions"]
+    hub = config_entry.runtime_data.hub
+    dependency_versions = config_entry.runtime_data.dependency_versions
 
     data: dict[str, Any] = {
         "tmodbus_version": dependency_versions["tmodbus"],
