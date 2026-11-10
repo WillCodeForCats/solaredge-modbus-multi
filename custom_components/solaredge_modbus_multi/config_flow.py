@@ -72,7 +72,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SolarEdge Modbus Multi."""
 
     VERSION = 2
-    MINOR_VERSION = 4
+    MINOR_VERSION = 5
 
     def __init__(self) -> None:
         """Initialize the config flow."""

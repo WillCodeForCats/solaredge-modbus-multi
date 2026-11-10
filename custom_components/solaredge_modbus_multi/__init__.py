@@ -423,10 +423,10 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         # affected users at the replacement option.
         hass.config_entries.async_update_entry(config_entry, version=2, minor_version=3)
 
-    if config_entry.version == 2 and config_entry.minor_version < 4:
-        _LOGGER.debug("Migrating from version 2.3")
+    if config_entry.version == 2 and config_entry.minor_version < 5:
+        _LOGGER.debug("Migrating from version 2.%s", config_entry.minor_version)
 
-        # config 2.4 changes battery_energy_reset_cycles to the number of
+        # config 2.5 changes battery_energy_reset_cycles to the number of
         # consecutive lower polls before rebasing; a single poll (0 or 1) can
         # no longer rebase, so the minimum is 2.
         update_options = {**config_entry.options}
@@ -449,7 +449,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             )
 
         hass.config_entries.async_update_entry(
-            config_entry, options=update_options, version=2, minor_version=4
+            config_entry, options=update_options, version=2, minor_version=5
         )
 
     _LOGGER.warning(
