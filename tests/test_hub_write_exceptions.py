@@ -14,7 +14,7 @@ import pytest
 from custom_components.solaredge_modbus_multi.components import (
     GlobalDynamicPowerControl,
 )
-from custom_components.solaredge_modbus_multi.const import DATA_YAML
+from custom_components.solaredge_modbus_multi.const import DOMAIN
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
 
 ENTRY_DATA = {
@@ -26,7 +26,7 @@ I_POWER_LIMIT_ADDRESS = 61441
 
 
 def _make_hub(hass):
-    hass.data[DATA_YAML] = {}
+    hass.data[DOMAIN] = {"yaml": {}}
     connection = MockModbusConnection()
     hub = SolarEdgeModbusMultiHub(hass, "test_entry_id", ENTRY_DATA, {}, connection)
     return hub, connection

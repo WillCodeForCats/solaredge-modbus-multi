@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import SunSpecNotImpl
+from custom_components.solaredge_modbus_multi.const import DOMAIN, SunSpecNotImpl
 from custom_components.solaredge_modbus_multi.switch import (
     SolarEdgeExternalProduction,
     SolarEdgeGridControl,
@@ -48,11 +48,10 @@ def _setup_hass(inverters, site_limit, detect_extras):
         option_site_limit_control=site_limit,
         option_detect_extras=detect_extras,
     )
-    entry = SimpleNamespace(
-        entry_id="entry1",
-        runtime_data=SimpleNamespace(hub=hub, coordinator=_coordinator()),
+    entry = SimpleNamespace(entry_id="entry1")
+    hass = SimpleNamespace(
+        data={DOMAIN: {"entry1": {"hub": hub, "coordinator": _coordinator()}}}
     )
-    hass = SimpleNamespace()
     return hass, entry
 
 
@@ -81,7 +80,7 @@ async def test_setup_entry_entities_per_inverter(site_limit, detect_extras, expe
     ]
     hass, entry = _setup_hass(inverters, site_limit, detect_extras)
     add = MagicMock()
-    coordinator = entry.runtime_data.coordinator
+    coordinator = hass.data[DOMAIN]["entry1"]["coordinator"]
 
     await async_setup_entry(hass, entry, add)
 

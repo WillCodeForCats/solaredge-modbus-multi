@@ -16,6 +16,7 @@ from custom_components.solaredge_modbus_multi.binary_sensor import (
     async_setup_entry,
 )
 from custom_components.solaredge_modbus_multi.const import (
+    DOMAIN,
     VENDOR4_STATUS,
     VENDOR_STATUS,
     SunSpecNotImpl,
@@ -27,11 +28,10 @@ FAILED_COORDINATOR = SimpleNamespace(last_update_success=False)
 
 def _setup_hass(inverters, detect_extras):
     hub = SimpleNamespace(inverters=inverters, option_detect_extras=detect_extras)
-    entry = SimpleNamespace(
-        entry_id="entry1",
-        runtime_data=SimpleNamespace(hub=hub, coordinator=COORDINATOR),
+    entry = SimpleNamespace(entry_id="entry1")
+    hass = SimpleNamespace(
+        data={DOMAIN: {"entry1": {"hub": hub, "coordinator": COORDINATOR}}}
     )
-    hass = SimpleNamespace()
     return hass, entry
 
 

@@ -15,6 +15,7 @@ from custom_components.solaredge_modbus_multi.button import (
     SolarEdgeRefreshButton,
     async_setup_entry,
 )
+from custom_components.solaredge_modbus_multi.const import DOMAIN
 
 
 def _coordinator(last_update_success=True):
@@ -43,11 +44,10 @@ def _record_order(platform, coordinator):
 def _setup_hass(inverters, detect_extras):
     """Build a fake hass and config entry around a hub with the given inverters."""
     hub = SimpleNamespace(inverters=inverters, option_detect_extras=detect_extras)
-    entry = SimpleNamespace(
-        entry_id="entry1",
-        runtime_data=SimpleNamespace(hub=hub, coordinator=_coordinator()),
+    entry = SimpleNamespace(entry_id="entry1")
+    hass = SimpleNamespace(
+        data={DOMAIN: {"entry1": {"hub": hub, "coordinator": _coordinator()}}}
     )
-    hass = SimpleNamespace()
     return hass, entry
 
 
@@ -73,7 +73,7 @@ async def test_setup_entry_entities_per_inverter(detect_extras, expected):
     ]
     hass, entry = _setup_hass(inverters, detect_extras)
     add = MagicMock()
-    coordinator = entry.runtime_data.coordinator
+    coordinator = hass.data[DOMAIN]["entry1"]["coordinator"]
 
     await async_setup_entry(hass, entry, add)
 

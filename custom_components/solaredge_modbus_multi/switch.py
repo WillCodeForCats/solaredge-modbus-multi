@@ -6,12 +6,12 @@ import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import SunSpecNotImpl
-from .coordinator import SolarEdgeConfigEntry
+from .const import DOMAIN, SunSpecNotImpl
 from .entity import SolarEdgeEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,12 +19,12 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: SolarEdgeConfigEntry,
+    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup entry."""
-    hub = config_entry.runtime_data.hub
-    coordinator = config_entry.runtime_data.coordinator
+    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
     entities = []
 

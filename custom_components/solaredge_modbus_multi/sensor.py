@@ -14,6 +14,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     STATE_UNAVAILABLE,
@@ -41,6 +42,7 @@ from .const import (
     DER_STORAGE_STATUS_TEXT,
     DEVICE_STATUS,
     DEVICE_STATUS_TEXT,
+    DOMAIN,
     ENERGY_VOLT_AMPERE_HOUR,
     INVERTED_POWER_VERSION,
     METER_EVENTS,
@@ -54,7 +56,6 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
-from .coordinator import SolarEdgeConfigEntry
 from .entity import SolarEdgeEntity
 from .helpers import float_to_hex
 
@@ -63,12 +64,12 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: SolarEdgeConfigEntry,
+    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup entry."""
-    hub = config_entry.runtime_data.hub
-    coordinator = config_entry.runtime_data.coordinator
+    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
     entities = []
 
