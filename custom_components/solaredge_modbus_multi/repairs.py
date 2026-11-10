@@ -7,7 +7,7 @@ from typing import cast
 
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -134,12 +134,11 @@ class RetryFeatureDetectionRepairFlow(RepairsFlow):
     ) -> data_entry_flow.FlowResult:
         """Handle the confirm step of a fix flow."""
         if user_input is not None:
-            entry = self.hass.config_entries.async_get_entry(self._entry_id)
-            if entry is not None and entry.state is ConfigEntryState.LOADED:
-                for inverter in entry.runtime_data.hub.inverters:
-                    if inverter.inverter_unit_id == self._inverter_unit_id:
-                        setattr(inverter, self._attr, None)
-                        break
+            hub = self.hass.data[DOMAIN][self._entry_id]["hub"]
+            for inverter in hub.inverters:
+                if inverter.inverter_unit_id == self._inverter_unit_id:
+                    setattr(inverter, self._attr, None)
+                    break
 
             return self.async_create_entry(title="", data={})
 

@@ -26,7 +26,6 @@ from homeassistant.helpers.typing import ConfigType
 import voluptuous as vol
 
 from .const import (
-    DATA_YAML,
     DOMAIN,
     MESSAGE_SPACING,
     MODBUS_CONNECTION_REQUIRED_VERSION,
@@ -34,11 +33,7 @@ from .const import (
     ConfDefaultInt,
     ConfName,
 )
-from .coordinator import (
-    SolarEdgeConfigEntry,
-    SolarEdgeCoordinator,
-    SolarEdgeRuntimeData,
-)
+from .coordinator import SolarEdgeCoordinator
 from .helpers import safe_version_tuple
 
 if TYPE_CHECKING:
@@ -120,9 +115,10 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up SolarEdge Modbus Muti advanced YAML config."""
-    hass.data[DATA_YAML] = config.get(DOMAIN, {})
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
 
-    if "modbus" in hass.data[DATA_YAML]:
+    if "modbus" in hass.data[DOMAIN]["yaml"]:
         ir.async_create_issue(
             hass,
             DOMAIN,
@@ -213,7 +209,7 @@ def _async_remove_legacy_der_devices(
             device_registry.async_remove_device(device.id)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
     # importlib.metadata does blocking file I/O, and modbus_connection/.hub
@@ -258,11 +254,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) ->
     ir.async_delete_issue(hass, DOMAIN, "check_configuration")
     ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
 
-    entry.runtime_data = SolarEdgeRuntimeData(
-        hub=solaredge_hub,
-        coordinator=coordinator,
-        dependency_versions=installed_versions,
-    )
+    hass.data[DOMAIN][entry.entry_id] = {
+        "hub": solaredge_hub,
+        "coordinator": coordinator,
+        "dependency_versions": installed_versions,
+    }
 
     await coordinator.async_config_entry_first_refresh()
 
@@ -275,16 +271,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) ->
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+
+    return unload_ok
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry: SolarEdgeConfigEntry, device_entry: DeviceEntry
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Remove a config entry from a device."""
-    solaredge_hub = config_entry.runtime_data.hub
+    solaredge_hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
 
     known_devices = []
 
