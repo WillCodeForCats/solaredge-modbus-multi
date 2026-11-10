@@ -34,7 +34,11 @@ Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wi
 
 ## Installation
 
-Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
+Install with Marketplace (Home Assistant 2026.11 and later): Go to **Settings** → **Marketplace** and search for "SolarEdge Modbus Multi".
+
+Install with [HACS](https://hacs.xyz) (before Home Assistant 2026.11): Search for "SolarEdge Modbus Multi" in the default repository.
+
+Either way, you can also use this link to open the integration's page directly:
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=WillCodeForCats&repository=solaredge-modbus-multi&category=integration)
 

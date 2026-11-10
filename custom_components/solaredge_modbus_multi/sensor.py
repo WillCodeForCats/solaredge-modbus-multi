@@ -17,7 +17,6 @@ from homeassistant.components.sensor import (
     SensorExtraStoredData,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     STATE_UNAVAILABLE,
@@ -37,7 +36,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     BATTERY_STATUS,
@@ -46,7 +44,6 @@ from .const import (
     DER_STORAGE_STATUS_TEXT,
     DEVICE_STATUS,
     DEVICE_STATUS_TEXT,
-    DOMAIN,
     ENERGY_VOLT_AMPERE_HOUR,
     INVERTED_POWER_VERSION,
     METER_EVENTS,
@@ -60,6 +57,8 @@ from .const import (
     SunSpecAccum,
     SunSpecNotImpl,
 )
+from .coordinator import SolarEdgeConfigEntry
+from .entity import SolarEdgeEntity
 from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,12 +66,12 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: SolarEdgeConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup entry."""
-    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    hub = config_entry.runtime_data.hub
+    coordinator = config_entry.runtime_data.coordinator
 
     entities = []
 
@@ -297,36 +296,12 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-class SolarEdgeSensorBase(CoordinatorEntity, SensorEntity):
+class SolarEdgeSensorBase(SolarEdgeEntity, SensorEntity):
     """Representation of a solar edge sensor base."""
-
-    _attr_has_entity_name = True
-
-    def __init__(self, platform, config_entry, coordinator):
-        """Initialize the solar edge sensor base."""
-        super().__init__(coordinator)
-
-        self._platform = platform
-        self._config_entry = config_entry
-        self._attr_device_info = platform.device_info
 
     def scale_factor(self, x: int, y: int):
         """Scale factor."""
         return x * (10**y)
-
-    @property
-    def config_entry_id(self):
-        """Return the config entry id."""
-        return self._config_entry.entry_id
-
-    @property
-    def config_entry_name(self):
-        """Return the config entry name."""
-        return self._config_entry.data["name"]
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self.async_write_ha_state()
 
 
 class SolarEdgeDevice(SolarEdgeSensorBase):
