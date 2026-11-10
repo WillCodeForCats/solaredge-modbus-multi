@@ -7,7 +7,7 @@ from modbus_connection.mock import MockModbusConnection
 import pytest
 
 from custom_components.solaredge_modbus_multi.const import (
-    DOMAIN,
+    DATA_YAML,
     WRITE_SETTLE_CYCLES,
     ConfDefaultInt,
     ConfName,
@@ -28,7 +28,7 @@ ENTRY_DATA = {
 
 
 def _make_hub(hass, entry_data=None, entry_options=None):
-    hass.data[DOMAIN] = {"yaml": {}}
+    hass.data[DATA_YAML] = {}
     return SolarEdgeModbusMultiHub(
         hass,
         "test_entry_id",
