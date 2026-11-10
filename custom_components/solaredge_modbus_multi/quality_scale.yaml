@@ -21,9 +21,7 @@ rules:
     comment: The integration does not provide device conditions.
   docs-high-level-description: done
   docs-installation-instructions: done
-  docs-removal-instructions:
-    status: todo
-    comment: The wiki does not describe how to remove the integration.
+  docs-removal-instructions: done
   docs-triggers:
     status: exempt
     comment: The integration does not provide device triggers.
