@@ -41,6 +41,7 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
         self._yaml_config = hass.data[DOMAIN]["yaml"]
 
     async def _async_update_data(self) -> bool:
+        """Fetch new data from the hub, retrying with backoff on failure."""
         from .hub import DataUpdateFailed, HubInitFailed  # noqa: PLC0415
 
         try:
