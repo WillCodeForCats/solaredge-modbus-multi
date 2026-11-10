@@ -14,12 +14,11 @@ from .helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
 REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}
-REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number", "via_device"}
+REDACT_METER = {"identifiers", "C_SerialNumber", "serial_number"}
 REDACT_BATTERY = {
     "identifiers",
     "B_SerialNumber",
     "serial_number",
-    "via_device",
 }
 REDACT_EVSE = {"identifiers", "C_SerialNumber", "serial_number"}
 
@@ -70,11 +69,8 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     hub = config_entry.runtime_data.hub
-    dependency_versions = config_entry.runtime_data.dependency_versions
 
     data: dict[str, Any] = {
-        "tmodbus_version": dependency_versions["tmodbus"],
-        "modbus_connection_version": dependency_versions["modbus-connection"],
         "config_entry": async_redact_data(config_entry.as_dict(), REDACT_CONFIG),
         "yaml": async_redact_data(hass.data[DATA_YAML], REDACT_CONFIG),
     }

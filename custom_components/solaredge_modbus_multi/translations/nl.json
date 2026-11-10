@@ -101,23 +101,23 @@
         "title": "SolarEdge Modbus Instellingen",
         "data": {
           "scan_interval": "Oproepfrequentie (seconden)",
-          "close_after_polling": "Verbinding sluiten na oproep",
           "detect_meters": "Meters automatisch detecteren",
           "detect_batteries": "Batterijen automatisch detecteren",
           "detect_extras": "Automatische detectie van aanvullende entiteiten",
           "advanced_power_control": "Opties voor vermogensregeling",
           "request_timeout": "Time-out voor Modbus-aanvraag (seconden)",
-          "sleep_after_write": "Omvormer commando vertraging (seconden)"
+          "sleep_after_write": "Omvormer commando vertraging (seconden)",
+          "connection_mode": "Modbus-verbinding"
         },
         "data_description": {
           "scan_interval": "Hoe vaak, in seconden, gegevens van de omvormers worden gelezen.",
-          "close_after_polling": "Sluit de Modbus/TCP-verbinding na elke geslaagde polling. Schakel dit in als iets anders ook met de omvormer verbindt, omdat deze maar één verbinding tegelijk accepteert.",
           "detect_meters": "Zoek naar meters die op elke omvormer zijn aangesloten wanneer de integratie start.",
           "detect_batteries": "Zoek naar batterijen die op elke omvormer zijn aangesloten wanneer de integratie start. Batterijondersteuning gebruikt registers die SolarEdge niet officieel documenteert.",
           "detect_extras": "Controleer of elke omvormer Global Dynamic Power Control en Advanced Power Control ondersteunt, en voeg hun entiteiten toe als ze worden gevonden.",
           "advanced_power_control": "Toon hierna de stap Opties voor vermogensregeling om opslagregeling en regeling van de locatielimiet in of uit te schakelen.",
           "request_timeout": "Hoe lang, in seconden, op een antwoord op elk Modbus-verzoek wordt gewacht.",
-          "sleep_after_write": "Seconden wachttijd tussen verzoeken aan een omvormer nadat er een opdracht naar is geschreven. Sommige omvormers hebben tijd nodig om een opdracht te verwerken voordat ze weer antwoorden. 0 schakelt dit uit."
+          "sleep_after_write": "Seconden wachttijd tussen verzoeken aan een omvormer nadat er een opdracht naar is geschreven. Sommige omvormers hebben tijd nodig om een opdracht te verwerken voordat ze weer antwoorden. 0 schakelt dit uit.",
+          "connection_mode": "Hoe SolarEdge Modbus Multi verbinding maakt met de omvormer. Een andere integratie die dezelfde omvormer gebruikt, kan een gedeelde verbinding vertragen. Zie de README voor meer informatie."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "Ongeldige omvormer-apparaat-ID",
       "description": "Omvormer-apparaat-ID {device_id} op {host} reageert niet of is geen geldige SolarEdge-omvormer. Deze is overgeslagen. Als het apparaat is vervangen of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Controleer anders het apparaat en de Modbus/TCP-verbinding."
     },
+    "shared_connection_other_integration": {
+      "title": "Een andere integratie deelt deze omvormer",
+      "description": "De integratie(s) {integrations} gebruiken dezelfde Modbus-verbinding met {host}. Home Assistant bewaart op een gedeelde verbinding één time-out per apparaat-ID, waardoor integraties die verschillende time-outs aanvragen, zoals de ingebouwde SolarEdge Modbus-integratie (30 seconden), elkaar overschrijven, afhankelijk van welke als laatste is ingesteld. Dit kan leiden tot trage of gemiste updates.\n\nOm beide te gebruiken, kies je in de opties van deze integratie bij ‘Modbus-verbinding’ de optie ‘Directe verbinding gebruiken’. Schakel anders de andere integratie uit en laad deze integratie opnieuw. Zie de README voor details."
+    },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Optie 'Houd Modbus-verbinding open' vervangen",
-      "description": "De optie \"Houd Modbus-verbinding open\" is in de configuratie van deze integratie vervangen door \"Verbinding sluiten na oproep\". Bekijk de nieuwe optie als je hetzelfde gedrag nodig hebt."
+      "description": "De optie 'Houd Modbus-verbinding open' wordt niet meer gebruikt. Deze integratie deelt nu de verbinding van de modbus-integratie. Wil je de verbinding zelf beheren, kies dan „Directe verbinding gebruiken” of „Directe verbinding gebruiken en na elke peiling sluiten” als Modbus-verbinding in de opties van deze integratie."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Een andere integratie is al verbonden met {host}:{port} met andere verbindingsinstellingen, en één verbinding kan niet allebei gebruiken. Verwijder of herconfigureer de andere integratie en laad deze daarna opnieuw."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "De gedeelde Modbus-verbinding van Home Assistant gebruiken",
+        "own": "Directe verbinding gebruiken",
+        "own_close_after_polling": "Directe verbinding gebruiken en na elke peiling sluiten"
+      }
     }
   }
 }

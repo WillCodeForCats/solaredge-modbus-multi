@@ -101,23 +101,23 @@
         "title": "SolarEdge Modbus Beállítások",
         "data": {
           "scan_interval": "Lekérdezési Gyakoriság (másodperc)",
-          "close_after_polling": "Kapcsolat Bezárása Lekérdezés Után",
           "detect_meters": "Mérők Automatikus Felismerése",
           "detect_batteries": "Akkumulátorok Automatikus Felismerése",
           "detect_extras": "További Entitások Automatikus Felismerése",
           "advanced_power_control": "Teljesítményvezérlési Beállítások",
           "request_timeout": "Modbus Kérés Időtúllépése (másodperc)",
-          "sleep_after_write": "Inverter Parancs Késleltetése (másodperc)"
+          "sleep_after_write": "Inverter Parancs Késleltetése (másodperc)",
+          "connection_mode": "Modbus-kapcsolat"
         },
         "data_description": {
           "scan_interval": "Milyen gyakran (másodpercben) olvassa az adatokat az inverterekből.",
-          "close_after_polling": "A Modbus/TCP kapcsolat bezárása minden sikeres lekérdezés után. Kapcsolja be, ha más is csatlakozik az inverterhez, mert egyszerre csak egy kapcsolatot fogad.",
           "detect_meters": "Az integráció indításakor az egyes inverterekhez csatlakoztatott mérők keresése.",
           "detect_batteries": "Az integráció indításakor az egyes inverterekhez csatlakoztatott akkumulátorok keresése. Az akkumulátortámogatás olyan regisztereket használ, amelyeket a SolarEdge hivatalosan nem dokumentál.",
           "detect_extras": "Annak ellenőrzése, hogy az egyes inverterek támogatják-e a Global Dynamic Power Control és az Advanced Power Control funkciót, és ha igen, entitásaik hozzáadása.",
           "advanced_power_control": "Következő lépésként a Teljesítményvezérlési beállítások megjelenítése a tárolóvezérlés és a telephelykorlát-vezérlés be- vagy kikapcsolásához.",
           "request_timeout": "Mennyi ideig (másodpercben) várjon válaszra minden Modbus kérésnél.",
-          "sleep_after_write": "Várakozás másodpercben az inverterhez küldött kérések között, miután parancsot írt rá. Egyes invertereknek idő kell a parancs feldolgozásához, mielőtt újra válaszolnak. A 0 kikapcsolja."
+          "sleep_after_write": "Várakozás másodpercben az inverterhez küldött kérések között, miután parancsot írt rá. Egyes invertereknek idő kell a parancs feldolgozásához, mielőtt újra válaszolnak. A 0 kikapcsolja.",
+          "connection_mode": "Hogyan csatlakozik a SolarEdge Modbus Multi az inverterhez. Ugyanazt az invertert használó másik integráció lelassíthatja a megosztott kapcsolatot. További részletekért lásd a README-t."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "Érvénytelen Inverter Eszközazonosító",
       "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen nem válaszol, vagy nem érvényes SolarEdge inverter. Ki lett hagyva. Ha az eszközt kicserélték, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. Ellenkező esetben ellenőrizze az eszközt és a Modbus/TCP kapcsolatot."
     },
+    "shared_connection_other_integration": {
+      "title": "Egy másik integráció osztozik ezen az inverteren",
+      "description": "A(z) {integrations} integráció(k) ugyanazt a Modbus-kapcsolatot használja(k) a(z) {host} eszközhöz. A Home Assistant megosztott kapcsolaton eszközazonosítónként egy időtúllépést tárol, így az eltérő időtúllépést kérő integrációk, például a beépített SolarEdge Modbus integráció (30 másodperc), felülírják egymást attól függően, hogy melyik lett utoljára beállítva. Ez lassú vagy elmaradó frissítéseket okozhat.\n\nHa mindkettőt használni szeretné, az integráció beállításaiban a „Modbus-kapcsolat” alatt válassza a „Közvetlen kapcsolat használata” lehetőséget. Ellenkező esetben tiltsa le a másik integrációt, és töltse be újra ezt az integrációt. A részleteket lásd a README-ben."
+    },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "A „Modbus Kapcsolat Nyitva Tartása” Opció Lecserélve",
-      "description": "A „Modbus Kapcsolat Nyitva Tartása” opciót ennek az integrációnak a konfigurációjában a „Kapcsolat Bezárása Lekérdezés Után” váltotta fel. Tekintse át az új opciót, ha ugyanarra a viselkedésre van szüksége."
+      "description": "A „Modbus Kapcsolat Nyitva Tartása” opció már nincs használatban. Ez az integráció mostantól a modbus integráció kapcsolatát használja közösen. Ha saját maga szeretné vezérelni a kapcsolatot, válassza ennek az integrációnak a beállításaiban a Modbus-kapcsolatnál a „Közvetlen kapcsolat használata” vagy a „Közvetlen kapcsolat használata, és lezárása minden lekérdezés után” lehetőséget."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Egy másik integráció már csatlakozik a(z) {host}:{port} címhez eltérő kapcsolati beállításokkal, és egy kapcsolat nem használhatja mindkettőt. Távolítsa el vagy konfigurálja újra a másik integrációt, majd töltse be újra ezt."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "A Home Assistant megosztott Modbus-kapcsolatának használata",
+        "own": "Közvetlen kapcsolat használata",
+        "own_close_after_polling": "Közvetlen kapcsolat használata, és lezárása minden lekérdezés után"
+      }
     }
   }
 }

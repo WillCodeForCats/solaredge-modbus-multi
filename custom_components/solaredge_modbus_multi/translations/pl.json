@@ -101,23 +101,23 @@
         "title": "Opcje SolarEdge Modbus",
         "data": {
           "scan_interval": "Częstotliwość odczytu (sekundy)",
-          "close_after_polling": "Zamknij połączenie po odczycie",
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
           "advanced_power_control": "Opcje kontroli mocy",
           "request_timeout": "Limit czasu żądania Modbus (sekundy)",
-          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
+          "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)",
+          "connection_mode": "Połączenie Modbus"
         },
         "data_description": {
           "scan_interval": "Jak często (w sekundach) odczytywać dane z falowników.",
-          "close_after_polling": "Zamykaj połączenie Modbus/TCP po każdym udanym odpytaniu. Włącz to, jeśli coś innego również łączy się z falownikiem, ponieważ przyjmuje on tylko jedno połączenie naraz.",
           "detect_meters": "Wyszukuj liczniki podłączone do każdego falownika podczas uruchamiania integracji.",
           "detect_batteries": "Wyszukuj baterie podłączone do każdego falownika podczas uruchamiania integracji. Obsługa baterii korzysta z rejestrów, których SolarEdge oficjalnie nie dokumentuje.",
           "detect_extras": "Sprawdź, czy każdy falownik obsługuje Global Dynamic Power Control i Advanced Power Control, i dodaj ich encje, jeśli zostaną znalezione.",
           "advanced_power_control": "Pokaż następnie krok Opcje sterowania mocą, aby włączyć lub wyłączyć sterowanie magazynem energii i limitem instalacji.",
           "request_timeout": "Jak długo (w sekundach) czekać na odpowiedź na każde żądanie Modbus.",
-          "sleep_after_write": "Liczba sekund oczekiwania między żądaniami do falownika po zapisaniu do niego polecenia. Niektóre falowniki potrzebują czasu na przetworzenie polecenia, zanim znów odpowiedzą. 0 wyłącza tę funkcję."
+          "sleep_after_write": "Liczba sekund oczekiwania między żądaniami do falownika po zapisaniu do niego polecenia. Niektóre falowniki potrzebują czasu na przetworzenie polecenia, zanim znów odpowiedzą. 0 wyłącza tę funkcję.",
+          "connection_mode": "Jak SolarEdge Modbus Multi łączy się z falownikiem. Inna integracja korzystająca z tego samego falownika może spowalniać współdzielone połączenie. Szczegóły znajdziesz w pliku README."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "Nieprawidłowy identyfikator falownika",
       "description": "Identyfikator falownika {device_id} na {host} nie odpowiada lub nie jest prawidłowym falownikiem SolarEdge. Został pominięty. Jeśli urządzenie zostało wymienione lub jego identyfikator się zmienił, zaktualizuj listę identyfikatorów falowników w konfiguracji huba. W przeciwnym razie sprawdź urządzenie i połączenie Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Inna integracja współdzieli ten falownik",
+      "description": "Integracje {integrations} używają tego samego połączenia Modbus z {host}. Home Assistant przechowuje na współdzielonym połączeniu jeden limit czasu dla każdego identyfikatora urządzenia, więc integracje żądające różnych limitów czasu, jak wbudowana integracja SolarEdge Modbus (30 sekund), nadpisują się nawzajem w zależności od tego, która została skonfigurowana jako ostatnia. Może to powodować wolne lub pomijane aktualizacje.\n\nAby używać obu, wybierz w opcjach tej integracji w polu „Połączenie Modbus” ustawienie „Użyj połączenia bezpośredniego”. W przeciwnym razie wyłącz drugą integrację i ponownie załaduj tę. Szczegóły znajdziesz w README."
+    },
     "detect_timeout_gpc": {
       "title": "Globalny limit czasu dynamicznej kontroli mocy (Falownik {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",
-      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" została zastąpiona opcją \"Zamknij połączenie po odczycie\" w konfiguracji tej integracji. Sprawdź nową opcję, jeśli potrzebujesz tego samego zachowania."
+      "description": "Opcja \"Pozostaw połączenie Modbus otwarte\" nie jest już używana. Ta integracja współdzieli teraz połączenie integracji modbus. Aby samodzielnie zarządzać połączeniem, wybierz w opcjach tej integracji jako Połączenie Modbus opcję „Użyj połączenia bezpośredniego” lub „Użyj połączenia bezpośredniego i zamykaj je po każdym odczycie”."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Inna integracja jest już połączona z {host}:{port} przy użyciu innych ustawień połączenia, a jedno połączenie nie może obsłużyć obu. Usuń lub skonfiguruj ponownie drugą integrację, a następnie załaduj ponownie tę."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Użyj współdzielonego połączenia Modbus Home Assistant",
+        "own": "Użyj połączenia bezpośredniego",
+        "own_close_after_polling": "Użyj połączenia bezpośredniego i zamykaj je po każdym odczycie"
+      }
     }
   }
 }

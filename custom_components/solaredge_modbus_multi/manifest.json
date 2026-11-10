@@ -1,17 +1,21 @@
 {
   "domain": "solaredge_modbus_multi",
   "name": "SolarEdge Modbus Multi",
+  "after_dependencies": ["modbus"],
   "categories": ["energy.solar_batteries"],
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/WillCodeForCats/solaredge-modbus-multi/issues",
-  "loggers": ["custom_components.solaredge_modbus_multi", "tmodbus"],
+  "loggers": [
+    "custom_components.solaredge_modbus_multi",
+    "tmodbus",
+    "modbus_connection"
+  ],
   "quality_scale": "bronze",
-  "requirements": ["modbus-connection[tmodbus]>=4.10.0", "tmodbus>=0.6.1"],
+  "requirements": [],
   "version": "4.0.12",
   "zeroconf": ["_solaredge-modbus._tcp.local."]
 }

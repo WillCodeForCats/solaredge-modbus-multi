@@ -101,23 +101,23 @@
         "title": "Options SolarEdge Modbus",
         "data": {
           "scan_interval": "Fréquence de rafraichissement (en secondes)",
-          "close_after_polling": "Fermer la connexion après le rafraichissement",
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
           "advanced_power_control": "Options de contrôle de l'alimentation",
           "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
-          "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
+          "sleep_after_write": "Délai de commande de l'onduleur (en secondes)",
+          "connection_mode": "Connexion Modbus"
         },
         "data_description": {
           "scan_interval": "Fréquence, en secondes, de lecture des données des onduleurs.",
-          "close_after_polling": "Ferme la connexion Modbus/TCP après chaque interrogation réussie. Activez cette option si autre chose se connecte aussi à l'onduleur, car il n'accepte qu'une connexion à la fois.",
           "detect_meters": "Recherche les compteurs connectés à chaque onduleur au démarrage de l'intégration.",
           "detect_batteries": "Recherche les batteries connectées à chaque onduleur au démarrage de l'intégration. La prise en charge des batteries utilise des registres que SolarEdge ne documente pas officiellement.",
           "detect_extras": "Vérifie si chaque onduleur prend en charge Global Dynamic Power Control et Advanced Power Control, et ajoute leurs entités s'ils sont trouvés.",
           "advanced_power_control": "Affiche ensuite l'étape Options de contrôle de puissance pour activer ou désactiver le contrôle du stockage et le contrôle de la limite du site.",
           "request_timeout": "Durée, en secondes, d'attente d'une réponse à chaque requête Modbus.",
-          "sleep_after_write": "Secondes d'attente entre les requêtes vers un onduleur après l'écriture d'une commande. Certains onduleurs ont besoin de temps pour traiter une commande avant de répondre à nouveau. 0 désactive cette option."
+          "sleep_after_write": "Secondes d'attente entre les requêtes vers un onduleur après l'écriture d'une commande. Certains onduleurs ont besoin de temps pour traiter une commande avant de répondre à nouveau. 0 désactive cette option.",
+          "connection_mode": "Comment SolarEdge Modbus Multi se connecte à l'onduleur. Une autre intégration utilisant le même onduleur peut ralentir une connexion partagée. Consultez le README pour plus de détails."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "ID d'appareil onduleur invalide",
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Une autre intégration partage cet onduleur",
+      "description": "Les intégrations {integrations} utilisent la même connexion Modbus vers {host}. Home Assistant conserve un délai d'attente par ID d'appareil sur une connexion partagée, de sorte que les intégrations qui demandent des délais différents, comme l'intégration SolarEdge Modbus intégrée (30 secondes), se remplacent mutuellement selon celle qui a été configurée en dernier. Cela peut provoquer des mises à jour lentes ou manquées.\n\nPour utiliser les deux, choisissez « Utiliser une connexion directe » dans « Connexion Modbus » dans les options de cette intégration. Sinon, désactivez l'autre intégration et rechargez celle-ci. Consultez le README pour plus de détails."
+    },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Option « Garder la connexion Modbus ouverte » remplacée",
-      "description": "L'option « Garder la connexion Modbus ouverte » a été remplacée par « Fermer la connexion après le rafraichissement » dans la configuration de cette intégration. Consultez la nouvelle option si vous avez besoin du même comportement."
+      "description": "L'option « Garder la connexion Modbus ouverte » n'est plus utilisée. Cette intégration partage désormais la connexion de l'intégration modbus. Pour gérer vous-même la connexion, choisissez « Utiliser une connexion directe » ou « Utiliser une connexion directe et la fermer après chaque interrogation » comme Connexion Modbus dans les options de cette intégration."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Une autre intégration est déjà connectée à {host}:{port} avec des paramètres de connexion différents, et une même connexion ne peut pas utiliser les deux. Supprimez ou reconfigurez l'autre intégration, puis rechargez celle-ci."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Utiliser la connexion Modbus partagée de Home Assistant",
+        "own": "Utiliser une connexion directe",
+        "own_close_after_polling": "Utiliser une connexion directe et la fermer après chaque interrogation"
+      }
     }
   }
 }

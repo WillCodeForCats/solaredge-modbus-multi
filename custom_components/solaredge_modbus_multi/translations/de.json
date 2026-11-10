@@ -101,23 +101,23 @@
         "title": "SolarEdge Modbus Optionen",
         "data": {
           "scan_interval": "Abfragehäufigkeit (Sekunden)",
-          "close_after_polling": "Verbindung nach Abfrage schließen",
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
           "advanced_power_control": "Optionen zur Leistungssteuerung",
           "request_timeout": "Modbus-Anfrage-Zeitüberschreitung (Sekunden)",
-          "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
+          "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)",
+          "connection_mode": "Modbus-Verbindung"
         },
         "data_description": {
           "scan_interval": "Wie oft (in Sekunden) Daten von den Wechselrichtern gelesen werden.",
-          "close_after_polling": "Die Modbus/TCP-Verbindung nach jeder erfolgreichen Abfrage schließen. Aktivieren Sie dies, wenn sich noch etwas anderes mit dem Wechselrichter verbindet, da er nur eine Verbindung gleichzeitig annimmt.",
           "detect_meters": "Beim Start der Integration nach Zählern suchen, die an jeden Wechselrichter angeschlossen sind.",
           "detect_batteries": "Beim Start der Integration nach Batterien suchen, die an jeden Wechselrichter angeschlossen sind. Die Batterieunterstützung nutzt Register, die SolarEdge nicht offiziell dokumentiert.",
           "detect_extras": "Prüfen, ob jeder Wechselrichter Global Dynamic Power Control und Advanced Power Control unterstützt, und deren Entitäten hinzufügen, wenn sie gefunden werden.",
           "advanced_power_control": "Als Nächstes den Schritt Leistungssteuerungsoptionen anzeigen, um die Speichersteuerung und die Standortlimitsteuerung ein- oder auszuschalten.",
           "request_timeout": "Wie lange (in Sekunden) auf eine Antwort auf jede Modbus-Anfrage gewartet wird.",
-          "sleep_after_write": "Sekunden Wartezeit zwischen Anfragen an einen Wechselrichter, nachdem ein Befehl an ihn geschrieben wurde. Manche Wechselrichter brauchen Zeit, um einen Befehl zu verarbeiten, bevor sie wieder antworten. 0 schaltet dies aus."
+          "sleep_after_write": "Sekunden Wartezeit zwischen Anfragen an einen Wechselrichter, nachdem ein Befehl an ihn geschrieben wurde. Manche Wechselrichter brauchen Zeit, um einen Befehl zu verarbeiten, bevor sie wieder antworten. 0 schaltet dies aus.",
+          "connection_mode": "Wie SolarEdge Modbus Multi eine Verbindung zum Wechselrichter herstellt. Eine andere Integration, die denselben Wechselrichter verwendet, kann eine gemeinsame Verbindung verlangsamen. Weitere Informationen finden Sie in der README."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "Ungültige Wechselrichter-Geräte-ID",
       "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
     },
+    "shared_connection_other_integration": {
+      "title": "Eine andere Integration teilt sich diesen Wechselrichter",
+      "description": "Die Integration(en) {integrations} verwenden dieselbe Modbus-Verbindung zu {host}. Home Assistant speichert auf einer gemeinsamen Verbindung ein Timeout pro Geräte-ID, sodass sich Integrationen, die unterschiedliche Timeouts anfordern, etwa die integrierte SolarEdge-Modbus-Integration (30 Sekunden), gegenseitig überschreiben, je nachdem, welche zuletzt eingerichtet wurde. Das kann zu langsamen oder ausbleibenden Aktualisierungen führen.\n\nUm beide zu betreiben, wähle in den Optionen dieser Integration bei „Modbus-Verbindung“ die Einstellung „Direkte Verbindung verwenden“. Andernfalls deaktiviere die andere Integration und lade diese neu. Details stehen in der README."
+    },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",
-      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wurde in der Konfiguration dieser Integration durch \"Verbindung nach Abfrage schließen\" ersetzt. Prüfen Sie die neue Option, wenn Sie das gleiche Verhalten benötigen."
+      "description": "Die Option \"Modbus-Verbindung geöffnet lassen\" wird nicht mehr verwendet. Diese Integration nutzt jetzt die Verbindung der Modbus-Integration gemeinsam. Um die Verbindung selbst zu steuern, wählen Sie in den Optionen dieser Integration als Modbus-Verbindung „Direkte Verbindung verwenden“ oder „Direkte Verbindung verwenden und nach jeder Abfrage schließen“."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Eine andere Integration ist bereits mit {host}:{port} verbunden und verwendet andere Verbindungseinstellungen; eine Verbindung kann nicht beides nutzen. Entfernen oder ändern Sie die andere Integration und laden Sie diese anschließend neu."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Gemeinsame Modbus-Verbindung von Home Assistant verwenden",
+        "own": "Direkte Verbindung verwenden",
+        "own_close_after_polling": "Direkte Verbindung verwenden und nach jeder Abfrage schließen"
+      }
     }
   }
 }

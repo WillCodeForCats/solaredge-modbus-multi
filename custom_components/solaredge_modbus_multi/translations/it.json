@@ -101,23 +101,23 @@
         "title": "Opzioni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frequenza di polling (secondi)",
-          "close_after_polling": "Chiudi la connessione dopo il polling",
           "detect_meters": "Misuratori di rilevamento automatico",
           "detect_batteries": "Rilevamento automatico delle batterie",
           "detect_extras": "Rileva automaticamente entità aggiuntive",
           "advanced_power_control": "Opzioni di controllo della potenza",
           "request_timeout": "Timeout richiesta Modbus (secondi)",
-          "sleep_after_write": "Ritardo comando inverter (secondi)"
+          "sleep_after_write": "Ritardo comando inverter (secondi)",
+          "connection_mode": "Connessione Modbus"
         },
         "data_description": {
           "scan_interval": "Ogni quanto, in secondi, leggere i dati dagli inverter.",
-          "close_after_polling": "Chiude la connessione Modbus/TCP dopo ogni interrogazione riuscita. Attivalo se anche qualcos'altro si connette all'inverter, perché accetta una sola connessione alla volta.",
           "detect_meters": "Cerca i contatori collegati a ciascun inverter all'avvio dell'integrazione.",
           "detect_batteries": "Cerca le batterie collegate a ciascun inverter all'avvio dell'integrazione. Il supporto delle batterie usa registri che SolarEdge non documenta ufficialmente.",
           "detect_extras": "Verifica se ciascun inverter supporta Global Dynamic Power Control e Advanced Power Control e aggiunge le relative entità se trovate.",
           "advanced_power_control": "Mostra poi il passaggio Opzioni di controllo della potenza per attivare o disattivare il controllo dell'accumulo e il controllo del limite del sito.",
           "request_timeout": "Quanto tempo, in secondi, attendere una risposta a ogni richiesta Modbus.",
-          "sleep_after_write": "Secondi di attesa tra le richieste a un inverter dopo che gli è stato scritto un comando. Alcuni inverter hanno bisogno di tempo per elaborare un comando prima di rispondere di nuovo. 0 lo disattiva."
+          "sleep_after_write": "Secondi di attesa tra le richieste a un inverter dopo che gli è stato scritto un comando. Alcuni inverter hanno bisogno di tempo per elaborare un comando prima di rispondere di nuovo. 0 lo disattiva.",
+          "connection_mode": "Come SolarEdge Modbus Multi si connette all'inverter. Un'altra integrazione che usa lo stesso inverter può rallentare una connessione condivisa. Consulta il README per i dettagli."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "ID dispositivo inverter non valido",
       "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Un'altra integrazione condivide questo inverter",
+      "description": "Le integrazioni {integrations} usano la stessa connessione Modbus verso {host}. Home Assistant mantiene un timeout per ogni ID dispositivo su una connessione condivisa, quindi le integrazioni che richiedono timeout diversi, come l'integrazione SolarEdge Modbus integrata (30 secondi), si sovrascrivono a vicenda a seconda di quale è stata configurata per ultima. Questo può causare aggiornamenti lenti o mancanti.\n\nPer usarle entrambe, scegli «Usa una connessione diretta» in «Connessione Modbus» nelle opzioni di questa integrazione. Altrimenti, disattiva l'altra integrazione e ricarica questa. Consulta il README per i dettagli."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",
-      "description": "L'opzione \"Mantieni aperta la connessione Modbus\" è stata sostituita da \"Chiudi la connessione dopo il polling\" nella configurazione di questa integrazione. Controlla la nuova opzione se hai bisogno dello stesso comportamento."
+      "description": "L'opzione \"Mantieni aperta la connessione Modbus\" non viene più utilizzata. Questa integrazione ora condivide la connessione dell'integrazione modbus. Per gestire la connessione manualmente, scegli «Usa una connessione diretta» o «Usa una connessione diretta e chiudila dopo ogni lettura» come Connessione Modbus nelle opzioni di questa integrazione."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Un'altra integrazione è già connessa a {host}:{port} con impostazioni di connessione diverse e una singola connessione non può usarle entrambe. Rimuovi o riconfigura l'altra integrazione, poi ricarica questa."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Usa la connessione Modbus condivisa di Home Assistant",
+        "own": "Usa una connessione diretta",
+        "own_close_after_polling": "Usa una connessione diretta e chiudila dopo ogni lettura"
+      }
     }
   }
 }

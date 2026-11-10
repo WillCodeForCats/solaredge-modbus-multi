@@ -26,6 +26,7 @@ discovery and may not be supported by SolarEdge.
 - Polling frequency configuration option (1 to 86400 seconds).
 - Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
+- Can use the Home Assistant shared Modbus connection or a direct connection.
 - Informational sensor for device and its attributes
 - Supports status and error reporting sensors.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
@@ -54,14 +55,68 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 Inverter site limit and battery storage controls are disabled by default: not all inverters support controls. You will need to enable Power Control Options after adding your inverter hub in the integration.
 
+### Using another integration with the same inverter
+
+> [!WARNING]
+> Running SolarEdge Modbus Multi and Home Assistant's built-in SolarEdge Modbus integration
+> (`solaredge_modbus`) for the same inverter is not recommended. Home Assistant shares one Modbus/TCP
+> connection between them, and they ask for very different timeouts. If SolarEdge Modbus Multi raises
+> the "Another Integration Shares This Inverter" repair issue, either disable the other integration and
+> reload SolarEdge Modbus Multi, or change SolarEdge Modbus Multi to a direct connection (see below).
+> Home Assistant may offer to set up the built-in integration when it discovers your inverter: check
+> that you are adding the one you intend to use.
+
+Home Assistant shares a single Modbus/TCP connection per host and port between integrations. The
+connection keeps a request timeout for each Device ID and uses the longest of them for every request.
+The built-in integration asks for 30 seconds, which cannot be configured. SolarEdge Modbus Multi asks
+for its Modbus Request Timeout, 3 seconds by default. Both normally use Device ID 1, so whichever
+integration sets up last decides the timeout for that ID:
+
+- If the built-in integration sets up last, 30 seconds applies to SolarEdge Modbus Multi as well. A
+  request that is slow to fail can then hold up polling, causing slow or missed updates and unavailable
+  entities.
+- If SolarEdge Modbus Multi sets up last, its shorter timeout applies to the built-in integration too,
+  which may then give up on requests it expected to wait for.
+
+Which one sets up last can change from one Home Assistant start to the next, and reloading either
+integration makes it the last one. Message spacing is also kept per Device ID: SolarEdge Modbus Multi
+applies its own before every request, which changes it for the other integration too.
+
+Disabling or removing the other integration does not clear the timeout it asked for while the
+connection stays open. Reload SolarEdge Modbus Multi afterwards: if nothing else is using the
+connection, it is closed and reopened with only SolarEdge Modbus Multi's timeout. Restarting Home
+Assistant also works.
+
+When another integration is already using the connection, scanning for inverters during setup opens a
+separate connection to the inverter instead, so the scan is not slowed by the other integration's
+timeout. An inverter accepts only a few connections at once, so this scan can fail to connect while
+another client is connected. The manual setup checks the Device IDs you enter over the same separate
+connection, so it can fail the same way. If you know your Device IDs, use the manual setup and select
+"Skip Device ID validation", or disable the other integration until setup is complete.
+
+If you want to run both, open the options of SolarEdge Modbus Multi and change the Modbus Connection.
+It has three choices:
+
+| Modbus Connection                                         | What it does                                                                                                                 |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Use the Home Assistant shared Modbus connection (default) | Shares one Modbus/TCP connection with other integrations that talk to the same inverter.                                     |
+| Use direct connection                                     | Opens a separate Modbus/TCP connection with its own timeout and message spacing, which other integrations cannot change.     |
+| Use direct connection and close it after each poll        | Same as above, and also closes the connection after every poll so that the inverter is free for other clients between polls. |
+
+Closing after each poll relies on those other clients also closing their connections when idle: a client
+that holds its connection open between requests can keep the inverter's connection in use regardless.
+
+A direct connection has worked alongside the built-in integration on the maintainer's system, but
+SolarEdge does not document support for more than one Modbus/TCP connection, so results may vary with
+your inverter and firmware.
+
 ### Documentation
 
 [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 ### Minimum Required Versions
 
-- Home Assistant 2025.9.0
-- modbus-connection 4.10.0 or newer
+- Home Assistant 2026.10.0
 
 ## Specifications
 

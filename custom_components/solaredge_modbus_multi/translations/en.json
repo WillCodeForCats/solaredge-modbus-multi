@@ -101,23 +101,23 @@
         "title": "SolarEdge Modbus Options",
         "data": {
           "scan_interval": "Polling Frequency (seconds)",
-          "close_after_polling": "Close Connection After Polling",
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "detect_extras": "Auto-Detect Additional Entities",
           "advanced_power_control": "Power Control Options",
           "request_timeout": "Modbus Request Timeout (seconds)",
-          "sleep_after_write": "Inverter Command Delay (seconds)"
+          "sleep_after_write": "Inverter Command Delay (seconds)",
+          "connection_mode": "Modbus Connection"
         },
         "data_description": {
           "scan_interval": "How often, in seconds, to read data from the inverters.",
-          "close_after_polling": "Close the Modbus/TCP connection after each successful poll. Enable this if something else also connects to the inverter, because it accepts only one connection at a time.",
           "detect_meters": "Look for meters connected to each inverter when the integration starts.",
           "detect_batteries": "Look for batteries connected to each inverter when the integration starts. Battery support uses registers that SolarEdge does not officially document.",
           "detect_extras": "Check whether each inverter supports Global Dynamic Power Control and Advanced Power Control, and add their entities when found.",
           "advanced_power_control": "Show the Power Control Options step next, to turn storage control and site limit control on or off.",
           "request_timeout": "How long, in seconds, to wait for a reply to each Modbus request.",
-          "sleep_after_write": "Seconds to wait between requests to an inverter after a command is written to it. Some inverters need time to process a command before they reply again. 0 turns this off."
+          "sleep_after_write": "Seconds to wait between requests to an inverter after a command is written to it. Some inverters need time to process a command before they reply again. 0 turns this off.",
+          "connection_mode": "How SolarEdge Modbus Multi connects to the inverter. Another integration using the same inverter can slow down a shared connection. See the README for details."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "Invalid Inverter Device ID",
       "description": "Inverter Device ID {device_id} at {host} is not responding or is not a valid SolarEdge inverter. It has been skipped. If the device was replaced or its ID changed, update the Inverter Device ID List in the hub configuration. Otherwise check the device and Modbus/TCP connection."
     },
+    "shared_connection_other_integration": {
+      "title": "Another Integration Shares This Inverter",
+      "description": "The integration(s) {integrations} use the same Modbus connection to {host}. Home Assistant keeps one timeout per Device ID on a shared connection, so integrations that ask for different timeouts, such as the built-in SolarEdge Modbus integration (30 seconds), override each other depending on which set up last. This can cause slow or missed updates.\n\nTo run both, choose \"Use direct connection\" as the Modbus Connection in this integration's options. Otherwise, disable the other integration and reload this one. See the README for details."
+    },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Inverter {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Keep Modbus Connection Open Option Replaced",
-      "description": "The \"Keep Modbus Connection Open\" option has been replaced by \"Close Connection After Polling\" in this integration's configuration. Review the new option if you need the same behavior."
+      "description": "The \"Keep Modbus Connection Open\" option is no longer used. This integration now shares the modbus integration's connection. To control the connection yourself, choose \"Use direct connection\" or \"Use direct connection and close it after each poll\" as the Modbus Connection in the options of this hub."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Another integration is already connected to {host}:{port} using different connection settings, and one connection cannot use both. Remove or reconfigure the other integration, then reload this one."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Use the Home Assistant shared Modbus connection",
+        "own": "Use direct connection",
+        "own_close_after_polling": "Use direct connection and close it after each poll"
+      }
     }
   }
 }

@@ -104,10 +104,7 @@ async def _get_diagnostics(hass, hub):
     entry = MockConfigEntry(domain=DOMAIN, data={}, options={})
     entry.add_to_hass(hass)
     hass.data[DATA_YAML] = {}
-    entry.runtime_data = SimpleNamespace(
-        hub=hub,
-        dependency_versions={"tmodbus": "0.6.2", "modbus-connection": "4.12.1"},
-    )
+    entry.runtime_data = SimpleNamespace(hub=hub)
 
     return await async_get_config_entry_diagnostics(hass, entry)
 

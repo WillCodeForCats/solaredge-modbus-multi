@@ -101,23 +101,23 @@
         "title": "Možnosti Modbus SolarEdge",
         "data": {
           "scan_interval": "Frekvence dotazování (sekundy)",
-          "close_after_polling": "Zavřít připojení po dotazování",
           "detect_meters": "Automatická detekce měřičů",
           "detect_batteries": "Automatická detekce baterií",
           "detect_extras": "Automatická detekce dalších entit",
           "advanced_power_control": "Možnosti řízení výkonu",
           "request_timeout": "Časový limit požadavku Modbus (sekundy)",
-          "sleep_after_write": "Zpoždění příkazu střídače (sekundy)"
+          "sleep_after_write": "Zpoždění příkazu střídače (sekundy)",
+          "connection_mode": "Připojení Modbus"
         },
         "data_description": {
           "scan_interval": "Jak často (v sekundách) číst data ze střídačů.",
-          "close_after_polling": "Zavřít spojení Modbus/TCP po každém úspěšném dotazování. Zapněte, pokud se ke střídači připojuje i něco jiného, protože přijímá pouze jedno spojení najednou.",
           "detect_meters": "Při spuštění integrace hledat měřiče připojené ke každému střídači.",
           "detect_batteries": "Při spuštění integrace hledat baterie připojené ke každému střídači. Podpora baterií používá registry, které SolarEdge oficiálně nedokumentuje.",
           "detect_extras": "Zkontrolovat, zda každý střídač podporuje Global Dynamic Power Control a Advanced Power Control, a při nalezení přidat jejich entity.",
           "advanced_power_control": "Jako další krok zobrazit Možnosti řízení výkonu pro zapnutí nebo vypnutí řízení úložiště a limitu lokality.",
           "request_timeout": "Jak dlouho (v sekundách) čekat na odpověď na každý požadavek Modbus.",
-          "sleep_after_write": "Počet sekund čekání mezi požadavky na střídač po zápisu příkazu. Některé střídače potřebují čas na zpracování příkazu, než znovu odpoví. 0 tuto funkci vypne."
+          "sleep_after_write": "Počet sekund čekání mezi požadavky na střídač po zápisu příkazu. Některé střídače potřebují čas na zpracování příkazu, než znovu odpoví. 0 tuto funkci vypne.",
+          "connection_mode": "Jak se SolarEdge Modbus Multi připojuje ke střídači. Jiná integrace používající stejný střídač může sdílené připojení zpomalit. Podrobnosti najdete v souboru README."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "Neplatné ID zařízení střídače",
       "description": "ID zařízení střídače {device_id} na {host} neodpovídá nebo se nejedná o platný střídač SolarEdge. Bylo přeskočeno. Pokud bylo zařízení vyměněno nebo se změnilo jeho ID, aktualizujte seznam ID zařízení střídačů v konfiguraci hubu. V opačném případě zkontrolujte zařízení a připojení Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "Jiná integrace sdílí tento střídač",
+      "description": "Integrace {integrations} používají stejné připojení Modbus k {host}. Home Assistant u sdíleného připojení uchovává jeden časový limit pro každé ID zařízení, takže integrace, které požadují různé časové limity, například vestavěná integrace SolarEdge Modbus (30 sekund), se navzájem přepisují podle toho, která byla nastavena jako poslední. To může způsobit pomalé nebo vynechané aktualizace.\n\nChcete-li používat obě, zvolte v nastavení této integrace u položky „Připojení Modbus“ možnost „Použít přímé připojení“. Jinak druhou integraci zakažte a tuto znovu načtěte. Podrobnosti najdete v souboru README."
+    },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Možnost „Udržovat připojení Modbus otevřené“ byla nahrazena",
-      "description": "Možnost „Udržovat připojení Modbus otevřené“ byla v konfiguraci této integrace nahrazena možností „Zavřít připojení po dotazování“. Pokud potřebujete stejné chování, zkontrolujte novou možnost."
+      "description": "Možnost „Udržovat připojení Modbus otevřené“ se již nepoužívá. Tato integrace nyní sdílí připojení integrace modbus. Chcete-li připojení řídit sami, zvolte v nastavení této integrace jako Připojení Modbus možnost „Použít přímé připojení“ nebo „Použít přímé připojení a po každém dotazu ho zavřít“."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "Jiná integrace je již připojena k {host}:{port} s jiným nastavením připojení a jedno připojení nemůže použít obě. Odeberte nebo přenastavte druhou integraci a poté tuto znovu načtěte."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Použít sdílené připojení Modbus služby Home Assistant",
+        "own": "Použít přímé připojení",
+        "own_close_after_polling": "Použít přímé připojení a po každém dotazu ho zavřít"
+      }
     }
   }
 }

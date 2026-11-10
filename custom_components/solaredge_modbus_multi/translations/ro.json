@@ -101,23 +101,23 @@
         "title": "Opțiuni Modbus SolarEdge",
         "data": {
           "scan_interval": "Frecvență de Interogare (secunde)",
-          "close_after_polling": "Închide Conexiunea După Interogare",
           "detect_meters": "Detectare Automată a Contoarelor",
           "detect_batteries": "Detectare Automată a Bateriilor",
           "detect_extras": "Detectare Automată a Entităților Suplimentare",
           "advanced_power_control": "Opțiuni de Control al Puterii",
           "request_timeout": "Timeout Solicitare Modbus (secunde)",
-          "sleep_after_write": "Întârziere Comandă Invertor (secunde)"
+          "sleep_after_write": "Întârziere Comandă Invertor (secunde)",
+          "connection_mode": "Conexiune Modbus"
         },
         "data_description": {
           "scan_interval": "Cât de des, în secunde, se citesc datele de la invertoare.",
-          "close_after_polling": "Închide conexiunea Modbus/TCP după fiecare interogare reușită. Activați dacă și altceva se conectează la invertor, deoarece acesta acceptă o singură conexiune odată.",
           "detect_meters": "Caută contoarele conectate la fiecare invertor la pornirea integrării.",
           "detect_batteries": "Caută bateriile conectate la fiecare invertor la pornirea integrării. Suportul pentru baterii folosește registre pe care SolarEdge nu le documentează oficial.",
           "detect_extras": "Verifică dacă fiecare invertor acceptă Global Dynamic Power Control și Advanced Power Control și adaugă entitățile acestora dacă sunt găsite.",
           "advanced_power_control": "Afișează apoi pasul Opțiuni de control al puterii, pentru a activa sau dezactiva controlul stocării și controlul limitei locației.",
           "request_timeout": "Cât timp, în secunde, se așteaptă un răspuns la fiecare cerere Modbus.",
-          "sleep_after_write": "Secunde de așteptare între cererile către un invertor după ce i s-a scris o comandă. Unele invertoare au nevoie de timp pentru a procesa o comandă înainte de a răspunde din nou. 0 dezactivează această opțiune."
+          "sleep_after_write": "Secunde de așteptare între cererile către un invertor după ce i s-a scris o comandă. Unele invertoare au nevoie de timp pentru a procesa o comandă înainte de a răspunde din nou. 0 dezactivează această opțiune.",
+          "connection_mode": "Cum se conectează SolarEdge Modbus Multi la invertor. O altă integrare care folosește același invertor poate încetini o conexiune partajată. Consultați README pentru detalii."
         }
       },
       "adv_pwr_ctl": {
@@ -189,6 +189,10 @@
       "title": "ID de Dispozitiv al Invertorului Nevalid",
       "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu răspunde sau nu este un invertor SolarEdge valid. A fost omis. Dacă dispozitivul a fost înlocuit sau ID-ul acestuia s-a schimbat, actualizați Lista de ID-uri de Dispozitiv ale Invertoarelor din configurația hub-ului. În caz contrar, verificați dispozitivul și conexiunea Modbus/TCP."
     },
+    "shared_connection_other_integration": {
+      "title": "O altă integrare partajează acest invertor",
+      "description": "Integrările {integrations} folosesc aceeași conexiune Modbus către {host}. Home Assistant păstrează pe o conexiune partajată un timp de expirare pentru fiecare ID de dispozitiv, astfel încât integrările care solicită timpi de expirare diferiți, cum este integrarea SolarEdge Modbus încorporată (30 de secunde), se suprascriu reciproc în funcție de care a fost configurată ultima. Aceasta poate cauza actualizări lente sau pierdute.\n\nPentru a le folosi pe amândouă, alegeți „Utilizați conexiune directă” la „Conexiune Modbus” în opțiunile acestei integrări. În caz contrar, dezactivați cealaltă integrare și reîncărcați-o pe aceasta. Consultați README pentru detalii."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",
       "fix_flow": {
@@ -217,7 +221,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "Opțiunea Menține Conexiunea Modbus Deschisă a Fost Înlocuită",
-      "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” a fost înlocuită cu „Închide Conexiunea După Interogare” în configurația acestei integrări. Verificați noua opțiune dacă aveți nevoie de același comportament."
+      "description": "Opțiunea „Menține Conexiunea Modbus Deschisă” nu mai este folosită. Această integrare partajează acum conexiunea integrării modbus. Pentru a controla singur conexiunea, alegeți „Utilizați conexiune directă” sau „Utilizați conexiune directă și închideți-o după fiecare interogare” ca Conexiune Modbus în opțiunile acestei integrări."
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "O altă integrare este deja conectată la {host}:{port} cu setări de conexiune diferite, iar o conexiune nu le poate folosi pe amândouă. Eliminați sau reconfigurați cealaltă integrare, apoi reîncărcați-o pe aceasta."
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "Utilizați conexiunea Modbus partajată din Home Assistant",
+        "own": "Utilizați conexiune directă",
+        "own_close_after_polling": "Utilizați conexiune directă și închideți-o după fiecare interogare"
+      }
     }
   }
 }

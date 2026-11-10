@@ -3,12 +3,13 @@
 from homeassistant.exceptions import HomeAssistantError
 import pytest
 
+from custom_components.solaredge_modbus_multi.const import ConfName, ConnectionMode
 from custom_components.solaredge_modbus_multi.helpers import (
     check_device_id,
     device_list_from_string,
     float_to_hex,
+    get_connection_mode,
     host_valid,
-    safe_version_tuple,
 )
 
 
@@ -114,27 +115,6 @@ class TestDeviceListFromString:
         assert device_list_from_string(" 1 , 2 ") == [1, 2]
 
 
-class TestSafeVersionTuple:
-    """Test safe version tuple."""
-
-    def test_parses_dotted_version(self):
-        """Test parses dotted version."""
-        assert safe_version_tuple("4.10.0") == (4, 10, 0)
-
-    def test_parses_two_part_version(self):
-        """Test parses two part version."""
-        assert safe_version_tuple("0.6") == (0, 6)
-
-    def test_orders_as_expected(self):
-        """Test orders as expected."""
-        assert safe_version_tuple("4.9.0") < safe_version_tuple("4.10.0")
-
-    def test_rejects_non_numeric_part(self):
-        """Test rejects non numeric part."""
-        with pytest.raises(ValueError):
-            safe_version_tuple("4.10.0-pre1")
-
-
 class TestCheckDeviceId:
     """Test check device id."""
 
@@ -151,3 +131,22 @@ class TestCheckDeviceId:
         """Test non numeric."""
         with pytest.raises(HomeAssistantError):
             check_device_id("abc")
+
+
+class TestGetConnectionMode:
+    """Test the connection mode comes from the option."""
+
+    def test_defaults_to_shared(self):
+        """Test nothing set means shared units."""
+        assert get_connection_mode({}) is ConnectionMode.SHARED
+
+    @pytest.mark.parametrize("mode", list(ConnectionMode))
+    def test_option_is_used(self, mode):
+        """Test a saved option is used as it is."""
+        assert get_connection_mode({ConfName.CONNECTION_MODE: mode}) is mode
+
+    def test_unknown_option_falls_back(self):
+        """Test an option that is not a mode is ignored."""
+        options = {ConfName.CONNECTION_MODE: "something_else"}
+
+        assert get_connection_mode(options) is ConnectionMode.SHARED

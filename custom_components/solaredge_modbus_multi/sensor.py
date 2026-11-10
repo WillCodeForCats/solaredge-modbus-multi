@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import contextlib
-import datetime
+import datetime as dt
 import logging
 import re
 
@@ -2922,6 +2922,6 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
         return True
 
     @property
-    def native_value(self) -> datetime.datetime | None:
+    def native_value(self) -> dt.datetime | None:
         """Return the native value."""
         return self.coordinator.last_update_success_time
