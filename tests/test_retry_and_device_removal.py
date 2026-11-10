@@ -225,7 +225,8 @@ async def test_coordinator_does_not_retry_a_watchdog_timeout(hass):
 
     with (
         patch(
-            "custom_components.solaredge_modbus_multi.asyncio.sleep", new=AsyncMock()
+            "custom_components.solaredge_modbus_multi.coordinator.asyncio.sleep",
+            new=AsyncMock(),
         ),
         pytest.raises(UpdateFailed),
     ):
@@ -241,7 +242,8 @@ async def test_coordinator_still_retries_a_failed_update(hass):
 
     with (
         patch(
-            "custom_components.solaredge_modbus_multi.asyncio.sleep", new=AsyncMock()
+            "custom_components.solaredge_modbus_multi.coordinator.asyncio.sleep",
+            new=AsyncMock(),
         ),
         pytest.raises(UpdateFailed),
     ):
