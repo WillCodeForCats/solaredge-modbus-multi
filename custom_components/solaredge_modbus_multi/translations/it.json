@@ -19,6 +19,9 @@
         "description": "È stato trovato un gateway SolarEdge Modbus/TCP a {host}:{port}. Configurarlo ora?",
         "data": {
           "name": "Prefisso sensore"
+        },
+        "data_description": {
+          "name": "Aggiunto all'inizio del nome di ogni dispositivo, seguito dal dispositivo, ad esempio I1 per l'inverter 1. Gli ID delle entità vengono creati da questi nomi."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Salta la convalida dell'ID dispositivo"
         },
         "data_description": {
+          "name": "Aggiunto all'inizio del nome di ogni dispositivo, seguito dal dispositivo, ad esempio I1 per l'inverter 1. Gli ID delle entità vengono creati da questi nomi.",
+          "host": "Indirizzo IP o nome host dell'inverter con Modbus/TCP abilitato. Con più inverter, usa l'inverter leader.",
+          "port": "Porta Modbus/TCP impostata sull'inverter. Il valore predefinito di SolarEdge è 1502.",
+          "device_list": "ID dispositivo Modbus dei tuoi inverter. Usa un elenco (1,3,10), un intervallo (1-4) o entrambi (1-3,5,10). Un singolo inverter usa normalmente 1.",
           "bypass_device_check": "Aggiungi l'elenco degli ID dispositivo senza verificare che ciascun ID risponda come inverter SolarEdge. Usa questa opzione solo se il controllo fallisce per un dispositivo che sai essere corretto, ad esempio uno offline durante la configurazione."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Prefisso sensore",
           "host": "Indirizzo IP dell'inverter",
           "port": "Porta Modbus/TCP"
+        },
+        "data_description": {
+          "name": "Aggiunto all'inizio del nome di ogni dispositivo, seguito dal dispositivo, ad esempio I1 per l'inverter 1. Gli ID delle entità vengono creati da questi nomi.",
+          "host": "Indirizzo IP o nome host dell'inverter con Modbus/TCP abilitato. Con più inverter, usa l'inverter leader.",
+          "port": "Porta Modbus/TCP impostata sull'inverter. Il valore predefinito di SolarEdge è 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Indirizzo IP dell'inverter",
           "port": "Porta Modbus/TCP",
           "device_list": "Elenco ID dispositivi inverter"
+        },
+        "data_description": {
+          "host": "Indirizzo IP o nome host dell'inverter con Modbus/TCP abilitato. Con più inverter, usa l'inverter leader.",
+          "port": "Porta Modbus/TCP impostata sull'inverter. Il valore predefinito di SolarEdge è 1502.",
+          "device_list": "ID dispositivo Modbus dei tuoi inverter. Usa un elenco (1,3,10), un intervallo (1-4) o entrambi (1-3,5,10). Un singolo inverter usa normalmente 1."
         }
       }
     },
@@ -93,6 +110,13 @@
           "connection_mode": "Connessione Modbus"
         },
         "data_description": {
+          "scan_interval": "Ogni quanto, in secondi, leggere i dati dagli inverter.",
+          "detect_meters": "Cerca i contatori collegati a ciascun inverter all'avvio dell'integrazione.",
+          "detect_batteries": "Cerca le batterie collegate a ciascun inverter all'avvio dell'integrazione. Il supporto delle batterie usa registri che SolarEdge non documenta ufficialmente.",
+          "detect_extras": "Verifica se ciascun inverter supporta Global Dynamic Power Control e Advanced Power Control e aggiunge le relative entità se trovate.",
+          "advanced_power_control": "Mostra poi il passaggio Opzioni di controllo della potenza per attivare o disattivare il controllo dell'accumulo e il controllo del limite del sito.",
+          "request_timeout": "Quanto tempo, in secondi, attendere una risposta a ogni richiesta Modbus.",
+          "sleep_after_write": "Secondi di attesa tra le richieste a un inverter dopo che gli è stato scritto un comando. Alcuni inverter hanno bisogno di tempo per elaborare un comando prima di rispondere di nuovo. 0 lo disattiva.",
           "connection_mode": "Come SolarEdge Modbus Multi si connette all'inverter. Un'altra integrazione che usa lo stesso inverter può rallentare una connessione condivisa. Consulta il README per i dettagli."
         }
       },
@@ -102,6 +126,10 @@
           "adv_storage_control": "Abilita il controllo dell'archiviazione",
           "adv_site_limit_control": "Abilita il controllo dei limiti del sito"
         },
+        "data_description": {
+          "adv_storage_control": "Aggiunge entità che modificano le impostazioni di controllo dell'accumulo della batteria sull'inverter.",
+          "adv_site_limit_control": "Aggiunge entità che modificano i limiti di esportazione e produzione del sito sull'inverter."
+        },
         "description": "Avvertenza: queste opzioni possono violare i contratti dei servizi pubblici, alterare la fatturazione dei servizi pubblici, potrebbero richiedere apparecchiature speciali e sovrascrivere la fornitura da parte di SolarEdge o dell'installatore. Utilizzare a proprio rischio! I parametri regolabili nei registri Modbus sono destinati alla memorizzazione a lungo termine. Modifiche periodiche potrebbero danneggiare la memoria flash."
       },
       "battery_options": {
@@ -110,6 +138,11 @@
           "allow_battery_energy_reset": "Consenti il ripristino dell'energia della batteria",
           "battery_energy_reset_cycles": "Cicli di aggiornamento per ripristinare l'energia della batteria",
           "battery_rating_adjust": "Regolazione della potenza della batteria (percentuale)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Alcune batterie riportano totali di energia che diminuiscono o si azzerano. Se disattivato, un valore inferiore viene ignorato e viene mantenuto l'ultimo valore. Se attivato, il valore inferiore viene accettato.",
+          "battery_energy_reset_cycles": "Numero di interrogazioni consecutive in cui deve essere visto un valore di energia della batteria inferiore prima che venga accettato. Usato solo quando Consenti l'azzeramento dell'energia della batteria è attivo.",
+          "battery_rating_adjust": "Percentuale oltre l'energia nominale della batteria che la sua energia disponibile può raggiungere prima che il valore sia considerato non valido. Usalo se la tua batteria riporta più della sua capacità nominale."
         }
       }
     },
@@ -132,6 +165,11 @@
               "host": "Indirizzo IP dell'inverter",
               "port": "Porta Modbus/TCP",
               "device_list": "Elenco ID dispositivi inverter"
+            },
+            "data_description": {
+              "host": "Indirizzo IP o nome host dell'inverter con Modbus/TCP abilitato. Con più inverter, usa l'inverter leader.",
+              "port": "Porta Modbus/TCP impostata sull'inverter. Il valore predefinito di SolarEdge è 1502.",
+              "device_list": "ID dispositivo Modbus dei tuoi inverter. Usa un elenco (1,3,10), un intervallo (1-4) o entrambi (1-3,5,10). Un singolo inverter usa normalmente 1."
             }
           }
         },

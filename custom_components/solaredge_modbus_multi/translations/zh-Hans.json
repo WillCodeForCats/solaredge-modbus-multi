@@ -19,6 +19,9 @@
         "description": "在 {host}:{port} 处发现了 SolarEdge Modbus/TCP 网关。是否立即设置？",
         "data": {
           "name": "传感器前缀"
+        },
+        "data_description": {
+          "name": "添加到每个设备名称的开头，后面跟设备，例如逆变器 1 为 I1。实体 ID 由这些名称生成。"
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "跳过设备 ID 验证"
         },
         "data_description": {
+          "name": "添加到每个设备名称的开头，后面跟设备，例如逆变器 1 为 I1。实体 ID 由这些名称生成。",
+          "host": "已启用 Modbus/TCP 的逆变器的 IP 地址或主机名。有多台逆变器时，请使用主（leader）逆变器。",
+          "port": "逆变器上设置的 Modbus/TCP 端口。SolarEdge 默认值为 1502。",
+          "device_list": "逆变器的 Modbus 设备 ID。可使用列表 (1,3,10)、范围 (1-4) 或两者组合 (1-3,5,10)。单台逆变器通常使用 1。",
           "bypass_device_check": "添加设备 ID 列表而不连接检查每个 ID 是否作为 SolarEdge 逆变器响应。仅当您确定某个设备的 ID 正确但检查失败时才使用此选项，例如该设备在设置期间处于离线状态。"
         }
       },
@@ -40,6 +47,11 @@
           "name": "传感器前缀",
           "host": "逆变器 IP 地址",
           "port": "Modbus/TCP 端口"
+        },
+        "data_description": {
+          "name": "添加到每个设备名称的开头，后面跟设备，例如逆变器 1 为 I1。实体 ID 由这些名称生成。",
+          "host": "已启用 Modbus/TCP 的逆变器的 IP 地址或主机名。有多台逆变器时，请使用主（leader）逆变器。",
+          "port": "逆变器上设置的 Modbus/TCP 端口。SolarEdge 默认值为 1502。"
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "逆变器 IP 地址",
           "port": "Modbus/TCP 端口",
           "device_list": "逆变器设备 ID 列表"
+        },
+        "data_description": {
+          "host": "已启用 Modbus/TCP 的逆变器的 IP 地址或主机名。有多台逆变器时，请使用主（leader）逆变器。",
+          "port": "逆变器上设置的 Modbus/TCP 端口。SolarEdge 默认值为 1502。",
+          "device_list": "逆变器的 Modbus 设备 ID。可使用列表 (1,3,10)、范围 (1-4) 或两者组合 (1-3,5,10)。单台逆变器通常使用 1。"
         }
       }
     },
@@ -93,6 +110,13 @@
           "connection_mode": "Modbus 连接"
         },
         "data_description": {
+          "scan_interval": "从逆变器读取数据的频率（秒）。",
+          "detect_meters": "集成启动时查找连接到每台逆变器的电表。",
+          "detect_batteries": "集成启动时查找连接到每台逆变器的电池。电池支持使用 SolarEdge 未正式公开文档的寄存器。",
+          "detect_extras": "检查每台逆变器是否支持 Global Dynamic Power Control 和 Advanced Power Control，找到时添加其实体。",
+          "advanced_power_control": "接下来显示“功率控制选项”步骤，用于开启或关闭储能控制和站点限制控制。",
+          "request_timeout": "等待每个 Modbus 请求响应的时间（秒）。",
+          "sleep_after_write": "向逆变器写入命令后，向其发送请求之间的等待秒数。有些逆变器需要时间处理命令后才会再次响应。设为 0 则关闭。",
           "connection_mode": "SolarEdge Modbus Multi 连接逆变器的方式。使用同一台逆变器的其他集成可能会拖慢共享连接。详情请参阅 README。"
         }
       },
@@ -102,6 +126,10 @@
           "adv_storage_control": "启用储能控制",
           "adv_site_limit_control": "启用场地限值控制"
         },
+        "data_description": {
+          "adv_storage_control": "添加用于更改逆变器电池储能控制设置的实体。",
+          "adv_site_limit_control": "添加用于更改逆变器站点输出和发电限制设置的实体。"
+        },
         "description": "警告：这些选项可能违反供电协议、改变您的电费账单、可能需要特殊设备，并会覆盖 SolarEdge 或安装商所做的配置。使用风险自负！Modbus 寄存器中的可调参数用于长期存储。频繁更改可能损坏闪存。"
       },
       "battery_options": {
@@ -110,6 +138,11 @@
           "allow_battery_energy_reset": "允许重置电池能量",
           "battery_energy_reset_cycles": "重置电池能量的更新周期数",
           "battery_rating_adjust": "电池容量调整（百分比）"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "有些电池报告的能量总计会下降或归零。关闭时，忽略较低的值并保留上一个值。开启时，接受较低的值。",
+          "battery_energy_reset_cycles": "较低的电池能量值需要连续出现多少次轮询后才会被接受。仅在开启“允许电池能量重置”时使用。",
+          "battery_rating_adjust": "电池可用能量可超出其额定能量的百分比，超出后该值被视为无效。如果电池报告的值高于其额定值，请使用此项。"
         }
       }
     },
@@ -132,6 +165,11 @@
               "host": "逆变器 IP 地址",
               "port": "Modbus/TCP 端口",
               "device_list": "逆变器设备 ID 列表"
+            },
+            "data_description": {
+              "host": "已启用 Modbus/TCP 的逆变器的 IP 地址或主机名。有多台逆变器时，请使用主（leader）逆变器。",
+              "port": "逆变器上设置的 Modbus/TCP 端口。SolarEdge 默认值为 1502。",
+              "device_list": "逆变器的 Modbus 设备 ID。可使用列表 (1,3,10)、范围 (1-4) 或两者组合 (1-3,5,10)。单台逆变器通常使用 1。"
             }
           }
         },

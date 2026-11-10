@@ -398,9 +398,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
 
-            if self._scan_user_input is None:
-                raise AbortFlow("No scan data available")  # noqa: TRY301
-
             self._pending_entry = {
                 "title": self._scan_user_input[CONF_NAME],
                 "data": self._scan_user_input,

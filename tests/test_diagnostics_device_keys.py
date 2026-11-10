@@ -22,7 +22,7 @@ from custom_components.solaredge_modbus_multi.components import (
     SiteLimitControl,
     StorageControl,
 )
-from custom_components.solaredge_modbus_multi.const import DOMAIN
+from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN
 from custom_components.solaredge_modbus_multi.diagnostics import (
     async_get_config_entry_diagnostics,
 )
@@ -103,11 +103,8 @@ def _fake_hub(meters=(), batteries=(), inverters=(), evses=()):
 async def _get_diagnostics(hass, hub):
     entry = MockConfigEntry(domain=DOMAIN, data={}, options={})
     entry.add_to_hass(hass)
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN]["yaml"] = {}
-    hass.data[DOMAIN][entry.entry_id] = {
-        "hub": hub,
-    }
+    hass.data[DATA_YAML] = {}
+    entry.runtime_data = SimpleNamespace(hub=hub)
 
     return await async_get_config_entry_diagnostics(hass, entry)
 

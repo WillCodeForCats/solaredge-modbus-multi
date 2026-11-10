@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from enum import IntEnum, StrEnum
 import re
-from typing import Final
+from typing import Any, Final
+
+from homeassistant.util.hass_dict import HassKey
 
 DOMAIN = "solaredge_modbus_multi"
+DATA_YAML: HassKey[dict[str, Any]] = HassKey(f"{DOMAIN}_yaml")
 DEFAULT_NAME = "SolarEdge"
 
 SETUP_TYPE = "setup_type"

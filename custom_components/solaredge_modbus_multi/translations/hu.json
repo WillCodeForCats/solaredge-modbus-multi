@@ -19,6 +19,9 @@
         "description": "SolarEdge Modbus/TCP átjáró található itt: {host}:{port}. Beállítja most?",
         "data": {
           "name": "Érzékelő Előtag"
+        },
+        "data_description": {
+          "name": "Minden eszköznév elejére kerül, utána az eszköz következik, pl. I1 az 1. inverterhez. Az entitásazonosítók ezekből a nevekből készülnek."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Eszközazonosító-ellenőrzés kihagyása"
         },
         "data_description": {
+          "name": "Minden eszköznév elejére kerül, utána az eszköz következik, pl. I1 az 1. inverterhez. Az entitásazonosítók ezekből a nevekből készülnek.",
+          "host": "Az inverter IP-címe vagy gépneve, amelyen a Modbus/TCP engedélyezve van. Több inverter esetén a vezető (leader) invertert használja.",
+          "port": "Az inverteren beállított Modbus/TCP port. A SolarEdge alapértéke 1502.",
+          "device_list": "Az inverterek Modbus eszközazonosítói. Használjon listát (1,3,10), tartományt (1-4) vagy mindkettőt (1-3,5,10). Egyetlen inverter általában az 1-et használja.",
           "bypass_device_check": "Adja hozzá az eszközazonosító-listát kapcsolódás nélkül, anélkül, hogy ellenőrizné, hogy az egyes azonosítók SolarEdge inverterként válaszolnak-e. Csak akkor használja, ha az ellenőrzés meghiúsul egy olyan eszköznél, amelyről tudja, hogy helyes, például amely a beállítás során nincs csatlakoztatva."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Érzékelő Előtag",
           "host": "Inverter IP-címe",
           "port": "Modbus/TCP Port"
+        },
+        "data_description": {
+          "name": "Minden eszköznév elejére kerül, utána az eszköz következik, pl. I1 az 1. inverterhez. Az entitásazonosítók ezekből a nevekből készülnek.",
+          "host": "Az inverter IP-címe vagy gépneve, amelyen a Modbus/TCP engedélyezve van. Több inverter esetén a vezető (leader) invertert használja.",
+          "port": "Az inverteren beállított Modbus/TCP port. A SolarEdge alapértéke 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Inverter IP-címe",
           "port": "Modbus/TCP Port",
           "device_list": "Inverter Eszközazonosító-lista"
+        },
+        "data_description": {
+          "host": "Az inverter IP-címe vagy gépneve, amelyen a Modbus/TCP engedélyezve van. Több inverter esetén a vezető (leader) invertert használja.",
+          "port": "Az inverteren beállított Modbus/TCP port. A SolarEdge alapértéke 1502.",
+          "device_list": "Az inverterek Modbus eszközazonosítói. Használjon listát (1,3,10), tartományt (1-4) vagy mindkettőt (1-3,5,10). Egyetlen inverter általában az 1-et használja."
         }
       }
     },
@@ -93,6 +110,13 @@
           "connection_mode": "Modbus-kapcsolat"
         },
         "data_description": {
+          "scan_interval": "Milyen gyakran (másodpercben) olvassa az adatokat az inverterekből.",
+          "detect_meters": "Az integráció indításakor az egyes inverterekhez csatlakoztatott mérők keresése.",
+          "detect_batteries": "Az integráció indításakor az egyes inverterekhez csatlakoztatott akkumulátorok keresése. Az akkumulátortámogatás olyan regisztereket használ, amelyeket a SolarEdge hivatalosan nem dokumentál.",
+          "detect_extras": "Annak ellenőrzése, hogy az egyes inverterek támogatják-e a Global Dynamic Power Control és az Advanced Power Control funkciót, és ha igen, entitásaik hozzáadása.",
+          "advanced_power_control": "Következő lépésként a Teljesítményvezérlési beállítások megjelenítése a tárolóvezérlés és a telephelykorlát-vezérlés be- vagy kikapcsolásához.",
+          "request_timeout": "Mennyi ideig (másodpercben) várjon válaszra minden Modbus kérésnél.",
+          "sleep_after_write": "Várakozás másodpercben az inverterhez küldött kérések között, miután parancsot írt rá. Egyes invertereknek idő kell a parancs feldolgozásához, mielőtt újra válaszolnak. A 0 kikapcsolja.",
           "connection_mode": "Hogyan csatlakozik a SolarEdge Modbus Multi az inverterhez. Ugyanazt az invertert használó másik integráció lelassíthatja a megosztott kapcsolatot. További részletekért lásd a README-t."
         }
       },
@@ -102,6 +126,10 @@
           "adv_storage_control": "Tárolásvezérlés Engedélyezése",
           "adv_site_limit_control": "Telephelyi Korlát Vezérlésének Engedélyezése"
         },
+        "data_description": {
+          "adv_storage_control": "Olyan entitások hozzáadása, amelyek az inverter akkumulátortároló-vezérlési beállításait módosítják.",
+          "adv_site_limit_control": "Olyan entitások hozzáadása, amelyek a telephely export- és termeléskorlátait módosítják az inverteren."
+        },
         "description": "Figyelmeztetés: Ezek a beállítások megsérthetik a közműszolgáltatói szerződéseket, megváltoztathatják a számláját, speciális berendezést igényelhetnek, és felülírhatják a SolarEdge vagy a telepítő által végzett konfigurációt. Használata saját felelősségre! A Modbus regiszterekben lévő állítható paraméterek hosszú távú tárolásra szolgálnak. Az időszakos módosítások károsíthatják a flash memóriát."
       },
       "battery_options": {
@@ -110,6 +138,11 @@
           "allow_battery_energy_reset": "Akkumulátor Energiájának Visszaállítása Engedélyezve",
           "battery_energy_reset_cycles": "Frissítési Ciklusok az Akkumulátor Energiájának Visszaállításához",
           "battery_rating_adjust": "Akkumulátor Kapacitásának Beállítása (százalék)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Egyes akkumulátorok olyan energiaösszegeket jelentenek, amelyek csökkennek vagy nullázódnak. Kikapcsolva az alacsonyabb értéket figyelmen kívül hagyja, és megtartja az utolsó értéket. Bekapcsolva elfogadja az alacsonyabb értéket.",
+          "battery_energy_reset_cycles": "Hány egymást követő lekérdezésben kell alacsonyabb akkumulátor-energiaértéket látni, mielőtt elfogadja. Csak akkor használatos, ha az akkumulátorenergia nullázásának engedélyezése be van kapcsolva.",
+          "battery_rating_adjust": "Hány százalékkal haladhatja meg a rendelkezésre álló energia az akkumulátor névleges energiáját, mielőtt az érték érvénytelennek számít. Használja, ha akkumulátora többet jelent a névleges értékénél."
         }
       }
     },
@@ -132,6 +165,11 @@
               "host": "Inverter IP-címe",
               "port": "Modbus/TCP Port",
               "device_list": "Inverter Eszközazonosító-lista"
+            },
+            "data_description": {
+              "host": "Az inverter IP-címe vagy gépneve, amelyen a Modbus/TCP engedélyezve van. Több inverter esetén a vezető (leader) invertert használja.",
+              "port": "Az inverteren beállított Modbus/TCP port. A SolarEdge alapértéke 1502.",
+              "device_list": "Az inverterek Modbus eszközazonosítói. Használjon listát (1,3,10), tartományt (1-4) vagy mindkettőt (1-3,5,10). Egyetlen inverter általában az 1-et használja."
             }
           }
         },

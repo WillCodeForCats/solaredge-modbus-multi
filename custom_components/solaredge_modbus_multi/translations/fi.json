@@ -19,6 +19,9 @@
         "description": "SolarEdge Modbus/TCP-yhdyskäytävä löydettiin osoitteesta {host}:{port}. Otetaanko se käyttöön nyt?",
         "data": {
           "name": "Anturin etuliite"
+        },
+        "data_description": {
+          "name": "Lisätään jokaisen laitteen nimen alkuun, ja sen perään tulee laite, esim. I1 invertterille 1. Entiteettien tunnukset luodaan näistä nimistä."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Ohita laitetunnuksen tarkistus"
         },
         "data_description": {
+          "name": "Lisätään jokaisen laitteen nimen alkuun, ja sen perään tulee laite, esim. I1 invertterille 1. Entiteettien tunnukset luodaan näistä nimistä.",
+          "host": "Sen invertterin IP-osoite tai isäntänimi, jossa Modbus/TCP on käytössä. Jos inverttereitä on useita, käytä johtavaa (leader) invertteriä.",
+          "port": "Invertteriin asetettu Modbus/TCP-portti. SolarEdgen oletus on 1502.",
+          "device_list": "Invertteriesi Modbus-laitetunnukset. Käytä luetteloa (1,3,10), aluetta (1-4) tai molempia (1-3,5,10). Yksi invertteri käyttää yleensä arvoa 1.",
           "bypass_device_check": "Lisää laitetunnusluettelo muodostamatta yhteyttä sen tarkistamiseksi, että jokainen tunnus vastaa SolarEdge-vaihtosuuntaajana. Käytä tätä vain, jos tarkistus epäonnistuu laitteelle, jonka tiedät olevan oikea, kuten sellaiselle, joka on offline-tilassa asennuksen aikana."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Anturin etuliite",
           "host": "Vaihtosuuntaajan IP-osoite",
           "port": "Modbus/TCP-portti"
+        },
+        "data_description": {
+          "name": "Lisätään jokaisen laitteen nimen alkuun, ja sen perään tulee laite, esim. I1 invertterille 1. Entiteettien tunnukset luodaan näistä nimistä.",
+          "host": "Sen invertterin IP-osoite tai isäntänimi, jossa Modbus/TCP on käytössä. Jos inverttereitä on useita, käytä johtavaa (leader) invertteriä.",
+          "port": "Invertteriin asetettu Modbus/TCP-portti. SolarEdgen oletus on 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Vaihtosuuntaajan IP-osoite",
           "port": "Modbus/TCP-portti",
           "device_list": "Vaihtosuuntaajien laitetunnusluettelo"
+        },
+        "data_description": {
+          "host": "Sen invertterin IP-osoite tai isäntänimi, jossa Modbus/TCP on käytössä. Jos inverttereitä on useita, käytä johtavaa (leader) invertteriä.",
+          "port": "Invertteriin asetettu Modbus/TCP-portti. SolarEdgen oletus on 1502.",
+          "device_list": "Invertteriesi Modbus-laitetunnukset. Käytä luetteloa (1,3,10), aluetta (1-4) tai molempia (1-3,5,10). Yksi invertteri käyttää yleensä arvoa 1."
         }
       }
     },
@@ -93,6 +110,13 @@
           "connection_mode": "Modbus-yhteys"
         },
         "data_description": {
+          "scan_interval": "Kuinka usein (sekunteina) tiedot luetaan inverttereistä.",
+          "detect_meters": "Etsi jokaiseen invertteriin liitettyjä mittareita, kun integraatio käynnistyy.",
+          "detect_batteries": "Etsi jokaiseen invertteriin liitettyjä akkuja, kun integraatio käynnistyy. Akkutuki käyttää rekistereitä, joita SolarEdge ei virallisesti dokumentoi.",
+          "detect_extras": "Tarkista, tukeeko kukin invertteri Global Dynamic Power Control- ja Advanced Power Control -toimintoja, ja lisää niiden entiteetit, jos ne löytyvät.",
+          "advanced_power_control": "Näytä seuraavaksi Tehonohjausasetukset-vaihe, jossa varastoinnin ohjaus ja kohteen rajojen ohjaus voidaan ottaa käyttöön tai poistaa käytöstä.",
+          "request_timeout": "Kuinka kauan (sekunteina) odotetaan vastausta kuhunkin Modbus-pyyntöön.",
+          "sleep_after_write": "Odotusaika sekunteina invertterille lähetettävien pyyntöjen välillä, kun sille on kirjoitettu komento. Jotkin invertterit tarvitsevat aikaa komennon käsittelyyn ennen kuin ne vastaavat taas. 0 poistaa tämän käytöstä.",
           "connection_mode": "Miten SolarEdge Modbus Multi muodostaa yhteyden vaihtosuuntaajaan. Toinen samaa vaihtosuuntaajaa käyttävä integraatio voi hidastaa jaettua yhteyttä. Lisätietoja on README-tiedostossa."
         }
       },
@@ -102,6 +126,10 @@
           "adv_storage_control": "Ota käyttöön varastoinnin ohjaus",
           "adv_site_limit_control": "Ota käyttöön kohteen rajan ohjaus"
         },
+        "data_description": {
+          "adv_storage_control": "Lisää entiteetit, jotka muuttavat invertterin akkuvaraston ohjausasetuksia.",
+          "adv_site_limit_control": "Lisää entiteetit, jotka muuttavat kohteen vienti- ja tuotantorajoja invertterissä."
+        },
         "description": "Varoitus: Nämä asetukset voivat rikkoa energiayhtiön sopimuksia, muuttaa laskutustasi, vaatia erikoislaitteita ja korvata SolarEdgen tai asentajasi tekemät asetukset. Käytä omalla vastuullasi! Modbus-rekisterien säädettävät parametrit on tarkoitettu pitkäaikaiseen tallennukseen. Toistuvat muutokset voivat vahingoittaa flash-muistia."
       },
       "battery_options": {
@@ -110,6 +138,11 @@
           "allow_battery_energy_reset": "Salli akun energian nollaus",
           "battery_energy_reset_cycles": "Päivityssyklit akun energian nollaamiseksi",
           "battery_rating_adjust": "Akun kapasiteetin säätö (prosenttia)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Jotkin akut ilmoittavat energiasummia, jotka pienenevät tai nollautuvat. Kun pois päältä, pienempi arvo ohitetaan ja viimeisin arvo säilyy. Kun päällä, pienempi arvo hyväksytään.",
+          "battery_energy_reset_cycles": "Peräkkäisten kyselyjen määrä, joissa pienempi akun energia-arvo täytyy nähdä ennen kuin se hyväksytään. Käytetään vain, kun akun energian nollaus on sallittu.",
+          "battery_rating_adjust": "Prosenttimäärä akun nimellisenergian yli, jonka käytettävissä oleva energia saa saavuttaa ennen kuin arvoa pidetään virheellisenä. Käytä tätä, jos akkusi ilmoittaa enemmän kuin nimellisarvonsa."
         }
       }
     },
@@ -132,6 +165,11 @@
               "host": "Vaihtosuuntaajan IP-osoite",
               "port": "Modbus/TCP-portti",
               "device_list": "Vaihtosuuntaajien laitetunnusluettelo"
+            },
+            "data_description": {
+              "host": "Sen invertterin IP-osoite tai isäntänimi, jossa Modbus/TCP on käytössä. Jos inverttereitä on useita, käytä johtavaa (leader) invertteriä.",
+              "port": "Invertteriin asetettu Modbus/TCP-portti. SolarEdgen oletus on 1502.",
+              "device_list": "Invertteriesi Modbus-laitetunnukset. Käytä luetteloa (1,3,10), aluetta (1-4) tai molempia (1-3,5,10). Yksi invertteri käyttää yleensä arvoa 1."
             }
           }
         },

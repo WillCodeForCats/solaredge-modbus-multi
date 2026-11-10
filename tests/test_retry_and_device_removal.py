@@ -1,8 +1,8 @@
 """Tests for the retry helpers and device removal check.
 
 Covers async_update_with_retry/async_write_with_retry in hub.py, and
-SolarEdgeCoordinator's refresh retry and async_remove_config_entry_device in
-__init__.py.
+SolarEdgeCoordinator's refresh retry in coordinator.py, and
+async_remove_config_entry_device in __init__.py.
 """
 
 from types import SimpleNamespace
@@ -14,11 +14,13 @@ from modbus_connection.exceptions import ModbusConnectionError, ModbusTimeoutErr
 from modbus_connection.model.sunspec import SunSpecError
 import pytest
 
-from custom_components.solaredge_modbus_multi import (
-    SolarEdgeCoordinator,
-    async_remove_config_entry_device,
+from custom_components.solaredge_modbus_multi import async_remove_config_entry_device
+from custom_components.solaredge_modbus_multi.const import (
+    DATA_YAML,
+    DOMAIN,
+    RetrySettings,
 )
-from custom_components.solaredge_modbus_multi.const import DOMAIN, RetrySettings
+from custom_components.solaredge_modbus_multi.coordinator import SolarEdgeCoordinator
 from custom_components.solaredge_modbus_multi.hub import (
     DataUpdateFailed,
     DataUpdateTimedOut,
@@ -149,7 +151,7 @@ async def test_suns_scan_with_retry_does_not_retry_sunspec_errors():
 
 
 def _make_coordinator(hass, refresh):
-    hass.data[DOMAIN] = {"yaml": {}}
+    hass.data[DATA_YAML] = {}
     hub = SimpleNamespace(async_refresh_modbus_data=refresh)
     return SolarEdgeCoordinator(hass, hub, 30)
 
@@ -171,7 +173,8 @@ async def test_coordinator_retry_waits_with_growing_delay_between_attempts(hass)
     coordinator = _make_coordinator(hass, refresh)
 
     with patch(
-        "custom_components.solaredge_modbus_multi.asyncio.sleep", new=AsyncMock()
+        "custom_components.solaredge_modbus_multi.coordinator.asyncio.sleep",
+        new=AsyncMock(),
     ) as sleep:
         result = await coordinator._refresh_modbus_data_with_retry(
             ex_type=DataUpdateFailed, limit=5, wait_ms=100, wait_ratio=2
@@ -189,7 +192,8 @@ async def test_coordinator_retry_reraises_original_error_when_exhausted(hass):
 
     with (
         patch(
-            "custom_components.solaredge_modbus_multi.asyncio.sleep", new=AsyncMock()
+            "custom_components.solaredge_modbus_multi.coordinator.asyncio.sleep",
+            new=AsyncMock(),
         ),
         pytest.raises(DataUpdateFailed) as exc_info,
     ):
@@ -256,8 +260,7 @@ def _removal_hass(hass, entry_id="entry1"):
         meters=[_device((DOMAIN, "inverter_1_meter_1"))],
         batteries=[_device((DOMAIN, "inverter_1_battery_1"))],
     )
-    hass.data[DOMAIN] = {entry_id: {"hub": hub}}
-    return SimpleNamespace(entry_id=entry_id)
+    return SimpleNamespace(entry_id=entry_id, runtime_data=SimpleNamespace(hub=hub))
 
 
 @pytest.mark.parametrize(

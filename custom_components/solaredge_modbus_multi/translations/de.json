@@ -19,6 +19,9 @@
         "description": "Ein SolarEdge Modbus/TCP-Gateway wurde unter {host}:{port} gefunden. Jetzt einrichten?",
         "data": {
           "name": "Sensorpräfix"
+        },
+        "data_description": {
+          "name": "Wird an den Anfang jedes Gerätenamens gesetzt, gefolgt vom Gerät, z. B. I1 für Wechselrichter 1. Entitäts-IDs werden aus diesen Namen erstellt."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Geräte-ID-Prüfung überspringen"
         },
         "data_description": {
+          "name": "Wird an den Anfang jedes Gerätenamens gesetzt, gefolgt vom Gerät, z. B. I1 für Wechselrichter 1. Entitäts-IDs werden aus diesen Namen erstellt.",
+          "host": "IP-Adresse oder Hostname des Wechselrichters mit aktiviertem Modbus/TCP. Bei mehreren Wechselrichtern den Leader-Wechselrichter verwenden.",
+          "port": "Am Wechselrichter eingestellter Modbus/TCP-Port. Der SolarEdge-Standard ist 1502.",
+          "device_list": "Modbus-Geräte-IDs Ihrer Wechselrichter. Verwenden Sie eine Liste (1,3,10), einen Bereich (1-4) oder beides (1-3,5,10). Ein einzelner Wechselrichter verwendet normalerweise 1.",
           "bypass_device_check": "Fügen Sie die Geräte-ID-Liste hinzu, ohne zu prüfen, ob jede ID als SolarEdge-Wechselrichter antwortet. Verwenden Sie dies nur, wenn die Prüfung für ein Gerät fehlschlägt, von dem Sie wissen, dass es korrekt ist, z. B. eines, das während der Einrichtung offline ist."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port"
+        },
+        "data_description": {
+          "name": "Wird an den Anfang jedes Gerätenamens gesetzt, gefolgt vom Gerät, z. B. I1 für Wechselrichter 1. Entitäts-IDs werden aus diesen Namen erstellt.",
+          "host": "IP-Adresse oder Hostname des Wechselrichters mit aktiviertem Modbus/TCP. Bei mehreren Wechselrichtern den Leader-Wechselrichter verwenden.",
+          "port": "Am Wechselrichter eingestellter Modbus/TCP-Port. Der SolarEdge-Standard ist 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
           "device_list": "Liste der Wechselrichter-Geräte-IDs"
+        },
+        "data_description": {
+          "host": "IP-Adresse oder Hostname des Wechselrichters mit aktiviertem Modbus/TCP. Bei mehreren Wechselrichtern den Leader-Wechselrichter verwenden.",
+          "port": "Am Wechselrichter eingestellter Modbus/TCP-Port. Der SolarEdge-Standard ist 1502.",
+          "device_list": "Modbus-Geräte-IDs Ihrer Wechselrichter. Verwenden Sie eine Liste (1,3,10), einen Bereich (1-4) oder beides (1-3,5,10). Ein einzelner Wechselrichter verwendet normalerweise 1."
         }
       }
     },
@@ -93,6 +110,13 @@
           "connection_mode": "Modbus-Verbindung"
         },
         "data_description": {
+          "scan_interval": "Wie oft (in Sekunden) Daten von den Wechselrichtern gelesen werden.",
+          "detect_meters": "Beim Start der Integration nach Zählern suchen, die an jeden Wechselrichter angeschlossen sind.",
+          "detect_batteries": "Beim Start der Integration nach Batterien suchen, die an jeden Wechselrichter angeschlossen sind. Die Batterieunterstützung nutzt Register, die SolarEdge nicht offiziell dokumentiert.",
+          "detect_extras": "Prüfen, ob jeder Wechselrichter Global Dynamic Power Control und Advanced Power Control unterstützt, und deren Entitäten hinzufügen, wenn sie gefunden werden.",
+          "advanced_power_control": "Als Nächstes den Schritt Leistungssteuerungsoptionen anzeigen, um die Speichersteuerung und die Standortlimitsteuerung ein- oder auszuschalten.",
+          "request_timeout": "Wie lange (in Sekunden) auf eine Antwort auf jede Modbus-Anfrage gewartet wird.",
+          "sleep_after_write": "Sekunden Wartezeit zwischen Anfragen an einen Wechselrichter, nachdem ein Befehl an ihn geschrieben wurde. Manche Wechselrichter brauchen Zeit, um einen Befehl zu verarbeiten, bevor sie wieder antworten. 0 schaltet dies aus.",
           "connection_mode": "Wie SolarEdge Modbus Multi eine Verbindung zum Wechselrichter herstellt. Eine andere Integration, die denselben Wechselrichter verwendet, kann eine gemeinsame Verbindung verlangsamen. Weitere Informationen finden Sie in der README."
         }
       },
@@ -102,6 +126,10 @@
           "adv_storage_control": "Speichersteuerung aktivieren",
           "adv_site_limit_control": "Site-Limit-Kontrolle aktivieren"
         },
+        "data_description": {
+          "adv_storage_control": "Entitäten hinzufügen, die die Einstellungen der Batteriespeichersteuerung am Wechselrichter ändern.",
+          "adv_site_limit_control": "Entitäten hinzufügen, die die Export- und Produktionslimits des Standorts am Wechselrichter ändern."
+        },
         "description": "Warnung: Diese Optionen können gegen Stromverträge verstoßen, Ihre Stromabrechnung ändern, möglicherweise spezielle Geräte erfordern und die Bereitstellung durch SolarEdge oder Ihren Installateur überschreiben. Benutzung auf eigene Gefahr! Einstellbare Parameter in Modbus-Registern sind für die Langzeitspeicherung vorgesehen. Regelmäßige Änderungen können den Flash-Speicher beschädigen."
       },
       "battery_options": {
@@ -110,6 +138,11 @@
           "allow_battery_energy_reset": "Batterieenergie zurücksetzen lassen",
           "battery_energy_reset_cycles": "Aktualisierungszyklen zum Zurücksetzen der Batterieenergie",
           "battery_rating_adjust": "Anpassung der Batterieleistung (Prozent)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Manche Batterien melden Energiesummen, die sinken oder auf null zurückgesetzt werden. Wenn aus, wird ein niedrigerer Wert ignoriert und der letzte Wert behalten. Wenn an, wird der niedrigere Wert übernommen.",
+          "battery_energy_reset_cycles": "Anzahl aufeinanderfolgender Abfragen, in denen ein niedrigerer Batterieenergiewert gesehen werden muss, bevor er übernommen wird. Wird nur verwendet, wenn das Zurücksetzen der Batterieenergie erlaubt ist.",
+          "battery_rating_adjust": "Prozent über der Nennenergie der Batterie, die ihre verfügbare Energie erreichen darf, bevor der Wert als ungültig gilt. Verwenden Sie dies, wenn Ihre Batterie mehr als ihren Nennwert meldet."
         }
       }
     },
@@ -132,6 +165,11 @@
               "host": "Wechselrichter-IP-Adresse",
               "port": "Modbus/TCP-Port",
               "device_list": "Liste der Wechselrichter-Geräte-IDs"
+            },
+            "data_description": {
+              "host": "IP-Adresse oder Hostname des Wechselrichters mit aktiviertem Modbus/TCP. Bei mehreren Wechselrichtern den Leader-Wechselrichter verwenden.",
+              "port": "Am Wechselrichter eingestellter Modbus/TCP-Port. Der SolarEdge-Standard ist 1502.",
+              "device_list": "Modbus-Geräte-IDs Ihrer Wechselrichter. Verwenden Sie eine Liste (1,3,10), einen Bereich (1-4) oder beides (1-3,5,10). Ein einzelner Wechselrichter verwendet normalerweise 1."
             }
           }
         },
