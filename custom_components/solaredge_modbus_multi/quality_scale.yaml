@@ -6,11 +6,7 @@ rules:
   appropriate-polling: done
   brands: done
   common-modules: done
-  config-flow:
-    status: todo
-    comment: |
-      Config flow exists, but most fields have no data_description in
-      strings.json (only one is present).
+  config-flow: done
   config-flow-test-coverage: done
   dependency-transparency: done
   docs-actions:

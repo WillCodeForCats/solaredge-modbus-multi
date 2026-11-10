@@ -19,6 +19,9 @@
         "description": "A fost găsit un gateway SolarEdge Modbus/TCP la {host}:{port}. Configurați-l acum?",
         "data": {
           "name": "Prefix Senzor"
+        },
+        "data_description": {
+          "name": "Se adaugă la începutul numelui fiecărui dispozitiv, urmat de dispozitiv, de exemplu I1 pentru invertorul 1. ID-urile entităților sunt create din aceste nume."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Omite validarea ID-ului dispozitivului"
         },
         "data_description": {
+          "name": "Se adaugă la începutul numelui fiecărui dispozitiv, urmat de dispozitiv, de exemplu I1 pentru invertorul 1. ID-urile entităților sunt create din aceste nume.",
+          "host": "Adresa IP sau numele de gazdă al invertorului cu Modbus/TCP activat. La mai multe invertoare, folosiți invertorul principal (leader).",
+          "port": "Portul Modbus/TCP setat pe invertor. Valoarea implicită SolarEdge este 1502.",
+          "device_list": "ID-urile de dispozitiv Modbus ale invertoarelor. Folosiți o listă (1,3,10), un interval (1-4) sau ambele (1-3,5,10). Un singur invertor folosește de obicei 1.",
           "bypass_device_check": "Adăugați lista de ID-uri de dispozitiv fără a vă conecta pentru a verifica dacă fiecare ID răspunde ca invertor SolarEdge. Utilizați această opțiune numai dacă verificarea eșuează pentru un dispozitiv despre care știți că este corect, cum ar fi unul offline în timpul configurării."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Prefix Senzor",
           "host": "Adresa IP a Invertorului",
           "port": "Port Modbus/TCP"
+        },
+        "data_description": {
+          "name": "Se adaugă la începutul numelui fiecărui dispozitiv, urmat de dispozitiv, de exemplu I1 pentru invertorul 1. ID-urile entităților sunt create din aceste nume.",
+          "host": "Adresa IP sau numele de gazdă al invertorului cu Modbus/TCP activat. La mai multe invertoare, folosiți invertorul principal (leader).",
+          "port": "Portul Modbus/TCP setat pe invertor. Valoarea implicită SolarEdge este 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Adresa IP a Invertorului",
           "port": "Port Modbus/TCP",
           "device_list": "Lista de ID-uri de Dispozitiv ale Invertoarelor"
+        },
+        "data_description": {
+          "host": "Adresa IP sau numele de gazdă al invertorului cu Modbus/TCP activat. La mai multe invertoare, folosiți invertorul principal (leader).",
+          "port": "Portul Modbus/TCP setat pe invertor. Valoarea implicită SolarEdge este 1502.",
+          "device_list": "ID-urile de dispozitiv Modbus ale invertoarelor. Folosiți o listă (1,3,10), un interval (1-4) sau ambele (1-3,5,10). Un singur invertor folosește de obicei 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Opțiuni de Control al Puterii",
           "request_timeout": "Timeout Solicitare Modbus (secunde)",
           "sleep_after_write": "Întârziere Comandă Invertor (secunde)"
+        },
+        "data_description": {
+          "scan_interval": "Cât de des, în secunde, se citesc datele de la invertoare.",
+          "close_after_polling": "Închide conexiunea Modbus/TCP după fiecare interogare reușită. Activați dacă și altceva se conectează la invertor, deoarece acesta acceptă o singură conexiune odată.",
+          "detect_meters": "Caută contoarele conectate la fiecare invertor la pornirea integrării.",
+          "detect_batteries": "Caută bateriile conectate la fiecare invertor la pornirea integrării. Suportul pentru baterii folosește registre pe care SolarEdge nu le documentează oficial.",
+          "detect_extras": "Verifică dacă fiecare invertor acceptă Global Dynamic Power Control și Advanced Power Control și adaugă entitățile acestora dacă sunt găsite.",
+          "advanced_power_control": "Afișează apoi pasul Opțiuni de control al puterii, pentru a activa sau dezactiva controlul stocării și controlul limitei locației.",
+          "request_timeout": "Cât timp, în secunde, se așteaptă un răspuns la fiecare cerere Modbus.",
+          "sleep_after_write": "Secunde de așteptare între cererile către un invertor după ce i s-a scris o comandă. Unele invertoare au nevoie de timp pentru a procesa o comandă înainte de a răspunde din nou. 0 dezactivează această opțiune."
         }
       },
       "adv_pwr_ctl": {
@@ -98,6 +125,10 @@
         "data": {
           "adv_storage_control": "Activează Controlul Stocării",
           "adv_site_limit_control": "Activează Controlul Limitei de Sit"
+        },
+        "data_description": {
+          "adv_storage_control": "Adaugă entități care modifică setările de control al stocării bateriei pe invertor.",
+          "adv_site_limit_control": "Adaugă entități care modifică limitele de export și producție ale locației pe invertor."
         },
         "description": "Avertisment: Aceste opțiuni pot încălca contractele cu furnizorul de energie, pot modifica factura de energie, pot necesita echipamente speciale și pot suprascrie configurarea efectuată de SolarEdge sau de instalatorul dumneavoastră. Utilizați pe propriul risc! Parametrii ajustabili din registrele Modbus sunt destinați stocării pe termen lung. Modificările periodice pot deteriora memoria flash."
       },
@@ -107,6 +138,11 @@
           "allow_battery_energy_reset": "Permite Resetarea Energiei Bateriei",
           "battery_energy_reset_cycles": "Cicluri de Actualizare pentru Resetarea Energiei Bateriei",
           "battery_rating_adjust": "Ajustare Capacitate Baterie (procent)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Unele baterii raportează totaluri de energie care scad sau se resetează la zero. Când este dezactivat, o valoare mai mică este ignorată și se păstrează ultima valoare. Când este activat, valoarea mai mică este acceptată.",
+          "battery_energy_reset_cycles": "Numărul de interogări consecutive în care o valoare mai mică a energiei bateriei trebuie văzută înainte de a fi acceptată. Folosit doar când Permite resetarea energiei bateriei este activat.",
+          "battery_rating_adjust": "Procentul peste energia nominală a bateriei pe care energia disponibilă îl poate atinge înainte ca valoarea să fie considerată invalidă. Folosiți dacă bateria raportează mai mult decât valoarea nominală."
         }
       }
     },
@@ -129,6 +165,11 @@
               "host": "Adresa IP a Invertorului",
               "port": "Port Modbus/TCP",
               "device_list": "Lista de ID-uri de Dispozitiv ale Invertoarelor"
+            },
+            "data_description": {
+              "host": "Adresa IP sau numele de gazdă al invertorului cu Modbus/TCP activat. La mai multe invertoare, folosiți invertorul principal (leader).",
+              "port": "Portul Modbus/TCP setat pe invertor. Valoarea implicită SolarEdge este 1502.",
+              "device_list": "ID-urile de dispozitiv Modbus ale invertoarelor. Folosiți o listă (1,3,10), un interval (1-4) sau ambele (1-3,5,10). Un singur invertor folosește de obicei 1."
             }
           }
         },

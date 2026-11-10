@@ -19,6 +19,9 @@
         "description": "Er is een SolarEdge Modbus/TCP-gateway gevonden op {host}:{port}. Nu instellen?",
         "data": {
           "name": "Sensor prefix"
+        },
+        "data_description": {
+          "name": "Wordt aan het begin van elke apparaatnaam gezet, gevolgd door het apparaat, bijvoorbeeld I1 voor omvormer 1. Entiteit-ID's worden uit deze namen gemaakt."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "ID-controle overslaan"
         },
         "data_description": {
+          "name": "Wordt aan het begin van elke apparaatnaam gezet, gevolgd door het apparaat, bijvoorbeeld I1 voor omvormer 1. Entiteit-ID's worden uit deze namen gemaakt.",
+          "host": "IP-adres of hostnaam van de omvormer met Modbus/TCP ingeschakeld. Gebruik bij meerdere omvormers de leader-omvormer.",
+          "port": "Modbus/TCP-poort die op de omvormer is ingesteld. De standaard van SolarEdge is 1502.",
+          "device_list": "Modbus-apparaat-ID's van je omvormers. Gebruik een lijst (1,3,10), een bereik (1-4) of beide (1-3,5,10). Eén omvormer gebruikt normaal 1.",
           "bypass_device_check": "Voeg de apparaat-ID-lijst toe zonder verbinding te maken om te controleren of elke ID reageert als een SolarEdge-omvormer. Gebruik dit alleen als de controle mislukt voor een apparaat waarvan u weet dat het correct is, bijvoorbeeld een apparaat dat offline is tijdens de installatie."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Sensor prefix",
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port"
+        },
+        "data_description": {
+          "name": "Wordt aan het begin van elke apparaatnaam gezet, gevolgd door het apparaat, bijvoorbeeld I1 voor omvormer 1. Entiteit-ID's worden uit deze namen gemaakt.",
+          "host": "IP-adres of hostnaam van de omvormer met Modbus/TCP ingeschakeld. Gebruik bij meerdere omvormers de leader-omvormer.",
+          "port": "Modbus/TCP-poort die op de omvormer is ingesteld. De standaard van SolarEdge is 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "omvormer IP-adres",
           "port": "Modbus/TCP Port",
           "device_list": "Omvormerapparaat-ID-lijst"
+        },
+        "data_description": {
+          "host": "IP-adres of hostnaam van de omvormer met Modbus/TCP ingeschakeld. Gebruik bij meerdere omvormers de leader-omvormer.",
+          "port": "Modbus/TCP-poort die op de omvormer is ingesteld. De standaard van SolarEdge is 1502.",
+          "device_list": "Modbus-apparaat-ID's van je omvormers. Gebruik een lijst (1,3,10), een bereik (1-4) of beide (1-3,5,10). Eén omvormer gebruikt normaal 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Opties voor vermogensregeling",
           "request_timeout": "Time-out voor Modbus-aanvraag (seconden)",
           "sleep_after_write": "Omvormer commando vertraging (seconden)"
+        },
+        "data_description": {
+          "scan_interval": "Hoe vaak, in seconden, gegevens van de omvormers worden gelezen.",
+          "close_after_polling": "Sluit de Modbus/TCP-verbinding na elke geslaagde polling. Schakel dit in als iets anders ook met de omvormer verbindt, omdat deze maar één verbinding tegelijk accepteert.",
+          "detect_meters": "Zoek naar meters die op elke omvormer zijn aangesloten wanneer de integratie start.",
+          "detect_batteries": "Zoek naar batterijen die op elke omvormer zijn aangesloten wanneer de integratie start. Batterijondersteuning gebruikt registers die SolarEdge niet officieel documenteert.",
+          "detect_extras": "Controleer of elke omvormer Global Dynamic Power Control en Advanced Power Control ondersteunt, en voeg hun entiteiten toe als ze worden gevonden.",
+          "advanced_power_control": "Toon hierna de stap Opties voor vermogensregeling om opslagregeling en regeling van de locatielimiet in of uit te schakelen.",
+          "request_timeout": "Hoe lang, in seconden, op een antwoord op elk Modbus-verzoek wordt gewacht.",
+          "sleep_after_write": "Seconden wachttijd tussen verzoeken aan een omvormer nadat er een opdracht naar is geschreven. Sommige omvormers hebben tijd nodig om een opdracht te verwerken voordat ze weer antwoorden. 0 schakelt dit uit."
         }
       },
       "adv_pwr_ctl": {
@@ -98,6 +125,10 @@
         "data": {
           "adv_storage_control": "Opslagbeheer inschakelen",
           "adv_site_limit_control": "Beheer van sitelimiet inschakelen"
+        },
+        "data_description": {
+          "adv_storage_control": "Voeg entiteiten toe die de instellingen voor batterijopslagregeling op de omvormer wijzigen.",
+          "adv_site_limit_control": "Voeg entiteiten toe die de export- en productielimieten van de locatie op de omvormer wijzigen."
         },
         "description": "Waarschuwing: deze opties kunnen in strijd zijn met nutsvoorzieningen, de facturering van uw nutsbedrijf wijzigen, mogelijk speciale apparatuur vereisen en de voorzieningen door SolarEdge of uw installateur overschrijven. Gebruik op eigen risico! Instelbare parameters in Modbus-registers zijn bedoeld voor langdurige opslag. Periodieke wijzigingen kunnen het flashgeheugen beschadigen."
       },
@@ -107,6 +138,11 @@
           "allow_battery_energy_reset": "Batterij-energie laten resetten",
           "battery_energy_reset_cycles": "Update cycli om de batterij-energie te resetten",
           "battery_rating_adjust": "Aanpassing batterijvermogen (%)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Sommige batterijen melden energietotalen die dalen of naar nul worden gezet. Indien uit, wordt een lagere waarde genegeerd en blijft de laatste waarde staan. Indien aan, wordt de lagere waarde geaccepteerd.",
+          "battery_energy_reset_cycles": "Aantal opeenvolgende pollings waarin een lagere batterij-energiewaarde gezien moet worden voordat deze wordt geaccepteerd. Alleen gebruikt als Batterij-energie mag resetten aan staat.",
+          "battery_rating_adjust": "Percentage boven de nominale energie van de batterij dat de beschikbare energie mag bereiken voordat de waarde als ongeldig wordt beschouwd. Gebruik dit als je batterij meer meldt dan de nominale waarde."
         }
       }
     },
@@ -129,6 +165,11 @@
               "host": "omvormer IP-adres",
               "port": "Modbus/TCP Port",
               "device_list": "Omvormerapparaat-ID-lijst"
+            },
+            "data_description": {
+              "host": "IP-adres of hostnaam van de omvormer met Modbus/TCP ingeschakeld. Gebruik bij meerdere omvormers de leader-omvormer.",
+              "port": "Modbus/TCP-poort die op de omvormer is ingesteld. De standaard van SolarEdge is 1502.",
+              "device_list": "Modbus-apparaat-ID's van je omvormers. Gebruik een lijst (1,3,10), een bereik (1-4) of beide (1-3,5,10). Eén omvormer gebruikt normaal 1."
             }
           }
         },
