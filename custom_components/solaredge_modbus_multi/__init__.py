@@ -34,7 +34,11 @@ from .const import (
     ConfDefaultInt,
     ConfName,
 )
-from .coordinator import SolarEdgeCoordinator
+from .coordinator import (
+    SolarEdgeConfigEntry,
+    SolarEdgeCoordinator,
+    SolarEdgeRuntimeData,
+)
 from .helpers import safe_version_tuple
 
 if TYPE_CHECKING:
@@ -209,7 +213,7 @@ def _async_remove_legacy_der_devices(
             device_registry.async_remove_device(device.id)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
     # importlib.metadata does blocking file I/O, and modbus_connection/.hub
@@ -254,11 +258,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ir.async_delete_issue(hass, DOMAIN, "check_configuration")
     ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
 
-    hass.data[DOMAIN][entry.entry_id] = {
-        "hub": solaredge_hub,
-        "coordinator": coordinator,
-        "dependency_versions": installed_versions,
-    }
+    entry.runtime_data = SolarEdgeRuntimeData(
+        hub=solaredge_hub,
+        coordinator=coordinator,
+        dependency_versions=installed_versions,
+    )
 
     await coordinator.async_config_entry_first_refresh()
 
@@ -271,20 +275,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
+    hass: HomeAssistant, config_entry: SolarEdgeConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Remove a config entry from a device."""
-    solaredge_hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    solaredge_hub = config_entry.runtime_data.hub
 
     known_devices = []
 
