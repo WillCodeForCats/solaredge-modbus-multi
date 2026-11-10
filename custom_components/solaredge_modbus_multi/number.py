@@ -13,12 +13,12 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfTime,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, BatteryLimit, SunSpecNotImpl
+from .entity import SolarEdgeEntity
 from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,33 +64,10 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
+class SolarEdgeNumberBase(SolarEdgeEntity, NumberEntity):
     """Representation of a solar edge number base."""
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
-
-    def __init__(self, platform, config_entry, coordinator):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator)
-        """Initialize the number."""
-        self._platform = platform
-        self._config_entry = config_entry
-        self._attr_device_info = platform.device_info
-
-    @property
-    def config_entry_id(self):
-        """Return the config entry id."""
-        return self._config_entry.entry_id
-
-    @property
-    def config_entry_name(self):
-        """Return the config entry name."""
-        return self._config_entry.data["name"]
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self.async_write_ha_state()
 
 
 class StorageACChargeLimit(SolarEdgeNumberBase):
