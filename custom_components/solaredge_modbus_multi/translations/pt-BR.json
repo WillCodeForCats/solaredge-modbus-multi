@@ -19,6 +19,9 @@
         "description": "Um gateway SolarEdge Modbus/TCP foi encontrado em {host}:{port}. Configurá-lo agora?",
         "data": {
           "name": "Prefixo do Sensor"
+        },
+        "data_description": {
+          "name": "Adicionado ao início do nome de cada dispositivo, seguido do dispositivo, como I1 para o inversor 1. Os IDs de entidade são criados a partir desses nomes."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Ignorar validação do ID do dispositivo"
         },
         "data_description": {
+          "name": "Adicionado ao início do nome de cada dispositivo, seguido do dispositivo, como I1 para o inversor 1. Os IDs de entidade são criados a partir desses nomes.",
+          "host": "Endereço IP ou nome de host do inversor com Modbus/TCP ativado. Com vários inversores, use o inversor líder.",
+          "port": "Porta Modbus/TCP configurada no inversor. O padrão da SolarEdge é 1502.",
+          "device_list": "IDs de dispositivo Modbus dos seus inversores. Use uma lista (1,3,10), um intervalo (1-4) ou ambos (1-3,5,10). Um único inversor normalmente usa 1.",
           "bypass_device_check": "Adicione a lista de IDs de dispositivo sem se conectar para verificar se cada ID responde como um inversor SolarEdge. Use isso apenas se a verificação falhar para um dispositivo que você sabe que está correto, como um que está offline durante a configuração."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Prefixo do Sensor",
           "host": "Endereço IP do Inversor",
           "port": "Porta Modbus/TCP"
+        },
+        "data_description": {
+          "name": "Adicionado ao início do nome de cada dispositivo, seguido do dispositivo, como I1 para o inversor 1. Os IDs de entidade são criados a partir desses nomes.",
+          "host": "Endereço IP ou nome de host do inversor com Modbus/TCP ativado. Com vários inversores, use o inversor líder.",
+          "port": "Porta Modbus/TCP configurada no inversor. O padrão da SolarEdge é 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Endereço IP do Inversor",
           "port": "Porta Modbus/TCP",
           "device_list": "Lista de IDs de Dispositivo dos Inversores"
+        },
+        "data_description": {
+          "host": "Endereço IP ou nome de host do inversor com Modbus/TCP ativado. Com vários inversores, use o inversor líder.",
+          "port": "Porta Modbus/TCP configurada no inversor. O padrão da SolarEdge é 1502.",
+          "device_list": "IDs de dispositivo Modbus dos seus inversores. Use uma lista (1,3,10), um intervalo (1-4) ou ambos (1-3,5,10). Um único inversor normalmente usa 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Opções de Controle de Energia",
           "request_timeout": "Tempo Limite de Solicitação Modbus (segundos)",
           "sleep_after_write": "Atraso de Comando do Inversor (segundos)"
+        },
+        "data_description": {
+          "scan_interval": "Com que frequência, em segundos, ler os dados dos inversores.",
+          "close_after_polling": "Fecha a conexão Modbus/TCP após cada consulta bem-sucedida. Ative se outra coisa também se conectar ao inversor, pois ele aceita apenas uma conexão por vez.",
+          "detect_meters": "Procura medidores conectados a cada inversor quando a integração inicia.",
+          "detect_batteries": "Procura baterias conectadas a cada inversor quando a integração inicia. O suporte a baterias usa registradores que a SolarEdge não documenta oficialmente.",
+          "detect_extras": "Verifica se cada inversor suporta Global Dynamic Power Control e Advanced Power Control e adiciona suas entidades quando encontrados.",
+          "advanced_power_control": "Mostra em seguida a etapa Opções de controle de potência, para ativar ou desativar o controle de armazenamento e o controle de limite do local.",
+          "request_timeout": "Quanto tempo, em segundos, aguardar uma resposta para cada solicitação Modbus.",
+          "sleep_after_write": "Segundos de espera entre solicitações a um inversor após um comando ser gravado nele. Alguns inversores precisam de tempo para processar um comando antes de responder novamente. 0 desativa isso."
         }
       },
       "adv_pwr_ctl": {
@@ -98,6 +125,10 @@
         "data": {
           "adv_storage_control": "Ativar Controle de Armazenamento",
           "adv_site_limit_control": "Ativar Controle de Limite do Local"
+        },
+        "data_description": {
+          "adv_storage_control": "Adiciona entidades que alteram as configurações de controle de armazenamento da bateria no inversor.",
+          "adv_site_limit_control": "Adiciona entidades que alteram os limites de exportação e produção do local no inversor."
         },
         "description": "Aviso: Essas opções podem violar acordos com a concessionária, alterar sua fatura de energia, exigir equipamentos especiais e substituir o provisionamento feito pela SolarEdge ou seu instalador. Use por sua conta e risco! Os parâmetros ajustáveis nos registradores Modbus são destinados ao armazenamento de longo prazo. Alterações periódicas podem danificar a memória flash."
       },
@@ -107,6 +138,11 @@
           "allow_battery_energy_reset": "Permitir Redefinição da Energia da Bateria",
           "battery_energy_reset_cycles": "Ciclos de Atualização para Redefinir a Energia da Bateria",
           "battery_rating_adjust": "Ajuste de Capacidade da Bateria (porcentagem)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Algumas baterias informam totais de energia que diminuem ou zeram. Quando desativado, um valor menor é ignorado e o último valor é mantido. Quando ativado, o valor menor é aceito.",
+          "battery_energy_reset_cycles": "Número de consultas seguidas em que um valor menor de energia da bateria deve ser visto antes de ser aceito. Usado apenas quando Permitir redefinição da energia da bateria está ativado.",
+          "battery_rating_adjust": "Porcentagem acima da energia nominal da bateria que sua energia disponível pode atingir antes que o valor seja considerado inválido. Use se sua bateria informar mais do que sua capacidade nominal."
         }
       }
     },
@@ -129,6 +165,11 @@
               "host": "Endereço IP do Inversor",
               "port": "Porta Modbus/TCP",
               "device_list": "Lista de IDs de Dispositivo dos Inversores"
+            },
+            "data_description": {
+              "host": "Endereço IP ou nome de host do inversor com Modbus/TCP ativado. Com vários inversores, use o inversor líder.",
+              "port": "Porta Modbus/TCP configurada no inversor. O padrão da SolarEdge é 1502.",
+              "device_list": "IDs de dispositivo Modbus dos seus inversores. Use uma lista (1,3,10), um intervalo (1-4) ou ambos (1-3,5,10). Um único inversor normalmente usa 1."
             }
           }
         },

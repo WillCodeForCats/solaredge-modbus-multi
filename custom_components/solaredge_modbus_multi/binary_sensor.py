@@ -8,25 +8,25 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DEVICE_STATUS, DOMAIN, VENDOR4_STATUS, VENDOR_STATUS, SunSpecNotImpl
+from .const import DEVICE_STATUS, VENDOR4_STATUS, VENDOR_STATUS, SunSpecNotImpl
+from .coordinator import SolarEdgeConfigEntry
+from .entity import SolarEdgeEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: SolarEdgeConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup entry."""
-    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    hub = config_entry.runtime_data.hub
+    coordinator = config_entry.runtime_data.coordinator
 
     entities = []
 
@@ -40,32 +40,8 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-class SolarEdgeBinarySensorBase(CoordinatorEntity, BinarySensorEntity):
+class SolarEdgeBinarySensorBase(SolarEdgeEntity, BinarySensorEntity):
     """Base class for SolarEdge binary sensor entities."""
-
-    _attr_has_entity_name = True
-
-    def __init__(self, platform, config_entry, coordinator):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator)
-        """Initialize the sensor."""
-        self._platform = platform
-        self._config_entry = config_entry
-        self._attr_device_info = platform.device_info
-
-    @property
-    def config_entry_id(self):
-        """Return the config entry id."""
-        return self._config_entry.entry_id
-
-    @property
-    def config_entry_name(self):
-        """Return the config entry name."""
-        return self._config_entry.data["name"]
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self.async_write_ha_state()
 
 
 class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):

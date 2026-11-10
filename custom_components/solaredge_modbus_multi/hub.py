@@ -46,6 +46,7 @@ from .components import (
 )
 from .const import (
     BATTERY_REG_BASE,
+    DATA_YAML,
     DETECT_EVSE_REGEX,
     DOMAIN,
     METER_REG_BASE,
@@ -206,7 +207,7 @@ class SolarEdgeModbusMultiHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._yaml_config = hass.data[DOMAIN]["yaml"]
+        self._yaml_config = hass.data[DATA_YAML]
         self._name = entry_data[CONF_NAME]
         self._host = entry_data[CONF_HOST]
         self._port = entry_data[CONF_PORT]
