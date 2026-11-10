@@ -114,7 +114,7 @@ class StorageControlMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "control_mode", new_mode
         )
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class StorageACChargePolicy(SolarEdgeSelectBase):
@@ -157,7 +157,7 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "ac_charge_policy", new_mode
         )
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class StorageDefaultMode(SolarEdgeSelectBase):
@@ -202,7 +202,7 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "default_mode", new_mode
         )
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class StorageCommandMode(SolarEdgeSelectBase):
@@ -250,7 +250,7 @@ class StorageCommandMode(SolarEdgeSelectBase):
             new_mode,
             count_write=False,
         )
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class SolaredgeLimitControlMode(SolarEdgeSelectBase):
@@ -308,7 +308,7 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class SolaredgeLimitControl(SolarEdgeSelectBase):
@@ -346,7 +346,7 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl", new_mode
         )
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
@@ -387,4 +387,4 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "ReactivePwrConfig", new_mode
         )
-        await self.async_update()
+        self._async_schedule_refresh()

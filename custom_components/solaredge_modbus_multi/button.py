@@ -65,7 +65,7 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
 
     async def async_press(self) -> None:
         """Press."""
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
@@ -92,7 +92,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "CommitPwrCtlSettings", 1
         )
-        await self.async_update()
+        self._async_schedule_refresh()
 
 
 class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
@@ -120,4 +120,4 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "RestorePwrCtlDefaults", 1
         )
-        await self.async_update()
+        self._async_schedule_refresh()
