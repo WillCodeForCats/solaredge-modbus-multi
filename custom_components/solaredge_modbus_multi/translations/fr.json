@@ -19,6 +19,9 @@
         "description": "Une passerelle SolarEdge Modbus/TCP a été trouvée à {host}:{port}. La configurer maintenant ?",
         "data": {
           "name": "Prefix du capteur"
+        },
+        "data_description": {
+          "name": "Ajouté au début du nom de chaque appareil, suivi de l'appareil, par exemple I1 pour l'onduleur 1. Les ID d'entité sont créés à partir de ces noms."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Ignorer la validation des ID d'appareil"
         },
         "data_description": {
+          "name": "Ajouté au début du nom de chaque appareil, suivi de l'appareil, par exemple I1 pour l'onduleur 1. Les ID d'entité sont créés à partir de ces noms.",
+          "host": "Adresse IP ou nom d'hôte de l'onduleur avec Modbus/TCP activé. Avec plusieurs onduleurs, utilisez l'onduleur principal (leader).",
+          "port": "Port Modbus/TCP configuré sur l'onduleur. La valeur par défaut de SolarEdge est 1502.",
+          "device_list": "ID d'appareil Modbus de vos onduleurs. Utilisez une liste (1,3,10), une plage (1-4) ou les deux (1-3,5,10). Un seul onduleur utilise normalement 1.",
           "bypass_device_check": "Ajoutez la liste des ID d'appareil sans vérifier que chaque ID répond en tant qu'onduleur SolarEdge. Utilisez cette option uniquement si la vérification échoue pour un appareil que vous savez correct, comme un appareil hors ligne pendant la configuration."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Prefix du capteur",
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP"
+        },
+        "data_description": {
+          "name": "Ajouté au début du nom de chaque appareil, suivi de l'appareil, par exemple I1 pour l'onduleur 1. Les ID d'entité sont créés à partir de ces noms.",
+          "host": "Adresse IP ou nom d'hôte de l'onduleur avec Modbus/TCP activé. Avec plusieurs onduleurs, utilisez l'onduleur principal (leader).",
+          "port": "Port Modbus/TCP configuré sur l'onduleur. La valeur par défaut de SolarEdge est 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Adresse IP de l'onduleur",
           "port": "Port Modbus/TCP",
           "device_list": "Liste des ID des appareils de l'onduleur"
+        },
+        "data_description": {
+          "host": "Adresse IP ou nom d'hôte de l'onduleur avec Modbus/TCP activé. Avec plusieurs onduleurs, utilisez l'onduleur principal (leader).",
+          "port": "Port Modbus/TCP configuré sur l'onduleur. La valeur par défaut de SolarEdge est 1502.",
+          "device_list": "ID d'appareil Modbus de vos onduleurs. Utilisez une liste (1,3,10), une plage (1-4) ou les deux (1-3,5,10). Un seul onduleur utilise normalement 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Options de contrôle de l'alimentation",
           "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
           "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
+        },
+        "data_description": {
+          "scan_interval": "Fréquence, en secondes, de lecture des données des onduleurs.",
+          "close_after_polling": "Ferme la connexion Modbus/TCP après chaque interrogation réussie. Activez cette option si autre chose se connecte aussi à l'onduleur, car il n'accepte qu'une connexion à la fois.",
+          "detect_meters": "Recherche les compteurs connectés à chaque onduleur au démarrage de l'intégration.",
+          "detect_batteries": "Recherche les batteries connectées à chaque onduleur au démarrage de l'intégration. La prise en charge des batteries utilise des registres que SolarEdge ne documente pas officiellement.",
+          "detect_extras": "Vérifie si chaque onduleur prend en charge Global Dynamic Power Control et Advanced Power Control, et ajoute leurs entités s'ils sont trouvés.",
+          "advanced_power_control": "Affiche ensuite l'étape Options de contrôle de puissance pour activer ou désactiver le contrôle du stockage et le contrôle de la limite du site.",
+          "request_timeout": "Durée, en secondes, d'attente d'une réponse à chaque requête Modbus.",
+          "sleep_after_write": "Secondes d'attente entre les requêtes vers un onduleur après l'écriture d'une commande. Certains onduleurs ont besoin de temps pour traiter une commande avant de répondre à nouveau. 0 désactive cette option."
         }
       },
       "adv_pwr_ctl": {
@@ -99,6 +126,10 @@
           "adv_storage_control": "Activer le contrôle du stockage",
           "adv_site_limit_control": "Activer le contrôle des limites du site"
         },
+        "data_description": {
+          "adv_storage_control": "Ajoute des entités qui modifient les paramètres de contrôle du stockage de la batterie sur l'onduleur.",
+          "adv_site_limit_control": "Ajoute des entités qui modifient les limites d'exportation et de production du site sur l'onduleur."
+        },
         "description": "Avertissement : Ces options peuvent enfreindre l'accord d'utilisation, modifier la facturation de vos services, nécessiter un équipement spécial et écraser le provisionnement par SolarEdge ou votre installateur. À utiliser à vos risques et périls! Les paramètres réglables dans les registres Modbus sont destinés au stockage à long terme. Des modifications périodiques peuvent endommager la mémoire flash."
       },
       "battery_options": {
@@ -106,6 +137,11 @@
         "data": {
           "battery_energy_reset_cycles": "Cycles de mise à jour pour réinitialiser l'énergie de la batterie",
           "battery_rating_adjust": "Ajustement de la capacité de la batterie (pourcentage)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Certaines batteries signalent des totaux d'énergie qui baissent ou reviennent à zéro. Si désactivé, une valeur inférieure est ignorée et la dernière valeur est conservée. Si activé, la valeur inférieure est acceptée.",
+          "battery_energy_reset_cycles": "Nombre d'interrogations consécutives pendant lesquelles une valeur d'énergie de batterie inférieure doit être vue avant d'être acceptée. Utilisé uniquement si Autoriser la réinitialisation de l'énergie de la batterie est activé.",
+          "battery_rating_adjust": "Pourcentage au-dessus de l'énergie nominale de la batterie que son énergie disponible peut atteindre avant que la valeur soit considérée comme non valide. Utilisez ceci si votre batterie signale plus que sa valeur nominale."
         }
       }
     },
@@ -128,6 +164,11 @@
               "host": "Adresse IP de l'onduleur",
               "port": "Port Modbus/TCP",
               "device_list": "Liste des ID des appareils de l'onduleur"
+            },
+            "data_description": {
+              "host": "Adresse IP ou nom d'hôte de l'onduleur avec Modbus/TCP activé. Avec plusieurs onduleurs, utilisez l'onduleur principal (leader).",
+              "port": "Port Modbus/TCP configuré sur l'onduleur. La valeur par défaut de SolarEdge est 1502.",
+              "device_list": "ID d'appareil Modbus de vos onduleurs. Utilisez une liste (1,3,10), une plage (1-4) ou les deux (1-3,5,10). Un seul onduleur utilise normalement 1."
             }
           }
         },

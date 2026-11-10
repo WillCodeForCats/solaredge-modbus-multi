@@ -19,6 +19,9 @@
         "description": "Der blev fundet en SolarEdge Modbus/TCP-gateway på {host}:{port}. Vil du konfigurere den nu?",
         "data": {
           "name": "Sensorpræfiks"
+        },
+        "data_description": {
+          "name": "Tilføjes i starten af hvert enhedsnavn efterfulgt af enheden, f.eks. I1 for inverter 1. Enheds-ID'er for entiteter oprettes ud fra disse navne."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Spring validering af enheds-ID over"
         },
         "data_description": {
+          "name": "Tilføjes i starten af hvert enhedsnavn efterfulgt af enheden, f.eks. I1 for inverter 1. Enheds-ID'er for entiteter oprettes ud fra disse navne.",
+          "host": "IP-adresse eller værtsnavn på inverteren med Modbus/TCP aktiveret. Ved flere invertere skal du bruge leder-inverteren.",
+          "port": "Modbus/TCP-porten indstillet på inverteren. SolarEdge-standarden er 1502.",
+          "device_list": "Modbus-enheds-ID'er for dine invertere. Brug en liste (1,3,10), et interval (1-4) eller begge (1-3,5,10). En enkelt inverter bruger normalt 1.",
           "bypass_device_check": "Tilføj enheds-ID-listen uden at oprette forbindelse for at kontrollere, at hvert ID svarer som en SolarEdge-inverter. Brug kun dette, hvis kontrollen mislykkes for en enhed, du ved er korrekt, f.eks. en, der er offline under opsætningen."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Sensorpræfiks",
           "host": "Inverterens IP-adresse",
           "port": "Modbus/TCP-port"
+        },
+        "data_description": {
+          "name": "Tilføjes i starten af hvert enhedsnavn efterfulgt af enheden, f.eks. I1 for inverter 1. Enheds-ID'er for entiteter oprettes ud fra disse navne.",
+          "host": "IP-adresse eller værtsnavn på inverteren med Modbus/TCP aktiveret. Ved flere invertere skal du bruge leder-inverteren.",
+          "port": "Modbus/TCP-porten indstillet på inverteren. SolarEdge-standarden er 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Inverterens IP-adresse",
           "port": "Modbus/TCP-port",
           "device_list": "Liste over inverterens enheds-ID'er"
+        },
+        "data_description": {
+          "host": "IP-adresse eller værtsnavn på inverteren med Modbus/TCP aktiveret. Ved flere invertere skal du bruge leder-inverteren.",
+          "port": "Modbus/TCP-porten indstillet på inverteren. SolarEdge-standarden er 1502.",
+          "device_list": "Modbus-enheds-ID'er for dine invertere. Brug en liste (1,3,10), et interval (1-4) eller begge (1-3,5,10). En enkelt inverter bruger normalt 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Effektstyringsindstillinger",
           "request_timeout": "Modbus-forespørgselstimeout (sekunder)",
           "sleep_after_write": "Forsinkelse for inverterkommando (sekunder)"
+        },
+        "data_description": {
+          "scan_interval": "Hvor ofte, i sekunder, der læses data fra inverterne.",
+          "close_after_polling": "Luk Modbus/TCP-forbindelsen efter hver vellykket polling. Aktivér dette, hvis noget andet også forbinder til inverteren, da den kun accepterer én forbindelse ad gangen.",
+          "detect_meters": "Søg efter målere tilsluttet hver inverter, når integrationen starter.",
+          "detect_batteries": "Søg efter batterier tilsluttet hver inverter, når integrationen starter. Batteriunderstøttelse bruger registre, som SolarEdge ikke officielt dokumenterer.",
+          "detect_extras": "Kontrollér, om hver inverter understøtter Global Dynamic Power Control og Advanced Power Control, og tilføj deres entiteter, hvis de findes.",
+          "advanced_power_control": "Vis trinnet Strømstyringsindstillinger bagefter for at slå lagerstyring og grænsestyring for anlægget til eller fra.",
+          "request_timeout": "Hvor længe, i sekunder, der ventes på svar på hver Modbus-forespørgsel.",
+          "sleep_after_write": "Sekunder der ventes mellem forespørgsler til en inverter, efter en kommando er skrevet til den. Nogle invertere skal have tid til at behandle en kommando, før de svarer igen. 0 slår dette fra."
         }
       },
       "adv_pwr_ctl": {
@@ -99,6 +126,10 @@
           "adv_storage_control": "Aktivér lagerstyring",
           "adv_site_limit_control": "Aktivér styring af anlægsgrænse"
         },
+        "data_description": {
+          "adv_storage_control": "Tilføj entiteter, der ændrer indstillinger for batterilagerstyring på inverteren.",
+          "adv_site_limit_control": "Tilføj entiteter, der ændrer anlæggets eksport- og produktionsgrænser på inverteren."
+        },
         "description": "Advarsel: Disse indstillinger kan overtræde forsyningsaftaler, ændre din elregning, kræve specielt udstyr og overskrive konfiguration foretaget af SolarEdge eller din installatør. Bruges på eget ansvar! Justerbare parametre i Modbus-registre er beregnet til langtidslagring. Hyppige ændringer kan beskadige flashhukommelsen."
       },
       "battery_options": {
@@ -106,6 +137,11 @@
         "data": {
           "battery_energy_reset_cycles": "Opdateringscyklusser til nulstilling af batterienergi",
           "battery_rating_adjust": "Justering af batterikapacitet (procent)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Nogle batterier rapporterer energitotaler, der falder eller nulstilles. Når fra, ignoreres en lavere værdi, og den sidste værdi beholdes. Når til, accepteres den lavere værdi.",
+          "battery_energy_reset_cycles": "Antal polling-cyklusser i træk, hvor en lavere batterienergiværdi skal ses, før den accepteres. Bruges kun, når Tillad nulstilling af batterienergi er slået til.",
+          "battery_rating_adjust": "Procent over batteriets nominelle energi, som den tilgængelige energi må nå, før værdien behandles som ugyldig. Brug dette, hvis dit batteri rapporterer mere end sin nominelle værdi."
         }
       }
     },
@@ -128,6 +164,11 @@
               "host": "Inverterens IP-adresse",
               "port": "Modbus/TCP-port",
               "device_list": "Liste over inverterens enheds-ID'er"
+            },
+            "data_description": {
+              "host": "IP-adresse eller værtsnavn på inverteren med Modbus/TCP aktiveret. Ved flere invertere skal du bruge leder-inverteren.",
+              "port": "Modbus/TCP-porten indstillet på inverteren. SolarEdge-standarden er 1502.",
+              "device_list": "Modbus-enheds-ID'er for dine invertere. Brug en liste (1,3,10), et interval (1-4) eller begge (1-3,5,10). En enkelt inverter bruger normalt 1."
             }
           }
         },

@@ -19,6 +19,9 @@
         "description": "Znaleziono bramę SolarEdge Modbus/TCP pod adresem {host}:{port}. Skonfigurować teraz?",
         "data": {
           "name": "Prefix sensora"
+        },
+        "data_description": {
+          "name": "Dodawany na początku nazwy każdego urządzenia, a po nim urządzenie, np. I1 dla falownika 1. Identyfikatory encji są tworzone z tych nazw."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Pomiń weryfikację ID urządzenia"
         },
         "data_description": {
+          "name": "Dodawany na początku nazwy każdego urządzenia, a po nim urządzenie, np. I1 dla falownika 1. Identyfikatory encji są tworzone z tych nazw.",
+          "host": "Adres IP lub nazwa hosta falownika z włączonym Modbus/TCP. Przy wielu falownikach użyj falownika głównego (leader).",
+          "port": "Port Modbus/TCP ustawiony w falowniku. Domyślna wartość SolarEdge to 1502.",
+          "device_list": "Identyfikatory urządzeń Modbus Twoich falowników. Użyj listy (1,3,10), zakresu (1-4) lub obu (1-3,5,10). Pojedynczy falownik zwykle używa 1.",
           "bypass_device_check": "Dodaj listę identyfikatorów urządzeń bez łączenia się w celu sprawdzenia, czy każdy identyfikator odpowiada jako falownik SolarEdge. Użyj tej opcji tylko wtedy, gdy weryfikacja nie powiedzie się dla urządzenia, o którym wiesz, że jest poprawne, np. takiego, które jest offline podczas konfiguracji."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Prefix sensora",
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port"
+        },
+        "data_description": {
+          "name": "Dodawany na początku nazwy każdego urządzenia, a po nim urządzenie, np. I1 dla falownika 1. Identyfikatory encji są tworzone z tych nazw.",
+          "host": "Adres IP lub nazwa hosta falownika z włączonym Modbus/TCP. Przy wielu falownikach użyj falownika głównego (leader).",
+          "port": "Port Modbus/TCP ustawiony w falowniku. Domyślna wartość SolarEdge to 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Adres IP inwertera",
           "port": "Modbus/TCP Port",
           "device_list": "Lista identyfikatorów urządzeń falownika"
+        },
+        "data_description": {
+          "host": "Adres IP lub nazwa hosta falownika z włączonym Modbus/TCP. Przy wielu falownikach użyj falownika głównego (leader).",
+          "port": "Port Modbus/TCP ustawiony w falowniku. Domyślna wartość SolarEdge to 1502.",
+          "device_list": "Identyfikatory urządzeń Modbus Twoich falowników. Użyj listy (1,3,10), zakresu (1-4) lub obu (1-3,5,10). Pojedynczy falownik zwykle używa 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Opcje kontroli mocy",
           "request_timeout": "Limit czasu żądania Modbus (sekundy)",
           "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
+        },
+        "data_description": {
+          "scan_interval": "Jak często (w sekundach) odczytywać dane z falowników.",
+          "close_after_polling": "Zamykaj połączenie Modbus/TCP po każdym udanym odpytaniu. Włącz to, jeśli coś innego również łączy się z falownikiem, ponieważ przyjmuje on tylko jedno połączenie naraz.",
+          "detect_meters": "Wyszukuj liczniki podłączone do każdego falownika podczas uruchamiania integracji.",
+          "detect_batteries": "Wyszukuj baterie podłączone do każdego falownika podczas uruchamiania integracji. Obsługa baterii korzysta z rejestrów, których SolarEdge oficjalnie nie dokumentuje.",
+          "detect_extras": "Sprawdź, czy każdy falownik obsługuje Global Dynamic Power Control i Advanced Power Control, i dodaj ich encje, jeśli zostaną znalezione.",
+          "advanced_power_control": "Pokaż następnie krok Opcje sterowania mocą, aby włączyć lub wyłączyć sterowanie magazynem energii i limitem instalacji.",
+          "request_timeout": "Jak długo (w sekundach) czekać na odpowiedź na każde żądanie Modbus.",
+          "sleep_after_write": "Liczba sekund oczekiwania między żądaniami do falownika po zapisaniu do niego polecenia. Niektóre falowniki potrzebują czasu na przetworzenie polecenia, zanim znów odpowiedzą. 0 wyłącza tę funkcję."
         }
       },
       "adv_pwr_ctl": {
@@ -99,6 +126,10 @@
           "adv_storage_control": "Włącz kontrolę pamięci",
           "adv_site_limit_control": "Włącz kontrolę limitu witryny"
         },
+        "data_description": {
+          "adv_storage_control": "Dodaj encje, które zmieniają ustawienia sterowania magazynem baterii w falowniku.",
+          "adv_site_limit_control": "Dodaj encje, które zmieniają limity eksportu i produkcji instalacji w falowniku."
+        },
         "description": "Ostrzeżenie: opcje te mogą naruszać umowy za media, zmieniać rozliczenia za media, mogą wymagać specjalnego sprzętu i nadpisać udostępnianie przez SolarEdge lub instalatora. Używaj na własne ryzyko! Parametry regulowane w rejestrach Modbus przeznaczone są do długotrwałego przechowywania. Okresowe zmiany mogą uszkodzić pamięć flash."
       },
       "battery_options": {
@@ -106,6 +137,11 @@
         "data": {
           "battery_energy_reset_cycles": "Zaktualizuj cykle, aby zresetować energię baterii",
           "battery_rating_adjust": "Regulacja oceny baterii (w procentach)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Niektóre baterie raportują sumy energii, które maleją lub są zerowane. Gdy wyłączone, niższa wartość jest ignorowana i zachowywana jest ostatnia wartość. Gdy włączone, niższa wartość jest akceptowana.",
+          "battery_energy_reset_cycles": "Liczba kolejnych odpytań, w których musi wystąpić niższa wartość energii baterii, zanim zostanie zaakceptowana. Używane tylko, gdy włączona jest opcja Zezwól na reset energii baterii.",
+          "battery_rating_adjust": "O ile procent powyżej energii znamionowej baterii może wzrosnąć jej dostępna energia, zanim wartość zostanie uznana za nieprawidłową. Użyj, jeśli bateria raportuje więcej niż wartość znamionowa."
         }
       }
     },
@@ -128,6 +164,11 @@
               "host": "Adres IP inwertera",
               "port": "Modbus/TCP Port",
               "device_list": "Lista identyfikatorów urządzeń falownika"
+            },
+            "data_description": {
+              "host": "Adres IP lub nazwa hosta falownika z włączonym Modbus/TCP. Przy wielu falownikach użyj falownika głównego (leader).",
+              "port": "Port Modbus/TCP ustawiony w falowniku. Domyślna wartość SolarEdge to 1502.",
+              "device_list": "Identyfikatory urządzeń Modbus Twoich falowników. Użyj listy (1,3,10), zakresu (1-4) lub obu (1-3,5,10). Pojedynczy falownik zwykle używa 1."
             }
           }
         },
