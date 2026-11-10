@@ -19,6 +19,9 @@
         "description": "Na adrese {host}:{port} byla nalezena brána SolarEdge Modbus/TCP. Nastavit ji nyní?",
         "data": {
           "name": "Předpona senzoru"
+        },
+        "data_description": {
+          "name": "Přidává se na začátek názvu každého zařízení, za ním následuje zařízení, např. I1 pro střídač 1. Z těchto názvů se vytvářejí ID entit."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Přeskočit ověření ID zařízení"
         },
         "data_description": {
+          "name": "Přidává se na začátek názvu každého zařízení, za ním následuje zařízení, např. I1 pro střídač 1. Z těchto názvů se vytvářejí ID entit.",
+          "host": "IP adresa nebo název hostitele střídače s povoleným Modbus/TCP. Při více střídačích použijte hlavní (leader) střídač.",
+          "port": "Port Modbus/TCP nastavený ve střídači. Výchozí hodnota SolarEdge je 1502.",
+          "device_list": "Modbus ID zařízení vašich střídačů. Použijte seznam (1,3,10), rozsah (1-4) nebo obojí (1-3,5,10). Jeden střídač obvykle používá 1.",
           "bypass_device_check": "Přidejte seznam ID zařízení bez připojení ke kontrole, zda každé ID odpovídá jako střídač SolarEdge. Použijte to pouze v případě, že kontrola selže u zařízení, o kterém víte, že je správné, například u zařízení, které je při nastavení offline."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Předpona senzoru",
           "host": "IP adresa střídače",
           "port": "Port Modbus/TCP"
+        },
+        "data_description": {
+          "name": "Přidává se na začátek názvu každého zařízení, za ním následuje zařízení, např. I1 pro střídač 1. Z těchto názvů se vytvářejí ID entit.",
+          "host": "IP adresa nebo název hostitele střídače s povoleným Modbus/TCP. Při více střídačích použijte hlavní (leader) střídač.",
+          "port": "Port Modbus/TCP nastavený ve střídači. Výchozí hodnota SolarEdge je 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "IP adresa střídače",
           "port": "Port Modbus/TCP",
           "device_list": "Seznam ID zařízení střídačů"
+        },
+        "data_description": {
+          "host": "IP adresa nebo název hostitele střídače s povoleným Modbus/TCP. Při více střídačích použijte hlavní (leader) střídač.",
+          "port": "Port Modbus/TCP nastavený ve střídači. Výchozí hodnota SolarEdge je 1502.",
+          "device_list": "Modbus ID zařízení vašich střídačů. Použijte seznam (1,3,10), rozsah (1-4) nebo obojí (1-3,5,10). Jeden střídač obvykle používá 1."
         }
       }
     },
@@ -91,6 +108,16 @@
           "advanced_power_control": "Možnosti řízení výkonu",
           "request_timeout": "Časový limit požadavku Modbus (sekundy)",
           "sleep_after_write": "Zpoždění příkazu střídače (sekundy)"
+        },
+        "data_description": {
+          "scan_interval": "Jak často (v sekundách) číst data ze střídačů.",
+          "close_after_polling": "Zavřít spojení Modbus/TCP po každém úspěšném dotazování. Zapněte, pokud se ke střídači připojuje i něco jiného, protože přijímá pouze jedno spojení najednou.",
+          "detect_meters": "Při spuštění integrace hledat měřiče připojené ke každému střídači.",
+          "detect_batteries": "Při spuštění integrace hledat baterie připojené ke každému střídači. Podpora baterií používá registry, které SolarEdge oficiálně nedokumentuje.",
+          "detect_extras": "Zkontrolovat, zda každý střídač podporuje Global Dynamic Power Control a Advanced Power Control, a při nalezení přidat jejich entity.",
+          "advanced_power_control": "Jako další krok zobrazit Možnosti řízení výkonu pro zapnutí nebo vypnutí řízení úložiště a limitu lokality.",
+          "request_timeout": "Jak dlouho (v sekundách) čekat na odpověď na každý požadavek Modbus.",
+          "sleep_after_write": "Počet sekund čekání mezi požadavky na střídač po zápisu příkazu. Některé střídače potřebují čas na zpracování příkazu, než znovu odpoví. 0 tuto funkci vypne."
         }
       },
       "adv_pwr_ctl": {
@@ -98,6 +125,10 @@
         "data": {
           "adv_storage_control": "Povolit řízení úložiště",
           "adv_site_limit_control": "Povolit řízení limitu lokality"
+        },
+        "data_description": {
+          "adv_storage_control": "Přidat entity, které mění nastavení řízení úložiště baterie ve střídači.",
+          "adv_site_limit_control": "Přidat entity, které mění nastavení limitu exportu a výroby lokality ve střídači."
         },
         "description": "Varování: Tyto možnosti mohou porušit smlouvy s dodavatelem energie, změnit vaše vyúčtování, mohou vyžadovat speciální vybavení a přepsat nastavení provedené společností SolarEdge nebo vaším instalatérem. Používejte na vlastní riziko! Nastavitelné parametry v registrech Modbus jsou určeny pro dlouhodobé ukládání. Časté změny mohou poškodit paměť flash."
       },
@@ -107,6 +138,11 @@
           "allow_battery_energy_reset": "Povolit reset energie baterie",
           "battery_energy_reset_cycles": "Aktualizační cykly pro reset energie baterie",
           "battery_rating_adjust": "Úprava kapacity baterie (procenta)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Některé baterie hlásí součty energie, které klesají nebo se vynulují. Je-li vypnuto, nižší hodnota se ignoruje a zůstane poslední hodnota. Je-li zapnuto, nižší hodnota se přijme.",
+          "battery_energy_reset_cycles": "Počet po sobě jdoucích dotazování, během kterých musí být nižší hodnota energie baterie zjištěna, než se přijme. Použije se pouze, je-li zapnuto Povolit reset energie baterie.",
+          "battery_rating_adjust": "O kolik procent nad jmenovitou energii baterie smí dostupná energie stoupnout, než se hodnota považuje za neplatnou. Použijte, pokud baterie hlásí více než svou jmenovitou hodnotu."
         }
       }
     },
@@ -129,6 +165,11 @@
               "host": "IP adresa střídače",
               "port": "Port Modbus/TCP",
               "device_list": "Seznam ID zařízení střídačů"
+            },
+            "data_description": {
+              "host": "IP adresa nebo název hostitele střídače s povoleným Modbus/TCP. Při více střídačích použijte hlavní (leader) střídač.",
+              "port": "Port Modbus/TCP nastavený ve střídači. Výchozí hodnota SolarEdge je 1502.",
+              "device_list": "Modbus ID zařízení vašich střídačů. Použijte seznam (1,3,10), rozsah (1-4) nebo obojí (1-3,5,10). Jeden střídač obvykle používá 1."
             }
           }
         },
