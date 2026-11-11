@@ -12,14 +12,13 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.solaredge_modbus_multi.const import MeterRole, SunSpecNotImpl
+from custom_components.solaredge_modbus_multi.helpers import scale_sunspec_int16
+from custom_components.solaredge_modbus_multi.hub import SolarEdgeSystem
 from custom_components.solaredge_modbus_multi.sensor import async_setup_entry
 from custom_components.solaredge_modbus_multi.virtual_sensor import (
     SolarACPower,
     SystemPower,
-    _power_keys,
-    _scaled,
     async_virtual_system_entities,
-    calculate_power,
 )
 
 COORDINATOR = SimpleNamespace(last_update_success=True)
@@ -49,8 +48,10 @@ def _hub(inverters=(), meters=(), batteries=()):
         option_virtual_system=True,
         evses=[],
         der_batteries=[],
+        entry_id="entry1",
+        hub_id="solaredge",
     )
-    hub.system = SimpleNamespace(uid_base="entry1_system", hub=hub, device_info={})
+    hub.system = SolarEdgeSystem(hub)
     return hub
 
 
@@ -58,15 +59,15 @@ def _power(hub, key, coordinator=COORDINATOR):
     return SystemPower(hub.system, None, coordinator, key)
 
 
-def test_scaled():
+def testscale_sunspec_int16():
     """Test the scale factor is applied and invalid values give None."""
-    assert _scaled(1234, -1) == pytest.approx(123.4)
-    assert _scaled(5, 2) == 500
-    assert _scaled(None, 0) is None
-    assert _scaled(1, None) is None
-    assert _scaled(SunSpecNotImpl.INT16, 0) is None
-    assert _scaled(1, SunSpecNotImpl.INT16) is None
-    assert _scaled(1, 99) is None
+    assert scale_sunspec_int16(1234, -1) == pytest.approx(123.4)
+    assert scale_sunspec_int16(5, 2) == 500
+    assert scale_sunspec_int16(None, 0) is None
+    assert scale_sunspec_int16(1, None) is None
+    assert scale_sunspec_int16(SunSpecNotImpl.INT16, 0) is None
+    assert scale_sunspec_int16(1, SunSpecNotImpl.INT16) is None
+    assert scale_sunspec_int16(1, 99) is None
 
 
 # ---- wiki "Single inverter, Single Import / Export meter" ----
@@ -103,7 +104,7 @@ def test_power(meter, expected):
     """Test the formulas for one inverter and an import/export meter."""
     hub = _hub([_inverter(ac=950, dc=1000)], [_meter(power=meter)])
 
-    assert calculate_power(hub) == expected
+    assert hub.system.power_values == expected
 
 
 def test_power_sums_multiple_inverters():
@@ -113,7 +114,7 @@ def test_power_sums_multiple_inverters():
         [_meter(power=-100)],
     )
 
-    assert calculate_power(hub) == {
+    assert hub.system.power_values == {
         "solar_generation": 1600,
         "consumption": 1600,
         "grid_load": 100,
@@ -132,7 +133,7 @@ def test_power_applies_scale_factors():
         [_meter(power=-10, sf=1)],
     )
 
-    result = calculate_power(hub)
+    result = hub.system.power_values
     assert result["solar_generation"] == pytest.approx(1600)
     assert result["consumption"] == pytest.approx(1600)
 
@@ -141,7 +142,7 @@ def test_consumption_is_the_plain_net():
     """Test consumption is not limited to zero, like the wiki template."""
     hub = _hub([_inverter(ac=100, dc=100)], [_meter(power=300)])
 
-    assert calculate_power(hub)["consumption"] == -200
+    assert hub.system.power_values["consumption"] == -200
 
 
 def test_other_meter_roles_are_ignored():
@@ -151,7 +152,7 @@ def test_other_meter_roles_are_ignored():
         [_meter(MeterRole.CONSUMPTION, 9999), _meter(MeterRole.EXPORT_IMPORT, 100)],
     )
 
-    assert calculate_power(hub)["consumption"] == 400
+    assert hub.system.power_values["consumption"] == 400
 
 
 def test_multiple_export_import_meters_are_summed():
@@ -161,7 +162,7 @@ def test_multiple_export_import_meters_are_summed():
         [_meter(power=100), _meter(power=50)],
     )
 
-    assert calculate_power(hub)["consumption"] == 350
+    assert hub.system.power_values["consumption"] == 350
 
 
 # ---- availability ----
@@ -183,13 +184,13 @@ def test_multiple_export_import_meters_are_summed():
 )
 def test_one_invalid_device_makes_the_total_none(hub, key):
     """Test one invalid device makes the total None instead of a partial value."""
-    assert calculate_power(hub)[key] is None
+    assert hub.system.power_values[key] is None
 
 
 def test_invalid_inverter_dc_only_affects_dc_based_values():
     """Test unrelated values stay available when one input is invalid."""
     hub = _hub([_inverter(ac=500, dc=SunSpecNotImpl.INT16)], [_meter(power=100)])
-    result = calculate_power(hub)
+    result = hub.system.power_values
 
     assert result["solar_generation"] is None
     assert result["pv_load"] is None
@@ -226,21 +227,21 @@ def test_power_keys(meters, expected):
     """Test the sensor set depends on the meters present."""
     hub = _hub([_inverter()], meters)
 
-    assert sorted(_power_keys(hub)) == sorted(expected)
+    assert sorted(hub.system.power_keys) == sorted(expected)
 
 
 def test_no_power_sensors_with_batteries():
     """Test systems with batteries are not supported yet, so no wiki sensors."""
     hub = _hub([_inverter()], [_meter()], [SimpleNamespace()])
 
-    assert _power_keys(hub) == []
+    assert hub.system.power_keys == []
 
 
 def test_every_key_has_a_calculation():
     """Test every sensor key created has a value in the calculation."""
     hub = _hub([_inverter()], [_meter()])
 
-    assert set(_power_keys(hub)) <= set(calculate_power(hub))
+    assert set(hub.system.power_keys) <= set(hub.system.power_values)
 
 
 def test_entities_empty_without_inverters():
