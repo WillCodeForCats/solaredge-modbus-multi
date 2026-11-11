@@ -119,13 +119,22 @@ def test_coordinator_update_writes_state():
 
 def _site_limit_platform(mode=0, supported=True):
     """Build a fake inverter platform with site limit control data."""
-    return SimpleNamespace(
+    platform = SimpleNamespace(
         uid_base="inverter_1",
         device_info=None,
         has_site_limit_control=supported,
         site_limit_control_data=SimpleNamespace(E_Lim_Ctl_Mode=mode),
         write=AsyncMock(),
     )
+
+    async def write_lim_ctl_mode_bits(clear_mask, set_mask):
+        data = platform.site_limit_control_data
+        bits = (data.E_Lim_Ctl_Mode & ~clear_mask) | set_mask
+        await platform.write(data, "E_Lim_Ctl_Mode", bits)
+        return bits
+
+    platform.write_lim_ctl_mode_bits = write_lim_ctl_mode_bits
+    return platform
 
 
 @pytest.mark.parametrize(
