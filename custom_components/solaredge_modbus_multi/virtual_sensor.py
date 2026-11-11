@@ -21,10 +21,10 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import UnitOfPower
-from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import SUNSPEC_SF_RANGE, MeterRole, SunSpecNotImpl
+from .coordinator import SolarEdgeConfigEntry, SolarEdgeCoordinator
+from .entity import SolarEdgeEntity
 
 # sensor key -> name used after "Power - "
 SENSOR_NAMES = {
@@ -115,12 +115,14 @@ def _power_keys(hub) -> list[str]:
     return keys
 
 
-def async_virtual_system_entities(hub, config_entry, coordinator) -> list:
+def async_virtual_system_entities(
+    hub, config_entry: SolarEdgeConfigEntry, coordinator: SolarEdgeCoordinator
+) -> list[SensorEntity]:
     """Return the virtual system entities for a hub."""
     if not hub.inverters:
         return []
 
-    entities = [SolarACPower(hub.system, config_entry, coordinator)]
+    entities: list[SensorEntity] = [SolarACPower(hub.system, config_entry, coordinator)]
     entities.extend(
         SystemPower(hub.system, config_entry, coordinator, key)
         for key in _power_keys(hub)
@@ -128,28 +130,27 @@ def async_virtual_system_entities(hub, config_entry, coordinator) -> list:
     return entities
 
 
-class SolarEdgeSystemSensorBase(CoordinatorEntity, SensorEntity):
+class SolarEdgeSystemSensorBase(SolarEdgeEntity, SensorEntity):
     """Representation of a solar edge virtual system sensor base."""
 
-    should_poll = False
-    _attr_has_entity_name = True
-    suggested_display_precision = None
-
-    def __init__(self, system, config_entry, coordinator):
-        """Initialize the solar edge virtual system sensor base."""
-        super().__init__(coordinator)
-
-        self._system = system
-        self._config_entry = config_entry
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_suggested_display_precision = 0
 
     @property
-    def device_info(self):
-        """Return the device info."""
-        return self._system.device_info
+    def _value(self) -> float | None:
+        raise NotImplementedError
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self.async_write_ha_state()
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return super().available and self._value is not None
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the native value."""
+        return self._value
 
 
 class SolarACPower(SolarEdgeSystemSensorBase):
@@ -160,27 +161,19 @@ class SolarACPower(SolarEdgeSystemSensorBase):
     each inverter is limited to zero or more.
     """
 
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    suggested_display_precision = 0
-    icon = "mdi:solar-power"
+    _attr_icon = "mdi:solar-power"
+    _attr_name = "Solar AC Power"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._system.uid_base}_solar_ac_power"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Solar AC Power"
+    def __init__(self, system, config_entry, coordinator):
+        """Initialize the solar AC power."""
+        super().__init__(system, config_entry, coordinator)
+        self._attr_unique_id = f"{system.uid_base}_solar_ac_power"
 
     @property
     def _production_meters(self) -> list:
         return [
             meter
-            for meter in self._system.hub.meters
+            for meter in self._platform.hub.meters
             if meter.meter_role == MeterRole.PRODUCTION
         ]
 
@@ -190,18 +183,8 @@ class SolarACPower(SolarEdgeSystemSensorBase):
             return _sum_all(_meter_ac_power(m) for m in self._production_meters)
         return _sum_all(
             _calc(lambda v: max(v, 0), _inverter_ac_power(i))
-            for i in self._system.hub.inverters
+            for i in self._platform.hub.inverters
         )
-
-    @property
-    def available(self) -> bool:
-        """Return the available."""
-        return super().available and self._value is not None
-
-    @property
-    def native_value(self):
-        """Return the native value."""
-        return self._value
 
     @property
     def extra_state_attributes(self):
@@ -212,37 +195,13 @@ class SolarACPower(SolarEdgeSystemSensorBase):
 class SystemPower(SolarEdgeSystemSensorBase):
     """A calculated system power flow, in the style of the wiki template sensors."""
 
-    device_class = SensorDeviceClass.POWER
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfPower.WATT
-    suggested_display_precision = 0
-
     def __init__(self, system, config_entry, coordinator, key: str):
         """Initialize the system power."""
         super().__init__(system, config_entry, coordinator)
-
         self._key = key
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._system.uid_base}_power_{self._key}"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return f"Power - {SENSOR_NAMES[self._key]}"
+        self._attr_unique_id = f"{system.uid_base}_power_{key}"
+        self._attr_name = f"Power - {SENSOR_NAMES[key]}"
 
     @property
     def _value(self) -> float | None:
-        return calculate_power(self._system.hub).get(self._key)
-
-    @property
-    def available(self) -> bool:
-        """Return the available."""
-        return super().available and self._value is not None
-
-    @property
-    def native_value(self):
-        """Return the native value."""
-        return self._value
+        return calculate_power(self._platform.hub).get(self._key)
