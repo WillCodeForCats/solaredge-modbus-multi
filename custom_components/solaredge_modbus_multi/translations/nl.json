@@ -116,7 +116,7 @@
           "detect_meters": "Zoek naar meters die op elke omvormer zijn aangesloten wanneer de integratie start.",
           "detect_batteries": "Zoek naar batterijen die op elke omvormer zijn aangesloten wanneer de integratie start. Batterijondersteuning gebruikt registers die SolarEdge niet officieel documenteert.",
           "detect_extras": "Controleer of elke omvormer Global Dynamic Power Control en Advanced Power Control ondersteunt, en voeg hun entiteiten toe als ze worden gevonden.",
-          "virtual_system": "Voeg een systeemapparaat toe met vermogenssensoren die worden berekend uit de omvormers en meters, zoals zonne-opwekking en verbruik. De sensoren van de andere apparaten worden niet gewijzigd.",
+          "virtual_system": "Voeg een systeemapparaat toe met vermogenssensoren die worden berekend uit de omvormers en meters, zoals zonne-opwekking en verbruik. De sensoren van de andere apparaten worden niet gewijzigd. Standaard ingeschakeld als er meer dan één omvormer is.",
           "advanced_power_control": "Toon hierna de stap Opties voor vermogensregeling om opslagregeling en regeling van de locatielimiet in of uit te schakelen.",
           "request_timeout": "Hoe lang, in seconden, op een antwoord op elk Modbus-verzoek wordt gewacht.",
           "sleep_after_write": "Seconden wachttijd tussen verzoeken aan een omvormer nadat er een opdracht naar is geschreven. Sommige omvormers hebben tijd nodig om een opdracht te verwerken voordat ze weer antwoorden. 0 schakelt dit uit."

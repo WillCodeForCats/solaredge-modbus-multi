@@ -116,7 +116,7 @@
           "detect_meters": "Busca medidores conectados a cada inversor cuando se inicia la integración.",
           "detect_batteries": "Busca baterías conectadas a cada inversor cuando se inicia la integración. La compatibilidad con baterías usa registros que SolarEdge no documenta oficialmente.",
           "detect_extras": "Comprueba si cada inversor admite Global Dynamic Power Control y Advanced Power Control, y añade sus entidades si se encuentran.",
-          "virtual_system": "Añade un dispositivo Sistema con sensores de potencia calculados a partir de los inversores y medidores, como la generación solar y el consumo. Los sensores de los demás dispositivos no se modifican.",
+          "virtual_system": "Añade un dispositivo Sistema con sensores de potencia calculados a partir de los inversores y medidores, como la generación solar y el consumo. Los sensores de los demás dispositivos no se modifican. Activado de forma predeterminada cuando hay más de un inversor.",
           "advanced_power_control": "Muestra a continuación el paso Opciones de control de potencia para activar o desactivar el control de almacenamiento y el control del límite del sitio.",
           "request_timeout": "Cuánto tiempo, en segundos, esperar una respuesta a cada solicitud Modbus.",
           "sleep_after_write": "Segundos de espera entre solicitudes a un inversor después de escribirle un comando. Algunos inversores necesitan tiempo para procesar un comando antes de volver a responder. 0 lo desactiva."

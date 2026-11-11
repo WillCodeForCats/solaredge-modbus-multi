@@ -116,7 +116,7 @@
           "detect_meters": "Při spuštění integrace hledat měřiče připojené ke každému střídači.",
           "detect_batteries": "Při spuštění integrace hledat baterie připojené ke každému střídači. Podpora baterií používá registry, které SolarEdge oficiálně nedokumentuje.",
           "detect_extras": "Zkontrolovat, zda každý střídač podporuje Global Dynamic Power Control a Advanced Power Control, a při nalezení přidat jejich entity.",
-          "virtual_system": "Přidat zařízení Systém se senzory výkonu vypočtenými ze střídačů a měřičů, například výroba ze solárních panelů a spotřeba. Senzory ostatních zařízení se nemění.",
+          "virtual_system": "Přidat zařízení Systém se senzory výkonu vypočtenými ze střídačů a měřičů, například výroba ze solárních panelů a spotřeba. Senzory ostatních zařízení se nemění. Ve výchozím nastavení zapnuto, pokud je více než jeden střídač.",
           "advanced_power_control": "Jako další krok zobrazit Možnosti řízení výkonu pro zapnutí nebo vypnutí řízení úložiště a limitu lokality.",
           "request_timeout": "Jak dlouho (v sekundách) čekat na odpověď na každý požadavek Modbus.",
           "sleep_after_write": "Počet sekund čekání mezi požadavky na střídač po zápisu příkazu. Některé střídače potřebují čas na zpracování příkazu, než znovu odpoví. 0 tuto funkci vypne."

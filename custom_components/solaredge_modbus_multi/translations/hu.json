@@ -116,7 +116,7 @@
           "detect_meters": "Az integráció indításakor az egyes inverterekhez csatlakoztatott mérők keresése.",
           "detect_batteries": "Az integráció indításakor az egyes inverterekhez csatlakoztatott akkumulátorok keresése. Az akkumulátortámogatás olyan regisztereket használ, amelyeket a SolarEdge hivatalosan nem dokumentál.",
           "detect_extras": "Annak ellenőrzése, hogy az egyes inverterek támogatják-e a Global Dynamic Power Control és az Advanced Power Control funkciót, és ha igen, entitásaik hozzáadása.",
-          "virtual_system": "Rendszer eszköz hozzáadása az inverterekből és mérőkből számított teljesítményérzékelőkkel, például napelemes termelés és fogyasztás. A többi eszköz érzékelői nem változnak.",
+          "virtual_system": "Rendszer eszköz hozzáadása az inverterekből és mérőkből számított teljesítményérzékelőkkel, például napelemes termelés és fogyasztás. A többi eszköz érzékelői nem változnak. Alapértelmezés szerint bekapcsolva, ha egynél több inverter van.",
           "advanced_power_control": "Következő lépésként a Teljesítményvezérlési beállítások megjelenítése a tárolóvezérlés és a telephelykorlát-vezérlés be- vagy kikapcsolásához.",
           "request_timeout": "Mennyi ideig (másodpercben) várjon válaszra minden Modbus kérésnél.",
           "sleep_after_write": "Várakozás másodpercben az inverterhez küldött kérések között, miután parancsot írt rá. Egyes invertereknek idő kell a parancs feldolgozásához, mielőtt újra válaszolnak. A 0 kikapcsolja."

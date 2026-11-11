@@ -116,7 +116,7 @@
           "detect_meters": "Se etter målere koblet til hver inverter når integrasjonen starter.",
           "detect_batteries": "Se etter batterier koblet til hver inverter når integrasjonen starter. Batteristøtte bruker registre som SolarEdge ikke offisielt dokumenterer.",
           "detect_extras": "Sjekk om hver inverter støtter Global Dynamic Power Control og Advanced Power Control, og legg til entitetene deres hvis de finnes.",
-          "virtual_system": "Legg til en systemenhet med effektsensorer beregnet fra inverterne og målerne, for eksempel solproduksjon og forbruk. Sensorene på de andre enhetene endres ikke.",
+          "virtual_system": "Legg til en systemenhet med effektsensorer beregnet fra inverterne og målerne, for eksempel solproduksjon og forbruk. Sensorene på de andre enhetene endres ikke. Slått på som standard når det er mer enn én inverter.",
           "advanced_power_control": "Vis trinnet Alternativer for effektstyring etterpå, for å slå lagringsstyring og grensestyring for anlegget av eller på.",
           "request_timeout": "Hvor lenge, i sekunder, det ventes på svar på hver Modbus-forespørsel.",
           "sleep_after_write": "Sekunder å vente mellom forespørsler til en inverter etter at en kommando er skrevet til den. Noen invertere trenger tid til å behandle en kommando før de svarer igjen. 0 slår dette av."
