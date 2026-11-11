@@ -29,8 +29,11 @@ SENSOR_NAMES = {
 def async_virtual_system_entities(
     hub, config_entry: SolarEdgeConfigEntry, coordinator: SolarEdgeCoordinator
 ) -> list[SensorEntity]:
-    """Return the virtual system entities for a hub."""
-    if not hub.inverters:
+    """Return the virtual system entities for a hub.
+
+    Systems with batteries are not supported yet, so they get none.
+    """
+    if not hub.inverters or hub.system.has_storage:
         return []
 
     entities: list[SensorEntity] = [SolarACPower(hub.system, config_entry, coordinator)]

@@ -1512,9 +1512,18 @@ class SolarEdgeSystem:
         return [m for m in self.hub.meters if m.meter_role == MeterRole.PRODUCTION]
 
     @property
+    def has_storage(self) -> bool:
+        """Return True if battery detection found any batteries on the hub.
+
+        SunSpec DER storage (model 713) is not counted: inverters can report
+        it with no battery connected.
+        """
+        return bool(self.hub.batteries)
+
+    @property
     def power_keys(self) -> list[str]:
         """Return the keys of power_values that apply to this hub."""
-        if self.hub.batteries:
+        if self.has_storage:
             return []
 
         keys = ["solar_generation"]
@@ -1548,7 +1557,14 @@ class SolarEdgeSystem:
         Uses the Production meters if there are any, otherwise the inverters.
         An inverter charging batteries from the grid is not solar production, so
         each inverter is limited to zero or more.
+
+        With batteries the value is None. The batteries are DC coupled, so both
+        the inverter AC power and a Production meter on the inverter AC output
+        include battery discharge, which can't be separated from solar.
+        Batteries that were not found can't be checked for.
         """
+        if self.has_storage:
+            return None
         if self.production_meters:
             return self._sum_all(
                 self._meter_ac_power(m) for m in self.production_meters

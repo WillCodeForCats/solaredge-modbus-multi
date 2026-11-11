@@ -25,11 +25,12 @@ COORDINATOR = SimpleNamespace(last_update_success=True)
 FAILED_COORDINATOR = SimpleNamespace(last_update_success=False)
 
 
-def _inverter(ac=0, dc=0, ac_sf=0, dc_sf=0):
+def _inverter(ac=0, dc=0, ac_sf=0, dc_sf=0, der_storage=()):
     return SimpleNamespace(
         inverter_data=SimpleNamespace(
             AC_Power=ac, AC_Power_SF=ac_sf, I_DC_Power=dc, I_DC_Power_SF=dc_sf
-        )
+        ),
+        der_storage=list(der_storage),
     )
 
 
@@ -258,12 +259,15 @@ def test_entities_are_solar_ac_plus_one_power_per_key():
     assert sum(isinstance(e, SystemPower) for e in entities) == 5
 
 
-def test_entities_with_batteries_are_only_solar_ac():
-    """Test a system with batteries only gets Solar AC Power for now."""
-    hub = _hub([_inverter()], [_meter()], [SimpleNamespace()])
-    entities = async_virtual_system_entities(hub, None, COORDINATOR)
+def test_no_entities_with_batteries():
+    """Test a system with batteries gets no system sensors for now."""
+    hub = _hub(
+        [_inverter()],
+        [_meter(), _meter(MeterRole.PRODUCTION)],
+        [SimpleNamespace()],
+    )
 
-    assert [type(e) for e in entities] == [SolarACPower]
+    assert async_virtual_system_entities(hub, None, COORDINATOR) == []
 
 
 def test_unique_ids_and_names():
@@ -334,3 +338,38 @@ def test_solar_ac_does_not_fall_back_when_meter_invalid():
     )
 
     assert not SolarACPower(hub.system, None, COORDINATOR).available
+
+
+def test_solar_ac_unavailable_with_storage_and_no_production_meter():
+    """Test battery discharge is not reported as solar from the inverters."""
+    hub = _hub([_inverter(ac=1000)], batteries=[SimpleNamespace()])
+    sensor = SolarACPower(hub.system, None, COORDINATOR)
+
+    assert sensor.native_value is None
+    assert not sensor.available
+
+
+def test_solar_ac_unavailable_with_storage_and_production_meter():
+    """Test a Production meter on the inverter output is not used with batteries.
+
+    DC coupled battery discharge goes through the inverter AC output too.
+    """
+    hub = _hub(
+        [_inverter(ac=1000)],
+        [_meter(MeterRole.PRODUCTION, 900)],
+        batteries=[SimpleNamespace()],
+    )
+
+    assert SolarACPower(hub.system, None, COORDINATOR).native_value is None
+
+
+def test_der_storage_alone_is_not_a_battery():
+    """Test model 713 without a detected battery keeps the inverter values.
+
+    Inverters can report SunSpec DER storage with no battery connected.
+    """
+    hub = _hub([_inverter(ac=1000, der_storage=[SimpleNamespace()])], [_meter()])
+
+    assert not hub.system.has_storage
+    assert len(hub.system.power_keys) == 5
+    assert SolarACPower(hub.system, None, COORDINATOR).native_value == 1000

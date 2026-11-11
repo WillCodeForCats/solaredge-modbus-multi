@@ -53,7 +53,7 @@ Sensors provided:
 
 Limitations:
 
-- Systems with batteries only have Solar AC Power sensor for now.
+- Systems with batteries are not supported yet and get no System sensors.
 - If two inverters are set up with the same physical meter, that meter is counted twice.
 
 Virtual System is a new feature: please open an issue if you have suggestions for virtual sensors that can replace a template.
