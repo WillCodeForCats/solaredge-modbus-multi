@@ -38,6 +38,14 @@ def scale_sunspec_int16(value, sf) -> float | None:
     return value * (10**sf)
 
 
+def default_virtual_system(device_list: list) -> bool:
+    """Return the default for the virtual system option.
+
+    Return true when the hub has more than one inverter.
+    """
+    return len(device_list) > 1
+
+
 def host_valid(host):
     """Return True if hostname or IP address is valid."""
     try:
