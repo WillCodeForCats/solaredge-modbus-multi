@@ -1,5 +1,7 @@
 {
   "name": "SolarEdge Modbus Multi",
   "content_in_root": false,
+  "zip_release": true,
+  "filename": "solaredge_modbus_multi.zip",
   "homeassistant": "2025.9.0"
 }
