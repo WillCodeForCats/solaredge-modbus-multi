@@ -30,12 +30,20 @@ from custom_components.solaredge_modbus_multi.switch import (
 
 def _platform(mode=0):
     data = SimpleNamespace(E_Lim_Ctl_Mode=mode)
-    return SimpleNamespace(
+    platform = SimpleNamespace(
         uid_base="inverter_1",
         device_info=None,
         site_limit_control_data=data,
         write=AsyncMock(),
     )
+
+    async def write_lim_ctl_mode_bits(clear_mask, set_mask):
+        bits = (data.E_Lim_Ctl_Mode & ~clear_mask) | set_mask
+        await platform.write(data, "E_Lim_Ctl_Mode", bits)
+        return bits
+
+    platform.write_lim_ctl_mode_bits = write_lim_ctl_mode_bits
+    return platform
 
 
 def _written_bits(platform):
