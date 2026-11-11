@@ -66,10 +66,11 @@ def _check_dependency_versions() -> dict[str, str]:
             raise ConfigEntryError(
                 f"{display_name} is not installed. Restart Home Assistant to let "
                 "it install dependencies automatically. If it still doesn't "
-                "install, check the Home Assistant log for a failed pip install, "
-                "confirm HACS isn't set to skip requirement installation for "
-                "this integration, and check whether another custom integration "
-                f"or manual environment change removed {display_name}."
+                "install, check the Home Assistant log for a failed pip install "
+                "and check whether another custom integration or manual "
+                f"environment change removed {display_name}. If you installed "
+                "with HACS, also confirm it isn't set to skip requirement "
+                "installation for this integration."
             ) from err
 
         if safe_version_tuple(installed) < safe_version_tuple(required):
