@@ -19,6 +19,9 @@
         "description": "A SolarEdge Modbus/TCP gateway was found at {host}:{port}. Set it up now?",
         "data": {
           "name": "Sensor Prefix"
+        },
+        "data_description": {
+          "name": "Added to the start of each device name, followed by the device, such as I1 for inverter 1. Entity IDs are created from these names."
         }
       },
       "manual": {
@@ -31,6 +34,10 @@
           "bypass_device_check": "Skip Device ID validation"
         },
         "data_description": {
+          "name": "Added to the start of each device name, followed by the device, such as I1 for inverter 1. Entity IDs are created from these names.",
+          "host": "IP address or hostname of the inverter with Modbus/TCP enabled. With multiple inverters, use the leader inverter.",
+          "port": "Modbus/TCP port set on the inverter. The SolarEdge default is 1502.",
+          "device_list": "Modbus Device IDs of your inverters. Use a list (1,3,10), a range (1-4), or both (1-3,5,10). A single inverter normally uses 1.",
           "bypass_device_check": "Add the Device ID list without connecting to check that each ID responds as a SolarEdge inverter. Use this only if the check fails for a device you know is correct, such as one that is offline during setup."
         }
       },
@@ -40,6 +47,11 @@
           "name": "Sensor Prefix",
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port"
+        },
+        "data_description": {
+          "name": "Added to the start of each device name, followed by the device, such as I1 for inverter 1. Entity IDs are created from these names.",
+          "host": "IP address or hostname of the inverter with Modbus/TCP enabled. With multiple inverters, use the leader inverter.",
+          "port": "Modbus/TCP port set on the inverter. The SolarEdge default is 1502."
         }
       },
       "scan_complete": {
@@ -55,6 +67,11 @@
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
           "device_list": "Inverter Device ID List"
+        },
+        "data_description": {
+          "host": "IP address or hostname of the inverter with Modbus/TCP enabled. With multiple inverters, use the leader inverter.",
+          "port": "Modbus/TCP port set on the inverter. The SolarEdge default is 1502.",
+          "device_list": "Modbus Device IDs of your inverters. Use a list (1,3,10), a range (1-4), or both (1-3,5,10). A single inverter normally uses 1."
         }
       }
     },
@@ -92,6 +109,16 @@
           "advanced_power_control": "Power Control Options",
           "request_timeout": "Modbus Request Timeout (seconds)",
           "sleep_after_write": "Inverter Command Delay (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often, in seconds, to read data from the inverters.",
+          "close_after_polling": "Close the Modbus/TCP connection after each successful poll. Enable this if something else also connects to the inverter, because it accepts only one connection at a time.",
+          "detect_meters": "Look for meters connected to each inverter when the integration starts.",
+          "detect_batteries": "Look for batteries connected to each inverter when the integration starts. Battery support uses registers that SolarEdge does not officially document.",
+          "detect_extras": "Check whether each inverter supports Global Dynamic Power Control and Advanced Power Control, and add their entities when found.",
+          "advanced_power_control": "Show the Power Control Options step next, to turn storage control and site limit control on or off.",
+          "request_timeout": "How long, in seconds, to wait for a reply to each Modbus request.",
+          "sleep_after_write": "Seconds to wait between requests to an inverter after a command is written to it. Some inverters need time to process a command before they reply again. 0 turns this off."
         }
       },
       "adv_pwr_ctl": {
@@ -99,6 +126,10 @@
         "data": {
           "adv_storage_control": "Enable Storage Control",
           "adv_site_limit_control": "Enable Site Limit Control"
+        },
+        "data_description": {
+          "adv_storage_control": "Add entities that change battery storage control settings on the inverter.",
+          "adv_site_limit_control": "Add entities that change the site export and production limit settings on the inverter."
         },
         "description": "Warning: These options can violate utility agreements, alter your utility billing, may require special equipment, and overwrite provisioning by SolarEdge or your installer. Use at your own risk! Adjustable parameters in Modbus registers are intended for long-term storage. Periodic changes may damage the flash memory."
       },
@@ -108,6 +139,11 @@
           "allow_battery_energy_reset": "Allow Battery Energy to Reset",
           "battery_energy_reset_cycles": "Update Cycles to Reset Battery Energy",
           "battery_rating_adjust": "Battery Rating Adjustment (percent)"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "Some batteries report energy totals that go down or reset to zero. When off, a lower value is ignored and the last value is kept. When on, the lower value is accepted.",
+          "battery_energy_reset_cycles": "Number of polls in a row that a lower battery energy value must be seen before it is accepted. Only used when Allow Battery Energy to Reset is on.",
+          "battery_rating_adjust": "Percent above the battery's rated energy that its available energy may reach before the value is treated as invalid. Use this if your battery reports more than its rating."
         }
       }
     },
@@ -130,6 +166,11 @@
               "host": "Inverter IP Address",
               "port": "Modbus/TCP Port",
               "device_list": "Inverter Device ID List"
+            },
+            "data_description": {
+              "host": "IP address or hostname of the inverter with Modbus/TCP enabled. With multiple inverters, use the leader inverter.",
+              "port": "Modbus/TCP port set on the inverter. The SolarEdge default is 1502.",
+              "device_list": "Modbus Device IDs of your inverters. Use a list (1,3,10), a range (1-4), or both (1-3,5,10). A single inverter normally uses 1."
             }
           }
         },

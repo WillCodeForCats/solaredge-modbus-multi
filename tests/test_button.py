@@ -15,7 +15,6 @@ from custom_components.solaredge_modbus_multi.button import (
     SolarEdgeRefreshButton,
     async_setup_entry,
 )
-from custom_components.solaredge_modbus_multi.const import DOMAIN
 
 
 def _coordinator(last_update_success=True):
@@ -44,10 +43,11 @@ def _record_order(platform, coordinator):
 def _setup_hass(inverters, detect_extras):
     """Build a fake hass and config entry around a hub with the given inverters."""
     hub = SimpleNamespace(inverters=inverters, option_detect_extras=detect_extras)
-    entry = SimpleNamespace(entry_id="entry1")
-    hass = SimpleNamespace(
-        data={DOMAIN: {"entry1": {"hub": hub, "coordinator": _coordinator()}}}
+    entry = SimpleNamespace(
+        entry_id="entry1",
+        runtime_data=SimpleNamespace(hub=hub, coordinator=_coordinator()),
     )
+    hass = SimpleNamespace()
     return hass, entry
 
 
@@ -67,10 +67,13 @@ def _setup_hass(inverters, detect_extras):
 )
 async def test_setup_entry_entities_per_inverter(detect_extras, expected):
     """Each inverter gets a refresh button, plus the control buttons with extras."""
-    inverters = [SimpleNamespace(), SimpleNamespace()]
+    inverters = [
+        SimpleNamespace(uid_base="inv1", device_info=None),
+        SimpleNamespace(uid_base="inv2", device_info=None),
+    ]
     hass, entry = _setup_hass(inverters, detect_extras)
     add = MagicMock()
-    coordinator = hass.data[DOMAIN]["entry1"]["coordinator"]
+    coordinator = entry.runtime_data.coordinator
 
     await async_setup_entry(hass, entry, add)
 
@@ -106,7 +109,7 @@ def test_base_class_properties():
 
 def test_coordinator_update_writes_state():
     """A coordinator update writes the entity state."""
-    platform = SimpleNamespace(uid_base="inverter_1")
+    platform = SimpleNamespace(uid_base="inverter_1", device_info=None)
     entity = SolarEdgeRefreshButton(platform, None, _coordinator())
 
     with patch.object(entity, "async_write_ha_state") as write_state:
@@ -117,7 +120,7 @@ def test_coordinator_update_writes_state():
 
 async def test_refresh_button():
     """Refresh is always available and requests a coordinator refresh."""
-    platform = SimpleNamespace(uid_base="inverter_1")
+    platform = SimpleNamespace(uid_base="inverter_1", device_info=None)
     coordinator = _coordinator(last_update_success=False)
     entity = SolarEdgeRefreshButton(platform, None, coordinator)
 
@@ -157,6 +160,7 @@ class TestControlButtons:
         """Build a fake inverter platform for the control buttons."""
         return SimpleNamespace(
             uid_base="inverter_1",
+            device_info=None,
             has_advanced_power_control=supported,
             advanced_power_control_data="apc_data",
             write=AsyncMock(),

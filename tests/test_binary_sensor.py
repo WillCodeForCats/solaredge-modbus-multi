@@ -16,7 +16,6 @@ from custom_components.solaredge_modbus_multi.binary_sensor import (
     async_setup_entry,
 )
 from custom_components.solaredge_modbus_multi.const import (
-    DOMAIN,
     VENDOR4_STATUS,
     VENDOR_STATUS,
     SunSpecNotImpl,
@@ -28,10 +27,11 @@ FAILED_COORDINATOR = SimpleNamespace(last_update_success=False)
 
 def _setup_hass(inverters, detect_extras):
     hub = SimpleNamespace(inverters=inverters, option_detect_extras=detect_extras)
-    entry = SimpleNamespace(entry_id="entry1")
-    hass = SimpleNamespace(
-        data={DOMAIN: {"entry1": {"hub": hub, "coordinator": COORDINATOR}}}
+    entry = SimpleNamespace(
+        entry_id="entry1",
+        runtime_data=SimpleNamespace(hub=hub, coordinator=COORDINATOR),
     )
+    hass = SimpleNamespace()
     return hass, entry
 
 
@@ -44,7 +44,13 @@ def _setup_hass(inverters, detect_extras):
 )
 async def test_setup_entry_entities_per_inverter(detect_extras, expected):
     """Each inverter gets problem and grid status, plus adv power control with extras."""
-    hass, entry = _setup_hass([SimpleNamespace(), SimpleNamespace()], detect_extras)
+    hass, entry = _setup_hass(
+        [
+            SimpleNamespace(uid_base="inv1", device_info=None),
+            SimpleNamespace(uid_base="inv2", device_info=None),
+        ],
+        detect_extras,
+    )
     add = MagicMock()
 
     await async_setup_entry(hass, entry, add)
@@ -77,7 +83,7 @@ def test_base_class_properties():
 
 def test_coordinator_update_writes_state():
     """A coordinator update writes the entity state."""
-    platform = SimpleNamespace(uid_base="inverter_1")
+    platform = SimpleNamespace(uid_base="inverter_1", device_info=None)
     entity = InverterProblem(platform, None, COORDINATOR)
 
     with patch.object(entity, "async_write_ha_state") as write_state:
@@ -101,6 +107,7 @@ def test_inverter_problem(status, available, is_on):
     """Problem is on only for the fault status, and unavailable for bad status."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         inverter_data=SimpleNamespace(I_Status=status),
     )
     entity = InverterProblem(platform, None, COORDINATOR)
@@ -115,7 +122,9 @@ def test_inverter_problem(status, available, is_on):
 def test_inverter_problem_unavailable_when_update_failed():
     """Problem is unavailable when the coordinator update failed."""
     platform = SimpleNamespace(
-        uid_base="inverter_1", inverter_data=SimpleNamespace(I_Status=4)
+        uid_base="inverter_1",
+        device_info=None,
+        inverter_data=SimpleNamespace(I_Status=4),
     )
     entity = InverterProblem(platform, None, FAILED_COORDINATOR)
     assert entity.available is False
@@ -143,6 +152,7 @@ def test_inverter_problem_vendor_attributes(use_v4, vendor, vendor4, expected):
     """Attributes come from vendor4 when in use, otherwise from vendor status."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         use_status_vendor4=use_v4,
         inverter_data=SimpleNamespace(
             I_Status=7, I_Status_Vendor=vendor, I_Status_Vendor4=vendor4
@@ -165,6 +175,7 @@ def test_grid_status_on_off(grid_status, available, is_on):
     """Grid is on only when the status is zero, and unavailable when unread."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         inverter_data=SimpleNamespace(I_Grid_Status=grid_status),
     )
     entity = GridStatusOnOff(platform, None, COORDINATOR)
@@ -181,6 +192,7 @@ def test_grid_status_unavailable_when_not_implemented():
     """Grid status is unavailable, not off grid, for the SunSpec not-implemented value."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         inverter_data=SimpleNamespace(I_Grid_Status=0xFFFFFFFF),
     )
     entity = GridStatusOnOff(platform, None, COORDINATOR)
@@ -190,7 +202,9 @@ def test_grid_status_unavailable_when_not_implemented():
 def test_grid_status_unavailable_when_update_failed():
     """Grid status is unavailable when the coordinator update failed."""
     platform = SimpleNamespace(
-        uid_base="inverter_1", inverter_data=SimpleNamespace(I_Grid_Status=0)
+        uid_base="inverter_1",
+        device_info=None,
+        inverter_data=SimpleNamespace(I_Grid_Status=0),
     )
     entity = GridStatusOnOff(platform, None, FAILED_COORDINATOR)
     assert entity.available is False
@@ -209,6 +223,7 @@ def test_adv_power_control_enabled(supported, enabled, available, is_on):
     """On only when enabled, unavailable when unsupported or unread."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
+        device_info=None,
         has_advanced_power_control=supported,
         advanced_power_control_data=SimpleNamespace(AdvPwrCtrlEn=enabled),
     )

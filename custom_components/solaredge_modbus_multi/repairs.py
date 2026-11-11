@@ -6,8 +6,8 @@ import re
 from typing import cast
 
 from homeassistant import data_entry_flow
-from homeassistant.components.repairs import RepairsFlow
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -134,11 +134,12 @@ class RetryFeatureDetectionRepairFlow(RepairsFlow):
     ) -> data_entry_flow.FlowResult:
         """Handle the confirm step of a fix flow."""
         if user_input is not None:
-            hub = self.hass.data[DOMAIN][self._entry_id]["hub"]
-            for inverter in hub.inverters:
-                if inverter.inverter_unit_id == self._inverter_unit_id:
-                    setattr(inverter, self._attr, None)
-                    break
+            entry = self.hass.config_entries.async_get_entry(self._entry_id)
+            if entry is not None and entry.state is ConfigEntryState.LOADED:
+                for inverter in entry.runtime_data.hub.inverters:
+                    if inverter.inverter_unit_id == self._inverter_unit_id:
+                        setattr(inverter, self._attr, None)
+                        break
 
             return self.async_create_entry(title="", data={})
 
@@ -161,10 +162,13 @@ async def async_create_fix_flow(
 ) -> RepairsFlow:
     """Create flow."""
 
+    if not data or "entry_id" not in data:
+        return ConfirmRepairFlow()
+
     entry_id = cast(str, data["entry_id"])
 
     if (entry := hass.config_entries.async_get_entry(entry_id)) is not None:
-        if issue_id == "check_configuration":
+        if issue_id.startswith("check_configuration_"):
             return CheckConfigurationRepairFlow(entry)
 
         if issue_id.startswith("detect_timeout_gpc_"):
@@ -176,4 +180,4 @@ async def async_create_fix_flow(
             return RetryFeatureDetectionRepairFlow(
                 entry_id, cast(int, data["inverter_unit_id"]), "advanced_power_control"
             )
-    return None
+    return ConfirmRepairFlow()

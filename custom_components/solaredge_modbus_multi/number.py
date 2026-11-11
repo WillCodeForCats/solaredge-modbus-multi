@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.number import NumberEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     UnitOfElectricCurrent,
@@ -13,12 +12,13 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfTime,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, BatteryLimit, SunSpecNotImpl
+from .const import BatteryLimit, SunSpecNotImpl
+from .coordinator import SolarEdgeConfigEntry
+from .entity import SolarEdgeEntity
 from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,12 +26,12 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: SolarEdgeConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup entry."""
-    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    hub = config_entry.runtime_data.hub
+    coordinator = config_entry.runtime_data.coordinator
 
     entities = []
 
@@ -64,54 +64,23 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-class SolarEdgeNumberBase(CoordinatorEntity, NumberEntity):
+class SolarEdgeNumberBase(SolarEdgeEntity, NumberEntity):
     """Representation of a solar edge number base."""
 
-    should_poll = False
-    _attr_has_entity_name = True
-    entity_category = EntityCategory.CONFIG
-
-    def __init__(self, platform, config_entry, coordinator):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator)
-        """Initialize the number."""
-        self._platform = platform
-        self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._platform.device_info
-
-    @property
-    def config_entry_id(self):
-        """Return the config entry id."""
-        return self._config_entry.entry_id
-
-    @property
-    def config_entry_name(self):
-        """Return the config entry name."""
-        return self._config_entry.data["name"]
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self.async_write_ha_state()
+    _attr_entity_category = EntityCategory.CONFIG
 
 
 class StorageACChargeLimit(SolarEdgeNumberBase):
     """Representation of a storage ac charge limit."""
 
-    icon = "mdi:lightning-bolt"
+    _attr_icon = "mdi:lightning-bolt"
+    _attr_name = "AC Charge Limit"
+    _attr_native_min_value = 0
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_ac_charge_limit"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "AC Charge Limit"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_storage_ac_charge_limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -143,11 +112,6 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         return None
 
     @property
-    def native_min_value(self) -> int:
-        """Return the native min value."""
-        return 0
-
-    @property
     def native_max_value(self) -> int:
         # 100MWh in AC policy "Fixed Energy Limit"
         """Return the native max value."""
@@ -174,20 +138,16 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
 class StorageBackupReserve(SolarEdgeNumberBase):
     """Representation of a storage backup reserve."""
 
-    native_unit_of_measurement = PERCENTAGE
-    native_min_value = 0
-    native_max_value = 100
-    icon = "mdi:battery-positive"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_icon = "mdi:battery-positive"
+    _attr_name = "Backup Reserve"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_backup_reserve"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Backup Reserve"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_storage_backup_reserve"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -223,20 +183,16 @@ class StorageBackupReserve(SolarEdgeNumberBase):
 class StorageCommandTimeout(SolarEdgeNumberBase):
     """Representation of a storage command timeout."""
 
-    native_min_value = 0
-    native_max_value = 86400  # 24h
-    native_unit_of_measurement = UnitOfTime.SECONDS
-    icon = "mdi:clock-end"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 86400  # 24h
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_icon = "mdi:clock-end"
+    _attr_name = "Storage Command Timeout"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_command_timeout"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Storage Command Timeout"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_storage_command_timeout"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -277,20 +233,17 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
 class StorageChargeLimit(SolarEdgeNumberBase):
     """Representation of a storage charge limit."""
 
-    native_min_value = 0
-    native_step = 1.0
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_step = 1.0
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
+    _attr_name = "Storage Charge Limit"
+    _attr_native_max_value = BatteryLimit.ChargeMax
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_charge_limit"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Storage Charge Limit"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_storage_charge_limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -312,11 +265,6 @@ class StorageChargeLimit(SolarEdgeNumberBase):
         )
 
     @property
-    def native_max_value(self) -> int:
-        """Return the native max value."""
-        return BatteryLimit.ChargeMax
-
-    @property
     def native_value(self) -> int:
         """Return the native value."""
         return int(self._platform.storage_control_data.charge_limit)
@@ -336,20 +284,17 @@ class StorageChargeLimit(SolarEdgeNumberBase):
 class StorageDischargeLimit(SolarEdgeNumberBase):
     """Representation of a storage discharge limit."""
 
-    native_min_value = 0
-    native_step = 1.0
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_step = 1.0
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
+    _attr_name = "Storage Discharge Limit"
+    _attr_native_max_value = BatteryLimit.DischargeMax
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_storage_discharge_limit"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Storage Discharge Limit"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_storage_discharge_limit"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -371,11 +316,6 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
         )
 
     @property
-    def native_max_value(self) -> int:
-        """Return the native max value."""
-        return BatteryLimit.DischargeMax
-
-    @property
     def native_value(self) -> int:
         """Return the native value."""
         return int(self._platform.storage_control_data.discharge_limit)
@@ -395,20 +335,16 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
 class SolarEdgeSiteLimit(SolarEdgeNumberBase):
     """Representation of a solar edge site limit."""
 
-    native_min_value = 0
-    native_max_value = 1000000
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 1000000
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
+    _attr_name = "Site Limit"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_site_limit"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Site Limit"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_site_limit"
 
     @property
     def available(self) -> bool:
@@ -448,20 +384,17 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
 class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
     """Representation of a solar edge external production max."""
 
-    native_min_value = 0
-    native_max_value = 1000000
-    native_unit_of_measurement = UnitOfPower.WATT
-    icon = "mdi:lightning-bolt"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 1000000
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_icon = "mdi:lightning-bolt"
+    _attr_name = "External Production Max"
+    _attr_entity_registry_enabled_default = False
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_external_production_max"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "External Production Max"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_external_production_max"
 
     @property
     def available(self) -> bool:
@@ -477,11 +410,6 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
             and e_lim_ctl_mode is not None
             and (e_lim_ctl_mode >> 10) & 1
         )
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
 
     @property
     def native_value(self) -> int:
@@ -500,21 +428,17 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
 class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
     """Global Dynamic Power Control: Set Inverter Active Power Limit."""
 
-    native_unit_of_measurement = PERCENTAGE
-    native_min_value = 0
-    native_max_value = 100
-    mode = "slider"
-    icon = "mdi:percent"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_mode = "slider"
+    _attr_icon = "mdi:percent"
+    _attr_name = "Active Power Limit"
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_active_power_limit_set"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Active Power Limit"
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_active_power_limit_set"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -553,26 +477,18 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
 class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
     """Global Dynamic Power Control: Set Inverter CosPhi."""
 
-    native_min_value = -1.0
-    native_max_value = 1.0
-    native_step = 0.1
-    mode = "slider"
-    icon = "mdi:angle-acute"
+    _attr_native_min_value = -1.0
+    _attr_native_max_value = 1.0
+    _attr_native_step = 0.1
+    _attr_mode = "slider"
+    _attr_icon = "mdi:angle-acute"
+    _attr_name = "CosPhi"
+    _attr_entity_registry_enabled_default = False
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_cosphi_set"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "CosPhi"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_cosphi_set"
 
     @property
     def available(self) -> bool:
@@ -606,26 +522,18 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
 class SolarEdgePowerReduce(SolarEdgeNumberBase):
     """Limits the inverter's maximum output power from 0-100%."""
 
-    native_unit_of_measurement = PERCENTAGE
-    native_min_value = 0
-    native_max_value = 100
-    mode = "slider"
-    icon = "mdi:percent"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_mode = "slider"
+    _attr_icon = "mdi:percent"
+    _attr_name = "Power Reduce"
+    _attr_entity_registry_enabled_default = False
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_power_reduce"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Power Reduce"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_power_reduce"
 
     @property
     def available(self) -> bool:
@@ -656,25 +564,17 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
 class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
     """Limits the inverter's maximum output current."""
 
-    native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
-    native_min_value = 0
-    native_max_value = 256
-    icon = "mdi:current-ac"
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_native_min_value = 0
+    _attr_native_max_value = 256
+    _attr_icon = "mdi:current-ac"
+    _attr_name = "Current Limit"
+    _attr_entity_registry_enabled_default = False
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_max_current"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Current Limit"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_max_current"
 
     @property
     def available(self) -> bool:

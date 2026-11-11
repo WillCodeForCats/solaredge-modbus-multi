@@ -37,7 +37,7 @@ from .const import (
     ConfName,
 )
 from .helpers import device_list_from_string, host_valid
-from .scanner import SolarEdgeDeviceScanner
+from .scanner import ScannerConnectionError, SolarEdgeDeviceScanner
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -348,9 +348,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
 
-            if self._scan_user_input is None:
-                raise AbortFlow("No scan data available")  # noqa: TRY301
-
             self._pending_entry = {
                 "title": self._scan_user_input[CONF_NAME],
                 "data": self._scan_user_input,
@@ -442,7 +439,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 except (ScanOtherDeviceError, ScanNoResponseError) as e:
                     errors[ConfName.DEVICE_LIST] = f"{e}"
 
-                except HomeAssistantError as e:
+                except (ScannerConnectionError, HomeAssistantError) as e:
                     errors[CONF_HOST] = f"{e}"
 
                 else:

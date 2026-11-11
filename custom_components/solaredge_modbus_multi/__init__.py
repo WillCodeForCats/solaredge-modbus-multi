@@ -2,33 +2,42 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import timedelta
 import importlib.metadata
 import logging
 from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+    EVENT_HOMEASSISTANT_STOP,
+    Platform,
+)
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import (
+    device_registry as dr,
+    entity_registry as er,
+    issue_registry as ir,
+)
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import (
-    TimestampDataUpdateCoordinator,
-    UpdateFailed,
-)
 import voluptuous as vol
 
 from .const import (
+    DATA_YAML,
     DOMAIN,
     MESSAGE_SPACING,
     MODBUS_CONNECTION_REQUIRED_VERSION,
     TMODBUS_REQUIRED_VERSION,
     ConfDefaultInt,
     ConfName,
-    RetrySettings,
+)
+from .coordinator import (
+    SolarEdgeConfigEntry,
+    SolarEdgeCoordinator,
+    SolarEdgeRuntimeData,
 )
 from .helpers import safe_version_tuple
 
@@ -111,10 +120,9 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up SolarEdge Modbus Muti advanced YAML config."""
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
+    hass.data[DATA_YAML] = config.get(DOMAIN, {})
 
-    if "modbus" in hass.data[DOMAIN]["yaml"]:
+    if "modbus" in hass.data[DATA_YAML]:
         ir.async_create_issue(
             hass,
             DOMAIN,
@@ -129,7 +137,83 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+# Earlier versions misnamed the DER State of Charge sensor (SunSpec model 713
+# SoC) as State of Energy, with the unique ID suffix "battery_soe"; it is
+# migrated to "soc". SolarEdge does not report State of Health or Status in
+# model 713, so those sensors of earlier versions are removed.
+_LEGACY_DER_SOE_SUFFIX = "battery_soe"
+_LEGACY_DER_UNSUPPORTED_SUFFIXES = ("battery_soh", "status")
+
+
+@callback
+def _async_migrate_legacy_der_entities(
+    hass: HomeAssistant, solaredge_hub: SolarEdgeModbusMultiHub
+) -> None:
+    """Keep the DER State of Charge sensor of earlier versions.
+
+    Earlier versions had a device per DER block with unique IDs like
+    "<inverter>_DERB1_battery_soe", where "soe" was used instead of "soc".
+    Renaming it to the current unique ID keeps its entity ID and history;
+    the sensor platform then moves it to the inverter device. The unsupported
+    State of Health and Status sensors are removed. Must run before the sensor
+    platform is set up.
+    """
+    entity_registry = er.async_get(hass)
+    for inverter in solaredge_hub.inverters:
+        for der_id, scan_id in enumerate(inverter.der_storage_scan_ids, 1):
+            legacy_prefix = f"{inverter.uid_base}_DERB{scan_id}"
+
+            for suffix in _LEGACY_DER_UNSUPPORTED_SUFFIXES:
+                entity_id = entity_registry.async_get_entity_id(
+                    Platform.SENSOR, DOMAIN, f"{legacy_prefix}_{suffix}"
+                )
+                if entity_id is not None:
+                    _LOGGER.debug("Removing unsupported DER sensor %s", entity_id)
+                    entity_registry.async_remove(entity_id)
+
+            old_unique_id = f"{legacy_prefix}_{_LEGACY_DER_SOE_SUFFIX}"
+            new_unique_id = f"{inverter.uid_base}_storage_{der_id}_soc"
+            entity_id = entity_registry.async_get_entity_id(
+                Platform.SENSOR, DOMAIN, old_unique_id
+            )
+            if entity_id is None or entity_registry.async_get_entity_id(
+                Platform.SENSOR, DOMAIN, new_unique_id
+            ):
+                continue
+            _LOGGER.debug("Migrating DER sensor %s to %s", old_unique_id, new_unique_id)
+            entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
+
+
+@callback
+def _async_remove_legacy_der_devices(
+    hass: HomeAssistant, entry: ConfigEntry, solaredge_hub: SolarEdgeModbusMultiHub
+) -> None:
+    """Remove the separate DER battery devices from earlier versions.
+
+    DER battery sensors are now on the inverter device. Only devices for DER
+    blocks found in this run are removed, after the sensor platform has moved
+    their entities to the inverter device, so a failed scan never deletes an
+    entity. Removing a device also removes the entities still registered to it.
+    """
+    legacy_ids = {
+        f"{inverter.uid_base}_DERB{scan_id}"
+        for inverter in solaredge_hub.inverters
+        for scan_id in inverter.der_storage_scan_ids
+    }
+    if not legacy_ids:
+        return
+
+    device_registry = dr.async_get(hass)
+    for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id):
+        if any(
+            ident[0] == DOMAIN and ident[1] in legacy_ids
+            for ident in device.identifiers
+        ):
+            _LOGGER.debug("Removing legacy DER battery device %s", device.name)
+            device_registry.async_remove_device(device.id)
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
     """Set up SolarEdge Modbus Muti from a config entry."""
 
     # importlib.metadata does blocking file I/O, and modbus_connection/.hub
@@ -152,6 +236,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     entry.async_on_unload(connection.close)
 
+    # Ensure the modbus connection closes when Home Assistant stops
+    async def _async_handle_shutdown(event: Event) -> None:
+        await connection.close()
+
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_handle_shutdown)
+    )
+
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass, entry.entry_id, entry.data, entry.options, connection
     )
@@ -162,33 +254,37 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL),
     )
 
-    hass.data[DOMAIN][entry.entry_id] = {
-        "hub": solaredge_hub,
-        "coordinator": coordinator,
-        "dependency_versions": installed_versions,
-    }
+    # Drop the entry-independent issue ID used by earlier versions.
+    ir.async_delete_issue(hass, DOMAIN, "check_configuration")
+    ir.async_delete_issue(hass, DOMAIN, "deprecated_keep_modbus_open")
+
+    entry.runtime_data = SolarEdgeRuntimeData(
+        hub=solaredge_hub,
+        coordinator=coordinator,
+        dependency_versions=installed_versions,
+    )
 
     await coordinator.async_config_entry_first_refresh()
 
+    _async_migrate_legacy_der_entities(hass, solaredge_hub)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    _async_remove_legacy_der_devices(hass, entry, solaredge_hub)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: SolarEdgeConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
+    hass: HomeAssistant, config_entry: SolarEdgeConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Remove a config entry from a device."""
-    solaredge_hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
+    solaredge_hub = config_entry.runtime_data.hub
 
     known_devices = []
 
@@ -306,7 +402,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             ir.async_create_issue(
                 hass,
                 DOMAIN,
-                "deprecated_keep_modbus_open",
+                f"deprecated_keep_modbus_open_{config_entry.entry_id}",
                 is_fixable=False,
                 severity=ir.IssueSeverity.WARNING,
                 translation_key="deprecated_keep_modbus_open",
@@ -334,86 +430,3 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     )
 
     return True
-
-
-class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
-    """Solar edge coordinator."""
-
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        hub: SolarEdgeModbusMultiHub,
-        scan_interval: int,
-    ):
-        """Initialize the solar edge coordinator."""
-        super().__init__(
-            hass,
-            _LOGGER,
-            name="SolarEdge Coordinator",
-            update_interval=timedelta(seconds=scan_interval),
-        )
-        self._hub = hub
-        self._yaml_config = hass.data[DOMAIN]["yaml"]
-
-    async def _async_update_data(self) -> bool:
-        from .hub import DataUpdateFailed, HubInitFailed  # noqa: PLC0415
-
-        try:
-            return await self._refresh_modbus_data_with_retry(
-                ex_type=DataUpdateFailed,
-                limit=self._yaml_config.get("retry", {}).get(
-                    "limit", RetrySettings.Limit
-                ),
-                wait_ms=self._yaml_config.get("retry", {}).get(
-                    "time", RetrySettings.Time
-                ),
-                wait_ratio=self._yaml_config.get("retry", {}).get(
-                    "ratio", RetrySettings.Ratio
-                ),
-            )
-
-        except HubInitFailed as e:
-            raise UpdateFailed(f"{e}") from e
-
-        except DataUpdateFailed as e:
-            raise UpdateFailed(f"{e}") from e
-
-    async def _refresh_modbus_data_with_retry(
-        self,
-        ex_type=Exception,
-        limit: int = 0,
-        wait_ms: int = 100,
-        wait_ratio: int = 2,
-    ) -> bool:
-        """Retry refresh until no exception occurs or retries exhaust.
-
-        :param ex_type: retry only if exception is subclass of this type
-        :param limit: maximum number of invocation attempts
-        :param wait_ms: initial wait time after each attempt in milliseconds.
-        :param wait_ratio: increase wait by multiplying by this after each try.
-        :return: result of first successful invocation
-        :raises: last invocation exception if attempts exhausted
-                 or exception is not an instance of ex_type
-
-        Credit: https://gist.github.com/davidohana/c0518ff6a6b95139e905c8a8caef9995
-        """
-        _LOGGER.debug("Retry limit=%s time=%s ratio=%s", limit, wait_ms, wait_ratio)
-        attempt = 1
-        while True:
-            try:
-                return await self._hub.async_refresh_modbus_data()
-            except Exception as ex:  # noqa: PERF203
-                if not isinstance(ex, ex_type):
-                    raise
-                if 0 < limit <= attempt:
-                    _LOGGER.debug("No more data refresh attempts (maximum %s)", limit)
-                    raise
-
-                _LOGGER.debug("Failed data refresh attempt %s", attempt)
-
-                attempt += 1
-                _LOGGER.debug(
-                    "Waiting %s ms before data refresh attempt %s", wait_ms, attempt
-                )
-                await asyncio.sleep(wait_ms / 1000)
-                wait_ms *= wait_ratio

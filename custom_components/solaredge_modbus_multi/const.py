@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from enum import IntEnum, StrEnum
 import re
-from typing import Final
+from typing import Any, Final
+
+from homeassistant.util.hass_dict import HassKey
 
 DOMAIN = "solaredge_modbus_multi"
+DATA_YAML: HassKey[dict[str, Any]] = HassKey(f"{DOMAIN}_yaml")
 DEFAULT_NAME = "SolarEdge"
 
 SETUP_TYPE = "setup_type"
@@ -349,13 +352,13 @@ BATTERY_STATUS_TEXT = {
     10: "Power Saving",
 }
 
-DER_BATTERY_STATUS = {
+DER_STORAGE_STATUS = {
     0: "OK",
     1: "WARNING",
     2: "ERROR",
 }
 
-DER_BATTERY_STATUS_TEXT = {
+DER_STORAGE_STATUS_TEXT = {
     0: "No Error",
     1: "Warning",
     2: "Error",
