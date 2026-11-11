@@ -312,6 +312,13 @@ async def async_remove_config_entry_device(
         }
         known_devices.extend(battery_device_ids)
 
+    if solaredge_hub.option_virtual_system:
+        known_devices.extend(
+            dev_id[1]
+            for dev_id in solaredge_hub.system.device_info["identifiers"]
+            if dev_id[0] == DOMAIN
+        )
+
     this_device_ids = {
         dev_id[1] for dev_id in device_entry.identifiers if dev_id[0] == DOMAIN
     }
