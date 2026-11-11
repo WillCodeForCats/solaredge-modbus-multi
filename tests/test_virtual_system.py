@@ -24,23 +24,58 @@ ENTRY_DATA = {
 }
 
 
-def _make_hub(hass, entry_options=None):
+def _make_hub(hass, entry_options=None, entry_data=None):
     hass.data[DATA_YAML] = {}
     return SolarEdgeModbusMultiHub(
         hass,
         "test_entry_id",
-        ENTRY_DATA,
+        entry_data if entry_data is not None else ENTRY_DATA,
         entry_options if entry_options is not None else {},
         MockModbusConnection(),
     )
 
 
-async def test_virtual_system_defaults_to_false(hass):
-    """Test the virtual system is opt-in."""
-    hub = _make_hub(hass)
+@pytest.mark.parametrize(
+    ("device_list", "expected"), [([1], False), ([1, 2], True), ([1, 2, 3], True)]
+)
+async def test_virtual_system_default_follows_inverter_count(
+    hass, device_list, expected
+):
+    """Test the virtual system defaults on only with more than one inverter."""
+    hub = _make_hub(hass, entry_data={**ENTRY_DATA, ConfName.DEVICE_LIST: device_list})
+
+    assert hub.option_virtual_system is expected
+
+
+async def test_virtual_system_option_overrides_default(hass):
+    """Test a saved option wins over the inverter count default."""
+    hub = _make_hub(
+        hass,
+        entry_data={**ENTRY_DATA, ConfName.DEVICE_LIST: [1, 2]},
+        entry_options={ConfName.VIRTUAL_SYSTEM: False},
+    )
 
     assert hub.option_virtual_system is False
-    assert isinstance(hub.option_virtual_system, bool)
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+@pytest.mark.parametrize(("device_list", "expected"), [([1], False), ([1, 2], True)])
+async def test_options_flow_virtual_system_default(hass, device_list, expected):
+    """Test the options form shows the inverter count default when not saved."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_HOST: "192.168.1.50",
+            CONF_PORT: 1502,
+            ConfName.DEVICE_LIST: device_list,
+        },
+    )
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    schema = result["data_schema"].schema
+    key = next(k for k in schema if k == ConfName.VIRTUAL_SYSTEM)
+    assert key.default() is expected
 
 
 async def test_virtual_system_option_override_is_stored(hass):
