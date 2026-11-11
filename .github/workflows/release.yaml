@@ -3,12 +3,6 @@ name: Release
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Existing release tag to attach the ZIP to (for example v4.0.13)"
-        required: true
-        type: string
 
 permissions: {}
 
@@ -19,24 +13,23 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
-        with:
-          ref: ${{ github.event.release.tag_name || inputs.tag }}
-          persist-credentials: false
-
       # Marketplace and HACS extract this archive directly into
       # custom_components/solaredge_modbus_multi, so the integration files
-      # must be at the root of the ZIP, not inside a folder.
+      # must be at the root of the ZIP, not inside a folder. git archive with
+      # tag:path does that, and only includes files tracked at that tag.
+      - uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+        with:
+          persist-credentials: false
+
       - name: Create ZIP
-        working-directory: custom_components/solaredge_modbus_multi
         run: |
-          zip -r "${GITHUB_WORKSPACE}/solaredge_modbus_multi.zip" . \
-            -x '*__pycache__*' '*.pyc'
+          git archive --format=zip -o solaredge_modbus_multi.zip \
+            "HEAD:custom_components/solaredge_modbus_multi"
 
       - name: Upload ZIP to release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ github.event.release.tag_name || inputs.tag }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
           gh release upload "${TAG_NAME}" solaredge_modbus_multi.zip \
             --repo "${GITHUB_REPOSITORY}" --clobber
