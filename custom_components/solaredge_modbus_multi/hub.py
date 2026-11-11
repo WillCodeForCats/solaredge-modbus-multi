@@ -62,7 +62,7 @@ from .const import (
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex, scale_sunspec_int16
+from .helpers import default_virtual_system, float_to_hex, scale_sunspec_int16
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -218,7 +218,7 @@ class SolarEdgeModbusMultiHub:
             ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
         )
         self._virtual_system = entry_options.get(
-            ConfName.VIRTUAL_SYSTEM, bool(ConfDefaultFlag.VIRTUAL_SYSTEM)
+            ConfName.VIRTUAL_SYSTEM, default_virtual_system(self._inverter_list)
         )
         self._adv_storage_control = entry_options.get(
             ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
