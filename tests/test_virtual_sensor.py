@@ -49,6 +49,7 @@ def _hub(inverters=(), meters=(), batteries=()):
         option_virtual_system=True,
         evses=[],
         der_batteries=[],
+        skipped_inverter_ids=[],
         entry_id="entry1",
         hub_id="solaredge",
     )
@@ -373,3 +374,29 @@ def test_der_storage_alone_is_not_a_battery():
     assert not hub.system.has_storage
     assert len(hub.system.power_keys) == 5
     assert SolarACPower(hub.system, None, COORDINATOR).native_value == 1000
+
+
+def test_skipped_inverter_makes_inverter_totals_unavailable():
+    """Test a configured inverter skipped at setup does not give a low total.
+
+    Values from the Export+Import meter alone are still available.
+    """
+    hub = _hub([_inverter(ac=1000, dc=1100)], [_meter(power=-300)])
+    hub.skipped_inverter_ids = [2]
+
+    assert hub.system.power_values == {
+        "solar_generation": None,
+        "consumption": None,
+        "grid_load": 300,
+        "pv_grid": 0,
+        "pv_load": None,
+    }
+    assert SolarACPower(hub.system, None, COORDINATOR).native_value is None
+
+
+def test_skipped_inverter_keeps_production_meter_solar():
+    """Test Solar AC Power from a Production meter does not need every inverter."""
+    hub = _hub([_inverter(ac=1000)], [_meter(MeterRole.PRODUCTION, 900)])
+    hub.skipped_inverter_ids = [2]
+
+    assert SolarACPower(hub.system, None, COORDINATOR).native_value == 900

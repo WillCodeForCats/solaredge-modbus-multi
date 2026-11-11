@@ -250,6 +250,7 @@ class SolarEdgeModbusMultiHub:
 
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
+        self.skipped_inverter_ids: list[int] = []
         self.meters = []
         self.batteries = []
         self.evses = []
@@ -346,6 +347,7 @@ class SolarEdgeModbusMultiHub:
                     },
                     data={"entry_id": self._entry_id},
                 )
+                self.skipped_inverter_ids.append(inverter_unit_id)
                 continue
 
             except DeviceIsEVSE as e:
@@ -1531,14 +1533,24 @@ class SolarEdgeSystem:
             keys += ["consumption", "grid_load", "pv_grid", "pv_load"]
         return keys
 
+    def _sum_inverters(self, value_fn) -> float | None:
+        """Return value_fn summed over all inverters, or None if any is missing.
+
+        A configured inverter skipped during setup would make the total too low,
+        so the total is None until it is found.
+        """
+        if self.hub.skipped_inverter_ids:
+            return None
+        return self._sum_all(value_fn(i) for i in self.hub.inverters)
+
     @property
     def power_values(self) -> dict[str, float | None]:
         """Return the system power values in watts, None where an input is invalid.
 
         Only valid for a system without batteries.
         """
-        solar = self._sum_all(self._inverter_dc_power(i) for i in self.hub.inverters)
-        iac = self._sum_all(self._inverter_ac_power(i) for i in self.hub.inverters)
+        solar = self._sum_inverters(self._inverter_dc_power)
+        iac = self._sum_inverters(self._inverter_ac_power)
         m = self._sum_all(self._meter_ac_power(x) for x in self.export_import_meters)
 
         pv_grid = self._calc(lambda m: max(m, 0), m)
@@ -1569,9 +1581,8 @@ class SolarEdgeSystem:
             return self._sum_all(
                 self._meter_ac_power(m) for m in self.production_meters
             )
-        return self._sum_all(
-            self._calc(lambda v: max(v, 0), self._inverter_ac_power(i))
-            for i in self.hub.inverters
+        return self._sum_inverters(
+            lambda i: self._calc(lambda v: max(v, 0), self._inverter_ac_power(i))
         )
 
     @staticmethod
