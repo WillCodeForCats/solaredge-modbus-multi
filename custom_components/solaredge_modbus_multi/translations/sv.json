@@ -105,6 +105,7 @@
           "detect_meters": "Automatisk identifiering av mätare",
           "detect_batteries": "Automatisk identifiering av batterier",
           "detect_extras": "Automatisk identifiering av ytterligare entiteter",
+          "virtual_system": "Aktivera virtuell systemenhet",
           "advanced_power_control": "Effektstyrningsalternativ",
           "request_timeout": "Tidsgräns för Modbus-förfrågan (sekunder)",
           "sleep_after_write": "Fördröjning för växelriktarkommando (sekunder)"
@@ -115,6 +116,7 @@
           "detect_meters": "Leta efter mätare anslutna till varje växelriktare när integrationen startar.",
           "detect_batteries": "Leta efter batterier anslutna till varje växelriktare när integrationen startar. Batteristödet använder register som SolarEdge inte officiellt dokumenterar.",
           "detect_extras": "Kontrollera om varje växelriktare stöder Global Dynamic Power Control och Advanced Power Control, och lägg till deras entiteter om de hittas.",
+          "virtual_system": "Lägg till en systemenhet med effektsensorer som beräknas från växelriktarna och mätarna, till exempel solproduktion och förbrukning. Sensorerna för de andra enheterna ändras inte.",
           "advanced_power_control": "Visa steget Alternativ för effektstyrning härnäst, för att slå på eller av lagringsstyrning och styrning av anläggningsgräns.",
           "request_timeout": "Hur länge, i sekunder, att vänta på svar på varje Modbus-förfrågan.",
           "sleep_after_write": "Sekunder att vänta mellan förfrågningar till en växelriktare efter att ett kommando har skrivits till den. Vissa växelriktare behöver tid att behandla ett kommando innan de svarar igen. 0 stänger av detta."

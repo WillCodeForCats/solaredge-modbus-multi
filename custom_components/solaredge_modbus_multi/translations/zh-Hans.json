@@ -105,6 +105,7 @@
           "detect_meters": "自动检测电表",
           "detect_batteries": "自动检测电池",
           "detect_extras": "自动检测其他实体",
+          "virtual_system": "启用虚拟系统设备",
           "advanced_power_control": "功率控制选项",
           "request_timeout": "Modbus 请求超时（秒）",
           "sleep_after_write": "逆变器命令延迟（秒）"
@@ -115,6 +116,7 @@
           "detect_meters": "集成启动时查找连接到每台逆变器的电表。",
           "detect_batteries": "集成启动时查找连接到每台逆变器的电池。电池支持使用 SolarEdge 未正式公开文档的寄存器。",
           "detect_extras": "检查每台逆变器是否支持 Global Dynamic Power Control 和 Advanced Power Control，找到时添加其实体。",
+          "virtual_system": "添加一个系统设备，其功率传感器根据逆变器和电表计算得出，例如太阳能发电和用电量。其他设备的传感器不会改变。",
           "advanced_power_control": "接下来显示“功率控制选项”步骤，用于开启或关闭储能控制和站点限制控制。",
           "request_timeout": "等待每个 Modbus 请求响应的时间（秒）。",
           "sleep_after_write": "向逆变器写入命令后，向其发送请求之间的等待秒数。有些逆变器需要时间处理命令后才会再次响应。设为 0 则关闭。"

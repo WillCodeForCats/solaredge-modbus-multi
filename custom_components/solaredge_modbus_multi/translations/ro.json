@@ -105,6 +105,7 @@
           "detect_meters": "Detectare Automată a Contoarelor",
           "detect_batteries": "Detectare Automată a Bateriilor",
           "detect_extras": "Detectare Automată a Entităților Suplimentare",
+          "virtual_system": "Activare Dispozitiv Sistem Virtual",
           "advanced_power_control": "Opțiuni de Control al Puterii",
           "request_timeout": "Timeout Solicitare Modbus (secunde)",
           "sleep_after_write": "Întârziere Comandă Invertor (secunde)"
@@ -115,6 +116,7 @@
           "detect_meters": "Caută contoarele conectate la fiecare invertor la pornirea integrării.",
           "detect_batteries": "Caută bateriile conectate la fiecare invertor la pornirea integrării. Suportul pentru baterii folosește registre pe care SolarEdge nu le documentează oficial.",
           "detect_extras": "Verifică dacă fiecare invertor acceptă Global Dynamic Power Control și Advanced Power Control și adaugă entitățile acestora dacă sunt găsite.",
+          "virtual_system": "Adaugă un dispozitiv Sistem cu senzori de putere calculați din invertoare și contoare, cum ar fi producția solară și consumul. Senzorii celorlalte dispozitive nu sunt modificați.",
           "advanced_power_control": "Afișează apoi pasul Opțiuni de control al puterii, pentru a activa sau dezactiva controlul stocării și controlul limitei locației.",
           "request_timeout": "Cât timp, în secunde, se așteaptă un răspuns la fiecare cerere Modbus.",
           "sleep_after_write": "Secunde de așteptare între cererile către un invertor după ce i s-a scris o comandă. Unele invertoare au nevoie de timp pentru a procesa o comandă înainte de a răspunde din nou. 0 dezactivează această opțiune."
