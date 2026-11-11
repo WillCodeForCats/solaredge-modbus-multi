@@ -62,7 +62,7 @@ from .const import (
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex
+from .helpers import float_to_hex, scale_sunspec_int16
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1469,7 +1469,17 @@ class SolarEdgeSystem:
     """Defines the virtual SolarEdge system device.
 
     This device holds values calculated from the other devices on the hub.
-    It does not read any Modbus registers of its own.
+    It does not read any Modbus registers of its own, and never alters the
+    values of the devices it reads from.
+
+    The power values follow the template sensors for a system without batteries
+    from the wiki page Template-Sensors-for-Power-and-Energy, with the inputs
+    summed across all inverters.
+
+    Sign conventions of the inputs:
+        inverter DC power: positive is flowing from the DC bus to the inverter
+        inverter AC power: positive is flowing from the inverter to the site
+        meter AC power: positive is exported to the grid
     """
 
     manufacturer = "SolarEdge"
@@ -1490,6 +1500,96 @@ class SolarEdgeSystem:
             manufacturer=self.manufacturer,
             model=self.model,
         )
+
+    @property
+    def export_import_meters(self) -> list:
+        """Return the meters with the Export+Import role."""
+        return [m for m in self.hub.meters if m.meter_role == MeterRole.EXPORT_IMPORT]
+
+    @property
+    def production_meters(self) -> list:
+        """Return the meters with the Production role."""
+        return [m for m in self.hub.meters if m.meter_role == MeterRole.PRODUCTION]
+
+    @property
+    def power_keys(self) -> list[str]:
+        """Return the keys of power_values that apply to this hub."""
+        if self.hub.batteries:
+            return []
+
+        keys = ["solar_generation"]
+        if self.export_import_meters:
+            keys += ["consumption", "grid_load", "pv_grid", "pv_load"]
+        return keys
+
+    @property
+    def power_values(self) -> dict[str, float | None]:
+        """Return the system power values in watts, None where an input is invalid.
+
+        Only valid for a system without batteries.
+        """
+        solar = self._sum_all(self._inverter_dc_power(i) for i in self.hub.inverters)
+        iac = self._sum_all(self._inverter_ac_power(i) for i in self.hub.inverters)
+        m = self._sum_all(self._meter_ac_power(x) for x in self.export_import_meters)
+
+        pv_grid = self._calc(lambda m: max(m, 0), m)
+        return {
+            "solar_generation": solar,
+            "consumption": self._calc(lambda iac, m: iac - m, iac, m),
+            "grid_load": self._calc(lambda m: abs(min(m, 0)), m),
+            "pv_grid": pv_grid,
+            "pv_load": self._calc(lambda s, g: max(s - g, 0), solar, pv_grid),
+        }
+
+    @property
+    def solar_ac_power(self) -> float | None:
+        """Return the total solar AC power in watts, None if an input is invalid.
+
+        Uses the Production meters if there are any, otherwise the inverters.
+        An inverter charging batteries from the grid is not solar production, so
+        each inverter is limited to zero or more.
+        """
+        if self.production_meters:
+            return self._sum_all(
+                self._meter_ac_power(m) for m in self.production_meters
+            )
+        return self._sum_all(
+            self._calc(lambda v: max(v, 0), self._inverter_ac_power(i))
+            for i in self.hub.inverters
+        )
+
+    @staticmethod
+    def _inverter_ac_power(inverter) -> float | None:
+        return scale_sunspec_int16(
+            inverter.inverter_data.AC_Power, inverter.inverter_data.AC_Power_SF
+        )
+
+    @staticmethod
+    def _inverter_dc_power(inverter) -> float | None:
+        return scale_sunspec_int16(
+            inverter.inverter_data.I_DC_Power, inverter.inverter_data.I_DC_Power_SF
+        )
+
+    @staticmethod
+    def _meter_ac_power(meter) -> float | None:
+        return scale_sunspec_int16(
+            meter.meter_data.AC_Power, meter.meter_data.AC_Power_SF
+        )
+
+    @staticmethod
+    def _sum_all(values) -> float | None:
+        """Return the sum of values, or None if any value is None or there are none."""
+        values = list(values)
+        if not values or any(value is None for value in values):
+            return None
+        return sum(values)
+
+    @staticmethod
+    def _calc(fn, *args) -> float | None:
+        """Return fn(*args), or None if any argument is None."""
+        if any(arg is None for arg in args):
+            return None
+        return fn(*args)
 
 
 class SolarEdgeMMPPTUnit:
