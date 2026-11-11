@@ -225,6 +225,7 @@ def _removal_hass(hass, entry_id="entry1"):
         inverters=[_device((DOMAIN, "inverter_1"), ("other", "inverter_1"))],
         meters=[_device((DOMAIN, "inverter_1_meter_1"))],
         batteries=[_device((DOMAIN, "inverter_1_battery_1"))],
+        option_virtual_system=False,
     )
     return SimpleNamespace(entry_id=entry_id, runtime_data=SimpleNamespace(hub=hub))
 

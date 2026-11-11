@@ -11,11 +11,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import (
-    DOMAIN,
-    MeterRole,
-    SunSpecNotImpl,
-)
+from custom_components.solaredge_modbus_multi.const import MeterRole, SunSpecNotImpl
 from custom_components.solaredge_modbus_multi.sensor import async_setup_entry
 from custom_components.solaredge_modbus_multi.virtual_sensor import (
     SolarACPower,
@@ -286,12 +282,13 @@ async def test_setup_entry_adds_no_system_sensors_when_option_off():
     """Test the sensor platform adds nothing for the system when the option is off."""
     hub = _hub()
     hub.option_virtual_system = False
-    hass = SimpleNamespace(
-        data={DOMAIN: {"entry1": {"hub": hub, "coordinator": COORDINATOR}}}
+    config_entry = SimpleNamespace(
+        entry_id="entry1",
+        runtime_data=SimpleNamespace(hub=hub, coordinator=COORDINATOR),
     )
     add = MagicMock()
 
-    await async_setup_entry(hass, SimpleNamespace(entry_id="entry1"), add)
+    await async_setup_entry(SimpleNamespace(), config_entry, add)
 
     add.assert_not_called()
 
