@@ -33,6 +33,7 @@ discovery and may not be supported by SolarEdge.
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
 
 <!-- ha-marketplace:exclude-start -->
+
 ## Installation
 
 Install with Marketplace (Home Assistant 2026.11 and later): Go to **Settings** → **Marketplace** and search for "SolarEdge Modbus Multi".
