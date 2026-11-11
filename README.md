@@ -52,6 +52,7 @@ Sensors provided:
 - Solar AC Power: from Production meters if you have any, otherwise from the inverters' AC output.
 
 Limitations:
+
 - Systems with batteries only have Solar AC Power sensor for now.
 - If two inverters are set up with the same physical meter, that meter is counted twice.
 
