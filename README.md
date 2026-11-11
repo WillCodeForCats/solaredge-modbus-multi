@@ -29,8 +29,33 @@ discovery and may not be supported by SolarEdge.
 - Informational sensor for device and its attributes
 - Supports status and error reporting sensors.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
+- Virtual System device with whole-site power flows calculated across all inverters, on by default for leader/follower systems.
 
-Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
+### Virtual System Device
+
+In a leader/follower system the site's totals for solar generation, consumption, and grid flows are not available
+from any single device. Other integrations require you to create template sensors to add the entities together, which can be difficult
+to set up and maintain.
+
+SolarEdge Modbus Multi creates a System device that does work this for you. It is on by default when the hub has more than one
+inverter, and off for a single inverter. Change it with **Enable Virtual System Device** in the integration options.
+
+- Inputs are added together across every inverter on the hub, and across every meter set up as Export+Import.
+- All inputs come from the same poll, so a total never mixes old and new readings.
+- If any input is unavailable, the sensor is unavailable. It never falls back to 0.
+- The individual sensors of your inverters and meters are not changed.
+
+Sensors provided:
+
+- Power - Solar Generation, Power - Consumption, Power - Grid - Load, Power - PV - Grid, and Power - PV - Load.
+  These follow the wiki's [template sensors](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Sensors-for-Power-and-Energy) for systems without batteries.
+- Solar AC Power: from Production meters if you have any, otherwise from the inverters' AC output.
+
+Limitations:
+- Systems with batteries only have Solar AC Power sensor for now.
+- If two inverters are set up with the same physical meter, that meter is counted twice.
+
+Virtual System is a new feature: please open an issue if you have suggestions for virtual sensors that can replace a template.
 
 ## Installation
 
