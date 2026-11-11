@@ -68,7 +68,10 @@ def testscale_sunspec_int16():
     assert scale_sunspec_int16(None, 0) is None
     assert scale_sunspec_int16(1, None) is None
     assert scale_sunspec_int16(SunSpecNotImpl.INT16, 0) is None
+    assert scale_sunspec_int16(-32768, 0) is None
+    assert scale_sunspec_int16(-32767, 0) == -32767
     assert scale_sunspec_int16(1, SunSpecNotImpl.INT16) is None
+    assert scale_sunspec_int16(1, -32768) is None
     assert scale_sunspec_int16(1, 99) is None
 
 

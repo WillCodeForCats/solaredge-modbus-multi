@@ -25,11 +25,12 @@ def scale_sunspec_int16(value, sf) -> float | None:
     """Return an int16 SunSpec value with its scale factor applied.
 
     Returns None if the value or scale factor is missing, not implemented,
-    or the scale factor is out of range.
+    or the scale factor is out of range. The not implemented value 0x8000 is
+    checked both as read (32768) and as decoded to a signed int16 (-32768).
     """
     if (
         value is None
-        or value == SunSpecNotImpl.INT16
+        or value in (SunSpecNotImpl.INT16, -SunSpecNotImpl.INT16)
         or sf is None
         or sf == SunSpecNotImpl.INT16
         or sf not in SUNSPEC_SF_RANGE
