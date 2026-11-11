@@ -60,7 +60,7 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
 
     @property
     def available(self) -> bool:
-        """Return the available."""
+        """Refresh button is always available."""
         return True
 
     async def async_press(self) -> None:
