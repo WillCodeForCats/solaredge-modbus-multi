@@ -294,20 +294,11 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
 
     async def async_select_option(self, option: str) -> None:
         """Select option."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         new_mode = get_key(self._options, option)
+        set_mask = 0 if new_mode is None else 1 << int(new_mode)
 
-        set_bits = set_bits & ~(1 << 0)
-        set_bits = set_bits & ~(1 << 1)
-        set_bits = set_bits & ~(1 << 2)
-
-        if new_mode is not None:
-            set_bits = set_bits | (1 << int(new_mode))
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(0b111, set_mask)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
         await self.async_update()
 
 
