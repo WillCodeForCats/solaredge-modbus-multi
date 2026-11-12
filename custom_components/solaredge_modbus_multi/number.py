@@ -132,7 +132,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.storage_control_data, "ac_charge_limit", float(value)
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class StorageBackupReserve(SolarEdgeNumberBase):
@@ -177,7 +177,7 @@ class StorageBackupReserve(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.storage_control_data, "backup_reserve", int(value)
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class StorageCommandTimeout(SolarEdgeNumberBase):
@@ -227,7 +227,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class StorageChargeLimit(SolarEdgeNumberBase):
@@ -278,7 +278,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class StorageDischargeLimit(SolarEdgeNumberBase):
@@ -329,7 +329,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeSiteLimit(SolarEdgeNumberBase):
@@ -378,7 +378,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Site_Limit", int(value)
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
@@ -422,7 +422,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "Ext_Prod_Max", int(value)
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
@@ -471,7 +471,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
@@ -516,7 +516,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
             float(value),
             count_write=False,
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgePowerReduce(SolarEdgeNumberBase):
@@ -558,7 +558,7 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "PowerReduce", float(value)
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
@@ -599,4 +599,4 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "MaxCurrent", float(value)
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
