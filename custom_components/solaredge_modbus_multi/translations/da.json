@@ -135,13 +135,11 @@
       "battery_options": {
         "title": "Batteriindstillinger",
         "data": {
-          "allow_battery_energy_reset": "Tillad nulstilling af batterienergi",
           "battery_energy_reset_cycles": "Opdateringscyklusser til nulstilling af batterienergi",
           "battery_rating_adjust": "Justering af batterikapacitet (procent)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Nogle batterier rapporterer energitotaler, der falder eller nulstilles. Når fra, ignoreres en lavere værdi, og den sidste værdi beholdes. Når til, accepteres den lavere værdi.",
-          "battery_energy_reset_cycles": "Antal polling-cyklusser i træk, hvor en lavere batterienergiværdi skal ses, før den accepteres. Bruges kun, når Tillad nulstilling af batterienergi er slået til.",
+          "battery_energy_reset_cycles": "Antal polling-cyklusser i træk, hvor en lavere batterienergiværdi skal ses, før den behandles som en nulstilling af tælleren. Totalen fortsætter derefter fra den nye værdi. Minimum 2.",
           "battery_rating_adjust": "Procent over batteriets nominelle energi, som den tilgængelige energi må nå, før værdien behandles som ugyldig. Brug dette, hvis dit batteri rapporterer mere end sin nominelle værdi."
         }
       }
@@ -214,6 +212,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus YAML-konfiguration understøttes ikke længere",
       "description": "Afsnittet `modbus` under `solaredge_modbus_multi` i `configuration.yaml` understøttes ikke længere og ignoreres. Fjern det venligst fra din YAML-konfiguration."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cyklusser til nulstilling af batterienergi ændret",
+      "description": "Indstillingen \"Opdateringscyklusser til nulstilling af batterienergi\" angiver nu, hvor mange på hinanden følgende aflæsninger en lavere batterienergiværdi skal bestå, før den accepteres som en nulstilling. Minimum er 2. Din værdi på {old_value} er ændret til {new_value}. Gennemgå indstillingen under batteriindstillinger, hvis du ønsker en anden værdi."
     },
     "deprecated_keep_modbus_open": {
       "title": "Indstillingen \"Hold Modbus-forbindelsen åben\" er erstattet",

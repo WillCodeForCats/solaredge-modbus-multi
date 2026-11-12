@@ -135,13 +135,11 @@
       "battery_options": {
         "title": "Opções de Bateria",
         "data": {
-          "allow_battery_energy_reset": "Permitir Redefinição da Energia da Bateria",
           "battery_energy_reset_cycles": "Ciclos de Atualização para Redefinir a Energia da Bateria",
           "battery_rating_adjust": "Ajuste de Capacidade da Bateria (porcentagem)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Algumas baterias informam totais de energia que diminuem ou zeram. Quando desativado, um valor menor é ignorado e o último valor é mantido. Quando ativado, o valor menor é aceito.",
-          "battery_energy_reset_cycles": "Número de consultas seguidas em que um valor menor de energia da bateria deve ser visto antes de ser aceito. Usado apenas quando Permitir redefinição da energia da bateria está ativado.",
+          "battery_energy_reset_cycles": "Número de consultas seguidas em que um valor menor de energia da bateria deve ser visto antes de ser tratado como uma reinicialização do contador. O total continua contando a partir do novo valor. Mínimo 2.",
           "battery_rating_adjust": "Porcentagem acima da energia nominal da bateria que sua energia disponível pode atingir antes que o valor seja considerado inválido. Use se sua bateria informar mais do que sua capacidade nominal."
         }
       }
@@ -214,6 +212,10 @@
     "deprecated_yaml_modbus": {
       "title": "Configuração YAML do Modbus Não É Mais Suportada",
       "description": "A seção `modbus` em `solaredge_modbus_multi` no `configuration.yaml` não é mais suportada e está sendo ignorada. Remova-a da sua configuração YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Ciclos de redefinição da energia da bateria alterados",
+      "description": "A opção \"Ciclos de Atualização para Redefinir a Energia da Bateria\" agora define quantas leituras consecutivas um valor de energia da bateria mais baixo deve persistir antes de ser aceito como uma redefinição. O mínimo é 2. Seu valor de {old_value} foi alterado para {new_value}. Revise a opção nas opções da bateria se quiser outro valor."
     },
     "deprecated_keep_modbus_open": {
       "title": "Opção Manter Conexão Modbus Aberta Substituída",

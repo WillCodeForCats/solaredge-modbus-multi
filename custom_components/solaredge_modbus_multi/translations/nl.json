@@ -135,13 +135,11 @@
       "battery_options": {
         "title": "Batterij opties",
         "data": {
-          "allow_battery_energy_reset": "Batterij-energie laten resetten",
           "battery_energy_reset_cycles": "Update cycli om de batterij-energie te resetten",
           "battery_rating_adjust": "Aanpassing batterijvermogen (%)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Sommige batterijen melden energietotalen die dalen of naar nul worden gezet. Indien uit, wordt een lagere waarde genegeerd en blijft de laatste waarde staan. Indien aan, wordt de lagere waarde geaccepteerd.",
-          "battery_energy_reset_cycles": "Aantal opeenvolgende pollings waarin een lagere batterij-energiewaarde gezien moet worden voordat deze wordt geaccepteerd. Alleen gebruikt als Batterij-energie mag resetten aan staat.",
+          "battery_energy_reset_cycles": "Aantal opeenvolgende pollings waarin een lagere batterij-energiewaarde gezien moet worden voordat deze als een tellerreset wordt behandeld. Het totaal telt daarna verder vanaf de nieuwe waarde. Minimaal 2.",
           "battery_rating_adjust": "Percentage boven de nominale energie van de batterij dat de beschikbare energie mag bereiken voordat de waarde als ongeldig wordt beschouwd. Gebruik dit als je batterij meer meldt dan de nominale waarde."
         }
       }
@@ -214,6 +212,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus YAML-configuratie niet meer ondersteund",
       "description": "De sectie `modbus` onder `solaredge_modbus_multi` in `configuration.yaml` wordt niet meer ondersteund en wordt genegeerd. Verwijder deze uit uw YAML-configuratie."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cycli voor het resetten van batterij-energie gewijzigd",
+      "description": "De optie \"Update cycli om de batterij-energie te resetten\" bepaalt nu hoeveel opeenvolgende polls een lagere batterij-energiewaarde moet aanhouden voordat deze als reset wordt geaccepteerd. Het minimum is 2. Uw waarde van {old_value} is gewijzigd naar {new_value}. Controleer de optie in de batterijopties als u een andere waarde wilt."
     },
     "deprecated_keep_modbus_open": {
       "title": "Optie 'Houd Modbus-verbinding open' vervangen",

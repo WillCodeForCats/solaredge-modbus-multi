@@ -121,8 +121,6 @@ async def test_init_batteries_take_precedence_over_advanced_control(hass):
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            ConfName.ALLOW_BATTERY_ENERGY_RESET: False,
-            ConfName.BATTERY_ENERGY_RESET_CYCLES: 0,
             ConfName.BATTERY_RATING_ADJUST: 100,
         },
     )
@@ -156,8 +154,6 @@ async def test_battery_options_creates_entry_when_no_advanced_control(hass):
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            ConfName.ALLOW_BATTERY_ENERGY_RESET: True,
-            ConfName.BATTERY_ENERGY_RESET_CYCLES: 5,
             ConfName.BATTERY_RATING_ADJUST: 90,
         },
     )
@@ -179,8 +175,6 @@ async def test_battery_options_rejects_invalid_percent(hass):
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            ConfName.ALLOW_BATTERY_ENERGY_RESET: False,
-            ConfName.BATTERY_ENERGY_RESET_CYCLES: 0,
             ConfName.BATTERY_RATING_ADJUST: 101,
         },
     )
@@ -191,8 +185,7 @@ async def test_battery_options_rejects_invalid_percent(hass):
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            ConfName.ALLOW_BATTERY_ENERGY_RESET: False,
-            ConfName.BATTERY_ENERGY_RESET_CYCLES: 0,
+            ConfName.BATTERY_ENERGY_RESET_CYCLES: 2,
             ConfName.BATTERY_RATING_ADJUST: 100,
         },
     )

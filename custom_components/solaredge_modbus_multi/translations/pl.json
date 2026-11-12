@@ -135,13 +135,11 @@
       "battery_options": {
         "title": "Opcje baterii",
         "data": {
-          "allow_battery_energy_reset": "Zezwól na zresetowanie energii baterii",
           "battery_energy_reset_cycles": "Zaktualizuj cykle, aby zresetować energię baterii",
           "battery_rating_adjust": "Regulacja oceny baterii (w procentach)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Niektóre baterie raportują sumy energii, które maleją lub są zerowane. Gdy wyłączone, niższa wartość jest ignorowana i zachowywana jest ostatnia wartość. Gdy włączone, niższa wartość jest akceptowana.",
-          "battery_energy_reset_cycles": "Liczba kolejnych odpytań, w których musi wystąpić niższa wartość energii baterii, zanim zostanie zaakceptowana. Używane tylko, gdy włączona jest opcja Zezwól na reset energii baterii.",
+          "battery_energy_reset_cycles": "Liczba kolejnych odpytań, w których musi wystąpić niższa wartość energii baterii, zanim zostanie uznana za wyzerowanie licznika. Suma jest następnie liczona dalej od nowej wartości. Minimum 2.",
           "battery_rating_adjust": "O ile procent powyżej energii znamionowej baterii może wzrosnąć jej dostępna energia, zanim wartość zostanie uznana za nieprawidłową. Użyj, jeśli bateria raportuje więcej niż wartość znamionowa."
         }
       }
@@ -214,6 +212,10 @@
     "deprecated_yaml_modbus": {
       "title": "Konfiguracja YAML Modbus nie jest już obsługiwana",
       "description": "Sekcja `modbus` w `solaredge_modbus_multi` w pliku `configuration.yaml` nie jest już obsługiwana i jest ignorowana. Usuń ją z konfiguracji YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Zmieniono cykle resetowania energii baterii",
+      "description": "Opcja „Zaktualizuj cykle, aby zresetować energię baterii” określa teraz, przez ile kolejnych odpytań niższa wartość energii baterii musi się utrzymać, zanim zostanie uznana za reset. Minimum to 2. Twoja wartość {old_value} została zmieniona na {new_value}. Jeśli chcesz inną wartość, sprawdź opcję w opcjach baterii."
     },
     "deprecated_keep_modbus_open": {
       "title": "Opcja \"Pozostaw połączenie Modbus otwarte\" zastąpiona",

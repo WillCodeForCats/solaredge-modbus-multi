@@ -135,13 +135,11 @@
       "battery_options": {
         "title": "Batterieoptionen",
         "data": {
-          "allow_battery_energy_reset": "Batterieenergie zurücksetzen lassen",
           "battery_energy_reset_cycles": "Aktualisierungszyklen zum Zurücksetzen der Batterieenergie",
           "battery_rating_adjust": "Anpassung der Batterieleistung (Prozent)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Manche Batterien melden Energiesummen, die sinken oder auf null zurückgesetzt werden. Wenn aus, wird ein niedrigerer Wert ignoriert und der letzte Wert behalten. Wenn an, wird der niedrigere Wert übernommen.",
-          "battery_energy_reset_cycles": "Anzahl aufeinanderfolgender Abfragen, in denen ein niedrigerer Batterieenergiewert gesehen werden muss, bevor er übernommen wird. Wird nur verwendet, wenn das Zurücksetzen der Batterieenergie erlaubt ist.",
+          "battery_energy_reset_cycles": "Anzahl aufeinanderfolgender Abfragen, in denen ein niedrigerer Batterieenergiewert gesehen werden muss, bevor er als Zählerrücksetzung gilt. Die Summe zählt dann ab dem neuen Wert weiter. Minimum 2.",
           "battery_rating_adjust": "Prozent über der Nennenergie der Batterie, die ihre verfügbare Energie erreichen darf, bevor der Wert als ungültig gilt. Verwenden Sie dies, wenn Ihre Batterie mehr als ihren Nennwert meldet."
         }
       }
@@ -214,6 +212,10 @@
     "deprecated_yaml_modbus": {
       "title": "Modbus-YAML-Konfiguration wird nicht mehr unterstützt",
       "description": "Der Abschnitt `modbus` unter `solaredge_modbus_multi` in der `configuration.yaml` wird nicht mehr unterstützt und wird ignoriert. Bitte entfernen Sie ihn aus Ihrer YAML-Konfiguration."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Zyklen zum Zurücksetzen der Batterieenergie geändert",
+      "description": "Die Option „Aktualisierungszyklen zum Zurücksetzen der Batterieenergie“ legt jetzt fest, wie viele aufeinanderfolgende Abfragen ein niedrigerer Batterieenergiewert bestehen muss, bevor er als Zurücksetzung akzeptiert wird. Der Mindestwert ist 2. Ihr Wert {old_value} wurde auf {new_value} geändert. Prüfen Sie die Option in den Batterieoptionen, wenn Sie einen anderen Wert möchten."
     },
     "deprecated_keep_modbus_open": {
       "title": "Option \"Modbus-Verbindung geöffnet lassen\" ersetzt",

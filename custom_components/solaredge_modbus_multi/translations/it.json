@@ -135,13 +135,11 @@
       "battery_options": {
         "title": "Opzioni batteria",
         "data": {
-          "allow_battery_energy_reset": "Consenti il ripristino dell'energia della batteria",
           "battery_energy_reset_cycles": "Cicli di aggiornamento per ripristinare l'energia della batteria",
           "battery_rating_adjust": "Regolazione della potenza della batteria (percentuale)"
         },
         "data_description": {
-          "allow_battery_energy_reset": "Alcune batterie riportano totali di energia che diminuiscono o si azzerano. Se disattivato, un valore inferiore viene ignorato e viene mantenuto l'ultimo valore. Se attivato, il valore inferiore viene accettato.",
-          "battery_energy_reset_cycles": "Numero di interrogazioni consecutive in cui deve essere visto un valore di energia della batteria inferiore prima che venga accettato. Usato solo quando Consenti l'azzeramento dell'energia della batteria è attivo.",
+          "battery_energy_reset_cycles": "Numero di interrogazioni consecutive in cui deve essere visto un valore di energia della batteria inferiore prima che venga considerato un azzeramento del contatore. Il totale continua poi a contare dal nuovo valore. Minimo 2.",
           "battery_rating_adjust": "Percentuale oltre l'energia nominale della batteria che la sua energia disponibile può raggiungere prima che il valore sia considerato non valido. Usalo se la tua batteria riporta più della sua capacità nominale."
         }
       }
@@ -214,6 +212,10 @@
     "deprecated_yaml_modbus": {
       "title": "Configurazione YAML Modbus non più supportata",
       "description": "La sezione `modbus` sotto `solaredge_modbus_multi` in `configuration.yaml` non è più supportata e viene ignorata. Rimuovila dalla tua configurazione YAML."
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "Cicli di reset dell'energia della batteria modificati",
+      "description": "L'opzione \"Cicli di aggiornamento per ripristinare l'energia della batteria\" ora indica per quante letture consecutive un valore di energia della batteria più basso deve persistere prima di essere accettato come reset. Il minimo è 2. Il valore {old_value} è stato modificato in {new_value}. Controlla l'opzione nelle opzioni della batteria se desideri un valore diverso."
     },
     "deprecated_keep_modbus_open": {
       "title": "Opzione \"Mantieni aperta la connessione Modbus\" sostituita",
