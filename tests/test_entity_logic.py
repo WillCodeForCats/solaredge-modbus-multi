@@ -156,7 +156,7 @@ async def test_limit_control_select_option_keeps_switch_bits(option_key):
 
     mode_bits = 0 if option_key is None else 1 << option_key
     assert _written_bits(platform) == switch_bits | mode_bits
-    entity.async_update.assert_awaited_once_with()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 @pytest.mark.parametrize(
