@@ -842,6 +842,7 @@ class SolarEdgeInverter:
         self._use_mmppt_units = False
         self.write_count = 0
         self.write_count_listeners = set()
+        self._lim_ctl_mode_lock = asyncio.Lock()
 
         # Scan position of each retained der_storage block, for legacy DERB<n>
         self.der_storage_scan_ids = []
@@ -1398,6 +1399,32 @@ class SolarEdgeInverter:
         self.write_count += 1
         for listener in list(self.write_count_listeners):
             listener()
+
+    async def write_lim_ctl_mode_bits(self, clear_mask: int, set_mask: int) -> int:
+        """Clear and set bits in E_Lim_Ctl_Mode, keeping the other bits.
+
+        The site limit switches and the limit control mode select share a
+        register, so we need a lock for each one. Returns the value written.
+        """
+        async with self._lim_ctl_mode_lock:
+            try:
+                await async_update_with_retry(self.site_limit_control_data)
+            except ModbusError as e:
+                raise HomeAssistantError(
+                    f"Unable to read site limit control mode from inverter ID "
+                    f"{self.inverter_unit_id}: {e}"
+                ) from e
+
+            current = self.site_limit_control_data.E_Lim_Ctl_Mode
+            if current is None or current == SunSpecNotImpl.UINT16:
+                raise HomeAssistantError(
+                    f"Site limit control mode is not available on inverter ID "
+                    f"{self.inverter_unit_id}."
+                )
+
+            new_bits = (current & ~clear_mask) | set_mask
+            await self.write(self.site_limit_control_data, "E_Lim_Ctl_Mode", new_bits)
+            return new_bits
 
     @property
     def fw_version(self) -> str | None:
