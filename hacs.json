@@ -2,6 +2,6 @@
   "name": "SolarEdge Modbus Multi",
   "filename": "solaredge_modbus_multi.zip",
   "hide_default_branch": true,
-  "homeassistant": "2025.9.0",
+  "homeassistant": "2025.11.0",
   "zip_release": true
 }
