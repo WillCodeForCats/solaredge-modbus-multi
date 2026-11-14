@@ -11,7 +11,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import MeterRole, SunSpecNotImpl
+from custom_components.solaredge_modbus_multi.const import (
+    MeterRole,
+    MeterScope,
+    SunSpecNotImpl,
+)
 from custom_components.solaredge_modbus_multi.helpers import scale_sunspec_int16
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeSystem
 from custom_components.solaredge_modbus_multi.sensor import async_setup_entry
@@ -25,8 +29,9 @@ COORDINATOR = SimpleNamespace(last_update_success=True)
 FAILED_COORDINATOR = SimpleNamespace(last_update_success=False)
 
 
-def _inverter(ac=0, dc=0, ac_sf=0, dc_sf=0, der_storage=()):
+def _inverter(ac=0, dc=0, ac_sf=0, dc_sf=0, der_storage=(), unit_id=1):
     return SimpleNamespace(
+        inverter_unit_id=unit_id,
         inverter_data=SimpleNamespace(
             AC_Power=ac, AC_Power_SF=ac_sf, I_DC_Power=dc, I_DC_Power_SF=dc_sf
         ),
@@ -34,8 +39,11 @@ def _inverter(ac=0, dc=0, ac_sf=0, dc_sf=0, der_storage=()):
     )
 
 
-def _meter(role=MeterRole.EXPORT_IMPORT, power=0, sf=0):
+def _meter(role=MeterRole.EXPORT_IMPORT, power=0, sf=0, unit_id=1, meter_id=1):
     return SimpleNamespace(
+        inverter_unit_id=unit_id,
+        meter_id=meter_id,
+        uid_base=f"I{unit_id}M{meter_id}",
         meter_role=role,
         meter_data=SimpleNamespace(AC_Power=power, AC_Power_SF=sf),
     )
@@ -54,6 +62,12 @@ def _hub(inverters=(), meters=(), batteries=()):
         hub_id="solaredge",
     )
     hub.system = SolarEdgeSystem(hub)
+    # as if every Production meter select restored Inverter Only
+    hub.system.production_meter_scopes = {
+        m.uid_base: MeterScope.INVERTER
+        for m in hub.meters
+        if m.meter_role == MeterRole.PRODUCTION
+    }
     return hub
 
 
@@ -326,7 +340,10 @@ def test_solar_ac_prefers_production_meters():
     """Test production meters are summed and used instead of the inverters."""
     hub = _hub(
         [_inverter(ac=1000)],
-        [_meter(MeterRole.PRODUCTION, 900), _meter(MeterRole.PRODUCTION, 400)],
+        [
+            _meter(MeterRole.PRODUCTION, 900),
+            _meter(MeterRole.PRODUCTION, 400, meter_id=2),
+        ],
     )
     sensor = SolarACPower(hub.system, None, COORDINATOR)
 
@@ -397,9 +414,59 @@ def test_skipped_inverter_makes_inverter_totals_unavailable():
     assert SolarACPower(hub.system, None, COORDINATOR).native_value is None
 
 
-def test_skipped_inverter_keeps_production_meter_solar():
-    """Test Solar AC Power from a Production meter does not need every inverter."""
+def test_skipped_inverter_keeps_site_production_meter_solar():
+    """Test Solar AC Power from a Whole Site Production meter needs no inverters."""
     hub = _hub([_inverter(ac=1000)], [_meter(MeterRole.PRODUCTION, 900)])
+    hub.system.production_meter_scopes["I1M1"] = MeterScope.SITE
     hub.skipped_inverter_ids = [2]
 
     assert SolarACPower(hub.system, None, COORDINATOR).native_value == 900
+
+
+def test_skipped_inverter_makes_inverter_production_meter_solar_unavailable():
+    """Test an Inverter Only Production meter does not give a low total.
+
+    The skipped inverter's own meters are missing with it.
+    """
+    hub = _hub([_inverter(ac=1000)], [_meter(MeterRole.PRODUCTION, 900)])
+    hub.skipped_inverter_ids = [2]
+
+    assert SolarACPower(hub.system, None, COORDINATOR).native_value is None
+
+
+def test_solar_ac_inverter_production_meter_only_replaces_its_inverter():
+    """Test an Inverter Only meter is used for its inverter, AC power for others."""
+    hub = _hub(
+        [_inverter(ac=1000), _inverter(ac=500, unit_id=2)],
+        [_meter(MeterRole.PRODUCTION, 900)],
+    )
+    sensor = SolarACPower(hub.system, None, COORDINATOR)
+
+    assert sensor.native_value == 1400
+    assert sensor.extra_state_attributes == {"source": "mixed"}
+
+
+def test_solar_ac_site_production_meter_replaces_all_inverters():
+    """Test a Whole Site meter is used alone, ignoring Inverter Only meters."""
+    hub = _hub(
+        [_inverter(ac=1000), _inverter(ac=500, unit_id=2)],
+        [
+            _meter(MeterRole.PRODUCTION, 1600, unit_id=2),
+            _meter(MeterRole.PRODUCTION, 900),
+        ],
+    )
+    hub.system.production_meter_scopes["I2M1"] = MeterScope.SITE
+    sensor = SolarACPower(hub.system, None, COORDINATOR)
+
+    assert sensor.native_value == 1600
+    assert sensor.extra_state_attributes == {"source": "meter"}
+
+
+def test_solar_ac_unavailable_until_production_meter_scope_is_set():
+    """Test the default scope is not used before the select has restored."""
+    meter = _meter(MeterRole.PRODUCTION, 900)
+    hub = _hub([_inverter(ac=1000)], [meter])
+    hub.system.production_meter_scopes = {}
+
+    assert hub.system.production_meter_scope(meter) == MeterScope.INVERTER
+    assert SolarACPower(hub.system, None, COORDINATOR).native_value is None
