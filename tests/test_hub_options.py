@@ -19,6 +19,7 @@ from custom_components.solaredge_modbus_multi.const import (
 from custom_components.solaredge_modbus_multi.hub import (
     DataUpdateFailed,
     DataUpdateTimedOut,
+    DeviceInvalid,
     HubInitFailed,
     SolarEdgeModbusMultiHub,
 )
@@ -192,6 +193,7 @@ async def test_setup_gives_up_after_the_watchdog_and_raises_an_issue(hass, caplo
     hub = _make_hub(hass)
 
     async def never_finishes():
+        hub._setup_step = "scanning SunSpec models on inverter ID 5"
         await asyncio.Event().wait()
 
     with (
@@ -200,7 +202,7 @@ async def test_setup_gives_up_after_the_watchdog_and_raises_an_issue(hass, caplo
         patch(
             "custom_components.solaredge_modbus_multi.hub.ir.async_create_issue"
         ) as create_issue,
-        pytest.raises(HubInitFailed),
+        pytest.raises(HubInitFailed, match="scanning SunSpec models on inverter ID 5"),
     ):
         await hub.async_refresh_modbus_data()
 
@@ -218,3 +220,28 @@ async def test_slow_refresh_logs_a_warning(hass, caplog):
         await hub.async_refresh_modbus_data()
 
     assert "Refresh took" in caplog.text
+
+
+async def test_setup_timeout_names_the_step_it_was_waiting_on(hass):
+    """Test the setup timeout message names the device setup was stuck on."""
+    hub = _make_hub(hass, entry_data={**ENTRY_DATA, ConfName.DEVICE_LIST: [1, 2]})
+    stuck = asyncio.Event()
+
+    async def init_device(self):
+        if self.inverter_unit_id == 2:
+            stuck.set()
+            await asyncio.Event().wait()
+        raise DeviceInvalid("not responding")
+
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.SolarEdgeInverter.init_device",
+            init_device,
+        ),
+        patch("custom_components.solaredge_modbus_multi.hub.REFRESH_WATCHDOG", 0.05),
+        patch("custom_components.solaredge_modbus_multi.hub.ir.async_create_issue"),
+        pytest.raises(HubInitFailed, match="while reading inverter ID 2"),
+    ):
+        await hub.async_refresh_modbus_data()
+
+    assert stuck.is_set()
