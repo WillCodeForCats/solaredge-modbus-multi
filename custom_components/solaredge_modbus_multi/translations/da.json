@@ -191,6 +191,10 @@
       "title": "Ugyldigt enheds-ID for inverter",
       "description": "Inverterens enheds-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-inverter. Den er blevet sprunget over. Hvis enheden er blevet udskiftet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Kontrollér ellers enheden og Modbus/TCP-forbindelsen."
     },
+    "setup_timed_out": {
+      "title": "Opsætningen fik timeout",
+      "description": "Opsætningen af hubben på {host} blev ikke fuldført inden for {timeout} sekunder. Den ventede på enheds-ID {device_id}. Kontrollér enheden og Modbus/TCP-forbindelsen. Hvis enheden er blevet fjernet, eller dens ID er ændret, skal du opdatere listen over inverterens enheds-ID'er i hub-konfigurationen. Home Assistant-loggen viser, hvilket trin opsætningen ventede på."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout for global dynamisk effektstyring (Inverter {device_id})",
       "fix_flow": {

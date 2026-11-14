@@ -191,6 +191,10 @@
       "title": "逆变器设备 ID 无效",
       "description": "{host} 上的逆变器设备 ID {device_id} 无响应，或不是有效的 SolarEdge 逆变器，已被跳过。如果设备已更换或其 ID 已更改，请在集线器配置中更新逆变器设备 ID 列表。否则，请检查设备和 Modbus/TCP 连接。"
     },
+    "setup_timed_out": {
+      "title": "设置超时",
+      "description": "{host} 上的集线器设置未在 {timeout} 秒内完成，当时正在等待设备 ID {device_id}。请检查设备和 Modbus/TCP 连接。如果设备已移除或其 ID 已更改，请在集线器配置中更新逆变器设备 ID 列表。Home Assistant 日志会显示设置当时在等待哪个步骤。"
+    },
     "detect_timeout_gpc": {
       "title": "全局动态功率控制超时（逆变器 {device_id}）",
       "fix_flow": {

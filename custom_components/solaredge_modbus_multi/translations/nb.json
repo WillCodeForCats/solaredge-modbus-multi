@@ -191,6 +191,10 @@
       "title": "Ugyldig omformer-enhets-ID",
       "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."
     },
+    "setup_timed_out": {
+      "title": "Tidsavbrudd under oppsett",
+      "description": "Oppsettet av huben på {host} ble ikke fullført innen {timeout} sekunder. Det ventet på enhets-ID {device_id}. Kontroller enheten og Modbus/TCP-tilkoblingen. Hvis enheten er fjernet eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Home Assistant-loggen viser hvilket trinn oppsettet ventet på."
+    },
     "detect_timeout_gpc": {
       "title": "Global dynamisk kraftkontroll timeout (Omformer {device_id})",
       "fix_flow": {

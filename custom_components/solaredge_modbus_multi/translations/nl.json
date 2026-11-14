@@ -191,6 +191,10 @@
       "title": "Ongeldige omvormer-apparaat-ID",
       "description": "Omvormer-apparaat-ID {device_id} op {host} reageert niet of is geen geldige SolarEdge-omvormer. Deze is overgeslagen. Als het apparaat is vervangen of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Controleer anders het apparaat en de Modbus/TCP-verbinding."
     },
+    "setup_timed_out": {
+      "title": "Time-out bij installatie",
+      "description": "De installatie van de hub op {host} is niet binnen {timeout} seconden voltooid. Deze wachtte op apparaat-ID {device_id}. Controleer het apparaat en de Modbus/TCP-verbinding. Als het apparaat is verwijderd of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Het Home Assistant-logboek toont op welke stap de installatie wachtte."
+    },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",
       "fix_flow": {
