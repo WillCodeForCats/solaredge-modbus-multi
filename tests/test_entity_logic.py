@@ -7,7 +7,7 @@ SolarEdgeDeviceScanner.scan_list's progress reporting.
 
 import logging
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -30,20 +30,12 @@ from custom_components.solaredge_modbus_multi.switch import (
 
 def _platform(mode=0):
     data = SimpleNamespace(E_Lim_Ctl_Mode=mode)
-    platform = SimpleNamespace(
+    return SimpleNamespace(
         uid_base="inverter_1",
         device_info=None,
         site_limit_control_data=data,
         write=AsyncMock(),
     )
-
-    async def write_lim_ctl_mode_bits(clear_mask, set_mask):
-        bits = (data.E_Lim_Ctl_Mode & ~clear_mask) | set_mask
-        await platform.write(data, "E_Lim_Ctl_Mode", bits)
-        return bits
-
-    platform.write_lim_ctl_mode_bits = write_lim_ctl_mode_bits
-    return platform
 
 
 def _written_bits(platform):
@@ -55,9 +47,8 @@ def _written_bits(platform):
 
 
 def _entity(cls, platform):
-    entity = cls(platform, None, None)
-    entity._async_schedule_refresh = MagicMock()
-    return entity
+    coordinator = SimpleNamespace(async_request_refresh=AsyncMock())
+    return cls(platform, None, coordinator)
 
 
 async def test_external_production_turn_on_sets_bit_10(caplog):
@@ -70,7 +61,7 @@ async def test_external_production_turn_on_sets_bit_10(caplog):
 
     assert _written_bits(platform) == 0b101 | (1 << 10)
     assert "set inverter_1_external_production bits 0000010000000101" in caplog.text
-    entity._async_schedule_refresh.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 async def test_external_production_turn_off_clears_bit_10():
@@ -81,7 +72,7 @@ async def test_external_production_turn_off_clears_bit_10():
     await entity.async_turn_off()
 
     assert _written_bits(platform) == 0b1
-    entity._async_schedule_refresh.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 async def test_negative_site_limit_turn_on_sets_bit_11(caplog):
@@ -94,7 +85,7 @@ async def test_negative_site_limit_turn_on_sets_bit_11(caplog):
 
     assert _written_bits(platform) == 0b101 | (1 << 11)
     assert "bits 0000100000000101" in caplog.text
-    entity._async_schedule_refresh.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 async def test_negative_site_limit_turn_off_clears_bit_11(caplog):
@@ -107,7 +98,7 @@ async def test_negative_site_limit_turn_off_clears_bit_11(caplog):
 
     assert _written_bits(platform) == 0b101
     assert "bits 0000000000000101" in caplog.text
-    entity._async_schedule_refresh.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 @pytest.mark.parametrize(

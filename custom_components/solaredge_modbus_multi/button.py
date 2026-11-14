@@ -60,12 +60,12 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
 
     @property
     def available(self) -> bool:
-        """Refresh button is always available."""
+        """Return the available."""
         return True
 
     async def async_press(self) -> None:
         """Press."""
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
@@ -92,7 +92,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "CommitPwrCtlSettings", 1
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
@@ -120,4 +120,4 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "RestorePwrCtlDefaults", 1
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
