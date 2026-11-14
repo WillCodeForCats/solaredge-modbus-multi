@@ -87,7 +87,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
@@ -99,7 +99,7 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
@@ -139,7 +139,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
@@ -151,7 +151,7 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeGridControl(SolarEdgeSwitchBase):
@@ -186,7 +186,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x1
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off."""
@@ -195,4 +195,4 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x0
         )
-        await self.async_update()
+        await self.coordinator.async_request_refresh()
