@@ -189,6 +189,10 @@
       "title": "ID de Dispositivo do Inversor Inválido",
       "description": "O ID de Dispositivo do Inversor {device_id} em {host} não está respondendo ou não é um inversor SolarEdge válido. Ele foi ignorado. Se o dispositivo foi substituído ou seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. Caso contrário, verifique o dispositivo e a conexão Modbus/TCP."
     },
+    "setup_timed_out": {
+      "title": "Tempo de configuração esgotado",
+      "description": "A configuração do hub em {host} não terminou em {timeout} segundos. Ela estava aguardando o ID de Dispositivo {device_id}. Verifique o dispositivo e a conexão Modbus/TCP. Se o dispositivo foi removido ou seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. O log do Home Assistant mostra em qual etapa a configuração estava aguardando."
+    },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controle Dinâmico de Energia Global (Inversor {device_id})",
       "fix_flow": {

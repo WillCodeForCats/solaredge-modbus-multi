@@ -56,7 +56,11 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
 
     async def _async_update_data(self) -> bool:
         """Fetch new data from the hub, retrying with backoff on failure."""
-        from .hub import DataUpdateFailed, HubInitFailed  # noqa: PLC0415
+        from .hub import (  # noqa: PLC0415
+            DataUpdateFailed,
+            DataUpdateTimedOut,
+            HubInitFailed,
+        )
 
         try:
             return await self._refresh_modbus_data_with_retry(
@@ -76,6 +80,9 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
             raise UpdateFailed(f"{e}") from e
 
         except DataUpdateFailed as e:
+            raise UpdateFailed(f"{e}") from e
+
+        except DataUpdateTimedOut as e:
             raise UpdateFailed(f"{e}") from e
 
     async def _refresh_modbus_data_with_retry(
