@@ -187,6 +187,10 @@
       "title": "Ungültige Wechselrichter-Geräte-ID",
       "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
     },
+    "setup_timed_out": {
+      "title": "Zeitüberschreitung bei der Einrichtung",
+      "description": "Die Einrichtung des Hubs bei {host} wurde nicht innerhalb von {timeout} Sekunden abgeschlossen. Sie wartete auf Geräte-ID {device_id}. Überprüfen Sie das Gerät und die Modbus/TCP-Verbindung. Wenn das Gerät entfernt oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Das Home Assistant-Protokoll zeigt, auf welchen Schritt die Einrichtung gewartet hat."
+    },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout (Wechselrichter {device_id})",
       "fix_flow": {

@@ -187,6 +187,10 @@
       "title": "Érvénytelen Inverter Eszközazonosító",
       "description": "A(z) {device_id} inverter eszközazonosító a(z) {host} címen nem válaszol, vagy nem érvényes SolarEdge inverter. Ki lett hagyva. Ha az eszközt kicserélték, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. Ellenkező esetben ellenőrizze az eszközt és a Modbus/TCP kapcsolatot."
     },
+    "setup_timed_out": {
+      "title": "A beállítás időtúllépés miatt megszakadt",
+      "description": "A(z) {host} címen lévő hub beállítása nem fejeződött be {timeout} másodpercen belül. A(z) {device_id} eszközazonosítóra várt. Ellenőrizze az eszközt és a Modbus/TCP kapcsolatot. Ha az eszközt eltávolították, vagy az azonosítója megváltozott, frissítse az Inverter Eszközazonosító-listát a hub konfigurációjában. A Home Assistant naplója mutatja, melyik lépésnél várakozott a beállítás."
+    },
     "detect_timeout_gpc": {
       "title": "Globális Dinamikus Teljesítményvezérlés Időtúllépése (Inverter {device_id})",
       "fix_flow": {

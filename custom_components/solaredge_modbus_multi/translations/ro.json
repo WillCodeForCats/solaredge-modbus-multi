@@ -187,6 +187,10 @@
       "title": "ID de Dispozitiv al Invertorului Nevalid",
       "description": "ID-ul de Dispozitiv al Invertorului {device_id} de la {host} nu răspunde sau nu este un invertor SolarEdge valid. A fost omis. Dacă dispozitivul a fost înlocuit sau ID-ul acestuia s-a schimbat, actualizați Lista de ID-uri de Dispozitiv ale Invertoarelor din configurația hub-ului. În caz contrar, verificați dispozitivul și conexiunea Modbus/TCP."
     },
+    "setup_timed_out": {
+      "title": "Timpul de configurare a expirat",
+      "description": "Configurarea hub-ului de la {host} nu s-a încheiat în {timeout} secunde. Aștepta ID-ul de Dispozitiv {device_id}. Verificați dispozitivul și conexiunea Modbus/TCP. Dacă dispozitivul a fost eliminat sau ID-ul acestuia s-a schimbat, actualizați Lista de ID-uri de Dispozitiv ale Invertoarelor din configurația hub-ului. Jurnalul Home Assistant arată la ce pas aștepta configurarea."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout Control Dinamic Global al Puterii (Invertor {device_id})",
       "fix_flow": {

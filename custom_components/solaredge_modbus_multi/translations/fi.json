@@ -187,6 +187,10 @@
       "title": "Virheellinen vaihtosuuntaajan laitetunnus",
       "description": "Vaihtosuuntaajan laitetunnus {device_id} osoitteessa {host} ei vastaa tai ei ole kelvollinen SolarEdge-vaihtosuuntaaja. Se on ohitettu. Jos laite vaihdettiin tai sen tunnus muuttui, päivitä vaihtosuuntaajien laitetunnusluettelo keskittimen asetuksissa. Muussa tapauksessa tarkista laite ja Modbus/TCP-yhteys."
     },
+    "setup_timed_out": {
+      "title": "Asennuksen aikakatkaisu",
+      "description": "Keskittimen asennus osoitteessa {host} ei valmistunut {timeout} sekunnissa. Se odotti laitetunnusta {device_id}. Tarkista laite ja Modbus/TCP-yhteys. Jos laite poistettiin tai sen tunnus muuttui, päivitä vaihtosuuntaajien laitetunnusluettelo keskittimen asetuksissa. Home Assistantin loki näyttää, mitä vaihetta asennus odotti."
+    },
     "detect_timeout_gpc": {
       "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",
       "fix_flow": {

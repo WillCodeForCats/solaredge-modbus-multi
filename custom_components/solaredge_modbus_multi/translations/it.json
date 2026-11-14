@@ -187,6 +187,10 @@
       "title": "ID dispositivo inverter non valido",
       "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
     },
+    "setup_timed_out": {
+      "title": "Timeout della configurazione",
+      "description": "La configurazione dell'hub su {host} non è terminata entro {timeout} secondi. Era in attesa dell'ID dispositivo {device_id}. Controlla il dispositivo e la connessione Modbus/TCP. Se il dispositivo è stato rimosso o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Il registro di Home Assistant mostra il passaggio su cui la configurazione era in attesa."
+    },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo della potenza dinamica globale (Inverter {device_id})",
       "fix_flow": {

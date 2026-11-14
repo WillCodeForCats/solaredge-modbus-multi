@@ -187,6 +187,10 @@
       "title": "ID d'appareil onduleur invalide",
       "description": "L'ID d'appareil onduleur {device_id} sur {host} ne répond pas ou n'est pas un onduleur SolarEdge valide. Il a été ignoré. Si l'appareil a été remplacé ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Sinon, vérifiez l'appareil et la connexion Modbus/TCP."
     },
+    "setup_timed_out": {
+      "title": "Délai de configuration dépassé",
+      "description": "La configuration du hub sur {host} ne s'est pas terminée en {timeout} secondes. Elle attendait l'ID d'appareil {device_id}. Vérifiez l'appareil et la connexion Modbus/TCP. Si l'appareil a été retiré ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Le journal de Home Assistant indique l'étape à laquelle la configuration attendait."
+    },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
       "fix_flow": {
