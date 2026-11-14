@@ -58,6 +58,7 @@ from .const import (
     ConfDefaultStr,
     ConfName,
     MeterRole,
+    MeterScope,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
@@ -1492,6 +1493,8 @@ class SolarEdgeSystem:
         self.hub = hub
         self.uid_base = f"{hub.entry_id}_system"
         self.name = f"{hub.hub_id.capitalize()} System"
+        # meter uid_base -> scope, set by the select entities once restored
+        self.production_meter_scopes: dict[str, MeterScope] = {}
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1562,13 +1565,60 @@ class SolarEdgeSystem:
             "pv_load": self._calc(lambda s, g: max(s - g, 0), solar, pv_grid),
         }
 
+    def production_meter_scope(self, meter) -> MeterScope:
+        """Return what a Production meter measures, Inverter Only by default.
+
+        Modbus can't tell whether a meter measures the whole site or only the
+        inverter it is part of, so the user sets it.
+        """
+        return self.production_meter_scopes.get(meter.uid_base, MeterScope.INVERTER)
+
+    @property
+    def site_production_meters(self) -> list:
+        """Return the Production meters set to measure the whole site."""
+        return [
+            m
+            for m in self.production_meters
+            if self.production_meter_scope(m) == MeterScope.SITE
+        ]
+
+    def _inverter_production_meters(self, inverter) -> list:
+        """Return the Production meters that measure only this inverter."""
+        return [
+            m
+            for m in self.production_meters
+            if m.inverter_unit_id == inverter.inverter_unit_id
+            and self.production_meter_scope(m) == MeterScope.INVERTER
+        ]
+
+    @property
+    def solar_ac_source(self) -> str:
+        """Return where solar_ac_power comes from: meter, inverter, or mixed."""
+        if self.site_production_meters:
+            return "meter"
+        metered = [
+            bool(self._inverter_production_meters(i)) for i in self.hub.inverters
+        ]
+        if metered and all(metered):
+            return "meter"
+        if any(metered):
+            return "mixed"
+        return "inverter"
+
     @property
     def solar_ac_power(self) -> float | None:
         """Return the total solar AC power in watts, None if an input is invalid.
 
-        Uses the Production meters if there are any, otherwise the inverters.
-        An inverter charging batteries from the grid is not solar production, so
-        each inverter is limited to zero or more.
+        Production meters set to Whole Site are summed and used alone. Otherwise
+        each inverter uses its own Inverter Only Production meters if it has any,
+        or its AC power. An inverter charging batteries from the grid is not
+        solar production, so its AC power is limited to zero or more.
+
+        Whole Site meters don't need every inverter, but the per inverter total
+        is None while a configured inverter is skipped.
+
+        The value is None until every Production meter scope is set, so a
+        reported value never uses the default in place of a restored scope.
 
         With batteries the value is None. The batteries are DC coupled, so both
         the inverter AC power and a Production meter on the inverter AC output
@@ -1577,13 +1627,20 @@ class SolarEdgeSystem:
         """
         if self.has_storage:
             return None
-        if self.production_meters:
-            return self._sum_all(
-                self._meter_ac_power(m) for m in self.production_meters
-            )
-        return self._sum_inverters(
-            lambda i: self._calc(lambda v: max(v, 0), self._inverter_ac_power(i))
-        )
+        if any(
+            m.uid_base not in self.production_meter_scopes
+            for m in self.production_meters
+        ):
+            return None
+        if site_meters := self.site_production_meters:
+            return self._sum_all(self._meter_ac_power(m) for m in site_meters)
+        return self._sum_inverters(self._inverter_solar_ac_power)
+
+    def _inverter_solar_ac_power(self, inverter) -> float | None:
+        """Return the solar AC power of one inverter, None if an input is invalid."""
+        if meters := self._inverter_production_meters(inverter):
+            return self._sum_all(self._meter_ac_power(m) for m in meters)
+        return self._calc(lambda v: max(v, 0), self._inverter_ac_power(inverter))
 
     @staticmethod
     def _inverter_ac_power(inverter) -> float | None:
