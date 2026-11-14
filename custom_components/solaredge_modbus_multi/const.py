@@ -158,6 +158,13 @@ class MeterRole(StrEnum):
     UNKNOWN = "unknown"
 
 
+class MeterScope(StrEnum):
+    """What a Production meter measures, set by the user."""
+
+    INVERTER = "inverter"
+    SITE = "site"
+
+
 class SunSpecAccum(IntEnum):
     """Sun spec accum."""
 
@@ -428,6 +435,11 @@ LIMIT_CONTROL_MODE = {
 }
 
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
+
+PRODUCTION_METER_SCOPE = {
+    MeterScope.INVERTER: "Inverter Only",
+    MeterScope.SITE: "Whole Site",
+}
 
 VENDOR4_STATUS: dict[int, dict[int, str]] = {
     0x0: {0x0: "No Error"},
