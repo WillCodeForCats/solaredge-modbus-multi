@@ -193,6 +193,10 @@
       "title": "Outra integração compartilha este inversor",
       "description": "As integrações {integrations} usam a mesma conexão Modbus com {host}. O Home Assistant mantém um tempo limite por ID de dispositivo em uma conexão compartilhada, então integrações que solicitam tempos limite diferentes, como a integração SolarEdge Modbus integrada (30 segundos), sobrescrevem umas às outras dependendo de qual foi configurada por último. Isso pode causar atualizações lentas ou perdidas.\n\nPara usar as duas, escolha \"Usar conexão direta\" em \"Conexão Modbus\" nas opções desta integração. Caso contrário, desative a outra integração e recarregue esta. Consulte o README para mais detalhes."
     },
+    "setup_timed_out": {
+      "title": "Tempo de configuração esgotado",
+      "description": "A configuração do hub em {host} não terminou em {timeout} segundos. Ela estava aguardando o ID de Dispositivo {device_id}. Verifique o dispositivo e a conexão Modbus/TCP. Se o dispositivo foi removido ou seu ID foi alterado, atualize a Lista de IDs de Dispositivo dos Inversores na configuração do hub. O log do Home Assistant mostra em qual etapa a configuração estava aguardando."
+    },
     "detect_timeout_gpc": {
       "title": "Tempo Limite do Controle Dinâmico de Energia Global (Inversor {device_id})",
       "fix_flow": {

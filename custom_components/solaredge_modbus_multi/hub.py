@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 import logging
+import time
 
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 from awesomeversion.exceptions import (
@@ -55,6 +56,7 @@ from .const import (
     MMPPT_UNITS_VERSION,
     REFRESH_WATCHDOG,
     SHARED_BATTERY_PROBE_TIMEOUT,
+    SLOW_REFRESH,
     STATUS_VENDOR4_VERSION,
     WRITE_SETTLE_CYCLES,
     ConfDefaultFlag,
@@ -294,6 +296,8 @@ class SolarEdgeModbusMultiHub:
         self._write_settle_cycles: dict[int, int] = {}
 
         self._initalized = False
+        self._setup_step = "starting setup"
+        self._setup_unit_id: int | None = None
 
         self.connection = connection
 
@@ -338,6 +342,8 @@ class SolarEdgeModbusMultiHub:
 
         for inverter_unit_id in self._inverter_list:
             try:
+                self._setup_step = f"reading inverter ID {inverter_unit_id}"
+                self._setup_unit_id = inverter_unit_id
                 _LOGGER.debug(
                     "Looking for inverter at %s ID %s", self.hub_host, inverter_unit_id
                 )
@@ -400,11 +406,15 @@ class SolarEdgeModbusMultiHub:
                     inverter_unit_id,
                     e,
                 )
+                self._setup_step = f"reading EVSE ID {inverter_unit_id}"
                 new_evse = SolarEdgeEVSE(inverter_unit_id, self)
                 await new_evse.init_device()
                 self.evses.append(new_evse)
 
                 try:
+                    self._setup_step = (
+                        f"scanning SunSpec models on EVSE ID {inverter_unit_id}"
+                    )
                     _LOGGER.debug(
                         "Scanning SunS models at %s ID %s",
                         self.hub_host,
@@ -432,6 +442,9 @@ class SolarEdgeModbusMultiHub:
                 continue
 
             try:
+                self._setup_step = (
+                    f"scanning SunSpec models on inverter ID {inverter_unit_id}"
+                )
                 _LOGGER.debug(
                     "Scanning SunS models at %s ID %s", self.hub_host, inverter_unit_id
                 )
@@ -457,6 +470,10 @@ class SolarEdgeModbusMultiHub:
             if self._detect_meters:
                 for meter_id in METER_REG_BASE:
                     try:
+                        self._setup_step = (
+                            f"detecting meter {meter_id} on inverter ID "
+                            f"{inverter_unit_id}"
+                        )
                         _LOGGER.debug(
                             "Looking for meter I%sM%s", inverter_unit_id, meter_id
                         )
@@ -491,6 +508,10 @@ class SolarEdgeModbusMultiHub:
                 # SolarEdge proprietary battery block for up to three batteries.
                 for battery_id in BATTERY_REG_BASE:
                     try:
+                        self._setup_step = (
+                            f"detecting battery {battery_id} on inverter ID "
+                            f"{inverter_unit_id}"
+                        )
                         _LOGGER.debug(
                             "Looking for battery I%sB%s", inverter_unit_id, battery_id
                         )
@@ -537,6 +558,7 @@ class SolarEdgeModbusMultiHub:
             # The block is served with SoC fixed at 0% when no battery is
             # attached, so the SoC sensor is disabled by default for a 0% first
             # value instead of being left out.
+            self._setup_step = f"reading DER storage on inverter ID {inverter_unit_id}"
             await new_inverter.init_der_storage(der_storage_models)
 
             new_inverter.inverter_common.restrict_fields(["C_Version"])
@@ -550,12 +572,30 @@ class SolarEdgeModbusMultiHub:
 
         try:
             for inverter in self.inverters:
+                self._setup_step = (
+                    f"reading initial data from inverter ID {inverter.inverter_unit_id}"
+                )
+                self._setup_unit_id = inverter.inverter_unit_id
                 await inverter.read_modbus_data()
             for meter in self.meters:
+                self._setup_step = (
+                    f"reading initial data from meter {meter.meter_id} on "
+                    f"inverter ID {meter.inverter_unit_id}"
+                )
+                self._setup_unit_id = meter.inverter_unit_id
                 await meter.read_modbus_data()
             for battery in self.batteries:
+                self._setup_step = (
+                    f"reading initial data from battery {battery.battery_id} on "
+                    f"inverter ID {battery.inverter_unit_id}"
+                )
+                self._setup_unit_id = battery.inverter_unit_id
                 await battery.read_modbus_data()
             for evse in self.evses:
+                self._setup_step = (
+                    f"reading initial data from EVSE ID {evse.evse_unit_id}"
+                )
+                self._setup_unit_id = evse.evse_unit_id
                 await evse.read_modbus_data()
 
         except (ModbusConnectionError, ModbusProtocolError, ModbusTimeoutError) as e:
@@ -604,27 +644,52 @@ class SolarEdgeModbusMultiHub:
                     await self._async_init_solaredge()
 
             except TimeoutError as err:
-                ir.async_create_issue(
-                    self._hass,
-                    DOMAIN,
-                    f"check_configuration_{self._entry_id}",
-                    is_fixable=True,
-                    severity=ir.IssueSeverity.ERROR,
-                    translation_key="check_configuration",
-                    data={"entry_id": self._entry_id},
+                _LOGGER.warning(
+                    "Setup did not finish in %s seconds while %s.",
+                    REFRESH_WATCHDOG,
+                    self._setup_step,
                 )
+                if self._setup_unit_id is None:
+                    ir.async_create_issue(
+                        self._hass,
+                        DOMAIN,
+                        f"check_configuration_{self._entry_id}",
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.ERROR,
+                        translation_key="check_configuration",
+                        data={"entry_id": self._entry_id},
+                    )
+                else:
+                    ir.async_create_issue(
+                        self._hass,
+                        DOMAIN,
+                        self._setup_timed_out_issue(),
+                        is_fixable=False,
+                        severity=ir.IssueSeverity.ERROR,
+                        translation_key="setup_timed_out",
+                        translation_placeholders={
+                            "device_id": str(self._setup_unit_id),
+                            "host": self.hub_host,
+                            "timeout": str(REFRESH_WATCHDOG),
+                        },
+                        data={"entry_id": self._entry_id},
+                    )
                 raise HubInitFailed(
-                    f"Setup timed out after {REFRESH_WATCHDOG} seconds."
+                    f"Setup timed out after {REFRESH_WATCHDOG} seconds while "
+                    f"{self._setup_step}."
                 ) from err
 
             ir.async_delete_issue(
                 self._hass, DOMAIN, f"check_configuration_{self._entry_id}"
             )
+            ir.async_delete_issue(self._hass, DOMAIN, self._setup_timed_out_issue())
 
             if self.close_after_polling:
                 await self.connection.disconnect()
 
             return True
+
+        started = time.monotonic()
 
         try:
             async with asyncio.timeout(REFRESH_WATCHDOG):
@@ -665,6 +730,10 @@ class SolarEdgeModbusMultiHub:
             if not isinstance(self.connection, SharedUnits):
                 await self.connection.disconnect()
             raise DataUpdateTimedOut(f"Timeout error: {e}") from e
+
+        elapsed = time.monotonic() - started
+        if elapsed > SLOW_REFRESH:
+            _LOGGER.warning("Refresh took %.0f seconds.", elapsed)
 
         if self.close_after_polling:
             await self.connection.disconnect()
@@ -771,6 +840,9 @@ class SolarEdgeModbusMultiHub:
 
     def _setup_inverter_id_failed_issue(self, unit_id: int) -> str:
         return f"setup_inverter_id_failed_{self._entry_id}_{unit_id}"
+
+    def _setup_timed_out_issue(self) -> str:
+        return f"setup_timed_out_{self._entry_id}"
 
     @property
     def initalized(self):

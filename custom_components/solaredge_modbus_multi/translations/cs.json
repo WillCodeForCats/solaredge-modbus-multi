@@ -193,6 +193,10 @@
       "title": "Jiná integrace sdílí tento střídač",
       "description": "Integrace {integrations} používají stejné připojení Modbus k {host}. Home Assistant u sdíleného připojení uchovává jeden časový limit pro každé ID zařízení, takže integrace, které požadují různé časové limity, například vestavěná integrace SolarEdge Modbus (30 sekund), se navzájem přepisují podle toho, která byla nastavena jako poslední. To může způsobit pomalé nebo vynechané aktualizace.\n\nChcete-li používat obě, zvolte v nastavení této integrace u položky „Připojení Modbus“ možnost „Použít přímé připojení“. Jinak druhou integraci zakažte a tuto znovu načtěte. Podrobnosti najdete v souboru README."
     },
+    "setup_timed_out": {
+      "title": "Časový limit nastavení vypršel",
+      "description": "Nastavení hubu na {host} nebylo dokončeno do {timeout} sekund. Čekalo na ID zařízení {device_id}. Zkontrolujte zařízení a připojení Modbus/TCP. Pokud bylo zařízení odebráno nebo se změnilo jeho ID, aktualizujte seznam ID zařízení střídačů v konfiguraci hubu. Protokol Home Assistant ukazuje, na který krok nastavení čekalo."
+    },
     "detect_timeout_gpc": {
       "title": "Časový limit globálního dynamického řízení výkonu (střídač {device_id})",
       "fix_flow": {

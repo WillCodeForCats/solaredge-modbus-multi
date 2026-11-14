@@ -60,14 +60,18 @@ MESSAGE_SPACING = 0.1
 # Seconds a setup or refresh may run before it is given up on as wedged. This
 # is not sized to the devices: every request has its own timeout, and on a
 # shared connection a refresh can wait out the stuck requests of other holders,
-# which has been seen to take over two minutes. Kept under the 300 seconds
-# Home Assistant allows for setting up a config entry.
-REFRESH_WATCHDOG = 240
+# which has been seen to take over two minutes. Taking this long means
+# something is broken or misconfigured.
+REFRESH_WATCHDOG = 300
 
 # Seconds a battery probe on a shared connection may take, retries included.
 # An empty battery slot can stay silent, and retrying it behind another
 # holder's longer timeout could use up the setup watchdog on its own.
 SHARED_BATTERY_PROBE_TIMEOUT = 10
+
+# Seconds a refresh may take before it is reported as slow. A healthy refresh
+# takes a second or two.
+SLOW_REFRESH = 60
 
 
 class RetrySettings(IntEnum):
@@ -98,7 +102,7 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 10
     PORT = 1502
-    REQUEST_TIMEOUT = 3
+    REQUEST_TIMEOUT = 10
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0

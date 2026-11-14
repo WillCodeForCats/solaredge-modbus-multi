@@ -193,6 +193,10 @@
       "title": "Een andere integratie deelt deze omvormer",
       "description": "De integratie(s) {integrations} gebruiken dezelfde Modbus-verbinding met {host}. Home Assistant bewaart op een gedeelde verbinding één time-out per apparaat-ID, waardoor integraties die verschillende time-outs aanvragen, zoals de ingebouwde SolarEdge Modbus-integratie (30 seconden), elkaar overschrijven, afhankelijk van welke als laatste is ingesteld. Dit kan leiden tot trage of gemiste updates.\n\nOm beide te gebruiken, kies je in de opties van deze integratie bij ‘Modbus-verbinding’ de optie ‘Directe verbinding gebruiken’. Schakel anders de andere integratie uit en laad deze integratie opnieuw. Zie de README voor details."
     },
+    "setup_timed_out": {
+      "title": "Time-out bij installatie",
+      "description": "De installatie van de hub op {host} is niet binnen {timeout} seconden voltooid. Deze wachtte op apparaat-ID {device_id}. Controleer het apparaat en de Modbus/TCP-verbinding. Als het apparaat is verwijderd of de ID is gewijzigd, werk dan de lijst met omvormer-apparaat-ID's bij in de hub-configuratie. Het Home Assistant-logboek toont op welke stap de installatie wachtte."
+    },
     "detect_timeout_gpc": {
       "title": "Time-out voor Global Dynamic Power Control (Omvormer {device_id})",
       "fix_flow": {

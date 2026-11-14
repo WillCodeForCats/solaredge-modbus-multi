@@ -193,6 +193,10 @@
       "title": "Toinen integraatio jakaa tämän invertterin",
       "description": "Integraatiot {integrations} käyttävät samaa Modbus-yhteyttä laitteeseen {host}. Home Assistant säilyttää jaetulla yhteydellä yhden aikakatkaisun kutakin laitetunnusta kohden, joten eri aikakatkaisuja pyytävät integraatiot, kuten sisäänrakennettu SolarEdge Modbus -integraatio (30 sekuntia), korvaavat toistensa aikakatkaisut sen mukaan, mikä niistä otettiin käyttöön viimeisenä. Tämä voi aiheuttaa hitaita tai puuttuvia päivityksiä.\n\nJos haluat käyttää molempia, valitse tämän integraation asetuksissa kohdassa ”Modbus-yhteys” vaihtoehto ”Käytä suoraa yhteyttä”. Muussa tapauksessa poista toinen integraatio käytöstä ja lataa tämä integraatio uudelleen. Lisätietoja on README-tiedostossa."
     },
+    "setup_timed_out": {
+      "title": "Asennuksen aikakatkaisu",
+      "description": "Keskittimen asennus osoitteessa {host} ei valmistunut {timeout} sekunnissa. Se odotti laitetunnusta {device_id}. Tarkista laite ja Modbus/TCP-yhteys. Jos laite poistettiin tai sen tunnus muuttui, päivitä vaihtosuuntaajien laitetunnusluettelo keskittimen asetuksissa. Home Assistantin loki näyttää, mitä vaihetta asennus odotti."
+    },
     "detect_timeout_gpc": {
       "title": "Globaalin dynaamisen tehonhallinnan aikakatkaisu (vaihtosuuntaaja {device_id})",
       "fix_flow": {

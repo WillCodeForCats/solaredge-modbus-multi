@@ -193,6 +193,10 @@
       "title": "Une autre intégration partage cet onduleur",
       "description": "Les intégrations {integrations} utilisent la même connexion Modbus vers {host}. Home Assistant conserve un délai d'attente par ID d'appareil sur une connexion partagée, de sorte que les intégrations qui demandent des délais différents, comme l'intégration SolarEdge Modbus intégrée (30 secondes), se remplacent mutuellement selon celle qui a été configurée en dernier. Cela peut provoquer des mises à jour lentes ou manquées.\n\nPour utiliser les deux, choisissez « Utiliser une connexion directe » dans « Connexion Modbus » dans les options de cette intégration. Sinon, désactivez l'autre intégration et rechargez celle-ci. Consultez le README pour plus de détails."
     },
+    "setup_timed_out": {
+      "title": "Délai de configuration dépassé",
+      "description": "La configuration du hub sur {host} ne s'est pas terminée en {timeout} secondes. Elle attendait l'ID d'appareil {device_id}. Vérifiez l'appareil et la connexion Modbus/TCP. Si l'appareil a été retiré ou si son ID a changé, mettez à jour la liste des ID d'appareils onduleurs dans la configuration du hub. Le journal de Home Assistant indique l'étape à laquelle la configuration attendait."
+    },
     "detect_timeout_gpc": {
       "title": "Délai d'attente du contrôle de puissance dynamique global (Onduleur {device_id})",
       "fix_flow": {
