@@ -62,9 +62,9 @@ INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 MESSAGE_SPACING = 0.1
 
 # Seconds a setup or refresh may run before it is given up on as wedged. This
-# is not sized to the devices: every request has its own timeout. Kept under
-# the 300 seconds Home Assistant allows for setting up a config entry.
-REFRESH_WATCHDOG = 240
+# is not sized to the devices: every request has its own timeout, and taking
+# this long means something is broken or misconfigured.
+REFRESH_WATCHDOG = 300
 
 # Seconds a refresh may take before it is reported as slow. A healthy refresh
 # takes a second or two.
