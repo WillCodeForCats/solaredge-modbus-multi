@@ -57,11 +57,13 @@ from .const import (
     ConfDefaultInt,
     ConfDefaultStr,
     ConfName,
+    MeterRole,
+    MeterScope,
     RetrySettings,
     SolarEdgeTimeouts,
     SunSpecNotImpl,
 )
-from .helpers import float_to_hex
+from .helpers import default_virtual_system, float_to_hex, scale_sunspec_int16
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -216,6 +218,9 @@ class SolarEdgeModbusMultiHub:
         self._detect_extras = entry_options.get(
             ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
         )
+        self._virtual_system = entry_options.get(
+            ConfName.VIRTUAL_SYSTEM, default_virtual_system(self._inverter_list)
+        )
         self._adv_storage_control = entry_options.get(
             ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
         )
@@ -246,9 +251,11 @@ class SolarEdgeModbusMultiHub:
 
         self._id = entry_data[CONF_NAME].lower()
         self.inverters = []
+        self.skipped_inverter_ids: list[int] = []
         self.meters = []
         self.batteries = []
         self.evses = []
+        self.system = SolarEdgeSystem(self)
         self.inverter_common = {}
         self.mmppt_common = {}
         self._write_settle_cycles: dict[int, int] = {}
@@ -261,7 +268,8 @@ class SolarEdgeModbusMultiHub:
 
         _LOGGER.debug(
             "%s configuration: inverter_list=%s, detect_meters=%s, "
-            "detect_batteries=%s, detect_extras=%s, adv_storage_control=%s, "
+            "detect_batteries=%s, detect_extras=%s, virtual_system=%s, "
+            "adv_storage_control=%s, "
             "adv_site_limit_control=%s, allow_battery_energy_reset=%s, "
             "request_timeout=%s, sleep_after_write=%s, battery_rating_adjust=%s, "
             "close_after_polling=%s, ",
@@ -270,6 +278,7 @@ class SolarEdgeModbusMultiHub:
             self._detect_meters,
             self._detect_batteries,
             self._detect_extras,
+            self._virtual_system,
             self._adv_storage_control,
             self._adv_site_limit_control,
             self._allow_battery_energy_reset,
@@ -339,6 +348,7 @@ class SolarEdgeModbusMultiHub:
                     },
                     data={"entry_id": self._entry_id},
                 )
+                self.skipped_inverter_ids.append(inverter_unit_id)
                 continue
 
             except DeviceIsEVSE as e:
@@ -736,6 +746,11 @@ class SolarEdgeModbusMultiHub:
     def option_detect_extras(self) -> bool:
         """Return the option detect extras."""
         return self._detect_extras
+
+    @property
+    def option_virtual_system(self) -> bool:
+        """Return the option virtual system."""
+        return self._virtual_system
 
     @property
     def allow_battery_energy_reset(self) -> bool:
@@ -1453,6 +1468,214 @@ class SolarEdgeInverter:
         return self.site_limit_control
 
 
+class SolarEdgeSystem:
+    """Defines the virtual SolarEdge system device.
+
+    This device holds values calculated from the other devices on the hub.
+    It does not read any Modbus registers of its own, and never alters the
+    values of the devices it reads from.
+
+    The power values follow the template sensors for a system without batteries
+    from the wiki page Template-Sensors-for-Power-and-Energy, with the inputs
+    summed across all inverters.
+
+    Sign conventions of the inputs:
+        inverter DC power: positive is flowing from the DC bus to the inverter
+        inverter AC power: positive is flowing from the inverter to the site
+        meter AC power: positive is exported to the grid
+    """
+
+    manufacturer = "SolarEdge"
+    model = "Virtual System"
+
+    def __init__(self, hub: SolarEdgeModbusMultiHub) -> None:
+        """Initialize the solar edge system."""
+        self.hub = hub
+        self.uid_base = f"{hub.entry_id}_system"
+        self.name = f"{hub.hub_id.capitalize()} System"
+        # meter uid_base -> scope, set by the select entities once restored
+        self.production_meter_scopes: dict[str, MeterScope] = {}
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.uid_base)},
+            name=self.name,
+            manufacturer=self.manufacturer,
+            model=self.model,
+        )
+
+    @property
+    def export_import_meters(self) -> list:
+        """Return the meters with the Export+Import role."""
+        return [m for m in self.hub.meters if m.meter_role == MeterRole.EXPORT_IMPORT]
+
+    @property
+    def production_meters(self) -> list:
+        """Return the meters with the Production role."""
+        return [m for m in self.hub.meters if m.meter_role == MeterRole.PRODUCTION]
+
+    @property
+    def has_storage(self) -> bool:
+        """Return True if battery detection found any batteries on the hub.
+
+        SunSpec DER storage (model 713) is not counted: inverters can report
+        it with no battery connected.
+        """
+        return bool(self.hub.batteries)
+
+    @property
+    def power_keys(self) -> list[str]:
+        """Return the keys of power_values that apply to this hub."""
+        if self.has_storage:
+            return []
+
+        keys = ["solar_generation"]
+        if self.export_import_meters:
+            keys += ["consumption", "grid_load", "pv_grid", "pv_load"]
+        return keys
+
+    def _sum_inverters(self, value_fn) -> float | None:
+        """Return value_fn summed over all inverters, or None if any is missing.
+
+        A configured inverter skipped during setup would make the total too low,
+        so the total is None until it is found.
+        """
+        if self.hub.skipped_inverter_ids:
+            return None
+        return self._sum_all(value_fn(i) for i in self.hub.inverters)
+
+    @property
+    def power_values(self) -> dict[str, float | None]:
+        """Return the system power values in watts, None where an input is invalid.
+
+        Only valid for a system without batteries.
+        """
+        solar = self._sum_inverters(self._inverter_dc_power)
+        iac = self._sum_inverters(self._inverter_ac_power)
+        m = self._sum_all(self._meter_ac_power(x) for x in self.export_import_meters)
+
+        pv_grid = self._calc(lambda m: max(m, 0), m)
+        return {
+            "solar_generation": solar,
+            "consumption": self._calc(lambda iac, m: iac - m, iac, m),
+            "grid_load": self._calc(lambda m: abs(min(m, 0)), m),
+            "pv_grid": pv_grid,
+            "pv_load": self._calc(lambda s, g: max(s - g, 0), solar, pv_grid),
+        }
+
+    def production_meter_scope(self, meter) -> MeterScope:
+        """Return what a Production meter measures, Inverter Only by default.
+
+        Modbus can't tell whether a meter measures the whole site or only the
+        inverter it is part of, so the user sets it.
+        """
+        return self.production_meter_scopes.get(meter.uid_base, MeterScope.INVERTER)
+
+    @property
+    def site_production_meters(self) -> list:
+        """Return the Production meters set to measure the whole site."""
+        return [
+            m
+            for m in self.production_meters
+            if self.production_meter_scope(m) == MeterScope.SITE
+        ]
+
+    def _inverter_production_meters(self, inverter) -> list:
+        """Return the Production meters that measure only this inverter."""
+        return [
+            m
+            for m in self.production_meters
+            if m.inverter_unit_id == inverter.inverter_unit_id
+            and self.production_meter_scope(m) == MeterScope.INVERTER
+        ]
+
+    @property
+    def solar_ac_source(self) -> str:
+        """Return where solar_ac_power comes from: meter, inverter, or mixed."""
+        if self.site_production_meters:
+            return "meter"
+        metered = [
+            bool(self._inverter_production_meters(i)) for i in self.hub.inverters
+        ]
+        if metered and all(metered):
+            return "meter"
+        if any(metered):
+            return "mixed"
+        return "inverter"
+
+    @property
+    def solar_ac_power(self) -> float | None:
+        """Return the total solar AC power in watts, None if an input is invalid.
+
+        Production meters set to Whole Site are summed and used alone. Otherwise
+        each inverter uses its own Inverter Only Production meters if it has any,
+        or its AC power. An inverter charging batteries from the grid is not
+        solar production, so its AC power is limited to zero or more.
+
+        Whole Site meters don't need every inverter, but the per inverter total
+        is None while a configured inverter is skipped.
+
+        The value is None until every Production meter scope is set, so a
+        reported value never uses the default in place of a restored scope.
+
+        With batteries the value is None. The batteries are DC coupled, so both
+        the inverter AC power and a Production meter on the inverter AC output
+        include battery discharge, which can't be separated from solar.
+        Batteries that were not found can't be checked for.
+        """
+        if self.has_storage:
+            return None
+        if any(
+            m.uid_base not in self.production_meter_scopes
+            for m in self.production_meters
+        ):
+            return None
+        if site_meters := self.site_production_meters:
+            return self._sum_all(self._meter_ac_power(m) for m in site_meters)
+        return self._sum_inverters(self._inverter_solar_ac_power)
+
+    def _inverter_solar_ac_power(self, inverter) -> float | None:
+        """Return the solar AC power of one inverter, None if an input is invalid."""
+        if meters := self._inverter_production_meters(inverter):
+            return self._sum_all(self._meter_ac_power(m) for m in meters)
+        return self._calc(lambda v: max(v, 0), self._inverter_ac_power(inverter))
+
+    @staticmethod
+    def _inverter_ac_power(inverter) -> float | None:
+        return scale_sunspec_int16(
+            inverter.inverter_data.AC_Power, inverter.inverter_data.AC_Power_SF
+        )
+
+    @staticmethod
+    def _inverter_dc_power(inverter) -> float | None:
+        return scale_sunspec_int16(
+            inverter.inverter_data.I_DC_Power, inverter.inverter_data.I_DC_Power_SF
+        )
+
+    @staticmethod
+    def _meter_ac_power(meter) -> float | None:
+        return scale_sunspec_int16(
+            meter.meter_data.AC_Power, meter.meter_data.AC_Power_SF
+        )
+
+    @staticmethod
+    def _sum_all(values) -> float | None:
+        """Return the sum of values, or None if any value is None or there are none."""
+        values = list(values)
+        if not values or any(value is None for value in values):
+            return None
+        return sum(values)
+
+    @staticmethod
+    def _calc(fn, *args) -> float | None:
+        """Return fn(*args), or None if any argument is None."""
+        if any(arg is None for arg in args):
+            return None
+        return fn(*args)
+
+
 class SolarEdgeMMPPTUnit:
     """Defines a SolarEdge inverter MMPPT unit."""
 
@@ -1637,6 +1860,15 @@ class SolarEdgeMeter:
     @via_device.setter
     def via_device(self, device: str) -> None:
         self._via_device = (DOMAIN, device)
+
+    @property
+    def meter_role(self) -> MeterRole:
+        """Return the meter role reported in C_Option."""
+        option = (getattr(self, "option", None) or "").strip(" \x00").lower()
+        try:
+            return MeterRole(option)
+        except ValueError:
+            return MeterRole.UNKNOWN
 
 
 class SolarEdgeBattery:

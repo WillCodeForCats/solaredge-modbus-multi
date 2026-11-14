@@ -105,6 +105,7 @@
           "detect_meters": "Auto-détecter les capteurs",
           "detect_batteries": "Auto-détecter les batteries",
           "detect_extras": "Détection automatique des entités supplémentaires",
+          "virtual_system": "Activer l'appareil système virtuel",
           "advanced_power_control": "Options de contrôle de l'alimentation",
           "request_timeout": "Délai d'expiration de la requête Modbus (en secondes)",
           "sleep_after_write": "Délai de commande de l'onduleur (en secondes)"
@@ -115,6 +116,7 @@
           "detect_meters": "Recherche les compteurs connectés à chaque onduleur au démarrage de l'intégration.",
           "detect_batteries": "Recherche les batteries connectées à chaque onduleur au démarrage de l'intégration. La prise en charge des batteries utilise des registres que SolarEdge ne documente pas officiellement.",
           "detect_extras": "Vérifie si chaque onduleur prend en charge Global Dynamic Power Control et Advanced Power Control, et ajoute leurs entités s'ils sont trouvés.",
+          "virtual_system": "Ajoute un appareil Système avec des capteurs de puissance calculés à partir des onduleurs et des compteurs, comme la production solaire et la consommation. Les capteurs des autres appareils ne sont pas modifiés. Activé par défaut lorsqu'il y a plus d'un onduleur.",
           "advanced_power_control": "Affiche ensuite l'étape Options de contrôle de puissance pour activer ou désactiver le contrôle du stockage et le contrôle de la limite du site.",
           "request_timeout": "Durée, en secondes, d'attente d'une réponse à chaque requête Modbus.",
           "sleep_after_write": "Secondes d'attente entre les requêtes vers un onduleur après l'écriture d'une commande. Certains onduleurs ont besoin de temps pour traiter une commande avant de répondre à nouveau. 0 désactive cette option."

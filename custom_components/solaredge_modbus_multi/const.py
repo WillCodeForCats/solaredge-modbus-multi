@@ -133,6 +133,7 @@ class ConfName(StrEnum):
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
     DETECT_EXTRAS = "detect_extras"
+    VIRTUAL_SYSTEM = "virtual_system"
     ADV_PWR_CONTROL = "advanced_power_control"
     ADV_STORAGE_CONTROL = "adv_storage_control"
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
@@ -146,6 +147,22 @@ class ConfName(StrEnum):
     # Old config entry names for migration
     NUMBER_INVERTERS = "number_of_inverters"
     DEVICE_ID = "device_id"
+
+
+class MeterRole(StrEnum):
+    """Meter role, as reported in the SunSpec C_Option string."""
+
+    EXPORT_IMPORT = "export+import"
+    PRODUCTION = "production"
+    CONSUMPTION = "consumption"
+    UNKNOWN = "unknown"
+
+
+class MeterScope(StrEnum):
+    """What a Production meter measures, set by the user."""
+
+    INVERTER = "inverter"
+    SITE = "site"
 
 
 class SunSpecAccum(IntEnum):
@@ -418,6 +435,11 @@ LIMIT_CONTROL_MODE = {
 }
 
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
+
+PRODUCTION_METER_SCOPE = {
+    MeterScope.INVERTER: "Inverter Only",
+    MeterScope.SITE: "Whole Site",
+}
 
 VENDOR4_STATUS: dict[int, dict[int, str]] = {
     0x0: {0x0: "No Error"},

@@ -20,6 +20,7 @@ from .const import (
 )
 from .coordinator import SolarEdgeConfigEntry
 from .entity import SolarEdgeEntity
+from .virtual_select import async_virtual_system_select_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +56,11 @@ async def async_setup_entry(
             entities.append(
                 SolarEdgeReactivePowerMode(inverter, config_entry, coordinator)
             )
+
+    if hub.option_virtual_system:
+        entities.extend(
+            async_virtual_system_select_entities(hass, hub, config_entry, coordinator)
+        )
 
     if entities:
         async_add_entities(entities)

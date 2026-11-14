@@ -105,6 +105,7 @@
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
           "detect_extras": "Auto-Detect Additional Entities",
+          "virtual_system": "Enable Virtual System Device",
           "advanced_power_control": "Power Control Options",
           "request_timeout": "Modbus Request Timeout (seconds)",
           "sleep_after_write": "Inverter Command Delay (seconds)"
@@ -115,6 +116,7 @@
           "detect_meters": "Look for meters connected to each inverter when the integration starts.",
           "detect_batteries": "Look for batteries connected to each inverter when the integration starts. Battery support uses registers that SolarEdge does not officially document.",
           "detect_extras": "Check whether each inverter supports Global Dynamic Power Control and Advanced Power Control, and add their entities when found.",
+          "virtual_system": "Add a System device with power sensors calculated from your inverters and meters, such as solar generation and consumption. The sensors of your other devices are not changed. On by default when there is more than one inverter.",
           "advanced_power_control": "Show the Power Control Options step next, to turn storage control and site limit control on or off.",
           "request_timeout": "How long, in seconds, to wait for a reply to each Modbus request.",
           "sleep_after_write": "Seconds to wait between requests to an inverter after a command is written to it. Some inverters need time to process a command before they reply again. 0 turns this off."

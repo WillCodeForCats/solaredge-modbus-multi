@@ -105,6 +105,7 @@
           "detect_meters": "Mittareiden automaattinen tunnistus",
           "detect_batteries": "Akkujen automaattinen tunnistus",
           "detect_extras": "Lisäentiteettien automaattinen tunnistus",
+          "virtual_system": "Ota virtuaalinen järjestelmälaite käyttöön",
           "advanced_power_control": "Tehonhallinnan valinnat",
           "request_timeout": "Modbus-pyynnön aikakatkaisu (sekuntia)",
           "sleep_after_write": "Vaihtosuuntaajan komennon viive (sekuntia)"
@@ -115,6 +116,7 @@
           "detect_meters": "Etsi jokaiseen invertteriin liitettyjä mittareita, kun integraatio käynnistyy.",
           "detect_batteries": "Etsi jokaiseen invertteriin liitettyjä akkuja, kun integraatio käynnistyy. Akkutuki käyttää rekistereitä, joita SolarEdge ei virallisesti dokumentoi.",
           "detect_extras": "Tarkista, tukeeko kukin invertteri Global Dynamic Power Control- ja Advanced Power Control -toimintoja, ja lisää niiden entiteetit, jos ne löytyvät.",
+          "virtual_system": "Lisää järjestelmälaite, jonka tehoanturit lasketaan inverttereistä ja mittareista, kuten aurinkotuotanto ja kulutus. Muiden laitteiden antureita ei muuteta. Oletuksena päällä, kun invertterejä on useampi kuin yksi.",
           "advanced_power_control": "Näytä seuraavaksi Tehonohjausasetukset-vaihe, jossa varastoinnin ohjaus ja kohteen rajojen ohjaus voidaan ottaa käyttöön tai poistaa käytöstä.",
           "request_timeout": "Kuinka kauan (sekunteina) odotetaan vastausta kuhunkin Modbus-pyyntöön.",
           "sleep_after_write": "Odotusaika sekunteina invertterille lähetettävien pyyntöjen välillä, kun sille on kirjoitettu komento. Jotkin invertterit tarvitsevat aikaa komennon käsittelyyn ennen kuin ne vastaavat taas. 0 poistaa tämän käytöstä."

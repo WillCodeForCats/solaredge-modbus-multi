@@ -105,6 +105,7 @@
           "detect_meters": "Messgeräte automatisch erkennen",
           "detect_batteries": "Batterien automatisch erkennen",
           "detect_extras": "Zusätzliche Entitäten automatisch erkennen",
+          "virtual_system": "Virtuelles Systemgerät aktivieren",
           "advanced_power_control": "Optionen zur Leistungssteuerung",
           "request_timeout": "Modbus-Anfrage-Zeitüberschreitung (Sekunden)",
           "sleep_after_write": "Befehlsverzögerung des Wechselrichters (Sekunden)"
@@ -115,6 +116,7 @@
           "detect_meters": "Beim Start der Integration nach Zählern suchen, die an jeden Wechselrichter angeschlossen sind.",
           "detect_batteries": "Beim Start der Integration nach Batterien suchen, die an jeden Wechselrichter angeschlossen sind. Die Batterieunterstützung nutzt Register, die SolarEdge nicht offiziell dokumentiert.",
           "detect_extras": "Prüfen, ob jeder Wechselrichter Global Dynamic Power Control und Advanced Power Control unterstützt, und deren Entitäten hinzufügen, wenn sie gefunden werden.",
+          "virtual_system": "Ein Systemgerät mit Leistungssensoren hinzufügen, die aus den Wechselrichtern und Zählern berechnet werden, z. B. Solarerzeugung und Verbrauch. Die Sensoren der anderen Geräte werden nicht verändert. Standardmäßig eingeschaltet, wenn mehr als ein Wechselrichter vorhanden ist.",
           "advanced_power_control": "Als Nächstes den Schritt Leistungssteuerungsoptionen anzeigen, um die Speichersteuerung und die Standortlimitsteuerung ein- oder auszuschalten.",
           "request_timeout": "Wie lange (in Sekunden) auf eine Antwort auf jede Modbus-Anfrage gewartet wird.",
           "sleep_after_write": "Sekunden Wartezeit zwischen Anfragen an einen Wechselrichter, nachdem ein Befehl an ihn geschrieben wurde. Manche Wechselrichter brauchen Zeit, um einen Befehl zu verarbeiten, bevor sie wieder antworten. 0 schaltet dies aus."

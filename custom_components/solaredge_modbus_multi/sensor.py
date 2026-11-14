@@ -57,6 +57,7 @@ from .const import (
 from .coordinator import SolarEdgeConfigEntry
 from .entity import SolarEdgeEntity
 from .helpers import float_to_hex
+from .virtual_sensor import async_virtual_system_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -288,6 +289,9 @@ async def async_setup_entry(
         # model 713. Add them here if that changes.
 
     entities.extend(Version(evse, config_entry, coordinator) for evse in hub.evses)
+
+    if hub.option_virtual_system:
+        entities.extend(async_virtual_system_entities(hub, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
