@@ -239,9 +239,40 @@ async def test_setup_timeout_names_the_step_it_was_waiting_on(hass):
             init_device,
         ),
         patch("custom_components.solaredge_modbus_multi.hub.REFRESH_WATCHDOG", 0.05),
-        patch("custom_components.solaredge_modbus_multi.hub.ir.async_create_issue"),
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.ir.async_create_issue"
+        ) as create_issue,
         pytest.raises(HubInitFailed, match="while reading inverter ID 2"),
     ):
         await hub.async_refresh_modbus_data()
 
     assert stuck.is_set()
+
+    timed_out = [
+        call
+        for call in create_issue.call_args_list
+        if call.args[2] == "setup_timed_out_test_entry_id"
+    ]
+    assert len(timed_out) == 1
+    assert timed_out[0].kwargs["translation_key"] == "setup_timed_out"
+    assert timed_out[0].kwargs["translation_placeholders"]["device_id"] == "2"
+    assert not any(
+        call.args[2] == "check_configuration_test_entry_id"
+        for call in create_issue.call_args_list
+    )
+
+
+async def test_successful_setup_clears_setup_timed_out_issue(hass):
+    """Test a setup that finishes removes an earlier setup timeout issue."""
+    hub = _make_hub(hass)
+
+    with (
+        patch.object(hub, "_async_init_solaredge", AsyncMock()),
+        patch(
+            "custom_components.solaredge_modbus_multi.hub.ir.async_delete_issue"
+        ) as delete_issue,
+    ):
+        await hub.async_refresh_modbus_data()
+
+    deleted = [call.args[2] for call in delete_issue.call_args_list]
+    assert "setup_timed_out_test_entry_id" in deleted
