@@ -47,9 +47,8 @@ def _written_bits(platform):
 
 
 def _entity(cls, platform):
-    entity = cls(platform, None, None)
-    entity.async_update = AsyncMock()
-    return entity
+    coordinator = SimpleNamespace(async_request_refresh=AsyncMock())
+    return cls(platform, None, coordinator)
 
 
 async def test_external_production_turn_on_sets_bit_10(caplog):
@@ -62,7 +61,7 @@ async def test_external_production_turn_on_sets_bit_10(caplog):
 
     assert _written_bits(platform) == 0b101 | (1 << 10)
     assert "set inverter_1_external_production bits 0000010000000101" in caplog.text
-    entity.async_update.assert_awaited_once()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 async def test_external_production_turn_off_clears_bit_10():
@@ -73,7 +72,7 @@ async def test_external_production_turn_off_clears_bit_10():
     await entity.async_turn_off()
 
     assert _written_bits(platform) == 0b1
-    entity.async_update.assert_awaited_once()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 async def test_negative_site_limit_turn_on_sets_bit_11(caplog):
@@ -86,7 +85,7 @@ async def test_negative_site_limit_turn_on_sets_bit_11(caplog):
 
     assert _written_bits(platform) == 0b101 | (1 << 11)
     assert "bits 0000100000000101" in caplog.text
-    entity.async_update.assert_awaited_once()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 async def test_negative_site_limit_turn_off_clears_bit_11(caplog):
@@ -99,7 +98,7 @@ async def test_negative_site_limit_turn_off_clears_bit_11(caplog):
 
     assert _written_bits(platform) == 0b101
     assert "bits 0000000000000101" in caplog.text
-    entity.async_update.assert_awaited_once()
+    entity.coordinator.async_request_refresh.assert_awaited_once_with()
 
 
 @pytest.mark.parametrize(
