@@ -189,6 +189,10 @@
       "title": "Ogiltigt enhets-ID för växelriktare",
       "description": "Växelriktarens enhets-ID {device_id} på {host} svarar inte eller är inte en giltig SolarEdge-växelriktare. Den har hoppats över. Om enheten byttes ut eller dess ID ändrades, uppdatera listan över växelriktarnas enhets-ID i hubbens konfiguration. Kontrollera annars enheten och Modbus/TCP-anslutningen."
     },
+    "setup_timed_out": {
+      "title": "Tidsgränsen för konfigurationen överskreds",
+      "description": "Konfigurationen av hubben på {host} slutfördes inte inom {timeout} sekunder. Den väntade på enhets-ID {device_id}. Kontrollera enheten och Modbus/TCP-anslutningen. Om enheten togs bort eller dess ID ändrades, uppdatera listan över växelriktarnas enhets-ID i hubbens konfiguration. Home Assistant-loggen visar vilket steg konfigurationen väntade på."
+    },
     "detect_timeout_gpc": {
       "title": "Tidsgräns för global dynamisk effektstyrning (växelriktare {device_id})",
       "fix_flow": {
