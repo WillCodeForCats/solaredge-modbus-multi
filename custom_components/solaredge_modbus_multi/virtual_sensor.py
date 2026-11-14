@@ -85,7 +85,7 @@ class SolarACPower(SolarEdgeSystemSensorBase):
     @property
     def extra_state_attributes(self):
         """Return the extra state attributes."""
-        return {"source": "meter" if self._platform.production_meters else "inverter"}
+        return {"source": self._platform.solar_ac_source}
 
 
 class SystemPower(SolarEdgeSystemSensorBase):
