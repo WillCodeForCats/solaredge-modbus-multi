@@ -1,6 +1,6 @@
 # SolarEdge Modbus Multi
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS%20%7C%20Marketplace-Default-41BDF5.svg?style=for-the-badge)](https://contributors.home-assistant.io/marketplace/)
 
 This integration provides Modbus/TCP local polling to one or more SolarEdge inverters for Home Assistant.
 Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters,
@@ -58,6 +58,8 @@ Limitations:
 
 Virtual System is a new feature: please open an issue if you have suggestions for virtual sensors that can replace a template.
 
+<!-- ha-marketplace:exclude-start -->
+
 ## Installation
 
 Install with Marketplace (Home Assistant 2026.11 and later): Go to **Settings** → **Marketplace** and search for "SolarEdge Modbus Multi".
@@ -66,19 +68,22 @@ Install with [HACS](https://hacs.xyz) (before Home Assistant 2026.11): Search fo
 
 Either way, you can also use this link to open the integration's page directly:
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=WillCodeForCats&repository=solaredge-modbus-multi&category=integration)
+[![Open your Home Assistant instance and open a repository in the Marketplace or the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=WillCodeForCats&repository=solaredge-modbus-multi&category=integration)
 
 OR
 
 Download the [latest release](https://github.com/WillCodeForCats/solaredge-modbus-multi/releases) and copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
 
-After rebooting Home Assistant, this integration can be configured through the integration setup UI. It also supports options, repair issues, and reconfiguration through the user interface.
+After rebooting Home Assistant, this integration can be configured through the integration setup UI.
+It also supports options, repair issues, and reconfiguration through the user interface.
+<!-- ha-marketplace:exclude-end -->
 
-### Configuration
+## Configuration
 
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
 
-Inverter site limit and battery storage controls are disabled by default: not all inverters support controls. You will need to enable Power Control Options after adding your inverter hub in the integration.
+Inverter site limit and battery storage controls are disabled by default: not all inverters support controls.
+You will need to enable Power Control Options after adding your inverter hub in the integration.
 
 ### Documentation
 
@@ -86,7 +91,7 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 ### Minimum Required Versions
 
-- Home Assistant 2025.9.0
+- Home Assistant 2025.11.0
 - modbus-connection 4.10.0 or newer
 
 ## Specifications
@@ -101,13 +106,12 @@ do that, please open an issue and copy/paste the changes or attach the updated f
 
 ## Crediting Our Work
 
-There are other integrations and libraries that have included this work directly or indirectly, in
-some cases through AI agents. If you have used this work directly or indirectly, the author would appreciate it
-if you would include a prominent credit and link to this repository so that your users are aware of its origin.
-All of the original research on inverter behavior and undocumented features found here was curated by hand
-in a pre-AI era. If you use issues previously reported, or a user's diagnostic data as test cases or to generate
-code, including user feedback, please also extend credit to that user for their contributions as well as this
-repository, preferably with a direct link to the issue.
+There are other integrations and libraries that have included this work directly or indirectly. If you have used this
+work the author would appreciate it if you would include a prominent credit and link to this repository so that your
+users are aware of its origin. All of the original research on inverter behavior and undocumented features found
+here was curated by hand in a pre-AI era. If you use issues previously reported, or a user's diagnostic data as
+test cases or to generate code, including user feedback, please also extend credit to that user for their
+contributions as well as this repository, preferably with a direct link to the issue.
 
 ## Project Sponsors
 
