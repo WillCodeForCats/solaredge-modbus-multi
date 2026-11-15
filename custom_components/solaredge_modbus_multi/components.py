@@ -125,7 +125,52 @@ class InverterData(Component):
         )
 
 
-class GlobalDynamicPowerControl(Component):
+class WriteCachedComponent(Component):
+    """A Component that shows written values until its next poll.
+
+    After a successful write(), reading that field returns the written value
+    instead of the last polled one, so entities can show a change right away
+    without waiting for a refresh. async_update() clears the written values and
+    the polled values are used again.
+    """
+
+    # Command registers that read back a status code instead of the value
+    # written. These always use the polled value.
+    uncached_fields: frozenset[str] = frozenset()
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the component."""
+        self._written: dict[str, Any] = {}
+        super().__init__(*args, **kwargs)
+
+    def __getattribute__(self, name: str) -> Any:
+        """Return a written value if there is one, else the attribute."""
+        if name in type(self).declared_fields:
+            written = super().__getattribute__("_written")
+            if name in written:
+                return written[name]
+        return super().__getattribute__(name)
+
+    async def write(self, field: str, value: Any) -> None:
+        """Write a field and keep the value until the next poll."""
+        await super().write(field, value)
+        if field not in self.uncached_fields:
+            self._written[field] = value
+
+    async def async_update(self, *, notify: bool = True) -> None:
+        """Poll the component, then use the polled values again."""
+        # Writes that finish during this poll go into the new dict and are kept.
+        pending, self._written = self._written, {}
+        try:
+            await super().async_update(notify=notify)
+        except BaseException:
+            # The poll failed, so keep showing the written values. A newer
+            # write made during the failed poll wins.
+            self._written = pending | self._written
+            raise
+
+
+class GlobalDynamicPowerControl(WriteCachedComponent):
     """Global Dynamic Power Control and Status.
 
     I_Power_Limit and I_CosPhi
@@ -137,7 +182,7 @@ class GlobalDynamicPowerControl(Component):
     I_CosPhi = float32(61442, word_order="little", writable=True)
 
 
-class AdvancedPowerControl(Component):
+class AdvancedPowerControl(WriteCachedComponent):
     """Advanced Power Control Power Control Block is read every polling cycle."""
 
     # Most of these are not used by the integration, but all of this can be read
@@ -145,6 +190,9 @@ class AdvancedPowerControl(Component):
     # read requests, so we're choosing fewer, larger reads over more, smaller reads.
 
     max_span = 120
+
+    # Writing 1 runs the command; reading back gives its result code.
+    uncached_fields = frozenset({"CommitPwrCtlSettings", "RestorePwrCtlDefaults"})
 
     CommitPwrCtlSettings = integer(61696, signed=True, writable=True)
     RestorePwrCtlDefaults = integer(61697, signed=True, writable=True)
@@ -293,7 +341,7 @@ class EnhancedDynamicPowerControl(Component):
     DynamicCosPhiRef = float32(62246, word_order="little", writable=True)
 
 
-class SiteLimitControl(Component):
+class SiteLimitControl(WriteCachedComponent):
     """Power Control Options: Site Limit Control, read every polling cycle."""
 
     register_ranges = ((57344, 57347), (57362, 57363))
@@ -304,7 +352,7 @@ class SiteLimitControl(Component):
     Ext_Prod_Max = float32(57362, unit="W", word_order="little", writable=True)
 
 
-class StorageControl(Component):
+class StorageControl(WriteCachedComponent):
     """Power Control Options: Storage Control, read every polling cycle.
 
     command_timeout, command_mode, charge_limit, and discharge_limit
