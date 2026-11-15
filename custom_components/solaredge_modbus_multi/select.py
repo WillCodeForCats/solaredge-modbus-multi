@@ -116,7 +116,7 @@ class StorageControlMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "control_mode", new_mode
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class StorageACChargePolicy(SolarEdgeSelectBase):
@@ -159,7 +159,7 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "ac_charge_policy", new_mode
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class StorageDefaultMode(SolarEdgeSelectBase):
@@ -204,7 +204,7 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "default_mode", new_mode
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class StorageCommandMode(SolarEdgeSelectBase):
@@ -252,7 +252,7 @@ class StorageCommandMode(SolarEdgeSelectBase):
             new_mode,
             count_write=False,
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class SolaredgeLimitControlMode(SolarEdgeSelectBase):
@@ -301,7 +301,7 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
 
         set_bits = await self._platform.write_lim_ctl_mode_bits(0b111, set_mask)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class SolaredgeLimitControl(SolarEdgeSelectBase):
@@ -339,7 +339,7 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl", new_mode
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
 
 
 class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
@@ -380,4 +380,4 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "ReactivePwrConfig", new_mode
         )
-        self._async_schedule_refresh()
+        await self.coordinator.async_request_refresh()
