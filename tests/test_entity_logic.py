@@ -21,6 +21,7 @@ from custom_components.solaredge_modbus_multi.scanner import SolarEdgeDeviceScan
 from custom_components.solaredge_modbus_multi.select import SolaredgeLimitControlMode
 from custom_components.solaredge_modbus_multi.sensor import (
     HeatSinkTemperature,
+    SolarEdgeCommitControlSettings,
     SolarEdgeDefaultControlSettings,
     SolarEdgeRRCR,
     StatusVendor4,
@@ -273,25 +274,31 @@ def test_status_vendor4_availability(value, expected):
 
 
 @pytest.mark.parametrize(
+    ("cls", "register"),
+    [
+        (SolarEdgeCommitControlSettings, "CommitPwrCtlSettings"),
+        (SolarEdgeDefaultControlSettings, "RestorePwrCtlDefaults"),
+    ],
+)
+@pytest.mark.parametrize(
     ("value", "expected"),
     [
         (0, True),
+        (1, True),
         (-1, True),
-        (1, False),
+        (SunSpecNotImpl.INT16, False),
         (None, False),
     ],
 )
-def test_default_control_settings_availability(value, expected):
-    """Unavailable while showing the 1 the button wrote, until the next poll."""
+def test_control_settings_result_availability(cls, register, value, expected):
+    """Unavailable after a button press until the next poll reads the result."""
     platform = SimpleNamespace(
         uid_base="inverter_1",
         device_info=None,
         has_advanced_power_control=True,
-        advanced_power_control_data=SimpleNamespace(RestorePwrCtlDefaults=value),
+        advanced_power_control_data=SimpleNamespace(**{register: value}),
     )
-    entity = SolarEdgeDefaultControlSettings(
-        platform, None, SimpleNamespace(last_update_success=True)
-    )
+    entity = cls(platform, None, SimpleNamespace(last_update_success=True))
 
     with patch(
         "homeassistant.helpers.update_coordinator.CoordinatorEntity.available",
