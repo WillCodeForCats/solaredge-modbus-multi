@@ -23,7 +23,7 @@ from modbus_connection.mock import MockModbusConnection
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
+from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN, ConfName
 from custom_components.solaredge_modbus_multi.hub import (
     DeviceInvalid,
     DeviceNotResponding,
@@ -64,7 +64,7 @@ class _FakeInverter:
 
 
 def _make_hub(hass, entry_id, *, meters=False, batteries=False):
-    hass.data.setdefault(DOMAIN, {})["yaml"] = {}
+    hass.data[DATA_YAML] = {}
     return SolarEdgeModbusMultiHub(
         hass,
         entry_id,
