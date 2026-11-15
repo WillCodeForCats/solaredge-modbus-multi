@@ -17,6 +17,7 @@ from custom_components.solaredge_modbus_multi.components import (
     AdvancedPowerControl,
     StorageControl,
 )
+from custom_components.solaredge_modbus_multi.const import SunSpecNotImpl
 
 CONTROL_MODE = 57348
 
@@ -88,12 +89,19 @@ async def test_failed_write_not_kept(mock_modbus_unit: MockModbusUnit) -> None:
     assert component.control_mode == 1
 
 
-async def test_commit_register_not_kept(mock_modbus_unit: MockModbusUnit) -> None:
-    """Commit reads back a result code where 1 is an error, so it isn't kept."""
+@pytest.mark.parametrize(
+    ("field", "address"),
+    [("CommitPwrCtlSettings", 61696), ("RestorePwrCtlDefaults", 61697)],
+)
+async def test_command_shows_not_implemented_until_next_poll(
+    mock_modbus_unit: MockModbusUnit, field: str, address: int
+) -> None:
+    """A command shows "not implemented" until the next poll reads its result."""
     component = AdvancedPowerControl(mock_modbus_unit)
 
-    await component.write("CommitPwrCtlSettings", 1)
-    await component.write("RestorePwrCtlDefaults", 1)
+    await component.write(field, 1)
+    assert getattr(component, field) == SunSpecNotImpl.INT16
 
-    assert component.CommitPwrCtlSettings is None
-    assert component.RestorePwrCtlDefaults == 1
+    mock_modbus_unit.holding[address] = 0xFFFF
+    await component.async_update()
+    assert getattr(component, field) == -1
