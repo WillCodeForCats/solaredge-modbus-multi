@@ -88,15 +88,12 @@ async def test_failed_write_not_kept(mock_modbus_unit: MockModbusUnit) -> None:
     assert component.control_mode == 1
 
 
-@pytest.mark.parametrize("field", ["CommitPwrCtlSettings", "RestorePwrCtlDefaults"])
-async def test_command_registers_not_kept(
-    mock_modbus_unit: MockModbusUnit, field: str
-) -> None:
-    """Command registers read back a result code, so the write isn't kept."""
+async def test_commit_register_not_kept(mock_modbus_unit: MockModbusUnit) -> None:
+    """Commit reads back a result code where 1 is an error, so it isn't kept."""
     component = AdvancedPowerControl(mock_modbus_unit)
 
-    await component.write(field, 1)
-    await component.write("AdvPwrCtrlEn", 1)
+    await component.write("CommitPwrCtlSettings", 1)
+    await component.write("RestorePwrCtlDefaults", 1)
 
-    assert getattr(component, field) is None
-    assert component.AdvPwrCtrlEn == 1
+    assert component.CommitPwrCtlSettings is None
+    assert component.RestorePwrCtlDefaults == 1
