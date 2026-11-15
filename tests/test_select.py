@@ -38,10 +38,11 @@ SITE_LIMIT = [SolaredgeLimitControlMode, SolaredgeLimitControl]
 
 
 def _coordinator(last_update_success=True):
-    """Build a fake coordinator with a mocked refresh request."""
+    """Build a fake coordinator with mocked refresh and listener updates."""
     return SimpleNamespace(
         last_update_success=last_update_success,
         async_request_refresh=AsyncMock(),
+        async_update_listeners=MagicMock(),
     )
 
 
@@ -187,7 +188,7 @@ class TestStorageSelects:
         assert entity.available is False
 
     async def test_select_option(self, cls, field, options, value, kwargs):
-        """Selecting an option writes its key and requests a refresh."""
+        """Selecting an option writes its key and updates listeners."""
         entity, platform = self._entity(cls, field, 0)
 
         await entity.async_select_option(options[value])
@@ -195,7 +196,8 @@ class TestStorageSelects:
         platform.write.assert_awaited_once_with(
             platform.storage_control_data, field, value, **kwargs
         )
-        entity.coordinator.async_request_refresh.assert_awaited_once_with()
+        entity.coordinator.async_update_listeners.assert_called_once_with()
+        entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 @pytest.mark.parametrize("cls", [StorageDefaultMode, StorageCommandMode])
@@ -260,7 +262,8 @@ async def test_limit_control_mode_select_option(option, set_mask):
     await entity.async_select_option(option)
 
     platform.write_lim_ctl_mode_bits.assert_awaited_once_with(0b111, set_mask)
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 @pytest.mark.parametrize(
@@ -294,7 +297,8 @@ async def test_limit_control_current_and_select():
     platform.write.assert_awaited_once_with(
         platform.site_limit_control_data, "E_Lim_Ctl", 0
     )
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 @pytest.mark.parametrize(
@@ -329,4 +333,5 @@ async def test_reactive_power_mode_current_and_select():
     platform.write.assert_awaited_once_with(
         platform.advanced_power_control_data, "ReactivePwrConfig", 4
     )
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
