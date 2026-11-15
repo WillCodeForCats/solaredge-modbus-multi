@@ -16,7 +16,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import SunSpecAccum
+from custom_components.solaredge_modbus_multi.lib.const import SunSpecAccum
 from custom_components.solaredge_modbus_multi.sensor import (
     MeterVAhIE,
     MetervarhIE,

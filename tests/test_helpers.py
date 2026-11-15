@@ -1,14 +1,14 @@
-"""Tests for custom_components/solaredge_modbus_multi/helpers.py."""
+"""Tests for custom_components/solaredge_modbus_multi/helpers.py and lib/helpers.py."""
 
-from homeassistant.exceptions import HomeAssistantError
 import pytest
 
-from custom_components.solaredge_modbus_multi.helpers import (
+from custom_components.solaredge_modbus_multi.helpers import safe_version_tuple
+from custom_components.solaredge_modbus_multi.lib.exceptions import DeviceListError
+from custom_components.solaredge_modbus_multi.lib.helpers import (
     check_device_id,
     device_list_from_string,
     float_to_hex,
     host_valid,
-    safe_version_tuple,
 )
 
 
@@ -82,7 +82,7 @@ class TestDeviceListFromString:
     @pytest.mark.parametrize("value", ["0", "248"])
     def test_out_of_range_ids(self, value):
         """Test out of range ids."""
-        with pytest.raises(HomeAssistantError):
+        with pytest.raises(DeviceListError):
             device_list_from_string(value)
 
     def test_overlapping_entries(self):
@@ -91,22 +91,22 @@ class TestDeviceListFromString:
 
     def test_reversed_range(self):
         """Test reversed range."""
-        with pytest.raises(HomeAssistantError):
+        with pytest.raises(DeviceListError):
             device_list_from_string("5-3")
 
     def test_multi_dash_range(self):
         """Test multi dash range."""
-        with pytest.raises(HomeAssistantError):
+        with pytest.raises(DeviceListError):
             device_list_from_string("1-2-3")
 
     def test_non_numeric_id(self):
         """Test non numeric id."""
-        with pytest.raises(HomeAssistantError):
+        with pytest.raises(DeviceListError):
             device_list_from_string("abc")
 
     def test_empty_component(self):
         """Test empty component."""
-        with pytest.raises(HomeAssistantError):
+        with pytest.raises(DeviceListError):
             device_list_from_string("")
 
     def test_whitespace_is_tolerated(self):
@@ -144,10 +144,10 @@ class TestCheckDeviceId:
 
     def test_empty_string(self):
         """Test empty string."""
-        with pytest.raises(HomeAssistantError):
+        with pytest.raises(DeviceListError):
             check_device_id("")
 
     def test_non_numeric(self):
         """Test non numeric."""
-        with pytest.raises(HomeAssistantError):
+        with pytest.raises(DeviceListError):
             check_device_id("abc")

@@ -9,7 +9,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
+from .coordinator import SolarEdgeConfigEntry
+from .entity import SolarEdgeEntity
+from .lib.const import (
     LIMIT_CONTROL,
     LIMIT_CONTROL_MODE,
     REACTIVE_POWER_CONFIG,
@@ -18,8 +20,6 @@ from .const import (
     STORAGE_MODE,
     SunSpecNotImpl,
 )
-from .coordinator import SolarEdgeConfigEntry
-from .entity import SolarEdgeEntity
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ import itertools
 from modbus_connection.model import Component, RegisterField
 import pytest
 
-from custom_components.solaredge_modbus_multi import components
+from custom_components.solaredge_modbus_multi.lib import components
 
 
 def _component_classes() -> list[type[Component]]:

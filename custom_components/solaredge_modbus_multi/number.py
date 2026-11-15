@@ -16,10 +16,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import BatteryLimit, SunSpecNotImpl
+from .const import BatteryLimit
 from .coordinator import SolarEdgeConfigEntry
 from .entity import SolarEdgeEntity
-from .helpers import float_to_hex
+from .lib.const import SunSpecNotImpl
+from .lib.helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 

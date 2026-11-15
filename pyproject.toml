@@ -177,7 +177,7 @@ split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 # Field names mirror the SunSpec register map
-"custom_components/*/components.py" = ["N815"]
+"custom_components/*/lib/components.py" = ["N815"]
 
 # Relative imports within the integration
 "custom_components/*/*" = ["TID252"]

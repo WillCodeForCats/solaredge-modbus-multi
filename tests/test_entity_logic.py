@@ -11,11 +11,11 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import (
+from custom_components.solaredge_modbus_multi.lib.const import (
     LIMIT_CONTROL_MODE,
     SunSpecNotImpl,
 )
-from custom_components.solaredge_modbus_multi.scanner import SolarEdgeDeviceScanner
+from custom_components.solaredge_modbus_multi.lib.scanner import SolarEdgeDeviceScanner
 from custom_components.solaredge_modbus_multi.select import SolaredgeLimitControlMode
 from custom_components.solaredge_modbus_multi.sensor import (
     HeatSinkTemperature,

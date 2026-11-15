@@ -7,10 +7,10 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
-from .components import component_to_dict
 from .const import DATA_YAML
 from .coordinator import SolarEdgeConfigEntry
-from .helpers import float_to_hex
+from .lib.components import component_to_dict
+from .lib.helpers import float_to_hex
 
 REDACT_CONFIG = {"unique_id", "host"}
 REDACT_INVERTER = {"identifiers", "C_SerialNumber", "serial_number"}

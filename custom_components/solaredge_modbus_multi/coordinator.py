@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DATA_YAML, RetrySettings
+from .lib.exceptions import DataUpdateFailed, DataUpdateTimedOut, HubInitFailed
 
 if TYPE_CHECKING:
     from .hub import SolarEdgeModbusMultiHub
@@ -56,12 +57,6 @@ class SolarEdgeCoordinator(TimestampDataUpdateCoordinator):
 
     async def _async_update_data(self) -> bool:
         """Fetch new data from the hub, retrying with backoff on failure."""
-        from .hub import (  # noqa: PLC0415
-            DataUpdateFailed,
-            DataUpdateTimedOut,
-            HubInitFailed,
-        )
-
         try:
             return await self._refresh_modbus_data_with_retry(
                 ex_type=DataUpdateFailed,

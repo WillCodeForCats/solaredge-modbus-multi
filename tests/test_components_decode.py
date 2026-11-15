@@ -3,7 +3,7 @@
 from modbus_connection.mock import MockModbusUnit
 import pytest
 
-from custom_components.solaredge_modbus_multi.components import AdvancedPowerControl
+from custom_components.solaredge_modbus_multi.lib.components import AdvancedPowerControl
 
 # Add more later, this is just a starting point with a simple test.
 

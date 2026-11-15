@@ -22,9 +22,9 @@ from custom_components.solaredge_modbus_multi import (
     _async_migrate_legacy_der_entities,
     _async_remove_legacy_der_devices,
 )
-from custom_components.solaredge_modbus_multi.components import DERStorageCapacity
 from custom_components.solaredge_modbus_multi.const import DOMAIN
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeInverter
+from custom_components.solaredge_modbus_multi.lib.components import DERStorageCapacity
 from custom_components.solaredge_modbus_multi.sensor import (
     SolarEdgeDERStorageSOC,
     SolarEdgeDERStorageSOH,

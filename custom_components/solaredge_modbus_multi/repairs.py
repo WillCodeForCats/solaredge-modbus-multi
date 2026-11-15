@@ -10,13 +10,13 @@ from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 import voluptuous as vol
 
 from .config_flow import generate_config_schema
 from .const import DOMAIN, ConfDefaultStr, ConfName
-from .helpers import device_list_from_string, host_valid
+from .lib.exceptions import DeviceListError
+from .lib.helpers import device_list_from_string, host_valid
 
 
 class CheckConfigurationRepairFlow(RepairsFlow):
@@ -52,7 +52,7 @@ class CheckConfigurationRepairFlow(RepairsFlow):
                 inverter_count = len(
                     device_list_from_string(user_input[ConfName.DEVICE_LIST])
                 )
-            except HomeAssistantError as e:
+            except DeviceListError as e:
                 errors[ConfName.DEVICE_LIST] = f"{e}"
 
             else:

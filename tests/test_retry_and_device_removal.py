@@ -1,6 +1,6 @@
 """Tests for the retry helpers and device removal check.
 
-Covers async_update_with_retry/async_write_with_retry in hub.py, and
+Covers async_update_with_retry/async_write_with_retry in lib/retry.py, and
 SolarEdgeCoordinator's refresh retry in coordinator.py, and
 async_remove_config_entry_device in __init__.py.
 
@@ -17,15 +17,14 @@ from modbus_connection.model.sunspec import SunSpecError
 import pytest
 
 from custom_components.solaredge_modbus_multi import async_remove_config_entry_device
-from custom_components.solaredge_modbus_multi.const import (
-    DATA_YAML,
-    DOMAIN,
-    RetrySettings,
-)
+from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN
 from custom_components.solaredge_modbus_multi.coordinator import SolarEdgeCoordinator
-from custom_components.solaredge_modbus_multi.hub import (
+from custom_components.solaredge_modbus_multi.lib.const import REQUEST_RETRIES
+from custom_components.solaredge_modbus_multi.lib.exceptions import (
     DataUpdateFailed,
     DataUpdateTimedOut,
+)
+from custom_components.solaredge_modbus_multi.lib.retry import (
     async_suns_scan_with_retry,
     async_update_with_retry,
     async_write_with_retry,
@@ -35,7 +34,7 @@ ENTRY_DATA = {CONF_NAME: "SolarEdge", CONF_HOST: "127.0.0.1", CONF_PORT: 1502}
 
 
 def _retries() -> int:
-    return int(RetrySettings.RequestRetries)
+    return REQUEST_RETRIES
 
 
 async def test_update_with_retry_returns_after_one_successful_call():
@@ -115,7 +114,7 @@ async def test_write_with_retry_raises_last_error_when_exhausted():
 async def test_suns_scan_with_retry_recovers_from_transient_errors():
     """Test suns scan with retry recovers from transient errors."""
     with patch(
-        "custom_components.solaredge_modbus_multi.hub.suns_scan",
+        "custom_components.solaredge_modbus_multi.lib.retry.suns_scan",
         AsyncMock(side_effect=[ModbusTimeoutError(), "models"]),
     ) as scan:
         assert await async_suns_scan_with_retry("conn", 40000) == "models"
@@ -128,7 +127,7 @@ async def test_suns_scan_with_retry_raises_last_error_when_exhausted():
     """Test suns scan with retry raises last error when exhausted."""
     with (
         patch(
-            "custom_components.solaredge_modbus_multi.hub.suns_scan",
+            "custom_components.solaredge_modbus_multi.lib.retry.suns_scan",
             AsyncMock(side_effect=ModbusTimeoutError()),
         ) as scan,
         pytest.raises(ModbusTimeoutError),
@@ -142,7 +141,7 @@ async def test_suns_scan_with_retry_does_not_retry_sunspec_errors():
     """Test suns scan with retry does not retry SunSpec errors."""
     with (
         patch(
-            "custom_components.solaredge_modbus_multi.hub.suns_scan",
+            "custom_components.solaredge_modbus_multi.lib.retry.suns_scan",
             AsyncMock(side_effect=SunSpecError()),
         ) as scan,
         pytest.raises(SunSpecError),

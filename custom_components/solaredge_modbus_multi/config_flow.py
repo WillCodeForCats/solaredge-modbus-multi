@@ -36,8 +36,9 @@ from .const import (
     ConfDefaultStr,
     ConfName,
 )
-from .helpers import device_list_from_string, host_valid
-from .scanner import ScannerConnectionError, SolarEdgeDeviceScanner
+from .lib.exceptions import DeviceListError
+from .lib.helpers import device_list_from_string, host_valid
+from .lib.scanner import ScannerConnectionError, SolarEdgeDeviceScanner
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -379,7 +380,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     device_list = device_list_from_string(
                         user_input[ConfName.DEVICE_LIST]
                     )
-                except HomeAssistantError as e:
+                except DeviceListError as e:
                     errors[ConfName.DEVICE_LIST] = f"{e}"
                 else:
                     if not 1 <= len(device_list) <= 32:
@@ -439,7 +440,11 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 except (ScanOtherDeviceError, ScanNoResponseError) as e:
                     errors[ConfName.DEVICE_LIST] = f"{e}"
 
-                except (ScannerConnectionError, HomeAssistantError) as e:
+                except (
+                    ScannerConnectionError,
+                    DeviceListError,
+                    HomeAssistantError,
+                ) as e:
                     errors[CONF_HOST] = f"{e}"
 
                 else:
@@ -530,7 +535,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 inverter_count = len(
                     device_list_from_string(user_input[ConfName.DEVICE_LIST])
                 )
-            except HomeAssistantError as e:
+            except DeviceListError as e:
                 errors[ConfName.DEVICE_LIST] = f"{e}"
 
             else:

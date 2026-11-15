@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import SunSpecNotImpl
+from custom_components.solaredge_modbus_multi.lib.const import SunSpecNotImpl
 from custom_components.solaredge_modbus_multi.switch import (
     SolarEdgeExternalProduction,
     SolarEdgeGridControl,

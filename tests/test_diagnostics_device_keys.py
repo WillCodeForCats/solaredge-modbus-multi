@@ -6,7 +6,11 @@ from modbus_connection.mock import MockModbusConnection
 from modbus_connection.model.sunspec import SunSpecModel, SunSpecModels
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi.components import (
+from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN
+from custom_components.solaredge_modbus_multi.diagnostics import (
+    async_get_config_entry_diagnostics,
+)
+from custom_components.solaredge_modbus_multi.lib.components import (
     AdvancedPowerControl,
     BatteryData,
     BatteryInfo,
@@ -21,10 +25,6 @@ from custom_components.solaredge_modbus_multi.components import (
     MmpptData,
     SiteLimitControl,
     StorageControl,
-)
-from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN
-from custom_components.solaredge_modbus_multi.diagnostics import (
-    async_get_config_entry_diagnostics,
 )
 
 

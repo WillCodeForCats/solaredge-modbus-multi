@@ -11,11 +11,11 @@ from modbus_connection.exceptions import (
 from modbus_connection.mock import MockModbusConnection
 import pytest
 
-from custom_components.solaredge_modbus_multi.components import (
-    GlobalDynamicPowerControl,
-)
 from custom_components.solaredge_modbus_multi.const import DATA_YAML
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
+from custom_components.solaredge_modbus_multi.lib.components import (
+    GlobalDynamicPowerControl,
+)
 
 ENTRY_DATA = {
     CONF_NAME: "SolarEdge",

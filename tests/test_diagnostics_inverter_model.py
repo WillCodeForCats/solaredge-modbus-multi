@@ -2,14 +2,14 @@
 
 from modbus_connection.mock import MockModbusConnection
 
-from custom_components.solaredge_modbus_multi.components import (
+from custom_components.solaredge_modbus_multi.diagnostics import _inverter_model
+from custom_components.solaredge_modbus_multi.lib.components import (
     AdvancedPowerControl,
     GlobalDynamicPowerControl,
     InverterData,
     MmpptData,
     SiteLimitControl,
 )
-from custom_components.solaredge_modbus_multi.diagnostics import _inverter_model
 
 
 class _FakeInverter:

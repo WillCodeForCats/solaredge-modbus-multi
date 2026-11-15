@@ -33,7 +33,7 @@ from custom_components.solaredge_modbus_multi.const import (
     SETUP_TYPE,
     ConfName,
 )
-from custom_components.solaredge_modbus_multi.scanner import ScannerConnectionError
+from custom_components.solaredge_modbus_multi.lib.scanner import ScannerConnectionError
 
 SCAN_INPUT = {CONF_NAME: "My Site", CONF_HOST: "192.168.1.50", CONF_PORT: 1502}
 

@@ -15,7 +15,7 @@ from custom_components.solaredge_modbus_multi.binary_sensor import (
     InverterProblem,
     async_setup_entry,
 )
-from custom_components.solaredge_modbus_multi.const import (
+from custom_components.solaredge_modbus_multi.lib.const import (
     VENDOR4_STATUS,
     VENDOR_STATUS,
     SunSpecNotImpl,

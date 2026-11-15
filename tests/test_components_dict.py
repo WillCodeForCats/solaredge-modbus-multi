@@ -2,7 +2,7 @@
 
 from modbus_connection.mock import MockModbusConnection
 
-from custom_components.solaredge_modbus_multi.components import (
+from custom_components.solaredge_modbus_multi.lib.components import (
     BatteryInfo,
     GlobalDynamicPowerControl,
     component_field_names,

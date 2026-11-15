@@ -16,12 +16,12 @@ from custom_components.solaredge_modbus_multi.const import (
     ConfDefaultInt,
     ConfName,
 )
-from custom_components.solaredge_modbus_multi.hub import (
+from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
+from custom_components.solaredge_modbus_multi.lib.exceptions import (
     DataUpdateFailed,
     DataUpdateTimedOut,
     DeviceInvalid,
     HubInitFailed,
-    SolarEdgeModbusMultiHub,
 )
 
 ENTRY_DATA = {
