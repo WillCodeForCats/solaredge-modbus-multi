@@ -1,0 +1,227 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolarEdge Modbus 設定",
+        "menu_options": {
+          "scan_fast": "快速掃描逆變器",
+          "scan_full": "完整掃描逆變器",
+          "manual_list": "手動設定"
+        },
+        "menu_option_descriptions": {
+          "scan_fast": "掃描前 32 個 Modbus 裝置 ID（1-32）",
+          "scan_full": "掃描所有 Modbus 裝置 ID（1-247）",
+          "manual_list": "手動輸入逆變器裝置 ID 清單"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "發現 SolarEdge 逆變器",
+        "description": "在 {host}:{port} 發現 SolarEdge Modbus/TCP 閘道器。要現在設定嗎？",
+        "data": {
+          "name": "感測器前綴"
+        },
+        "data_description": {
+          "name": "加在每個裝置名稱的開頭，後面接裝置代號，例如 I1 代表 1 號逆變器。實體 ID 會依這些名稱產生。"
+        }
+      },
+      "manual": {
+        "title": "手動 Modbus 設定",
+        "data": {
+          "name": "感測器前綴",
+          "host": "逆變器 IP 位址",
+          "port": "Modbus/TCP 連接埠",
+          "device_list": "逆變器裝置 ID 清單",
+          "bypass_device_check": "略過裝置 ID 驗證"
+        },
+        "data_description": {
+          "name": "加在每個裝置名稱的開頭，後面接裝置代號，例如 I1 代表 1 號逆變器。實體 ID 會依這些名稱產生。",
+          "host": "已啟用 Modbus/TCP 的逆變器 IP 位址或主機名稱。若有多台逆變器，請使用主控逆變器。",
+          "port": "逆變器上設定的 Modbus/TCP 連接埠。SolarEdge 預設為 1502。",
+          "device_list": "逆變器的 Modbus 裝置 ID。可使用清單（1,3,10）、範圍（1-4），或兩者併用（1-3,5,10）。單一逆變器通常使用 1。",
+          "bypass_device_check": "不經連線檢查各 ID 是否以 SolarEdge 逆變器回應，直接加入裝置 ID 清單。僅在已確定某個裝置正確、但檢查失敗時使用，例如設定期間該裝置處於離線狀態。"
+        }
+      },
+      "scan_ask_host": {
+        "title": "掃描 SolarEdge 逆變器",
+        "data": {
+          "name": "感測器前綴",
+          "host": "逆變器 IP 位址",
+          "port": "Modbus/TCP 連接埠"
+        },
+        "data_description": {
+          "name": "加在每個裝置名稱的開頭，後面接裝置代號，例如 I1 代表 1 號逆變器。實體 ID 會依這些名稱產生。",
+          "host": "已啟用 Modbus/TCP 的逆變器 IP 位址或主機名稱。若有多台逆變器，請使用主控逆變器。",
+          "port": "逆變器上設定的 Modbus/TCP 連接埠。SolarEdge 預設為 1502。"
+        }
+      },
+      "scan_complete": {
+        "title": "掃描完成"
+      },
+      "features_info": {
+        "title": "電池與控制功能尚未啟用",
+        "description": "預設只會啟用 SolarEdge 官方有公開文件的功能：逆變器、Synergy 逆變器與電表。\n\n電池監控與所有讀寫控制功能（電池控制、案場限制控制）所依據的文件並未由 SolarEdge 公開。這些功能預設為停用，須在新增此中樞後，從整合的設定選項中另外開啟。\n\n並非所有逆變器都支援透過 Modbus 使用這些功能。您可能需要聯絡 SolarEdge 支援，請對方為您的安裝開放電池與控制存取。"
+      },
+      "reconfigure": {
+        "title": "SolarEdge Modbus 設定",
+        "data": {
+          "host": "逆變器 IP 位址",
+          "port": "Modbus/TCP 連接埠",
+          "device_list": "逆變器裝置 ID 清單"
+        },
+        "data_description": {
+          "host": "已啟用 Modbus/TCP 的逆變器 IP 位址或主機名稱。若有多台逆變器，請使用主控逆變器。",
+          "port": "逆變器上設定的 Modbus/TCP 連接埠。SolarEdge 預設為 1502。",
+          "device_list": "逆變器的 Modbus 裝置 ID。可使用清單（1,3,10）、範圍（1-4），或兩者併用（1-3,5,10）。單一逆變器通常使用 1。"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "裝置已設定！",
+      "invalid_device_id": "裝置 ID 必須介於 1 到 247 之間。",
+      "invalid_inverter_count": "逆變器數量必須介於 1 到 32 台之間。",
+      "invalid_host": "IP 位址無效。",
+      "invalid_tcp_port": "有效的連接埠範圍為 1 到 65535。",
+      "invalid_range_format": "輸入內容看起來像範圍，但每個範圍只允許一個「-」。",
+      "invalid_range_lte": "範圍的起始 ID 必須小於或等於結束 ID。",
+      "empty_device_id": "ID 清單含有空白或未定義的值。",
+      "scan_failed": "掃描逆變器失敗。請檢查連線後再試一次。"
+    },
+    "abort": {
+      "already_configured": "此主機與連接埠已在另一個中樞中設定。",
+      "cannot_connect": "無法連線到所發現的裝置。",
+      "reconfigure_successful": "重新設定成功"
+    },
+    "progress": {
+      "scanning_for_inverters": "正在掃描 SolarEdge 逆變器…"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SolarEdge Modbus 選項",
+        "data": {
+          "scan_interval": "輪詢頻率（秒）",
+          "close_after_polling": "輪詢後關閉連線",
+          "detect_meters": "自動偵測電表",
+          "detect_batteries": "自動偵測電池",
+          "detect_extras": "自動偵測其他實體",
+          "advanced_power_control": "功率控制選項",
+          "request_timeout": "Modbus 請求逾時（秒）",
+          "sleep_after_write": "逆變器指令延遲（秒）"
+        },
+        "data_description": {
+          "scan_interval": "每隔多久（秒）從逆變器讀取一次資料。",
+          "close_after_polling": "每次輪詢成功後關閉 Modbus/TCP 連線。若還有其他裝置或程式也連線到逆變器，請啟用此選項，因為逆變器一次只接受一個連線。",
+          "detect_meters": "整合啟動時，尋找連接到各逆變器的電表。",
+          "detect_batteries": "整合啟動時，尋找連接到各逆變器的電池。電池支援使用的是 SolarEdge 未正式公開文件的暫存器。",
+          "detect_extras": "檢查各逆變器是否支援全域動態功率控制（Global Dynamic Power Control）與進階功率控制（Advanced Power Control），找到時會加入其實體。",
+          "advanced_power_control": "接著顯示「功率控制選項」步驟，用來開啟或關閉儲能控制與案場限制控制。",
+          "request_timeout": "等待每個 Modbus 請求回覆的時間（秒）。",
+          "sleep_after_write": "對逆變器寫入指令後，到下一次對該逆變器發出請求之間要等待的秒數。部分逆變器需要時間處理指令後才會再次回應。設為 0 表示停用。"
+        }
+      },
+      "adv_pwr_ctl": {
+        "title": "功率控制選項",
+        "data": {
+          "adv_storage_control": "啟用儲能控制",
+          "adv_site_limit_control": "啟用案場限制控制"
+        },
+        "data_description": {
+          "adv_storage_control": "新增可變更逆變器上電池儲能控制設定的實體。",
+          "adv_site_limit_control": "新增可變更逆變器上案場輸出與發電限制設定的實體。"
+        },
+        "description": "警告：這些選項可能違反電力公司的合約、改變您的電費計算、可能需要特殊器材，並會覆寫 SolarEdge 或安裝商的預先設定。請自行承擔風險！Modbus 暫存器中可調整的參數是設計用於長期儲存，定期變更可能會損壞快閃記憶體。"
+      },
+      "battery_options": {
+        "title": "電池選項",
+        "data": {
+          "allow_battery_energy_reset": "允許電池電量重置",
+          "battery_energy_reset_cycles": "重置電池電量所需的更新週期數",
+          "battery_rating_adjust": "電池額定值調整（百分比）"
+        },
+        "data_description": {
+          "allow_battery_energy_reset": "部分電池回報的電量累計值會下降或歸零。關閉時，較低的值會被忽略並保留上一個值；開啟時，則會接受較低的值。",
+          "battery_energy_reset_cycles": "電池電量較低的值必須連續出現幾次輪詢才會被接受。僅在開啟「允許電池電量重置」時使用。",
+          "battery_rating_adjust": "電池可用電量超出其額定電量多少百分比，才會被視為無效值。若您的電池回報的電量超過其額定值，請使用此選項。"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "有效間隔為 1 到 86400 秒。",
+      "invalid_request_timeout": "有效間隔為 1 到 60 秒。",
+      "invalid_sleep_interval": "有效間隔為 0 到 60 秒。",
+      "invalid_percent": "有效範圍為 0 到 100 百分比。"
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "檢查 Modbus 設定",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "檢查 Modbus 設定",
+            "description": "嘗試開啟 Modbus/TCP 連線時發生錯誤。\n\n請確認您的設定。",
+            "data": {
+              "host": "逆變器 IP 位址",
+              "port": "Modbus/TCP 連接埠",
+              "device_list": "逆變器裝置 ID 清單"
+            },
+            "data_description": {
+              "host": "已啟用 Modbus/TCP 的逆變器 IP 位址或主機名稱。若有多台逆變器，請使用主控逆變器。",
+              "port": "逆變器上設定的 Modbus/TCP 連接埠。SolarEdge 預設為 1502。",
+              "device_list": "逆變器的 Modbus 裝置 ID。可使用清單（1,3,10）、範圍（1-4），或兩者併用（1-3,5,10）。單一逆變器通常使用 1。"
+            }
+          }
+        },
+        "error": {
+          "invalid_device_id": "裝置 ID 必須介於 1 到 247 之間。",
+          "invalid_inverter_count": "逆變器數量必須介於 1 到 32 台之間。",
+          "invalid_host": "IP 位址無效。",
+          "invalid_tcp_port": "有效的連接埠範圍為 1 到 65535。",
+          "invalid_range_format": "輸入內容看起來像範圍，但每個範圍只允許一個「-」。",
+          "invalid_range_lte": "範圍的起始 ID 必須小於或等於結束 ID。",
+          "empty_device_id": "ID 清單含有空白或未定義的值。",
+          "already_configured": "此主機與連接埠已在另一個中樞中設定。"
+        }
+      }
+    },
+    "setup_inverter_id_failed": {
+      "title": "逆變器裝置 ID 無效",
+      "description": "位於 {host} 的逆變器裝置 ID {device_id} 沒有回應，或不是有效的 SolarEdge 逆變器，已略過。若裝置已更換或其 ID 已變更，請在中樞設定中更新逆變器裝置 ID 清單；否則請檢查裝置與 Modbus/TCP 連線。"
+    },
+    "setup_timed_out": {
+      "title": "設定逾時",
+      "description": "位於 {host} 的中樞未能在 {timeout} 秒內完成設定，當時正在等待裝置 ID {device_id}。請檢查裝置與 Modbus/TCP 連線。若裝置已移除或其 ID 已變更，請在中樞設定中更新逆變器裝置 ID 清單。Home Assistant 記錄會顯示設定當時在等待哪個步驟。"
+    },
+    "detect_timeout_gpc": {
+      "title": "全域動態功率控制逾時（逆變器 {device_id}）",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "全域動態功率控制逾時",
+            "description": "位於 {host} 的逆變器裝置 ID {device_id} 在讀取全域動態功率控制資料時，嘗試多次後仍未回應。在問題解決前，這些實體將無法使用。\n\n確認後，會在下次輪詢時再次嘗試偵測此功能。若逆變器在讀取這些感測器時有問題，請停用「自動偵測其他實體」選項。"
+          }
+        }
+      }
+    },
+    "detect_timeout_apc": {
+      "title": "進階功率控制逾時（逆變器 {device_id}）",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "進階功率控制逾時",
+            "description": "位於 {host} 的逆變器裝置 ID {device_id} 在讀取進階功率控制資料時，嘗試多次後仍未回應。在問題解決前，這些實體將無法使用。\n\n確認後，會在下次輪詢時再次嘗試偵測此功能。若逆變器在讀取這些感測器時有問題，請停用「自動偵測其他實體」選項。"
+          }
+        }
+      }
+    },
+    "deprecated_yaml_modbus": {
+      "title": "不再支援 Modbus YAML 設定",
+      "description": "`configuration.yaml` 中 `solaredge_modbus_multi` 底下的 `modbus` 區段已不再支援，並會被忽略。請將它從您的 YAML 設定中移除。"
+    },
+    "deprecated_keep_modbus_open": {
+      "title": "「保持 Modbus 連線開啟」選項已被取代",
+      "description": "「保持 Modbus 連線開啟」選項已被此整合設定中的「輪詢後關閉連線」取代。若需要相同的行為，請查看新的選項。"
+    }
+  }
+}
