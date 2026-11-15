@@ -141,27 +141,40 @@ async def test_pr_412_duplicate_meter_serial_is_allowed(hass, caplog):
 
 
 @pytest.mark.parametrize(
-    ("units", "did", "is_mmppt", "meter_base"),
+    ("units", "did", "is_mmppt"),
     [
-        (2, 160, True, 40121 + 50),
-        (3, 160, True, 40121 + 70),
-        (4, 160, False, 40121),
-        (2, 0xFFFF, False, 40121),
-        (2, 161, False, 40121),
+        (2, 160, True),
+        (3, 160, True),
+        (4, 160, False),
+        (2, 0xFFFF, False),
+        (2, 161, False),
     ],
 )
-async def test_pr_92_320_mmppt_validation(hass, units, did, is_mmppt, meter_base):
-    """Only model 160 with 2 or 3 units is MMPPT, and only then are meters moved."""
+async def test_pr_92_320_mmppt_validation(hass, units, did, is_mmppt):
+    """Only model 160 with 2 or 3 units is MMPPT."""
     connection, unit = _single_inverter()
     put(unit, MmpptCommon, {"mmppt_DID": did, "mmppt_Units": units})
+
+    hub = await _init_hub(hass, connection, {ConfName.DETECT_METERS: False})
+
+    inverter = hub.inverters[0]
+    assert inverter.mmppt_common.mmppt_DID == did
+    assert inverter.mmppt_common.mmppt_Units == units
+    assert inverter.is_mmppt is is_mmppt
+    assert len(inverter.mmppt_units) == (units if is_mmppt else 0)
+
+
+@pytest.mark.parametrize(("units", "meter_base"), [(2, 40121 + 50), (3, 40121 + 70)])
+async def test_pr_92_320_meters_move_after_mmppt_block(hass, units, meter_base):
+    """Meters start after the MMPPT block, which grows with the unit count."""
+    connection, unit = _single_inverter()
+    put(unit, MmpptCommon, {"mmppt_DID": 160, "mmppt_Units": units})
     put(unit, MeterInfo, METER_INFO, offset=meter_base - 40121)
     put(unit, MeterData, METER_DATA, offset=meter_base - 40121)
 
     hub = await _init_hub(hass, connection, {ConfName.DETECT_METERS: True})
 
-    inverter = hub.inverters[0]
-    assert inverter.is_mmppt is is_mmppt
-    assert len(inverter.mmppt_units) == (units if is_mmppt else 0)
+    assert hub.inverters[0].is_mmppt
     assert [m.meter_id for m in hub.meters] == [1]
     assert hub.meters[0].start_address == meter_base
 
