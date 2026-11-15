@@ -13,6 +13,9 @@ features (read/write battery and limit controls) can be enabled by configuring t
 Home Assistant. Support for batteries and controls is from documentation not publicly available from SolarEdge
 or through user discovery not supported by SolarEdge.
 
+All known modbus data has been added to this integration. If something is missing it's because there isn't
+any modbus data available for it, or it hasn't been discovered yet in modbus captures.
+
 ## Features
 
 - Home Assistant Auto Discovery (Zeroconf) support.
