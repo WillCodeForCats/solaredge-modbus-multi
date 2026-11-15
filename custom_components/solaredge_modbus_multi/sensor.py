@@ -2838,9 +2838,6 @@ class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
             super().available
             and self._platform.advanced_power_control_data.CommitPwrCtlSettings
             is not None
-            # The button was pressed and the result has not been polled yet.
-            and self._platform.advanced_power_control_data.CommitPwrCtlSettings
-            != SunSpecNotImpl.INT16
         )
 
     @property
@@ -2885,9 +2882,6 @@ class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
             super().available
             and self._platform.advanced_power_control_data.RestorePwrCtlDefaults
             is not None
-            # The button was pressed and the result has not been polled yet.
-            and self._platform.advanced_power_control_data.RestorePwrCtlDefaults
-            != SunSpecNotImpl.INT16
         )
 
     @property

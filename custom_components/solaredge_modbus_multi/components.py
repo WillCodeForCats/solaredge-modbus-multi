@@ -11,8 +11,6 @@ Exceptions:
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from types import MappingProxyType
 from typing import Any
 
 from modbus_connection.model import (
@@ -26,8 +24,6 @@ from modbus_connection.model import (
     uint64,
 )
 from modbus_connection.model.sunspec import SunSpecComponent, enum16, sunssf, uint16
-
-from .const import SunSpecNotImpl
 
 _ASCII_CTRL_CHARS = dict.fromkeys(range(32))
 
@@ -139,12 +135,14 @@ class WriteCachedComponent(Component):
     """
 
     # Command registers read back a result code instead of the value written.
-    # Until the next poll these show the value given here, not the written one.
-    command_fields: Mapping[str, Any] = MappingProxyType({})
+    # Until the next poll reads the result, these show None (no value yet).
+    command_fields: frozenset[str] = frozenset()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the component."""
-        self._written: dict[str, Any] = {}
+        # Field name to (value to show, write number).
+        self._written: dict[str, tuple[Any, int]] = {}
+        self._write_number = 0
         super().__init__(*args, **kwargs)
 
     def __getattribute__(self, name: str) -> Any:
@@ -152,25 +150,31 @@ class WriteCachedComponent(Component):
         if name in type(self).declared_fields:
             written = super().__getattribute__("_written")
             if name in written:
-                return written[name]
+                return written[name][0]
         return super().__getattribute__(name)
 
     async def write(self, field: str, value: Any) -> None:
         """Write a field and keep the value until the next poll."""
         await super().write(field, value)
-        self._written[field] = self.command_fields.get(field, value)
+        self._write_number += 1
+        shown = None if field in self.command_fields else value
+        self._written[field] = (shown, self._write_number)
 
     async def async_update(self, *, notify: bool = True) -> None:
-        """Poll the component, then use the polled values again."""
-        # Writes that finish during this poll go into the new dict and are kept.
-        pending, self._written = self._written, {}
-        try:
-            await super().async_update(notify=notify)
-        except BaseException:
-            # The poll failed, so keep showing the written values. A newer
-            # write made during the failed poll wins.
-            self._written = pending | self._written
-            raise
+        """Poll the component, then use the polled values again.
+
+        Written values are shown while the poll runs. A failed poll keeps all
+        of them. After a successful poll, only values written before it started
+        are dropped: a write that finished during the poll may have come after
+        the poll read that register.
+        """
+        poll_started_after = self._write_number
+        await super().async_update(notify=notify)
+        self._written = {
+            field: entry
+            for field, entry in self._written.items()
+            if entry[1] > poll_started_after
+        }
 
 
 class GlobalDynamicPowerControl(WriteCachedComponent):
@@ -194,15 +198,8 @@ class AdvancedPowerControl(WriteCachedComponent):
 
     max_span = 120
 
-    # Writing 1 runs the command and reading back gives its result code. Until
-    # the next poll reads the result, show "not implemented", which neither
-    # command returns as a result.
-    command_fields = MappingProxyType(
-        {
-            "CommitPwrCtlSettings": SunSpecNotImpl.INT16,
-            "RestorePwrCtlDefaults": SunSpecNotImpl.INT16,
-        }
-    )
+    # Writing 1 runs the command and reading back gives its result code.
+    command_fields = frozenset({"CommitPwrCtlSettings", "RestorePwrCtlDefaults"})
 
     CommitPwrCtlSettings = integer(61696, signed=True, writable=True)
     RestorePwrCtlDefaults = integer(61697, signed=True, writable=True)
