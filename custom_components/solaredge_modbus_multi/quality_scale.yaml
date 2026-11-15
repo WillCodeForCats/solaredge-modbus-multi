@@ -41,9 +41,7 @@ rules:
   reauthentication-flow:
     status: exempt
     comment: Modbus/TCP has no authentication.
-  test-coverage:
-    status: todo
-    comment: Coverage has not been measured against the 95% requirement.
+  test-coverage: done
 
   # Gold
   devices: done
