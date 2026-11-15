@@ -35,6 +35,7 @@ from custom_components.solaredge_modbus_multi.sensor import (
 def _platform(*ders, scan_ids=None):
     return SimpleNamespace(
         uid_base="inv",
+        device_info=None,
         der_storage=list(ders),
         der_storage_scan_ids=(
             list(scan_ids) if scan_ids else list(range(1, len(ders) + 1))
@@ -233,9 +234,7 @@ async def test_legacy_der_device_and_its_entities_removed(hass):
     assert entity_registry.async_get(model_sensor.entity_id) is None
     # the entity on the inverter device and the inverter device survive
     assert entity_registry.async_get(soc.entity_id) is not None
-    assert device_registry.async_get_device_by_identifier(
-        (DOMAIN, "inv"), entry.entry_id
-    )
+    assert device_registry.async_get_device(identifiers={(DOMAIN, "inv")})
 
 
 async def test_legacy_device_kept_when_no_der_block_found(hass):
@@ -261,12 +260,8 @@ async def test_other_devices_not_removed(hass):
     _async_remove_legacy_der_devices(hass, entry, hub)
 
     # DERB2 is not one of the blocks found, so it is left alone
-    assert device_registry.async_get_device_by_identifier(
-        (DOMAIN, "inv_DERB2"), entry.entry_id
-    )
-    assert device_registry.async_get_device_by_identifier(
-        (DOMAIN, "inv"), entry.entry_id
-    )
+    assert device_registry.async_get_device(identifiers={(DOMAIN, "inv_DERB2")})
+    assert device_registry.async_get_device(identifiers={(DOMAIN, "inv")})
 
 
 async def test_legacy_der_soc_keeps_entity_id_and_unsupported_removed(hass):
