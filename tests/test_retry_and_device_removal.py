@@ -254,6 +254,28 @@ async def test_coordinator_still_retries_a_failed_update(hass):
     assert refresh.await_count == RetrySettings.Limit
 
 
+async def test_coordinator_update_fails_after_yaml_retry_limit(hass):
+    """Test a refresh that keeps failing fails the update after the YAML limit.
+
+    The retry limit, first wait, and wait ratio come from the YAML config.
+    """
+    refresh = AsyncMock(side_effect=DataUpdateFailed("inverter offline"))
+    coordinator = _make_coordinator(hass, refresh)
+    coordinator._yaml_config = {"retry": {"limit": 3, "time": 50, "ratio": 3}}
+
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.coordinator.asyncio.sleep",
+            new=AsyncMock(),
+        ) as sleep,
+        pytest.raises(UpdateFailed, match="inverter offline"),
+    ):
+        await coordinator._async_update_data()
+
+    assert refresh.await_count == 3
+    assert [call.args[0] for call in sleep.await_args_list] == [0.05, 0.15]
+
+
 def _device(*identifiers):
     return SimpleNamespace(device_info={"identifiers": set(identifiers)})
 
