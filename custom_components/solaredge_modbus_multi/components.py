@@ -11,6 +11,8 @@ Exceptions:
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Any
 
 from modbus_connection.model import (
@@ -24,6 +26,8 @@ from modbus_connection.model import (
     uint64,
 )
 from modbus_connection.model.sunspec import SunSpecComponent, enum16, sunssf, uint16
+
+from .const import SunSpecNotImpl
 
 _ASCII_CTRL_CHARS = dict.fromkeys(range(32))
 
@@ -134,9 +138,9 @@ class WriteCachedComponent(Component):
     the polled values are used again.
     """
 
-    # Command registers that read back a status code instead of the value
-    # written. These always use the polled value.
-    uncached_fields: frozenset[str] = frozenset()
+    # Command registers read back a result code instead of the value written.
+    # Until the next poll these show the value given here, not the written one.
+    command_fields: Mapping[str, Any] = MappingProxyType({})
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the component."""
@@ -154,8 +158,7 @@ class WriteCachedComponent(Component):
     async def write(self, field: str, value: Any) -> None:
         """Write a field and keep the value until the next poll."""
         await super().write(field, value)
-        if field not in self.uncached_fields:
-            self._written[field] = value
+        self._written[field] = self.command_fields.get(field, value)
 
     async def async_update(self, *, notify: bool = True) -> None:
         """Poll the component, then use the polled values again."""
@@ -191,10 +194,15 @@ class AdvancedPowerControl(WriteCachedComponent):
 
     max_span = 120
 
-    # Writing 1 runs the command; reading back gives its result code, and 1 is
-    # one of them (internal error). RestorePwrCtlDefaults is kept: its results
-    # are 0 and 0xFFFF, so its sensor treats a 1 as waiting for the next poll.
-    uncached_fields = frozenset({"CommitPwrCtlSettings"})
+    # Writing 1 runs the command and reading back gives its result code. Until
+    # the next poll reads the result, show "not implemented", which neither
+    # command returns as a result.
+    command_fields = MappingProxyType(
+        {
+            "CommitPwrCtlSettings": SunSpecNotImpl.INT16,
+            "RestorePwrCtlDefaults": SunSpecNotImpl.INT16,
+        }
+    )
 
     CommitPwrCtlSettings = integer(61696, signed=True, writable=True)
     RestorePwrCtlDefaults = integer(61697, signed=True, writable=True)
