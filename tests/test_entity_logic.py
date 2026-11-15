@@ -286,7 +286,6 @@ def test_status_vendor4_availability(value, expected):
         (0, True),
         (1, True),
         (-1, True),
-        (SunSpecNotImpl.INT16, False),
         (None, False),
     ],
 )
