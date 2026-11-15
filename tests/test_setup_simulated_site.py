@@ -18,12 +18,13 @@ from homeassistant.helpers import (
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.solaredge_modbus_multi.components import InverterData
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
 from custom_components.solaredge_modbus_multi.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 
-from .simulated_site import simulated_site
+from .simulated_site import put, simulated_site
 
 ENTRY_DATA = {
     "name": "SolarEdge",
@@ -203,10 +204,15 @@ async def test_every_entity_has_a_state(hass, connection):
     for entity in entities:
         assert hass.states.get(entity.entity_id) is not None, entity.entity_id
 
-    # a coordinator refresh updates every entity again
+    # a coordinator refresh reads new values; the reload made a new connection
+    ac_power = "SE10K-RWS_7E123456_ac_power"
+    assert _state(hass, entry, ac_power).state == "4950"
+    put(connection[-1].for_unit(1), InverterData, {"AC_Power": 3210})
+
     await entry.runtime_data.coordinator.async_refresh()
     await hass.async_block_till_done()
     assert entry.runtime_data.coordinator.last_update_success
+    assert _state(hass, entry, ac_power).state == "3210"
 
 
 async def test_unload(hass, connection):
