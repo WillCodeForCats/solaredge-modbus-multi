@@ -191,8 +191,10 @@ class AdvancedPowerControl(WriteCachedComponent):
 
     max_span = 120
 
-    # Writing 1 runs the command; reading back gives its result code.
-    uncached_fields = frozenset({"CommitPwrCtlSettings", "RestorePwrCtlDefaults"})
+    # Writing 1 runs the command; reading back gives its result code, and 1 is
+    # one of them (internal error). RestorePwrCtlDefaults is kept: its results
+    # are 0 and 0xFFFF, so its sensor treats a 1 as waiting for the next poll.
+    uncached_fields = frozenset({"CommitPwrCtlSettings"})
 
     CommitPwrCtlSettings = integer(61696, signed=True, writable=True)
     RestorePwrCtlDefaults = integer(61697, signed=True, writable=True)

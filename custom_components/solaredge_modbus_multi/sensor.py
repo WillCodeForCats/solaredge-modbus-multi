@@ -2882,6 +2882,8 @@ class SolarEdgeDefaultControlSettings(SolarEdgeAdvancedPowerControlBlock):
             super().available
             and self._platform.advanced_power_control_data.RestorePwrCtlDefaults
             is not None
+            # 1 is the value the button wrote, not a result. Wait for the next poll.
+            and self._platform.advanced_power_control_data.RestorePwrCtlDefaults != 1
         )
 
     @property
