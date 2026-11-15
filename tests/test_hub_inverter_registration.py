@@ -11,7 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfoError
 from modbus_connection.mock import MockModbusConnection
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import DOMAIN
+from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN
 from custom_components.solaredge_modbus_multi.hub import (
     HubInitFailed,
     SolarEdgeInverter,
@@ -20,7 +20,7 @@ from custom_components.solaredge_modbus_multi.hub import (
 
 
 def _make_hub(hass):
-    hass.data.setdefault(DOMAIN, {})["yaml"] = {}
+    hass.data[DATA_YAML] = {}
     entry_data = {CONF_NAME: "SolarEdge", CONF_HOST: "127.0.0.1", CONF_PORT: 1502}
     return SolarEdgeModbusMultiHub(
         hass, "test_entry", entry_data, {}, MockModbusConnection()
