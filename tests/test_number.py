@@ -77,9 +77,7 @@ def _platform(**kwargs):
             E_Lim_Ctl_Mode=0b1, E_Site_Limit=4000.0, Ext_Prod_Max=3000.0
         ),
         global_power_control_data=SimpleNamespace(I_Power_Limit=80, I_CosPhi=0.94),
-        advanced_power_control_data=SimpleNamespace(
-            PowerReduce=60.4, MaxCurrent=32.6
-        ),
+        advanced_power_control_data=SimpleNamespace(PowerReduce=60.4, MaxCurrent=32.6),
         write=AsyncMock(),
     )
     for key, value in kwargs.items():

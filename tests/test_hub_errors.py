@@ -40,12 +40,7 @@ from custom_components.solaredge_modbus_multi.hub import (
     SolarEdgeModbusMultiHub,
 )
 
-from .simulated_site import (
-    DER_713_ADDRESS,
-    METER_1_BASE,
-    put,
-    simulated_site,
-)
+from .simulated_site import DER_713_ADDRESS, METER_1_BASE, put, simulated_site
 
 ENTRY_DATA = {"name": "SolarEdge", "host": "192.0.2.10", "port": 1502}
 ALL_OPTIONS = {
@@ -204,9 +199,7 @@ async def test_initial_read_error_fails_setup(hass):
         (MeterData, {"C_SunSpec_Length": 104}, METER_1_OFFSET),
     ],
 )
-async def test_initial_read_invalid_device_fails_setup(
-    hass, component, values, offset
-):
+async def test_initial_read_invalid_device_fails_setup(hass, component, values, offset):
     """A device with an unexpected data model fails setup."""
     hub, site = _hub(hass, device_list=[1])
     put(site.for_unit(1), component, values, offset=offset)
@@ -309,7 +302,7 @@ async def test_sleep_after_write_spaces_requests_until_settled(hass):
 
 async def test_write_settle_cycles_count_down(hass):
     """Each component read counts down the settle cycles before clearing."""
-    hub, site = await _ready_hub(hass, device_list=[1])
+    hub, _ = await _ready_hub(hass, device_list=[1])
     inverter = hub.inverters[0]
     hub._write_settle_cycles[1] = 3
 

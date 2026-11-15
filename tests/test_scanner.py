@@ -66,7 +66,7 @@ def _open_connection(*results):
 
 
 async def test_connect_and_disconnect():
-    """connect opens a connection once and disconnect closes it."""
+    """Calling connect opens a connection once and disconnect closes it."""
     reader, writer = _connection()
     scanner = SolarEdgeDeviceScanner("host", 1502)
 
@@ -87,7 +87,7 @@ async def test_connect_and_disconnect():
 
 
 async def test_connect_retries_after_timeout_and_os_error(no_sleep):
-    """connect retries after a timeout and a network error."""
+    """Calling connect retries after a timeout and a network error."""
     reader, writer = _connection()
     scanner = SolarEdgeDeviceScanner("host", 1502, scan_retries=3)
 
@@ -102,7 +102,7 @@ async def test_connect_retries_after_timeout_and_os_error(no_sleep):
 
 
 async def test_connect_gives_up_after_retries(no_sleep):
-    """connect raises after every attempt fails."""
+    """Calling connect raises after every attempt fails."""
     scanner = SolarEdgeDeviceScanner("host", 1502, scan_retries=2)
 
     with (

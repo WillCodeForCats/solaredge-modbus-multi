@@ -7,10 +7,7 @@ from homeassistant.helpers import issue_registry as ir
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi import (
-    async_migrate_entry,
-    async_setup,
-)
+from custom_components.solaredge_modbus_multi import async_migrate_entry, async_setup
 from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN
 
 
