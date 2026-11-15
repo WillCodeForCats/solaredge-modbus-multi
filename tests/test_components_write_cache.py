@@ -17,7 +17,6 @@ from custom_components.solaredge_modbus_multi.components import (
     AdvancedPowerControl,
     StorageControl,
 )
-from custom_components.solaredge_modbus_multi.const import SunSpecNotImpl
 
 CONTROL_MODE = 57348
 
@@ -64,6 +63,39 @@ async def test_write_during_poll_kept_until_following_poll(
     assert component.control_mode == 2
 
 
+async def test_written_value_shown_while_poll_runs(
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Reads during a poll still see the written value, not the old polled one."""
+    component = await _polled_storage_control(mock_modbus_unit, 1)
+    await component.write("control_mode", 4)
+    seen_during_poll = []
+
+    async def poll(self, *, notify=True):
+        seen_during_poll.append(self.control_mode)
+
+    with patch.object(Component, "async_update", poll):
+        await component.async_update()
+
+    assert seen_during_poll == [4]
+
+
+async def test_same_value_written_during_poll_kept(
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Writing the same value again during a poll still keeps it to the next poll."""
+    component = await _polled_storage_control(mock_modbus_unit, 1)
+    await component.write("control_mode", 4)
+
+    async def poll_with_write(self, *, notify=True):
+        await self.write("control_mode", 4)
+
+    with patch.object(Component, "async_update", poll_with_write):
+        await component.async_update()
+
+    assert component.control_mode == 4
+
+
 async def test_failed_poll_keeps_written_value(
     mock_modbus_unit: MockModbusUnit,
 ) -> None:
@@ -93,14 +125,14 @@ async def test_failed_write_not_kept(mock_modbus_unit: MockModbusUnit) -> None:
     ("field", "address"),
     [("CommitPwrCtlSettings", 61696), ("RestorePwrCtlDefaults", 61697)],
 )
-async def test_command_shows_not_implemented_until_next_poll(
+async def test_command_shows_none_until_next_poll(
     mock_modbus_unit: MockModbusUnit, field: str, address: int
 ) -> None:
-    """A command shows "not implemented" until the next poll reads its result."""
+    """A command shows None (no result yet) until the next poll reads its result."""
     component = AdvancedPowerControl(mock_modbus_unit)
 
     await component.write(field, 1)
-    assert getattr(component, field) == SunSpecNotImpl.INT16
+    assert getattr(component, field) is None
 
     mock_modbus_unit.holding[address] = 0xFFFF
     await component.async_update()
