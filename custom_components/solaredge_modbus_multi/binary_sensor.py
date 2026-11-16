@@ -12,7 +12,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DEVICE_STATUS, VENDOR4_STATUS, VENDOR_STATUS, SunSpecNotImpl
+from .const import (
+    BATTERY_STATUS,
+    DEVICE_STATUS,
+    METER_PROBLEM_EVENTS,
+    VENDOR4_STATUS,
+    VENDOR_STATUS,
+    SunSpecNotImpl,
+)
 from .coordinator import SolarEdgeConfigEntry
 from .entity import SolarEdgeEntity
 
@@ -37,6 +44,13 @@ async def async_setup_entry(
         entities.append(GridStatusOnOff(inverter, config_entry, coordinator))
         if hub.option_detect_extras:
             entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
+
+    for meter in hub.meters:
+        entities.append(MeterProblem(meter, config_entry, coordinator))  # noqa: PERF401
+
+    for battery in hub.batteries:
+        entities.append(BatteryProblem(battery, config_entry, coordinator))
+        entities.append(BatteryCharging(battery, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -153,3 +167,82 @@ class InverterProblem(SolarEdgeBinarySensorBase):
                     attrs["status_text"] = VENDOR_STATUS[value]
 
         return attrs
+
+
+class MeterProblem(SolarEdgeBinarySensorBase):
+    """On when the meter reports a power quality or sensor event."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_name = "Problem"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_problem"
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        value = self._platform.meter_data.M_Events
+        return (
+            super().available and value is not None and value != SunSpecNotImpl.UINT32
+        )
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if any defined meter event bit is set."""
+        return bool(self._platform.meter_data.M_Events & METER_PROBLEM_EVENTS)
+
+
+class SolarEdgeBatteryStatusBinarySensor(SolarEdgeBinarySensorBase):
+    """Base for battery binary sensors derived from the battery status."""
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        value = self._platform.battery_data.B_Status
+        return (
+            super().available
+            and value is not None
+            and value != SunSpecNotImpl.UINT32
+            and value in BATTERY_STATUS
+        )
+
+    @property
+    def battery_status(self) -> str:
+        """Return the battery status name."""
+        return BATTERY_STATUS[self._platform.battery_data.B_Status]
+
+
+class BatteryProblem(SolarEdgeBatteryStatusBinarySensor):
+    """On when the battery status reports a fault."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_name = "Problem"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_problem"
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if the battery status is fault."""
+        return self.battery_status == "B_STATUS_FAULT"
+
+
+class BatteryCharging(SolarEdgeBatteryStatusBinarySensor):
+    """On when the battery status reports charging."""
+
+    _attr_device_class = BinarySensorDeviceClass.BATTERY_CHARGING
+    _attr_name = "Charging"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_charging"
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if the battery status is charge."""
+        return self.battery_status == "B_STATUS_CHARGE"
