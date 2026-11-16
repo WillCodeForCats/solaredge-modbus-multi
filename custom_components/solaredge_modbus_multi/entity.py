@@ -49,6 +49,7 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
 
     _cause_event: str
     _last_cause_value: Any = None
+    _cause_context: Context | None = None
 
     def _cause_value(self) -> Any:
         """Return the value whose changes are recorded."""
@@ -64,15 +65,13 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
     @callback
     def _async_record_cause(self) -> None:
         """Fire the cause event and use its context if the value changed."""
-        if not self.available:
-            self._last_cause_value = None
-            return
-
-        value = self._cause_value()
-        last_value = self._last_cause_value
-        self._last_cause_value = value
-
-        if value == last_value or (data := self._cause_data(value, last_value)) is None:
+        if (data := self._async_cause_data()) is None:
+            # Entity keeps a context for several seconds, so a later write
+            # would still be linked to the last cause. Replace it with a
+            # context that has no cause.
+            if self._cause_context is not None:
+                self._cause_context = None
+                self.async_set_context(Context())
             return
 
         context = Context()
@@ -87,7 +86,23 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
             },
             context=context,
         )
+        self._cause_context = context
         self.async_set_context(context)
+
+    @callback
+    def _async_cause_data(self) -> dict[str, Any] | None:
+        """Track the value and return event data if a change is recorded."""
+        if not self.available:
+            self._last_cause_value = None
+            return None
+
+        value = self._cause_value()
+        last_value = self._last_cause_value
+        self._last_cause_value = value
+
+        if value == last_value:
+            return None
+        return self._cause_data(value, last_value)
 
     async def async_added_to_hass(self) -> None:
         """Record the cause of the first state."""
