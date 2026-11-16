@@ -2,6 +2,10 @@
 name: Lint Code Base
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "**"
   pull_request:
     branches:
       - main
