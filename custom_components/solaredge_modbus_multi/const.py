@@ -14,6 +14,7 @@ DEFAULT_NAME = "SolarEdge"
 
 # Logbook 'what happened' cause
 EVENT_PROBLEM: Final = f"{DOMAIN}_problem"
+EVENT_STATUS_VENDOR: Final = f"{DOMAIN}_status_vendor"
 ATTR_PROBLEM: Final = "problem"
 ATTR_STATUS_VALUE: Final = "status_value"
 ATTR_STATUS_TEXT: Final = "status_text"
