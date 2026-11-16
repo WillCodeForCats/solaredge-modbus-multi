@@ -12,6 +12,12 @@ DOMAIN = "solaredge_modbus_multi"
 DATA_YAML: HassKey[dict[str, Any]] = HassKey(f"{DOMAIN}_yaml")
 DEFAULT_NAME = "SolarEdge"
 
+# Logbook 'what happened' cause
+EVENT_PROBLEM: Final = f"{DOMAIN}_problem"
+ATTR_PROBLEM: Final = "problem"
+ATTR_STATUS_VALUE: Final = "status_value"
+ATTR_STATUS_TEXT: Final = "status_text"
+
 SETUP_TYPE = "setup_type"
 SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
 SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
