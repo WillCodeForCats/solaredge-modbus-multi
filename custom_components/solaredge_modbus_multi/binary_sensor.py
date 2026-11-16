@@ -44,7 +44,7 @@ async def async_setup_entry(
             entities.append(AdvPowerControlEnabled(inverter, config_entry, coordinator))
 
     for meter in hub.meters:
-        entities.append(MeterProblem(meter, config_entry, coordinator))
+        entities.append(MeterProblem(meter, config_entry, coordinator))  # noqa: PERF401
 
     for battery in hub.batteries:
         entities.append(BatteryProblem(battery, config_entry, coordinator))
