@@ -11,6 +11,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import pytest
+from pytest_homeassistant_custom_component.common import (
+    MockEntityPlatform,
+    async_capture_events,
+)
 
 from custom_components.solaredge_modbus_multi.binary_sensor import (
     AdvPowerControlEnabled,
@@ -459,3 +463,43 @@ async def test_problem_event_at_startup():
 
     assert len(_fired(faulted)) == 1
     assert _fired(normal) == []
+
+
+async def test_problem_cleared_state_has_no_fault_cause(hass):
+    """A clear written right after a fault is not linked to the fault's cause.
+
+    Uses real state writes: the fault state carries the problem event's
+    context, and the cleared state written within the entity's context
+    window gets a different one.
+    """
+    coordinator = MagicMock(last_update_success=True)
+    platform = SimpleNamespace(
+        uid_base="inverter_1",
+        device_info=None,
+        use_status_vendor4=False,
+        inverter_data=SimpleNamespace(I_Status=4, I_Status_Vendor=17),
+    )
+    entity = InverterProblem(platform, None, coordinator)
+    events = async_capture_events(hass, EVENT_PROBLEM)
+    await MockEntityPlatform(hass, domain="binary_sensor").async_add_entities([entity])
+    assert hass.states.get(entity.entity_id).state == "off"
+
+    platform.inverter_data.I_Status = 7
+    entity._handle_coordinator_update()
+    fault = hass.states.get(entity.entity_id)
+    assert fault.state == "on"
+    assert len(events) == 1
+    assert fault.context.id == events[0].context.id
+
+    platform.inverter_data.I_Status = 4
+    entity._handle_coordinator_update()
+    cleared = hass.states.get(entity.entity_id)
+    assert cleared.state == "off"
+    assert len(events) == 1
+    assert cleared.context.id != events[0].context.id
+
+    platform.inverter_data.I_Status = 7
+    entity._handle_coordinator_update()
+    refault = hass.states.get(entity.entity_id)
+    assert len(events) == 2
+    assert refault.context.id == events[1].context.id
