@@ -321,6 +321,15 @@ METER_EVENTS = {
     30: "OEM15",
 }
 
+METER_EVENTS_TEXT = {
+    2: "Loss of power or phase",
+    3: "Voltage below threshold (phase Loss)",
+    4: "Power Factor below threshold (possible phase mismatch)",
+    5: "Current Input over threshold (out of range)",
+    6: "Voltage Input over threshold (out of range)",
+    7: "Sensor not connected",
+}
+
 # M_Events bits 2-7:
 # POWER_FAILURE, UNDER_VOLTAGE, LOW_PF, OVER_CURRENT, OVER_VOLTAGE, MISSING_SENSOR
 METER_PROBLEM_EVENTS = 0x000000FC
