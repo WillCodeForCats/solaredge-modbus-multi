@@ -22,11 +22,12 @@ def _coordinator(last_update_success=True):
     return SimpleNamespace(
         last_update_success=last_update_success,
         async_request_refresh=AsyncMock(),
+        async_update_listeners=MagicMock(),
     )
 
 
 def _record_order(platform, coordinator):
-    """Record when the write and refresh complete, in order."""
+    """Record when the write, refresh, and listener update happen, in order."""
     events = []
 
     async def write(*args, **kwargs):
@@ -35,8 +36,12 @@ def _record_order(platform, coordinator):
     async def refresh():
         events.append("refresh")
 
+    def update():
+        events.append("update")
+
     platform.write.side_effect = write
     coordinator.async_request_refresh.side_effect = refresh
+    coordinator.async_update_listeners.side_effect = update
     return events
 
 
@@ -200,7 +205,11 @@ class TestControlButtons:
     async def test_press_writes_register(
         self, cls, suffix, name, register, enabled_default
     ):
-        """Pressing writes 1 to the register, then requests a refresh."""
+        """Pressing writes 1 to the register, then updates listeners.
+
+        The result sensor is unavailable until the next poll reads the result, so
+        there is no refresh to wait for.
+        """
         platform = self._platform()
         coordinator = _coordinator()
         entity = cls(platform, None, coordinator)
@@ -209,5 +218,6 @@ class TestControlButtons:
         await entity.async_press()
 
         platform.write.assert_awaited_once_with("apc_data", register, 1)
-        coordinator.async_request_refresh.assert_awaited_once_with()
-        assert events == ["write", "refresh"]
+        coordinator.async_update_listeners.assert_called_once_with()
+        coordinator.async_request_refresh.assert_not_awaited()
+        assert events == ["write", "update"]
