@@ -92,7 +92,7 @@ class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "CommitPwrCtlSettings", 1
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
@@ -120,4 +120,4 @@ class SolarEdgeDefaultControlSettings(SolarEdgeButtonBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "RestorePwrCtlDefaults", 1
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
