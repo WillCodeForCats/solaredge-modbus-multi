@@ -61,6 +61,8 @@ from .virtual_sensor import async_virtual_system_entities
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -2377,6 +2379,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase, RestoreSensor):
         self._last = None
         self._count = 0
         self._log_once = False
+        self._processed_poll_time = None
         self._attr_unique_id = f"{platform.uid_base}_energy_export"
 
     @property
@@ -2390,11 +2393,16 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase, RestoreSensor):
         if (last_data := await self.async_get_last_sensor_data()) is not None:
             self._attr_native_value = last_data.native_value
             self._last = last_data.native_value
+        self._processed_poll_time = self.coordinator.last_update_success_time
         self._process_data()
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._process_data()
+        # Only process data on coordinator polls
+        poll_time = self.coordinator.last_update_success_time
+        if poll_time != self._processed_poll_time:
+            self._processed_poll_time = poll_time
+            self._process_data()
         super()._handle_coordinator_update()
 
     def _process_data(self) -> None:
@@ -2475,6 +2483,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase, RestoreSensor):
         self._last = None
         self._count = 0
         self._log_once = False
+        self._processed_poll_time = None
         self._attr_unique_id = f"{platform.uid_base}_energy_import"
 
     @property
@@ -2488,11 +2497,16 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase, RestoreSensor):
         if (last_data := await self.async_get_last_sensor_data()) is not None:
             self._attr_native_value = last_data.native_value
             self._last = last_data.native_value
+        self._processed_poll_time = self.coordinator.last_update_success_time
         self._process_data()
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._process_data()
+        # Only process data on coordinator polls
+        poll_time = self.coordinator.last_update_success_time
+        if poll_time != self._processed_poll_time:
+            self._processed_poll_time = poll_time
+            self._process_data()
         super()._handle_coordinator_update()
 
     def _process_data(self) -> None:
