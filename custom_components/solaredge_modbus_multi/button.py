@@ -66,8 +66,15 @@ class SolarEdgeRefreshButton(SolarEdgeButtonBase):
         return True
 
     async def async_press(self) -> None:
-        """Press."""
-        await self.coordinator.async_request_refresh()
+        """Press.
+
+        Create a background task for the refresh request.
+        """
+        self._config_entry.async_create_background_task(
+            self.hass,
+            self.coordinator.async_request_refresh(),
+            f"{self.unique_id} refresh",
+        )
 
 
 class SolarEdgeCommitControlSettings(SolarEdgeButtonBase):
