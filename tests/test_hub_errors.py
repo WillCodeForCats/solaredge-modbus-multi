@@ -19,6 +19,7 @@ from modbus_connection.exceptions import (
     ModbusTimeoutError,
 )
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi.components import (
     BatteryInfo,
@@ -30,6 +31,7 @@ from custom_components.solaredge_modbus_multi.components import (
 from custom_components.solaredge_modbus_multi.const import (
     DATA_YAML,
     DOMAIN,
+    MESSAGE_SPACING,
     WRITE_SETTLE_CYCLES,
     ConfName,
 )
@@ -62,9 +64,16 @@ TRANSPORT_ERRORS = [
 ]
 
 
+def _add_entry(hass):
+    """Add the config entry the hub registers its inverter devices under."""
+    if hass.config_entries.async_get_entry("entry1") is None:
+        MockConfigEntry(domain=DOMAIN, entry_id="entry1").add_to_hass(hass)
+
+
 def _hub(hass, device_list=(1, 2, 3), options=None, site=None):
     """Build a hub for the simulated site."""
     hass.data[DATA_YAML] = {}
+    _add_entry(hass)
     site = site or simulated_site()
     hub = SolarEdgeModbusMultiHub(
         hass,
@@ -321,7 +330,7 @@ async def test_sleep_after_write_spaces_requests_until_settled(hass):
     # every component read counts as a refresh, so one refresh settles it
     await hub.async_refresh_modbus_data()
 
-    assert unit.message_spacing == 0
+    assert unit.message_spacing == MESSAGE_SPACING
     assert hub._write_settle_cycles == {}
 
 

@@ -46,8 +46,8 @@ ALL_OPTIONS = {
 def connection(enable_custom_integrations):
     """Patch the integration to use the simulated site.
 
-    Each setup gets a new site, since unloading closes the connection for good.
-    Yields the list of sites created so far.
+    Stands in for the units from the modbus integration's shared connection.
+    Each setup gets a new site. Yields the list of sites created so far.
     """
     sites = []
 
@@ -55,7 +55,10 @@ def connection(enable_custom_integrations):
         sites.append(simulated_site())
         return sites[-1]
 
-    with patch("modbus_connection.tmodbus.ModbusConnection", side_effect=new_site):
+    with patch(
+        "custom_components.solaredge_modbus_multi._async_get_shared_units",
+        side_effect=new_site,
+    ):
         yield sites
 
 
@@ -67,7 +70,7 @@ async def _setup(hass, options=None):
         options=ALL_OPTIONS if options is None else options,
         unique_id="192.0.2.10:1502",
         version=2,
-        minor_version=3,
+        minor_version=4,
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -230,7 +233,7 @@ async def test_no_usable_inverter_retries_setup(hass, connection):
         data={**ENTRY_DATA, ConfName.DEVICE_LIST: [4]},
         options={},
         version=2,
-        minor_version=3,
+        minor_version=4,
     )
     entry.add_to_hass(hass)
 

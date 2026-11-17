@@ -23,7 +23,12 @@ from custom_components.solaredge_modbus_multi.components import (
     MeterInfo,
     MmpptCommon,
 )
-from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN, ConfName
+from custom_components.solaredge_modbus_multi.const import (
+    DATA_YAML,
+    DOMAIN,
+    ConfName,
+    ConnectionMode,
+)
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
 from custom_components.solaredge_modbus_multi.sensor import (
     SolarEdgeBatteryCurrent,
@@ -57,6 +62,8 @@ def _single_inverter(**unit_setup):
 async def _init_hub(hass, connection, options):
     """Set up a hub on the connection and run its first refresh."""
     hass.data[DATA_YAML] = {}
+    # The hub registers its inverter devices under this entry.
+    MockConfigEntry(domain=DOMAIN, entry_id="entry1").add_to_hass(hass)
     hub = SolarEdgeModbusMultiHub(
         hass, "entry1", {**ENTRY_DATA, ConfName.DEVICE_LIST: [1]}, options, connection
     )
@@ -66,13 +73,18 @@ async def _init_hub(hass, connection, options):
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 async def test_issue_1160_connection_closed_when_home_assistant_stops(hass):
-    """The connection closes on shutdown, which does not unload entries."""
+    """The connection closes on shutdown, which does not unload entries.
+
+    Only a direct connection is ours to close; the modbus integration owns a
+    shared one.
+    """
     connection, _ = _single_inverter()
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={**ENTRY_DATA, ConfName.DEVICE_LIST: [1]},
+        options={ConfName.CONNECTION_MODE: ConnectionMode.OWN},
         version=2,
-        minor_version=3,
+        minor_version=4,
     )
     entry.add_to_hass(hass)
     with patch("modbus_connection.tmodbus.ModbusConnection", return_value=connection):

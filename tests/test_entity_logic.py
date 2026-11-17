@@ -220,7 +220,7 @@ def test_heat_sink_temperature_availability(value, sf, expected):
 
 async def test_scan_list_reports_progress_and_collects_inverters():
     """Test scan list reports progress and collects inverters."""
-    scanner = SolarEdgeDeviceScanner("127.0.0.1", 1502)
+    scanner = SolarEdgeDeviceScanner(MagicMock(), "127.0.0.1", 1502)
     progress = AsyncMock()
     results = {1: scanner.FOUND_INV, 2: 0, 3: scanner.FOUND_INV}
 
@@ -240,7 +240,7 @@ async def test_scan_list_reports_progress_and_collects_inverters():
 
 async def test_scan_list_works_without_progress_callback():
     """Test scan list works without progress callback."""
-    scanner = SolarEdgeDeviceScanner("127.0.0.1", 1502)
+    scanner = SolarEdgeDeviceScanner(MagicMock(), "127.0.0.1", 1502)
 
     with patch.object(
         scanner, "scan_device_id", new=AsyncMock(return_value=scanner.FOUND_INV)
