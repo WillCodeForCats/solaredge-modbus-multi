@@ -7,7 +7,7 @@ import struct
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN_REGEX
+from .const import DOMAIN_REGEX, SUNSPEC_SF_RANGE, SunSpecNotImpl
 
 
 def float_to_hex(f: float) -> str:
@@ -19,6 +19,32 @@ def float_to_hex(f: float) -> str:
         return hex(struct.unpack("<I", struct.pack("<f", float(f)))[0])
     except struct.error as e:
         raise ValueError(f"Error converting {f} to hex: {e}") from e
+
+
+def scale_sunspec_int16(value, sf) -> float | None:
+    """Return an int16 SunSpec value with its scale factor applied.
+
+    Returns None if the value or scale factor is missing, not implemented,
+    or the scale factor is out of range. The not implemented value 0x8000 is
+    checked both as read (32768) and as decoded to a signed int16 (-32768).
+    """
+    if (
+        value is None
+        or value in (SunSpecNotImpl.INT16, -SunSpecNotImpl.INT16)
+        or sf is None
+        or sf == SunSpecNotImpl.INT16
+        or sf not in SUNSPEC_SF_RANGE
+    ):
+        return None
+    return value * (10**sf)
+
+
+def default_virtual_system(device_list: list) -> bool:
+    """Return the default for the virtual system option.
+
+    Return true when the hub has more than one inverter.
+    """
+    return len(device_list) > 1
 
 
 def host_valid(host):
