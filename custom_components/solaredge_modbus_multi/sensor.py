@@ -63,6 +63,8 @@ from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -2399,6 +2401,7 @@ class SolarEdgeBatteryEnergyBase(SolarEdgeSensorBase, RestoreSensor):
 
         self._prev_raw = None
         self._lower_polls = 0
+        self._processed_poll_time = None
 
     @property
     def available(self) -> bool:
@@ -2419,11 +2422,16 @@ class SolarEdgeBatteryEnergyBase(SolarEdgeSensorBase, RestoreSensor):
             restored = last_extra.as_dict()
             self._attr_native_value = restored.get("native_value")
             self._prev_raw = restored.get("prev_raw")
+        self._processed_poll_time = self.coordinator.last_update_success_time
         self._process_data()
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._process_data()
+        # Only process data on coordinator polls
+        poll_time = self.coordinator.last_update_success_time
+        if poll_time != self._processed_poll_time:
+            self._processed_poll_time = poll_time
+            self._process_data()
         super()._handle_coordinator_update()
 
     def _process_data(self) -> None:
