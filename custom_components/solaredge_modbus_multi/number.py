@@ -23,6 +23,8 @@ from .helpers import float_to_hex
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -132,7 +134,7 @@ class StorageACChargeLimit(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.storage_control_data, "ac_charge_limit", float(value)
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class StorageBackupReserve(SolarEdgeNumberBase):
@@ -177,7 +179,7 @@ class StorageBackupReserve(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.storage_control_data, "backup_reserve", int(value)
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class StorageCommandTimeout(SolarEdgeNumberBase):
@@ -227,7 +229,7 @@ class StorageCommandTimeout(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class StorageChargeLimit(SolarEdgeNumberBase):
@@ -278,7 +280,7 @@ class StorageChargeLimit(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class StorageDischargeLimit(SolarEdgeNumberBase):
@@ -329,7 +331,7 @@ class StorageDischargeLimit(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeSiteLimit(SolarEdgeNumberBase):
@@ -378,7 +380,7 @@ class SolarEdgeSiteLimit(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Site_Limit", int(value)
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
@@ -422,7 +424,7 @@ class SolarEdgeExternalProductionMax(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "Ext_Prod_Max", int(value)
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
@@ -471,7 +473,7 @@ class SolarEdgeActivePowerLimitSet(SolarEdgeNumberBase):
             int(value),
             count_write=False,
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
@@ -516,7 +518,7 @@ class SolarEdgeCosPhiSet(SolarEdgeNumberBase):
             float(value),
             count_write=False,
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgePowerReduce(SolarEdgeNumberBase):
@@ -558,7 +560,7 @@ class SolarEdgePowerReduce(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "PowerReduce", float(value)
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
@@ -599,4 +601,4 @@ class SolarEdgeCurrentLimit(SolarEdgeNumberBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "MaxCurrent", float(value)
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()

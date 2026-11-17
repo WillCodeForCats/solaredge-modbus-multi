@@ -21,6 +21,8 @@ from custom_components.solaredge_modbus_multi.scanner import SolarEdgeDeviceScan
 from custom_components.solaredge_modbus_multi.select import SolaredgeLimitControlMode
 from custom_components.solaredge_modbus_multi.sensor import (
     HeatSinkTemperature,
+    SolarEdgeCommitControlSettings,
+    SolarEdgeDefaultControlSettings,
     SolarEdgeRRCR,
     StatusVendor4,
 )
@@ -57,7 +59,9 @@ def _written_bits(platform):
 
 
 def _entity(cls, platform):
-    coordinator = SimpleNamespace(async_request_refresh=AsyncMock())
+    coordinator = SimpleNamespace(
+        async_request_refresh=AsyncMock(), async_update_listeners=MagicMock()
+    )
     return cls(platform, None, coordinator)
 
 
@@ -71,7 +75,8 @@ async def test_external_production_turn_on_sets_bit_10(caplog):
 
     assert _written_bits(platform) == 0b101 | (1 << 10)
     assert "set inverter_1_external_production bits 0000010000000101" in caplog.text
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 async def test_external_production_turn_off_clears_bit_10():
@@ -82,7 +87,8 @@ async def test_external_production_turn_off_clears_bit_10():
     await entity.async_turn_off()
 
     assert _written_bits(platform) == 0b1
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 async def test_negative_site_limit_turn_on_sets_bit_11(caplog):
@@ -95,7 +101,8 @@ async def test_negative_site_limit_turn_on_sets_bit_11(caplog):
 
     assert _written_bits(platform) == 0b101 | (1 << 11)
     assert "bits 0000100000000101" in caplog.text
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 async def test_negative_site_limit_turn_off_clears_bit_11(caplog):
@@ -108,7 +115,8 @@ async def test_negative_site_limit_turn_off_clears_bit_11(caplog):
 
     assert _written_bits(platform) == 0b101
     assert "bits 0000000000000101" in caplog.text
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 @pytest.mark.parametrize(
@@ -156,7 +164,8 @@ async def test_limit_control_select_option_keeps_switch_bits(option_key):
 
     mode_bits = 0 if option_key is None else 1 << option_key
     assert _written_bits(platform) == switch_bits | mode_bits
-    entity.coordinator.async_request_refresh.assert_awaited_once_with()
+    entity.coordinator.async_update_listeners.assert_called_once_with()
+    entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 @pytest.mark.parametrize(
@@ -256,6 +265,39 @@ def test_status_vendor4_availability(value, expected):
         inverter_data=SimpleNamespace(I_Status_Vendor4=value),
     )
     entity = StatusVendor4(platform, None, SimpleNamespace(last_update_success=True))
+
+    with patch(
+        "homeassistant.helpers.update_coordinator.CoordinatorEntity.available",
+        new=True,
+    ):
+        assert entity.available is expected
+
+
+@pytest.mark.parametrize(
+    ("cls", "register"),
+    [
+        (SolarEdgeCommitControlSettings, "CommitPwrCtlSettings"),
+        (SolarEdgeDefaultControlSettings, "RestorePwrCtlDefaults"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (0, True),
+        (1, True),
+        (-1, True),
+        (None, False),
+    ],
+)
+def test_control_settings_result_availability(cls, register, value, expected):
+    """Unavailable after a button press until the next poll reads the result."""
+    platform = SimpleNamespace(
+        uid_base="inverter_1",
+        device_info=None,
+        has_advanced_power_control=True,
+        advanced_power_control_data=SimpleNamespace(**{register: value}),
+    )
+    entity = cls(platform, None, SimpleNamespace(last_update_success=True))
 
     with patch(
         "homeassistant.helpers.update_coordinator.CoordinatorEntity.available",
