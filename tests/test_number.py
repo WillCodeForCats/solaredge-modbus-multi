@@ -47,10 +47,11 @@ SITE_LIMIT = [SolarEdgeSiteLimit, SolarEdgeExternalProductionMax]
 
 
 def _coordinator(last_update_success=True):
-    """Build a fake coordinator with a mocked refresh request."""
+    """Build a fake coordinator with mocked refresh and listener updates."""
     return SimpleNamespace(
         last_update_success=last_update_success,
         async_request_refresh=AsyncMock(),
+        async_update_listeners=MagicMock(),
     )
 
 
@@ -289,7 +290,7 @@ class TestNumbers:
             assert not cls(platform, None, _coordinator()).available, value
 
     async def test_set_native_value(self, cls, suffix, block, field, flag):
-        """Setting a value writes it to the block and requests a refresh."""
+        """Setting a value writes it to the block and updates listeners."""
         platform = _platform()
         entity = cls(platform, None, _coordinator())
 
@@ -300,7 +301,8 @@ class TestNumbers:
             getattr(platform, block), field, value, **kwargs
         )
         assert type(platform.write.call_args.args[2]) is type(value)
-        entity.coordinator.async_request_refresh.assert_awaited_once_with()
+        entity.coordinator.async_update_listeners.assert_called_once_with()
+        entity.coordinator.async_request_refresh.assert_not_awaited()
 
 
 @pytest.mark.parametrize("cls", STORAGE)

@@ -32,6 +32,8 @@ from .helpers import meter_event_names, meter_event_texts
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
