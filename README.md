@@ -68,7 +68,7 @@ You will need to enable Power Control Options after adding your inverter hub in 
 
 ### Minimum Required Versions
 
-- Home Assistant 2025.11.0
+- Home Assistant 2026.10.0
 - modbus-connection 4.10.0 or newer
 
 ## Specifications

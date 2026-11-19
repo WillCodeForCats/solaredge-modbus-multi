@@ -54,9 +54,16 @@ def _single_inverter(**unit_setup):
     return connection, unit
 
 
+def _add_entry(hass):
+    """Add the config entry the hub registers its devices under."""
+    if hass.config_entries.async_get_entry("entry1") is None:
+        MockConfigEntry(domain=DOMAIN, entry_id="entry1").add_to_hass(hass)
+
+
 async def _init_hub(hass, connection, options):
     """Set up a hub on the connection and run its first refresh."""
     hass.data[DATA_YAML] = {}
+    _add_entry(hass)
     hub = SolarEdgeModbusMultiHub(
         hass, "entry1", {**ENTRY_DATA, ConfName.DEVICE_LIST: [1]}, options, connection
     )

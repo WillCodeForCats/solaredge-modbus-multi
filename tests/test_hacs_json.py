@@ -16,6 +16,8 @@ from awesomeversion import (
 )
 import pytest
 
+from custom_components.solaredge_modbus_multi.const import HA_REQUIRED_VERSION
+
 HACS_JSON_PATH = Path(__file__).parent.parent / "hacs.json"
 
 # type per https://www.hacs.xyz/docs/publish/start/ for whichever optional
@@ -68,3 +70,10 @@ def test_hacs_json_homeassistant_version_is_valid(hacs_manifest):
             f"hacs.json 'homeassistant' version {version!r} is not a valid "
             f"CalVer Home Assistant version: {err}"
         )
+
+
+def test_hacs_json_homeassistant_matches_setup_check(hacs_manifest):
+    """The version HACS is told must be the one async_setup_entry checks."""
+    assert hacs_manifest.get("homeassistant") == HA_REQUIRED_VERSION, (
+        "hacs.json 'homeassistant' and const.HA_REQUIRED_VERSION must match"
+    )
