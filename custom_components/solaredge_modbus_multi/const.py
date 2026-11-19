@@ -12,6 +12,15 @@ DOMAIN = "solaredge_modbus_multi"
 DATA_YAML: HassKey[dict[str, Any]] = HassKey(f"{DOMAIN}_yaml")
 DEFAULT_NAME = "SolarEdge"
 
+# Logbook 'what happened' cause
+EVENT_PROBLEM: Final = f"{DOMAIN}_problem"
+EVENT_STATUS_VENDOR: Final = f"{DOMAIN}_status_vendor"
+EVENT_METER_EVENTS: Final = f"{DOMAIN}_meter_events"
+ATTR_EVENTS: Final = "events"
+ATTR_EVENTS_TEXT: Final = "events_text"
+ATTR_STATUS_VALUE: Final = "status_value"
+ATTR_STATUS_TEXT: Final = "status_text"
+
 SETUP_TYPE = "setup_type"
 SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
 SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
@@ -313,6 +322,15 @@ METER_EVENTS = {
     28: "OEM13",
     29: "OEM14",
     30: "OEM15",
+}
+
+METER_EVENTS_TEXT = {
+    2: "Loss of power or phase",
+    3: "Voltage below threshold (phase Loss)",
+    4: "Power Factor below threshold (possible phase mismatch)",
+    5: "Current Input over threshold (out of range)",
+    6: "Voltage Input over threshold (out of range)",
+    7: "Sensor not connected",
 }
 
 # M_Events bits 2-7:

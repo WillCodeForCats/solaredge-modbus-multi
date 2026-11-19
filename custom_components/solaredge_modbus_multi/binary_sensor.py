@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -13,15 +14,21 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    ATTR_EVENTS,
+    ATTR_EVENTS_TEXT,
+    ATTR_STATUS_TEXT,
+    ATTR_STATUS_VALUE,
     BATTERY_STATUS,
     DEVICE_STATUS,
+    EVENT_PROBLEM,
     METER_PROBLEM_EVENTS,
     VENDOR4_STATUS,
     VENDOR_STATUS,
     SunSpecNotImpl,
 )
 from .coordinator import SolarEdgeConfigEntry
-from .entity import SolarEdgeEntity
+from .entity import SolarEdgeCauseEntity, SolarEdgeEntity
+from .helpers import meter_event_names, meter_event_texts
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +65,32 @@ async def async_setup_entry(
 
 class SolarEdgeBinarySensorBase(SolarEdgeEntity, BinarySensorEntity):
     """Base class for SolarEdge binary sensor entities."""
+
+
+class SolarEdgeProblemBinarySensor(SolarEdgeCauseEntity, SolarEdgeBinarySensorBase):
+    """Base for problem sensors that record a cause in the logbook.
+
+    An EVENT_PROBLEM event is recorded when the problem turns on.
+    """
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_name = "Problem"
+    _cause_event = EVENT_PROBLEM
+
+    def _problem_cause(self) -> dict[str, Any]:
+        """Return event data describing the current cause."""
+        return {}
+
+    def _cause_value(self) -> bool:
+        """Return the problem state."""
+        return self.is_on
+
+    def _cause_data(self, value: bool, last_value: bool | None) -> dict | None:
+        """Return the cause when the problem turns on.
+
+        Turning off is not recorded; the state going off is the indication.
+        """
+        return self._problem_cause() if value else None
 
 
 class AdvPowerControlEnabled(SolarEdgeBinarySensorBase):
@@ -118,11 +151,8 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
         return self._platform.inverter_data.I_Grid_Status == 0x0
 
 
-class InverterProblem(SolarEdgeBinarySensorBase):
+class InverterProblem(SolarEdgeProblemBinarySensor):
     """On when the inverter status reports a fault."""
-
-    _attr_device_class = BinarySensorDeviceClass.PROBLEM
-    _attr_name = "Problem"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the entity."""
@@ -156,24 +186,25 @@ class InverterProblem(SolarEdgeBinarySensorBase):
             if value is not None and value != SunSpecNotImpl.UINT32:
                 controller = (value >> 24) & 0xFF
                 error = value & 0xFFFF
-                attrs["status_value"] = f"{controller:X}x{error:X}"
+                attrs[ATTR_STATUS_VALUE] = f"{controller:X}x{error:X}"
                 if controller in VENDOR4_STATUS and error in VENDOR4_STATUS[controller]:
-                    attrs["status_text"] = VENDOR4_STATUS[controller][error]
+                    attrs[ATTR_STATUS_TEXT] = VENDOR4_STATUS[controller][error]
         else:
             value = data.I_Status_Vendor
             if value is not None and value != SunSpecNotImpl.UINT16:
-                attrs["status_value"] = value
+                attrs[ATTR_STATUS_VALUE] = value
                 if value in VENDOR_STATUS:
-                    attrs["status_text"] = VENDOR_STATUS[value]
+                    attrs[ATTR_STATUS_TEXT] = VENDOR_STATUS[value]
 
         return attrs
 
+    def _problem_cause(self) -> dict[str, Any]:
+        """Return the vendor status as the cause."""
+        return self.extra_state_attributes
 
-class MeterProblem(SolarEdgeBinarySensorBase):
+
+class MeterProblem(SolarEdgeProblemBinarySensor):
     """On when the meter reports a power quality or sensor event."""
-
-    _attr_device_class = BinarySensorDeviceClass.PROBLEM
-    _attr_name = "Problem"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the entity."""
@@ -192,6 +223,14 @@ class MeterProblem(SolarEdgeBinarySensorBase):
     def is_on(self) -> bool:
         """Return True if any defined meter event bit is set."""
         return bool(self._platform.meter_data.M_Events & METER_PROBLEM_EVENTS)
+
+    def _problem_cause(self) -> dict[str, Any]:
+        """Return the active problem events as the cause."""
+        value = self._platform.meter_data.M_Events & METER_PROBLEM_EVENTS
+        return {
+            ATTR_EVENTS: meter_event_names(value),
+            ATTR_EVENTS_TEXT: meter_event_texts(value),
+        }
 
 
 class SolarEdgeBatteryStatusBinarySensor(SolarEdgeBinarySensorBase):

@@ -35,6 +35,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
+    ATTR_EVENTS,
+    ATTR_EVENTS_TEXT,
+    ATTR_STATUS_TEXT,
+    ATTR_STATUS_VALUE,
     BATTERY_STATUS,
     BATTERY_STATUS_TEXT,
     DER_STORAGE_STATUS,
@@ -42,8 +46,9 @@ from .const import (
     DEVICE_STATUS,
     DEVICE_STATUS_TEXT,
     ENERGY_VOLT_AMPERE_HOUR,
+    EVENT_METER_EVENTS,
+    EVENT_STATUS_VENDOR,
     INVERTED_POWER_VERSION,
-    METER_EVENTS,
     MMPPT_EVENTS,
     RRCR_STATUS,
     SUNSPEC_DID,
@@ -55,8 +60,8 @@ from .const import (
     SunSpecNotImpl,
 )
 from .coordinator import SolarEdgeConfigEntry
-from .entity import SolarEdgeEntity
-from .helpers import float_to_hex
+from .entity import SolarEdgeCauseEntity, SolarEdgeEntity
+from .helpers import float_to_hex, meter_event_names, meter_event_texts
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1714,7 +1719,30 @@ class SolarEdgeDERStorageStatus(SolarEdgeDERStorageBase):
         return attrs
 
 
-class StatusVendor(SolarEdgeSensorBase):
+class SolarEdgeStatusVendorBase(SolarEdgeCauseEntity, SolarEdgeSensorBase):
+    """Base for vendor status sensors that record the code text in the logbook.
+
+    An EVENT_STATUS_VENDOR event is recorded when the code changes. At startup
+    or after being unavailable, a zero (no error) code is not recorded.
+    """
+
+    _cause_event = EVENT_STATUS_VENDOR
+
+    def _status_text(self) -> str | None:
+        """Return the text for the current code."""
+        raise NotImplementedError
+
+    def _cause_data(self, value: int, last_value: int | None) -> dict | None:
+        """Return the code and its text."""
+        if value == 0 and last_value is None:
+            return None
+        data = {ATTR_STATUS_VALUE: self.native_value}
+        if (text := self._status_text()) is not None:
+            data[ATTR_STATUS_TEXT] = text
+        return data
+
+
+class StatusVendor(SolarEdgeStatusVendorBase):
     """Representation of a status vendor."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -1749,8 +1777,16 @@ class StatusVendor(SolarEdgeSensorBase):
 
         return None
 
+    def _cause_value(self) -> int:
+        """Return the vendor status code."""
+        return self._platform.inverter_data.I_Status_Vendor
 
-class StatusVendor4(SolarEdgeSensorBase):
+    def _status_text(self) -> str | None:
+        """Return the vendor status text."""
+        return VENDOR_STATUS.get(self._platform.inverter_data.I_Status_Vendor)
+
+
+class StatusVendor4(SolarEdgeStatusVendorBase):
     """Representation of a status vendor4."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -1793,6 +1829,15 @@ class StatusVendor4(SolarEdgeSensorBase):
             attrs["description"] = VENDOR4_STATUS[controller][error]
 
         return attrs
+
+    def _cause_value(self) -> int:
+        """Return the vendor status 4 code."""
+        return self._platform.inverter_data.I_Status_Vendor4
+
+    def _status_text(self) -> str | None:
+        """Return the vendor status 4 text."""
+        value = self._platform.inverter_data.I_Status_Vendor4
+        return VENDOR4_STATUS.get((value >> 24) & 0xFF, {}).get(value & 0xFFFF)
 
 
 class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
@@ -1918,8 +1963,14 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
         return round(self._platform.global_power_control_data.I_CosPhi, 1)
 
 
-class MeterEvents(SolarEdgeSensorBase):
-    """Representation of a meter events."""
+class MeterEvents(SolarEdgeCauseEntity, SolarEdgeSensorBase):
+    """Representation of a meter events.
+
+    An EVENT_METER_EVENTS event is recorded when the event bits change. At
+    startup or after being unavailable, no events (zero) is not recorded.
+    """
+
+    _cause_event = EVENT_METER_EVENTS
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Meter Events"
@@ -1946,20 +1997,24 @@ class MeterEvents(SolarEdgeSensorBase):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         value = self._platform.meter_data.M_Events
-        m_events_active = []
-
-        if value != 0x0:
-            for i in range(2, 31):
-                try:
-                    if value & (1 << i):
-                        m_events_active.append(METER_EVENTS[i])
-
-                except KeyError:  # noqa: PERF203
-                    pass
 
         return {
             "bits": f"{value:032b}",
-            "events": str(m_events_active),
+            "events": str(meter_event_names(value)),
+        }
+
+    def _cause_value(self) -> int:
+        """Return the meter event bits."""
+        return self._platform.meter_data.M_Events
+
+    def _cause_data(self, value: int, last_value: int | None) -> dict | None:
+        """Return the event bits and their names."""
+        if value == 0 and last_value is None:
+            return None
+        return {
+            ATTR_STATUS_VALUE: value,
+            ATTR_EVENTS: meter_event_names(value),
+            ATTR_EVENTS_TEXT: meter_event_texts(value),
         }
 
 
