@@ -1517,6 +1517,7 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
     """Representation of a solar edge inverter status."""
 
     _attr_options = list(DEVICE_STATUS.values())
+    _attr_translation_key = "inverter_status"
 
     @property
     def available(self) -> bool:
@@ -1551,6 +1552,7 @@ class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
     """Representation of a solar edge battery status."""
 
     _attr_options = list(BATTERY_STATUS.values())
+    _attr_translation_key = "battery_status"
 
     @property
     def available(self) -> bool:
