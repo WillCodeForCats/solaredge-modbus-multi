@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.const import ATTR_DEVICE_ID, ATTR_ENTITY_ID
+from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import Context, callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -45,9 +45,18 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
     When the tracked value changes, an event is fired and the state is
     written under that event's context. The logbook platform describes the
     event, which fills in the cause shown for the state change.
+
+    The event carries the device but not the entity, so the entity's own
+    logbook only uses it as the cause and does not also list it as an entry.
+
+    Entities of one device with the same _cause_group share the event: the
+    first to record a cause in a poll fires it, and the others in that poll
+    write their state under the same context. The platform must provide a
+    cause_contexts dict for this.
     """
 
     _cause_event: str
+    _cause_group: str | None = None
     _last_cause_value: Any = None
     _cause_context: Context | None = None
 
@@ -74,20 +83,35 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
                 self.async_set_context(Context())
             return
 
-        context = Context()
-        self.hass.bus.async_fire(
-            self._cause_event,
-            {
-                ATTR_DEVICE_ID: (
-                    self.registry_entry.device_id if self.registry_entry else None
-                ),
-                ATTR_ENTITY_ID: self.entity_id,
-                **data,
-            },
-            context=context,
-        )
+        if (context := self._async_shared_cause_context()) is None:
+            context = Context()
+            self.hass.bus.async_fire(
+                self._cause_event,
+                {
+                    ATTR_DEVICE_ID: (
+                        self.registry_entry.device_id if self.registry_entry else None
+                    ),
+                    **data,
+                },
+                context=context,
+            )
+            if self._cause_group is not None:
+                self._platform.cause_contexts[self._cause_group] = (
+                    self.coordinator.last_update_success_time,
+                    context,
+                )
         self._cause_context = context
         self.async_set_context(context)
+
+    @callback
+    def _async_shared_cause_context(self) -> Context | None:
+        """Return the context of the group's event fired in this poll, if any."""
+        if self._cause_group is None:
+            return None
+        shared = self._platform.cause_contexts.get(self._cause_group)
+        if shared is None or shared[0] != self.coordinator.last_update_success_time:
+            return None
+        return shared[1]
 
     @callback
     def _async_cause_data(self) -> dict[str, Any] | None:

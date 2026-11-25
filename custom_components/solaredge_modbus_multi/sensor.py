@@ -41,12 +41,14 @@ from .const import (
     ATTR_STATUS_VALUE,
     BATTERY_STATUS,
     BATTERY_STATUS_TEXT,
+    CAUSE_GROUP_INVERTER_FAULT,
     DER_STORAGE_STATUS,
     DER_STORAGE_STATUS_TEXT,
     DEVICE_STATUS,
     DEVICE_STATUS_TEXT,
     ENERGY_VOLT_AMPERE_HOUR,
     EVENT_METER_EVENTS,
+    EVENT_PROBLEM,
     EVENT_STATUS_VENDOR,
     INVERTED_POWER_VERSION,
     MMPPT_EVENTS,
@@ -61,7 +63,12 @@ from .const import (
 )
 from .coordinator import SolarEdgeConfigEntry
 from .entity import SolarEdgeCauseEntity, SolarEdgeEntity
-from .helpers import float_to_hex, meter_event_names, meter_event_texts
+from .helpers import (
+    float_to_hex,
+    inverter_vendor_status,
+    meter_event_names,
+    meter_event_texts,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1513,10 +1520,16 @@ class SolarEdgeStatusSensor(SolarEdgeSensorBase):
         self._attr_unique_id = f"{platform.uid_base}_status"
 
 
-class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
-    """Representation of a solar edge inverter status."""
+class SolarEdgeInverterStatus(SolarEdgeCauseEntity, SolarEdgeStatusSensor):
+    """Representation of a solar edge inverter status.
+
+    Going to I_STATUS_FAULT records the vendor status as the cause, sharing
+    the cause event with the inverter Problem binary sensor.
+    """
 
     _attr_options = list(DEVICE_STATUS.values())
+    _cause_event = EVENT_PROBLEM
+    _cause_group = CAUSE_GROUP_INVERTER_FAULT
 
     @property
     def available(self) -> bool:
@@ -1545,6 +1558,18 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
             attrs["status_value"] = value
 
         return attrs
+
+    def _cause_value(self) -> bool:
+        """Return True if the inverter status is fault."""
+        return self.native_value == "I_STATUS_FAULT"
+
+    def _cause_data(self, value: bool, last_value: bool | None) -> dict | None:
+        """Return the vendor status when the status goes to fault."""
+        if not value:
+            return None
+        return inverter_vendor_status(
+            self._platform.inverter_data, self._platform.use_status_vendor4
+        )
 
 
 class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
