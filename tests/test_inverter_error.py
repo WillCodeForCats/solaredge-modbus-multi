@@ -26,9 +26,7 @@ def _entity(entity_class, vendor=0, vendor4=0, use_status_vendor4=False):
         uid_base="inverter_1",
         device_info=None,
         use_status_vendor4=use_status_vendor4,
-        inverter_data=SimpleNamespace(
-            I_Status_Vendor=vendor, I_Status_Vendor4=vendor4
-        ),
+        inverter_data=SimpleNamespace(I_Status_Vendor=vendor, I_Status_Vendor4=vendor4),
     )
     return entity_class(platform, None, COORDINATOR)
 
