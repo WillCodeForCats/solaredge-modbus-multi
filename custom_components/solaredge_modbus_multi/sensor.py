@@ -2056,14 +2056,17 @@ class MeterError(SolarEdgeSensorBase):
 
     @property
     def native_value(self) -> str:
-        """Return the active events' text, or No Error when there are none."""
-        texts = meter_event_texts(self._platform.meter_data.M_Events)
-        if not texts:
-            return "No Error"
-        text = "; ".join(texts)
-        if len(text) > MAX_LENGTH_STATE_STATE:
-            text = text[: MAX_LENGTH_STATE_STATE - 3] + "..."
-        return text
+        """Return the active events' text and their value, like the logbook cause.
+
+        Only the text is cut to fit the state length limit, so the value stays
+        and different events never show the same state.
+        """
+        value = self._platform.meter_data.M_Events
+        text = "; ".join(meter_event_texts(value)) or "No Error"
+        code = f" ({value})"
+        if len(text) + len(code) > MAX_LENGTH_STATE_STATE:
+            text = text[: MAX_LENGTH_STATE_STATE - len(code) - 3] + "..."
+        return text + code
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
