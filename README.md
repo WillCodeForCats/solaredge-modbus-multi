@@ -30,7 +30,8 @@ any modbus data available for it, or it hasn't been discovered yet in modbus cap
 - Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
 - Informational sensor for device and its attributes
-- Supports status and error reporting sensors.
+- Error sensors for inverters and meters show the current error or meter events as text with the code.
+- Shows the cause of faults and status changes in the Home Assistant activity log.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
 - Virtual System device with whole-site power flows calculated across all inverters, on by default for leader/follower systems.
 

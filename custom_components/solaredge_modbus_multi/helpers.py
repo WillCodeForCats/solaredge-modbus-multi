@@ -4,10 +4,21 @@ from __future__ import annotations
 
 import ipaddress
 import struct
+from typing import Any
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN_REGEX, SUNSPEC_SF_RANGE, SunSpecNotImpl
+from .const import (
+    ATTR_STATUS_TEXT,
+    ATTR_STATUS_VALUE,
+    DOMAIN_REGEX,
+    METER_EVENTS,
+    METER_EVENTS_TEXT,
+    SUNSPEC_SF_RANGE,
+    VENDOR4_STATUS,
+    VENDOR_STATUS,
+    SunSpecNotImpl,
+)
 
 
 def float_to_hex(f: float) -> str:
@@ -45,6 +56,45 @@ def default_virtual_system(device_list: list) -> bool:
     Return true when the hub has more than one inverter.
     """
     return len(device_list) > 1
+
+
+def inverter_vendor_status(data, use_status_vendor4: bool) -> dict[str, Any]:
+    """Return the vendor status value and its text, when known."""
+    attrs: dict[str, Any] = {}
+
+    if use_status_vendor4:
+        value = data.I_Status_Vendor4
+        if value is not None and value != SunSpecNotImpl.UINT32:
+            controller = (value >> 24) & 0xFF
+            error = value & 0xFFFF
+            attrs[ATTR_STATUS_VALUE] = f"{controller:X}x{error:X}"
+            if controller in VENDOR4_STATUS and error in VENDOR4_STATUS[controller]:
+                attrs[ATTR_STATUS_TEXT] = VENDOR4_STATUS[controller][error]
+    else:
+        value = data.I_Status_Vendor
+        if value is not None and value != SunSpecNotImpl.UINT16:
+            attrs[ATTR_STATUS_VALUE] = value
+            if value in VENDOR_STATUS:
+                attrs[ATTR_STATUS_TEXT] = VENDOR_STATUS[value]
+
+    return attrs
+
+
+def meter_event_names(value: int) -> list[str]:
+    """Return the names of the meter event bits set in value."""
+    return [name for bit, name in METER_EVENTS.items() if value & (1 << bit)]
+
+
+def meter_event_texts(value: int) -> list[str]:
+    """Return the descriptions of the meter event bits set in value.
+
+    Bits without a description (reserved and OEM) use their name.
+    """
+    return [
+        METER_EVENTS_TEXT.get(bit, name)
+        for bit, name in METER_EVENTS.items()
+        if value & (1 << bit)
+    ]
 
 
 def host_valid(host):
