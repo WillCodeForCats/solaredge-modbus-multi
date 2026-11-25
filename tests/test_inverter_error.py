@@ -46,8 +46,8 @@ def test_error_entity_basics():
 @pytest.mark.parametrize(
     ("vendor", "value", "attrs"),
     [
-        (0, "No Error", {"status_value": 0}),
-        (17, "Temperature Too High", {"status_value": 17}),
+        (0, "No Error (0)", {"status_value": 0}),
+        (17, "Temperature Too High (17)", {"status_value": 17}),
         (12345, "Unknown Error (12345)", {"status_value": 12345}),
     ],
 )
@@ -62,8 +62,12 @@ def test_error_from_status_vendor(vendor, value, attrs):
 @pytest.mark.parametrize(
     ("vendor4", "value", "attrs"),
     [
-        (0x00000000, "No Error", {"status_value": "0x0"}),
-        (0x03000002, "Inverter Communication Error", {"status_value": "3x2"}),
+        (0x00000000, "No Error (0x0)", {"status_value": "0x0"}),
+        (
+            0x03000002,
+            "Inverter Communication Error (3x2)",
+            {"status_value": "3x2"},
+        ),
         (0x03001234, "Unknown Error (3x1234)", {"status_value": "3x1234"}),
     ],
 )

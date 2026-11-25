@@ -1799,11 +1799,10 @@ class InverterError(SolarEdgeSensorBase):
 
     @property
     def native_value(self) -> str:
-        """Return the error text, or the code when it has no text."""
+        """Return the error text and its code, like the logbook cause."""
         status = self._vendor_status()
-        if (text := status.get(ATTR_STATUS_TEXT)) is not None:
-            return text
-        return f"Unknown Error ({status[ATTR_STATUS_VALUE]})"
+        text = status.get(ATTR_STATUS_TEXT, "Unknown Error")
+        return f"{text} ({status[ATTR_STATUS_VALUE]})"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
