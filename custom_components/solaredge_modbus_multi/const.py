@@ -20,7 +20,7 @@ ATTR_EVENTS: Final = "events"
 ATTR_EVENTS_TEXT: Final = "events_text"
 ATTR_STATUS_VALUE: Final = "status_value"
 ATTR_STATUS_TEXT: Final = "status_text"
-# Entities of one inverter that report the same fault share one cause event
+ATTR_ERROR_ENTITY_ID: Final = "error_entity_id"
 CAUSE_GROUP_INVERTER_FAULT: Final = "inverter_fault"
 
 SETUP_TYPE = "setup_type"

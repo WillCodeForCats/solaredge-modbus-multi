@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import Context, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .const import ATTR_ERROR_ENTITY_ID, DOMAIN
 from .coordinator import SolarEdgeConfigEntry, SolarEdgeCoordinator
 
 
@@ -48,6 +51,8 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
 
     The event carries the device but not the entity, so the entity's own
     logbook only uses it as the cause and does not also list it as an entry.
+    It also carries the device's Error sensor under a different key, which
+    the logbook platform links the entry to.
 
     Entities of one device with the same _cause_group share the event: the
     first to record a cause in a poll fires it, and the others in that poll
@@ -85,16 +90,15 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
 
         if (context := self._async_shared_cause_context()) is None:
             context = Context()
-            self.hass.bus.async_fire(
-                self._cause_event,
-                {
-                    ATTR_DEVICE_ID: (
-                        self.registry_entry.device_id if self.registry_entry else None
-                    ),
-                    **data,
-                },
-                context=context,
-            )
+            event_data = {
+                ATTR_DEVICE_ID: (
+                    self.registry_entry.device_id if self.registry_entry else None
+                ),
+                **data,
+            }
+            if (error_entity_id := self._async_error_entity_id()) is not None:
+                event_data[ATTR_ERROR_ENTITY_ID] = error_entity_id
+            self.hass.bus.async_fire(self._cause_event, event_data, context=context)
             if self._cause_group is not None:
                 self._platform.cause_contexts[self._cause_group] = (
                     self.coordinator.last_update_success_time,
@@ -102,6 +106,13 @@ class SolarEdgeCauseEntity(SolarEdgeEntity):
                 )
         self._cause_context = context
         self.async_set_context(context)
+
+    @callback
+    def _async_error_entity_id(self) -> str | None:
+        """Return the entity id of this device's Error sensor, if registered."""
+        return er.async_get(self.hass).async_get_entity_id(
+            SENSOR_DOMAIN, DOMAIN, f"{self._platform.uid_base}_error"
+        )
 
     @callback
     def _async_shared_cause_context(self) -> Context | None:
