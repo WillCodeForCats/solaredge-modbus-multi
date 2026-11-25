@@ -860,7 +860,6 @@ class SolarEdgeInverter:
         self._use_mmppt_units = False
         self.write_count = 0
         self.write_count_listeners = set()
-        # Shared logbook cause per group: (poll time, context)
         self.cause_contexts = {}
         self._lim_ctl_mode_lock = asyncio.Lock()
 
