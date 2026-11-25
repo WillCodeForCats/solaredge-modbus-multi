@@ -6,6 +6,7 @@ import contextlib
 import datetime
 import logging
 import re
+from typing import Any
 
 from awesomeversion import AwesomeVersion
 from homeassistant.components.sensor import (
@@ -91,6 +92,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeInverterDevice(inverter, config_entry, coordinator))
         entities.append(Version(inverter, config_entry, coordinator))
         entities.append(SolarEdgeInverterStatus(inverter, config_entry, coordinator))
+        entities.append(InverterError(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
         if inverter.use_status_vendor4:
             entities.append(StatusVendor4(inverter, config_entry, coordinator))
@@ -1767,17 +1769,57 @@ class SolarEdgeStatusVendorBase(SolarEdgeCauseEntity, SolarEdgeSensorBase):
         return data
 
 
+class InverterError(SolarEdgeSensorBase):
+    """The text of the inverter's vendor status code.
+
+    Uses Status Vendor 4 when the inverter supports it, otherwise Status
+    Vendor. Has no unit or state class, so each change shows in the logbook.
+    """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_name = "Error"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_error"
+
+    def _vendor_status(self) -> dict[str, Any]:
+        """Return the vendor status value and its text, when known."""
+        return inverter_vendor_status(
+            self._platform.inverter_data, self._platform.use_status_vendor4
+        )
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return super().available and ATTR_STATUS_VALUE in self._vendor_status()
+
+    @property
+    def native_value(self) -> str:
+        """Return the error text, or the code when it has no text."""
+        status = self._vendor_status()
+        if (text := status.get(ATTR_STATUS_TEXT)) is not None:
+            return text
+        return f"Unknown Error ({status[ATTR_STATUS_VALUE]})"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the vendor status code."""
+        return {ATTR_STATUS_VALUE: self._vendor_status()[ATTR_STATUS_VALUE]}
+
+
 class StatusVendor(SolarEdgeStatusVendorBase):
     """Representation of a status vendor."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Status Vendor"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the entity."""
         super().__init__(platform, config_entry, coordinator)
         self._attr_unique_id = f"{platform.uid_base}_status_vendor"
-        self._attr_entity_registry_enabled_default = not platform.use_status_vendor4
 
     @property
     def available(self) -> bool:
@@ -1815,6 +1857,7 @@ class StatusVendor4(SolarEdgeStatusVendorBase):
     """Representation of a status vendor4."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Status Vendor 4"
 
     def __init__(self, platform, config_entry, coordinator):
