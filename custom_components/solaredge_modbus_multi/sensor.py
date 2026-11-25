@@ -6,6 +6,7 @@ import contextlib
 import datetime
 import logging
 import re
+from typing import Any
 
 from awesomeversion import AwesomeVersion
 from homeassistant.components.sensor import (
@@ -15,6 +16,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    MAX_LENGTH_STATE_STATE,
     PERCENTAGE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
@@ -91,6 +93,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeInverterDevice(inverter, config_entry, coordinator))
         entities.append(Version(inverter, config_entry, coordinator))
         entities.append(SolarEdgeInverterStatus(inverter, config_entry, coordinator))
+        entities.append(InverterError(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
         if inverter.use_status_vendor4:
             entities.append(StatusVendor4(inverter, config_entry, coordinator))
@@ -168,6 +171,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeLastUpdate(meter, config_entry, coordinator))
         entities.append(SolarEdgeMeterDevice(meter, config_entry, coordinator))
         entities.append(Version(meter, config_entry, coordinator))
+        entities.append(MeterError(meter, config_entry, coordinator))
         entities.append(MeterEvents(meter, config_entry, coordinator))
         entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator))
         entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "A"))
@@ -1767,17 +1771,56 @@ class SolarEdgeStatusVendorBase(SolarEdgeCauseEntity, SolarEdgeSensorBase):
         return data
 
 
+class InverterError(SolarEdgeSensorBase):
+    """The text of the inverter's vendor status code.
+
+    Uses Status Vendor 4 when the inverter supports it, otherwise Status
+    Vendor. Has no unit or state class, so each change shows in the logbook.
+    """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_name = "Error"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_error"
+
+    def _vendor_status(self) -> dict[str, Any]:
+        """Return the vendor status value and its text, when known."""
+        return inverter_vendor_status(
+            self._platform.inverter_data, self._platform.use_status_vendor4
+        )
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return super().available and ATTR_STATUS_VALUE in self._vendor_status()
+
+    @property
+    def native_value(self) -> str:
+        """Return the error text and its code, like the logbook cause."""
+        status = self._vendor_status()
+        text = status.get(ATTR_STATUS_TEXT, "Unknown Error")
+        return f"{text} ({status[ATTR_STATUS_VALUE]})"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the vendor status code."""
+        return {ATTR_STATUS_VALUE: self._vendor_status()[ATTR_STATUS_VALUE]}
+
+
 class StatusVendor(SolarEdgeStatusVendorBase):
     """Representation of a status vendor."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Status Vendor"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the entity."""
         super().__init__(platform, config_entry, coordinator)
         self._attr_unique_id = f"{platform.uid_base}_status_vendor"
-        self._attr_entity_registry_enabled_default = not platform.use_status_vendor4
 
     @property
     def available(self) -> bool:
@@ -1815,6 +1858,7 @@ class StatusVendor4(SolarEdgeStatusVendorBase):
     """Representation of a status vendor4."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Status Vendor 4"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1988,6 +2032,52 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
         return round(self._platform.global_power_control_data.I_CosPhi, 1)
 
 
+class MeterError(SolarEdgeSensorBase):
+    """The text of the meter's active events.
+
+    Has no unit or state class, so each change shows in the logbook.
+    """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_name = "Error"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_error"
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        value = self._platform.meter_data.M_Events
+        return (
+            super().available and value is not None and value != SunSpecNotImpl.UINT32
+        )
+
+    @property
+    def native_value(self) -> str:
+        """Return the active events' text and their value, like the logbook cause.
+
+        Only the text is cut to fit the state length limit, so the value stays
+        and different events never show the same state.
+        """
+        value = self._platform.meter_data.M_Events
+        text = "; ".join(meter_event_texts(value)) or "No Error"
+        code = f" ({value})"
+        if len(text) + len(code) > MAX_LENGTH_STATE_STATE:
+            text = text[: MAX_LENGTH_STATE_STATE - len(code) - 3] + "..."
+        return text + code
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the event bits and their names."""
+        value = self._platform.meter_data.M_Events
+        return {
+            ATTR_STATUS_VALUE: value,
+            ATTR_EVENTS: meter_event_names(value),
+        }
+
+
 class MeterEvents(SolarEdgeCauseEntity, SolarEdgeSensorBase):
     """Representation of a meter events.
 
@@ -1998,6 +2088,7 @@ class MeterEvents(SolarEdgeCauseEntity, SolarEdgeSensorBase):
     _cause_event = EVENT_METER_EVENTS
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Meter Events"
 
     def __init__(self, platform, config_entry, coordinator):

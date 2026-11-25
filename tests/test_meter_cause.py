@@ -39,6 +39,7 @@ def _entity(entity_class, events):
     entity.hass = MagicMock()
     entity.entity_id = "sensor.inverter_1_m1"
     entity.registry_entry = SimpleNamespace(device_id="dev1")
+    entity._async_error_entity_id = MagicMock(return_value="sensor.inverter_1_m1_error")
     return entity
 
 
@@ -50,10 +51,17 @@ def _update(entity, events):
 
 
 def _fired(entity, event_type):
-    """Return the cause data (without the device id) of each event fired."""
+    """Return the cause data (without the device and Error ids) of each event fired."""
     calls = entity.hass.bus.async_fire.call_args_list
     assert all(c.args[0] == event_type for c in calls)
-    return [{k: v for k, v in c.args[1].items() if k != "device_id"} for c in calls]
+    return [
+        {
+            k: v
+            for k, v in c.args[1].items()
+            if k not in ("device_id", "error_entity_id")
+        }
+        for c in calls
+    ]
 
 
 @pytest.mark.parametrize(
@@ -144,3 +152,13 @@ def test_meter_problem_records_problem_events_only():
     assert _fired(entity, EVENT_PROBLEM) == [
         {"events": ["OVER_CURRENT"], "events_text": [METER_EVENTS_TEXT[5]]}
     ]
+
+
+def test_meter_event_links_meter_error_sensor():
+    """The event names the meter's Error sensor for the logbook entry link."""
+    entity = _entity(MeterEvents, 0)
+    _update(entity, 0)
+    _update(entity, 0b100)
+
+    call = entity.hass.bus.async_fire.call_args
+    assert call.args[1]["error_entity_id"] == "sensor.inverter_1_m1_error"

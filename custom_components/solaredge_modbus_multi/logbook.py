@@ -5,12 +5,17 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from homeassistant.components.logbook import LOGBOOK_ENTRY_MESSAGE, LOGBOOK_ENTRY_NAME
+from homeassistant.components.logbook import (
+    LOGBOOK_ENTRY_ENTITY_ID,
+    LOGBOOK_ENTRY_MESSAGE,
+    LOGBOOK_ENTRY_NAME,
+)
 from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 
 from .const import (
+    ATTR_ERROR_ENTITY_ID,
     ATTR_EVENTS_TEXT,
     ATTR_STATUS_TEXT,
     ATTR_STATUS_VALUE,
@@ -43,6 +48,10 @@ def async_describe_events(
     The name is the cause and the message is the device. The "what happened"
     box in the frontend shows only the name of an integration's event, so the
     cause must be in the name to be seen there.
+
+    When the event names the device's Error sensor, the entry links to it.
+    The frontend then shows the entity's name and device in place of the
+    name, so the message is the cause instead of the device.
     """
 
     @callback
@@ -55,6 +64,17 @@ def async_describe_events(
         return DEFAULT_NAME
 
     @callback
+    def _entry(name: str, data: Mapping[str, Any]) -> dict[str, str]:
+        """Return the logbook entry for a cause, linked when possible."""
+        if error_entity_id := data.get(ATTR_ERROR_ENTITY_ID):
+            return {
+                LOGBOOK_ENTRY_NAME: name,
+                LOGBOOK_ENTRY_MESSAGE: name,
+                LOGBOOK_ENTRY_ENTITY_ID: error_entity_id,
+            }
+        return {LOGBOOK_ENTRY_NAME: name, LOGBOOK_ENTRY_MESSAGE: _device_name(data)}
+
+    @callback
     def async_describe_problem_event(event: Event) -> dict[str, str]:
         """Describe a fault being reported."""
         data = event.data
@@ -64,7 +84,7 @@ def async_describe_events(
         else:
             name = _status(data) or "Fault"
 
-        return {LOGBOOK_ENTRY_NAME: name, LOGBOOK_ENTRY_MESSAGE: _device_name(data)}
+        return _entry(name, data)
 
     @callback
     def async_describe_status_vendor_event(event: Event) -> dict[str, str]:
@@ -72,7 +92,7 @@ def async_describe_events(
         data = event.data
         name = _status(data) or "Status unknown"
 
-        return {LOGBOOK_ENTRY_NAME: name, LOGBOOK_ENTRY_MESSAGE: _device_name(data)}
+        return _entry(name, data)
 
     @callback
     def async_describe_meter_events_event(event: Event) -> dict[str, str]:
@@ -83,7 +103,7 @@ def async_describe_events(
         else:
             name = "No meter events"
 
-        return {LOGBOOK_ENTRY_NAME: name, LOGBOOK_ENTRY_MESSAGE: _device_name(data)}
+        return _entry(name, data)
 
     async_describe_event(DOMAIN, EVENT_PROBLEM, async_describe_problem_event)
     async_describe_event(

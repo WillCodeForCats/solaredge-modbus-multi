@@ -38,6 +38,7 @@ def _entity(entity_class, platform, coordinator, bus, entity_id):
     entity.hass.bus = bus
     entity.entity_id = entity_id
     entity.registry_entry = SimpleNamespace(device_id="dev1")
+    entity._async_error_entity_id = MagicMock(return_value="sensor.inverter_1_error")
     return entity
 
 
@@ -75,7 +76,12 @@ def test_status_fault_records_vendor_status():
     call = bus.async_fire.call_args
     assert call.args == (
         EVENT_PROBLEM,
-        {"device_id": "dev1", "status_value": 17, "status_text": VENDOR_STATUS[17]},
+        {
+            "device_id": "dev1",
+            "status_value": 17,
+            "status_text": VENDOR_STATUS[17],
+            "error_entity_id": "sensor.inverter_1_error",
+        },
     )
     assert status._context is call.kwargs["context"]
 
