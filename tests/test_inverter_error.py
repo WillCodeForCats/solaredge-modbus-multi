@@ -132,17 +132,17 @@ def test_meter_error_entity_basics():
 @pytest.mark.parametrize(
     ("events", "value", "names"),
     [
-        (0, "No Error", []),
-        (1 << 2, "Loss of power or phase", ["POWER_FAILURE"]),
+        (0, "No Error (0)", []),
+        (1 << 2, "Loss of power or phase (4)", ["POWER_FAILURE"]),
         (
             (1 << 2) | (1 << 16),
-            "Loss of power or phase; OEM1",
+            "Loss of power or phase; OEM1 (65540)",
             ["POWER_FAILURE", "OEM1"],
         ),
     ],
 )
 def test_meter_error_text(events, value, names):
-    """The state is the active events' text, joined, or No Error."""
+    """The state is the active events' text, joined, or No Error, and the value."""
     entity = _meter(MeterError, events)
     assert entity.available
     assert entity.native_value == value
@@ -150,10 +150,18 @@ def test_meter_error_text(events, value, names):
 
 
 def test_meter_error_text_fits_state_limit():
-    """With every event bit set, the text is cut to the state length limit."""
+    """With every event bit set, the text is cut but the value is kept."""
     value = _meter(MeterError, 0x7FFFFFFC).native_value
     assert len(value) == 255
-    assert value.endswith("...")
+    assert value.endswith("... (2147483644)")
+
+
+def test_meter_error_cut_text_keeps_states_distinct():
+    """Masks whose text is cut at the same place still give different states."""
+    first = _meter(MeterError, 0x7FFFFFFC).native_value
+    second = _meter(MeterError, 0x3FFFFFFC).native_value
+    assert len(second) == 255
+    assert first != second
 
 
 @pytest.mark.parametrize("events", [None, SunSpecNotImpl.UINT32])
