@@ -289,12 +289,15 @@ def test_no_entities_with_batteries():
 
 
 def test_unique_ids_and_names():
-    """Test ids come from the system device and names follow the wiki."""
+    """Test ids come from the system device, and names and icons."""
     hub = _hub([_inverter()], [_meter()])
 
     power = _power(hub, "grid_load")
     assert power.unique_id == "entry1_system_power_grid_load"
-    assert power.name == "Power - Grid - Load"
+    assert power.name == "Grid Import"
+    assert power.icon == "mdi:transmission-tower-import"
+    assert _power(hub, "pv_grid").icon == "mdi:transmission-tower-export"
+    assert _power(hub, "pv_load").icon == "mdi:home-import-outline"
 
     assert SolarACPower(hub.system, None, COORDINATOR).unique_id == (
         "entry1_system_solar_ac_power"

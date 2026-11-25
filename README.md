@@ -51,7 +51,7 @@ inverter, and off for a single inverter. Change it with **Enable Virtual System 
 
 Sensors provided:
 
-- Power - Solar Generation, Power - Consumption, Power - Grid - Load, Power - PV - Grid, and Power - PV - Load.
+- Solar Generation, Consumption, Grid Import, Grid Export, and Self Consumption.
   These follow the wiki's [template sensors](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Sensors-for-Power-and-Energy) for systems without batteries.
 - Solar AC Power: from Production meters if you have any, otherwise from the inverters' AC output.
 

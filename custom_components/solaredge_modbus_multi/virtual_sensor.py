@@ -16,13 +16,22 @@ from homeassistant.const import UnitOfPower
 from .coordinator import SolarEdgeConfigEntry, SolarEdgeCoordinator
 from .entity import SolarEdgeEntity
 
-# sensor key -> name used after "Power - "
+# sensor key -> entity name
 SENSOR_NAMES = {
     "solar_generation": "Solar Generation",
     "consumption": "Consumption",
-    "grid_load": "Grid - Load",
-    "pv_grid": "PV - Grid",
-    "pv_load": "PV - Load",
+    "grid_load": "Grid Import",
+    "pv_grid": "Grid Export",
+    "pv_load": "Self Consumption",
+}
+
+# sensor key -> icon
+SENSOR_ICONS = {
+    "solar_generation": "mdi:solar-power-variant",
+    "consumption": "mdi:home-lightning-bolt",
+    "grid_load": "mdi:transmission-tower-import",
+    "pv_grid": "mdi:transmission-tower-export",
+    "pv_load": "mdi:home-import-outline",
 }
 
 
@@ -96,7 +105,8 @@ class SystemPower(SolarEdgeSystemSensorBase):
         super().__init__(system, config_entry, coordinator)
         self._key = key
         self._attr_unique_id = f"{system.uid_base}_power_{key}"
-        self._attr_name = f"Power - {SENSOR_NAMES[key]}"
+        self._attr_name = SENSOR_NAMES[key]
+        self._attr_icon = SENSOR_ICONS[key]
 
     @property
     def _value(self) -> float | None:
