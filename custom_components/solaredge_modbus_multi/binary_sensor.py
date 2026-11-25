@@ -16,19 +16,16 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     ATTR_EVENTS,
     ATTR_EVENTS_TEXT,
-    ATTR_STATUS_TEXT,
-    ATTR_STATUS_VALUE,
     BATTERY_STATUS,
+    CAUSE_GROUP_INVERTER_FAULT,
     DEVICE_STATUS,
     EVENT_PROBLEM,
     METER_PROBLEM_EVENTS,
-    VENDOR4_STATUS,
-    VENDOR_STATUS,
     SunSpecNotImpl,
 )
 from .coordinator import SolarEdgeConfigEntry
 from .entity import SolarEdgeCauseEntity, SolarEdgeEntity
-from .helpers import meter_event_names, meter_event_texts
+from .helpers import inverter_vendor_status, meter_event_names, meter_event_texts
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -152,7 +149,12 @@ class GridStatusOnOff(SolarEdgeBinarySensorBase):
 
 
 class InverterProblem(SolarEdgeProblemBinarySensor):
-    """On when the inverter status reports a fault."""
+    """On when the inverter status reports a fault.
+
+    Shares its cause event with the inverter Status sensor.
+    """
+
+    _cause_group = CAUSE_GROUP_INVERTER_FAULT
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the entity."""
@@ -178,25 +180,9 @@ class InverterProblem(SolarEdgeProblemBinarySensor):
     @property
     def extra_state_attributes(self):
         """Return the vendor status value and text."""
-        data = self._platform.inverter_data
-        attrs = {}
-
-        if self._platform.use_status_vendor4:
-            value = data.I_Status_Vendor4
-            if value is not None and value != SunSpecNotImpl.UINT32:
-                controller = (value >> 24) & 0xFF
-                error = value & 0xFFFF
-                attrs[ATTR_STATUS_VALUE] = f"{controller:X}x{error:X}"
-                if controller in VENDOR4_STATUS and error in VENDOR4_STATUS[controller]:
-                    attrs[ATTR_STATUS_TEXT] = VENDOR4_STATUS[controller][error]
-        else:
-            value = data.I_Status_Vendor
-            if value is not None and value != SunSpecNotImpl.UINT16:
-                attrs[ATTR_STATUS_VALUE] = value
-                if value in VENDOR_STATUS:
-                    attrs[ATTR_STATUS_TEXT] = VENDOR_STATUS[value]
-
-        return attrs
+        return inverter_vendor_status(
+            self._platform.inverter_data, self._platform.use_status_vendor4
+        )
 
     def _problem_cause(self) -> dict[str, Any]:
         """Return the vendor status as the cause."""

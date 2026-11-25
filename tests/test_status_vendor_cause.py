@@ -51,13 +51,10 @@ def _update(entity, value):
 
 
 def _fired(entity):
-    """Return the cause data (without ids) of each event fired."""
+    """Return the cause data (without the device id) of each event fired."""
     calls = entity.hass.bus.async_fire.call_args_list
     assert all(c.args[0] == EVENT_STATUS_VENDOR for c in calls)
-    return [
-        {k: v for k, v in c.args[1].items() if k not in ("device_id", "entity_id")}
-        for c in calls
-    ]
+    return [{k: v for k, v in c.args[1].items() if k != "device_id"} for c in calls]
 
 
 def test_status_vendor_change_records_text():
@@ -69,7 +66,7 @@ def test_status_vendor_change_records_text():
     assert _fired(entity) == [{"status_value": "17", "status_text": VENDOR_STATUS[17]}]
     call = entity.hass.bus.async_fire.call_args
     assert call.args[1]["device_id"] == "dev1"
-    assert call.args[1]["entity_id"] == "sensor.inverter_1_status_vendor"
+    assert "entity_id" not in call.args[1]
     assert entity._context is call.kwargs["context"]
 
 

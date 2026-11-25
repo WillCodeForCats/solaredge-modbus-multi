@@ -29,7 +29,7 @@ def _status(data: Mapping[str, Any]) -> str | None:
     if text is not None:
         return f"{text} ({value})"
     if value is not None:
-        return f"status {value}"
+        return f"Status {value}"
     return None
 
 
@@ -38,7 +38,12 @@ def async_describe_events(
     hass: HomeAssistant,
     async_describe_event: Callable[[str, str, Callable[[Event], dict[str, str]]], None],
 ) -> None:
-    """Describe logbook events."""
+    """Describe logbook events.
+
+    The name is the cause and the message is the device. The "what happened"
+    box in the frontend shows only the name of an integration's event, so the
+    cause must be in the name to be seen there.
+    """
 
     @callback
     def _device_name(data: Mapping[str, Any]) -> str:
@@ -51,37 +56,34 @@ def async_describe_events(
 
     @callback
     def async_describe_problem_event(event: Event) -> dict[str, str]:
-        """Describe a problem sensor turning on."""
+        """Describe a fault being reported."""
         data = event.data
 
         if events := data.get(ATTR_EVENTS_TEXT):
-            message = f"reported a fault: {'; '.join(events)}"
-        elif status := _status(data):
-            message = f"reported a fault: {status}"
+            name = "; ".join(events)
         else:
-            message = "reported a fault"
+            name = _status(data) or "Fault"
 
-        return {LOGBOOK_ENTRY_NAME: _device_name(data), LOGBOOK_ENTRY_MESSAGE: message}
+        return {LOGBOOK_ENTRY_NAME: name, LOGBOOK_ENTRY_MESSAGE: _device_name(data)}
 
     @callback
     def async_describe_status_vendor_event(event: Event) -> dict[str, str]:
         """Describe a vendor status code change."""
         data = event.data
-        message = f"vendor status {data.get(ATTR_STATUS_VALUE)}"
-        if (text := data.get(ATTR_STATUS_TEXT)) is not None:
-            message = f"{message}: {text}"
+        name = _status(data) or "Status unknown"
 
-        return {LOGBOOK_ENTRY_NAME: _device_name(data), LOGBOOK_ENTRY_MESSAGE: message}
+        return {LOGBOOK_ENTRY_NAME: name, LOGBOOK_ENTRY_MESSAGE: _device_name(data)}
 
     @callback
     def async_describe_meter_events_event(event: Event) -> dict[str, str]:
         """Describe a meter event bits change."""
         data = event.data
-        message = f"meter events {data.get(ATTR_STATUS_VALUE)}"
         if events := data.get(ATTR_EVENTS_TEXT):
-            message = f"{message}: {'; '.join(events)}"
+            name = "; ".join(events)
+        else:
+            name = "No meter events"
 
-        return {LOGBOOK_ENTRY_NAME: _device_name(data), LOGBOOK_ENTRY_MESSAGE: message}
+        return {LOGBOOK_ENTRY_NAME: name, LOGBOOK_ENTRY_MESSAGE: _device_name(data)}
 
     async_describe_event(DOMAIN, EVENT_PROBLEM, async_describe_problem_event)
     async_describe_event(

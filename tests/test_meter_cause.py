@@ -50,13 +50,10 @@ def _update(entity, events):
 
 
 def _fired(entity, event_type):
-    """Return the cause data (without ids) of each event fired."""
+    """Return the cause data (without the device id) of each event fired."""
     calls = entity.hass.bus.async_fire.call_args_list
     assert all(c.args[0] == event_type for c in calls)
-    return [
-        {k: v for k, v in c.args[1].items() if k not in ("device_id", "entity_id")}
-        for c in calls
-    ]
+    return [{k: v for k, v in c.args[1].items() if k != "device_id"} for c in calls]
 
 
 @pytest.mark.parametrize(

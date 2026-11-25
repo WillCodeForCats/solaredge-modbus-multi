@@ -381,8 +381,10 @@ def _problem_entity(status, vendor=None):
         device_info=None,
         use_status_vendor4=False,
         inverter_data=SimpleNamespace(I_Status=status, I_Status_Vendor=vendor),
+        cause_contexts={},
     )
-    entity = InverterProblem(platform, None, COORDINATOR)
+    coordinator = SimpleNamespace(last_update_success=True, last_update_success_time=0)
+    entity = InverterProblem(platform, None, coordinator)
     entity.hass = MagicMock()
     entity.entity_id = "binary_sensor.inverter_1_problem"
     entity.registry_entry = SimpleNamespace(device_id="dev1")
@@ -390,8 +392,9 @@ def _problem_entity(status, vendor=None):
 
 
 def _update(entity, status):
-    """Set the inverter status and run a coordinator update."""
+    """Set the inverter status and run a coordinator update for a new poll."""
     entity._platform.inverter_data.I_Status = status
+    entity.coordinator.last_update_success_time += 1
     with patch.object(entity, "async_write_ha_state"):
         entity._handle_coordinator_update()
 
@@ -414,7 +417,6 @@ def test_problem_event_on_fault_with_cause():
     assert _fired(entity) == [
         {
             "device_id": "dev1",
-            "entity_id": "binary_sensor.inverter_1_problem",
             "status_value": 17,
             "status_text": VENDOR_STATUS[17],
         }
@@ -472,12 +474,13 @@ async def test_problem_cleared_state_has_no_fault_cause(hass):
     context, and the cleared state written within the entity's context
     window gets a different one.
     """
-    coordinator = MagicMock(last_update_success=True)
+    coordinator = MagicMock(last_update_success=True, last_update_success_time=0)
     platform = SimpleNamespace(
         uid_base="inverter_1",
         device_info=None,
         use_status_vendor4=False,
         inverter_data=SimpleNamespace(I_Status=4, I_Status_Vendor=17),
+        cause_contexts={},
     )
     entity = InverterProblem(platform, None, coordinator)
     events = async_capture_events(hass, EVENT_PROBLEM)
@@ -485,6 +488,7 @@ async def test_problem_cleared_state_has_no_fault_cause(hass):
     assert hass.states.get(entity.entity_id).state == "off"
 
     platform.inverter_data.I_Status = 7
+    coordinator.last_update_success_time = 1
     entity._handle_coordinator_update()
     fault = hass.states.get(entity.entity_id)
     assert fault.state == "on"
@@ -492,6 +496,7 @@ async def test_problem_cleared_state_has_no_fault_cause(hass):
     assert fault.context.id == events[0].context.id
 
     platform.inverter_data.I_Status = 4
+    coordinator.last_update_success_time = 2
     entity._handle_coordinator_update()
     cleared = hass.states.get(entity.entity_id)
     assert cleared.state == "off"
@@ -499,6 +504,7 @@ async def test_problem_cleared_state_has_no_fault_cause(hass):
     assert cleared.context.id != events[0].context.id
 
     platform.inverter_data.I_Status = 7
+    coordinator.last_update_success_time = 3
     entity._handle_coordinator_update()
     refault = hass.states.get(entity.entity_id)
     assert len(events) == 2
