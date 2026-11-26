@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "The integration must finish loading before this repair can run. Reload the integration and try again.",
-          "device_not_found": "The inverter at this Device ID is no longer present. It may have been removed from the Inverter Device ID List."
+          "device_not_found": "The inverter at this Device ID is no longer present. It may have been removed from the Inverter Device ID List.",
+          "inverter_moved": "The inverter with serial {old_serial} is still responding, now at Device ID {moved_to}. It was moved, not replaced, so migrating would take its entities and history away from it. Ignore this repair instead."
         }
       }
     },

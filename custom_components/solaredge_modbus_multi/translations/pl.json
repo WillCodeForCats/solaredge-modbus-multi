@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Integracja musi zakończyć ładowanie, zanim ta naprawa będzie mogła zostać uruchomiona. Przeładuj integrację i spróbuj ponownie.",
-          "device_not_found": "Falownik o tym ID urządzenia nie istnieje już. Mógł zostać usunięty z listy ID urządzeń falowników."
+          "device_not_found": "Falownik o tym ID urządzenia nie istnieje już. Mógł zostać usunięty z listy ID urządzeń falowników.",
+          "inverter_moved": "Falownik o numerze seryjnym {old_serial} nadal odpowiada, teraz pod identyfikatorem urządzenia {moved_to}. Został przeniesiony, a nie wymieniony, więc migracja odebrałaby mu jego encje i historię. Zamiast tego zignoruj tę naprawę."
         }
       }
     },

@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Az integrációnak be kell fejeznie a betöltést, mielőtt ez a javítás futtatható. Töltse újra az integrációt, és próbálja meg ismét.",
-          "device_not_found": "Az ezzel az eszközazonosítóval rendelkező inverter már nem található. Lehet, hogy eltávolították az inverterek eszközazonosító-listájáról."
+          "device_not_found": "Az ezzel az eszközazonosítóval rendelkező inverter már nem található. Lehet, hogy eltávolították az inverterek eszközazonosító-listájáról.",
+          "inverter_moved": "A(z) {old_serial} sorozatszámú inverter továbbra is válaszol, most a(z) {moved_to} eszközazonosítón. Áthelyezték, nem cserélték le, ezért a migrálás elvenné tőle az entitásait és az előzményeit. Ehelyett hagyja figyelmen kívül ezt a javítást."
         }
       }
     },

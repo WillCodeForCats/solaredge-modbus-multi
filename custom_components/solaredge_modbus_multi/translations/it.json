@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "L'integrazione deve terminare il caricamento prima che questa riparazione possa essere eseguita. Ricarica l'integrazione e riprova.",
-          "device_not_found": "L'inverter con questo ID dispositivo non è più presente. Potrebbe essere stato rimosso dall'elenco degli ID dispositivo degli inverter."
+          "device_not_found": "L'inverter con questo ID dispositivo non è più presente. Potrebbe essere stato rimosso dall'elenco degli ID dispositivo degli inverter.",
+          "inverter_moved": "L'inverter con numero di serie {old_serial} risponde ancora, ora all'ID dispositivo {moved_to}. È stato spostato, non sostituito, quindi la migrazione gli toglierebbe le sue entità e la sua cronologia. Ignora invece questa riparazione."
         }
       }
     },

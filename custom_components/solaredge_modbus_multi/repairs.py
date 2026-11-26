@@ -220,6 +220,23 @@ class DeviceReplacedRepairFlow(RepairsFlow):
         # the new uid_base to the device alongside the old one.
         old_uid_base = cast(str, self.data["old_uid_base"])
 
+        moved = next(
+            (
+                i
+                for i in hub.inverters
+                if i.uid_base == old_uid_base and i.inverter_unit_id != unit_id
+            ),
+            None,
+        )
+        if moved is not None:
+            return self.async_abort(
+                reason="inverter_moved",
+                description_placeholders={
+                    "old_serial": str(self.data["old_serial"]),
+                    "moved_to": str(moved.inverter_unit_id),
+                },
+            )
+
         if old_uid_base != inverter.uid_base:
             self._migrate_entities(entry_id, old_uid_base, inverter.uid_base)
 

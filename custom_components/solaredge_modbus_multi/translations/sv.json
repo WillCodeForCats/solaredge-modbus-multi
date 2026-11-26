@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Integrationen måste ha laddats klart innan den här reparationen kan köras. Ladda om integrationen och försök igen.",
-          "device_not_found": "Växelriktaren med detta enhets-ID finns inte längre. Den kan ha tagits bort från listan över växelriktarnas enhets-ID."
+          "device_not_found": "Växelriktaren med detta enhets-ID finns inte längre. Den kan ha tagits bort från listan över växelriktarnas enhets-ID.",
+          "inverter_moved": "Växelriktaren med serienummer {old_serial} svarar fortfarande, nu på enhets-ID {moved_to}. Den har flyttats, inte bytts ut, så en migrering skulle ta dess entiteter och historik från den. Ignorera den här reparationen i stället."
         }
       }
     },

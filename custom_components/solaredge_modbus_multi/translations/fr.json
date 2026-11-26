@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "L'intégration doit finir de se charger avant que cette réparation puisse s'exécuter. Rechargez l'intégration et réessayez.",
-          "device_not_found": "L'onduleur à cet ID d'appareil n'est plus présent. Il a peut-être été retiré de la liste des ID d'appareil des onduleurs."
+          "device_not_found": "L'onduleur à cet ID d'appareil n'est plus présent. Il a peut-être été retiré de la liste des ID d'appareil des onduleurs.",
+          "inverter_moved": "L'onduleur avec le numéro de série {old_serial} répond toujours, désormais à l'ID d'appareil {moved_to}. Il a été déplacé, et non remplacé : la migration lui retirerait ses entités et son historique. Ignorez plutôt cette réparation."
         }
       }
     },

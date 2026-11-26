@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Integrationen skal være færdig med at indlæse, før denne reparation kan køres. Genindlæs integrationen, og prøv igen.",
-          "device_not_found": "Inverteren med dette enheds-ID findes ikke længere. Den er muligvis blevet fjernet fra listen over inverter-enheds-ID'er."
+          "device_not_found": "Inverteren med dette enheds-ID findes ikke længere. Den er muligvis blevet fjernet fra listen over inverter-enheds-ID'er.",
+          "inverter_moved": "Inverteren med serienummer {old_serial} svarer stadig, nu på enheds-ID {moved_to}. Den er blevet flyttet, ikke udskiftet, så en migrering ville tage dens entiteter og historik fra den. Ignorer i stedet denne reparation."
         }
       }
     },

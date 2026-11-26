@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Die Integration muss zuerst vollständig geladen sein, bevor diese Reparatur ausgeführt werden kann. Laden Sie die Integration neu und versuchen Sie es erneut.",
-          "device_not_found": "Der Wechselrichter mit dieser Geräte-ID ist nicht mehr vorhanden. Er wurde möglicherweise aus der Liste der Wechselrichter-Geräte-IDs entfernt."
+          "device_not_found": "Der Wechselrichter mit dieser Geräte-ID ist nicht mehr vorhanden. Er wurde möglicherweise aus der Liste der Wechselrichter-Geräte-IDs entfernt.",
+          "inverter_moved": "Der Wechselrichter mit der Seriennummer {old_serial} antwortet weiterhin, jetzt unter Geräte-ID {moved_to}. Er wurde verschoben, nicht ersetzt, daher würde eine Migration ihm seine Entitäten und seinen Verlauf wegnehmen. Ignorieren Sie stattdessen diese Reparatur."
         }
       }
     },

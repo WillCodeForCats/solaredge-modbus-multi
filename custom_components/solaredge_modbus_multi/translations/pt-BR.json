@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "A integração precisa terminar de carregar antes que este reparo possa ser executado. Recarregue a integração e tente novamente.",
-          "device_not_found": "O inversor com este ID de dispositivo não está mais presente. Ele pode ter sido removido da lista de IDs de dispositivo dos inversores."
+          "device_not_found": "O inversor com este ID de dispositivo não está mais presente. Ele pode ter sido removido da lista de IDs de dispositivo dos inversores.",
+          "inverter_moved": "O inversor com número de série {old_serial} ainda está respondendo, agora no ID de dispositivo {moved_to}. Ele foi movido, não substituído, então a migração tiraria dele suas entidades e seu histórico. Ignore este reparo em vez disso."
         }
       }
     },

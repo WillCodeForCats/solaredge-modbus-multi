@@ -187,6 +187,26 @@
         }
       }
     },
+    "device_replaced": {
+      "title": "裝置 ID {device_id} 的逆變器已更換",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "裝置 ID {device_id} 的逆變器已更換",
+            "description": "先前識別為 {old_model}（序號 {old_serial}）的逆變器在 {host} 裝置 ID {device_id} 已不再回應，該處發現了另一台逆變器 {new_model}（序號 {new_serial}）。\n\n若這是硬體更換，請執行遷移，將現有實體與歷史紀錄轉移到更換後的逆變器。若您只是變更了逆變器的裝置 ID 而沒有更換硬體，請忽略此項，將其視為獨立的裝置。",
+            "menu_options": {
+              "migrate": "將實體遷移到更換後的逆變器",
+              "ignore": "忽略，這是另一台逆變器"
+            }
+          }
+        },
+        "abort": {
+          "reload_required": "整合必須先完成載入，才能執行此修復。請重新載入整合後再試一次。",
+          "device_not_found": "此裝置 ID 的逆變器已不存在。它可能已從逆變器裝置 ID 清單中移除。",
+          "inverter_moved": "序號為 {old_serial} 的逆變器仍在回應，現在位於裝置 ID {moved_to}。它是被移動而非更換，遷移會奪走它的實體與歷史紀錄。請改為忽略此修復。"
+        }
+      }
+    },
     "setup_inverter_id_failed": {
       "title": "逆變器裝置 ID 無效",
       "description": "位於 {host} 的逆變器裝置 ID {device_id} 沒有回應，或不是有效的 SolarEdge 逆變器，已略過。若裝置已更換或其 ID 已變更，請在中樞設定中更新逆變器裝置 ID 清單；否則請檢查裝置與 Modbus/TCP 連線。"

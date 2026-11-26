@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Integrace musí být před spuštěním této opravy plně načtena. Načtěte integraci znovu a zkuste to znovu.",
-          "device_not_found": "Střídač s tímto ID zařízení již neexistuje. Mohl být odstraněn ze seznamu ID zařízení střídačů."
+          "device_not_found": "Střídač s tímto ID zařízení již neexistuje. Mohl být odstraněn ze seznamu ID zařízení střídačů.",
+          "inverter_moved": "Střídač se sériovým číslem {old_serial} stále odpovídá, nyní na ID zařízení {moved_to}. Byl přesunut, nikoli vyměněn, takže migrace by mu odebrala jeho entity a historii. Místo toho tuto opravu ignorujte."
         }
       }
     },

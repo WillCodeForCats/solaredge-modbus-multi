@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Integraation latauksen on valmistuttava, ennen kuin tämä korjaus voidaan suorittaa. Lataa integraatio uudelleen ja yritä uudelleen.",
-          "device_not_found": "Invertteriä tällä laitetunnuksella ei enää ole. Se on voitu poistaa inverttereiden laitetunnusluettelosta."
+          "device_not_found": "Invertteriä tällä laitetunnuksella ei enää ole. Se on voitu poistaa inverttereiden laitetunnusluettelosta.",
+          "inverter_moved": "Invertteri, jonka sarjanumero on {old_serial}, vastaa edelleen, nyt laitetunnuksella {moved_to}. Se on siirretty, ei vaihdettu, joten siirto veisi siltä sen entiteetit ja historian. Ohita tämä korjaus sen sijaan."
         }
       }
     },

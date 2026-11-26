@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "Integrarea trebuie să termine încărcarea înainte ca această reparație să poată rula. Reîncărcați integrarea și încercați din nou.",
-          "device_not_found": "Invertorul cu acest ID de dispozitiv nu mai există. Este posibil să fi fost eliminat din lista de ID-uri de dispozitiv ale invertoarelor."
+          "device_not_found": "Invertorul cu acest ID de dispozitiv nu mai există. Este posibil să fi fost eliminat din lista de ID-uri de dispozitiv ale invertoarelor.",
+          "inverter_moved": "Invertorul cu numărul de serie {old_serial} încă răspunde, acum la ID-ul de dispozitiv {moved_to}. A fost mutat, nu înlocuit, așa că migrarea i-ar lua entitățile și istoricul. Ignorați în schimb această reparație."
         }
       }
     },

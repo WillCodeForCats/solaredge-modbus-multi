@@ -202,7 +202,8 @@
         },
         "abort": {
           "reload_required": "De integratie moet eerst volledig geladen zijn voordat deze reparatie kan worden uitgevoerd. Laad de integratie opnieuw en probeer het nogmaals.",
-          "device_not_found": "De omvormer met dit apparaat-ID is niet meer aanwezig. Mogelijk is deze verwijderd uit de lijst met omvormer-apparaat-ID's."
+          "device_not_found": "De omvormer met dit apparaat-ID is niet meer aanwezig. Mogelijk is deze verwijderd uit de lijst met omvormer-apparaat-ID's.",
+          "inverter_moved": "De omvormer met serienummer {old_serial} reageert nog steeds, nu op apparaat-ID {moved_to}. Hij is verplaatst, niet vervangen, dus migreren zou zijn entiteiten en geschiedenis bij hem weghalen. Negeer deze reparatie in plaats daarvan."
         }
       }
     },
