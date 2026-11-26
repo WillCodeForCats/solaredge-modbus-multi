@@ -6,25 +6,27 @@ import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, SunSpecNotImpl
+from .const import SunSpecNotImpl
+from .coordinator import SolarEdgeConfigEntry
+from .entity import SolarEdgeEntity
 
 _LOGGER = logging.getLogger(__name__)
+
+PARALLEL_UPDATES = 1
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: SolarEdgeConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup entry."""
-    hub = hass.data[DOMAIN][config_entry.entry_id]["hub"]
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    hub = config_entry.runtime_data.hub
+    coordinator = config_entry.runtime_data.coordinator
 
     entities = []
 
@@ -45,43 +47,21 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-class SolarEdgeSwitchBase(CoordinatorEntity, SwitchEntity):
+class SolarEdgeSwitchBase(SolarEdgeEntity, SwitchEntity):
     """Representation of a solar edge switch base."""
-
-    should_poll = False
-    _attr_has_entity_name = True
-
-    def __init__(self, platform, config_entry, coordinator) -> None:
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator)
-        """Initialize the sensor."""
-        self._platform = platform
-        self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._platform.device_info
-
-    @property
-    def config_entry_id(self):
-        """Return the config entry id."""
-        return self._config_entry.entry_id
-
-    @property
-    def config_entry_name(self):
-        """Return the config entry name."""
-        return self._config_entry.data["name"]
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self.async_write_ha_state()
 
 
 class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
     """External Production switch. Indicates a non-SolarEdge power sorce in system."""
 
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "External Production"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_external_production"
 
     @property
     def available(self) -> bool:
@@ -93,21 +73,6 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
             and value is not None
             and value != SunSpecNotImpl.UINT16
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_external_production"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "External Production"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return the entity registry enabled default."""
-        return False
 
     @property
     def is_on(self) -> bool:
@@ -116,33 +81,27 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits | (1 << 10)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(0, 1 << 10)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.async_update()
+        self.coordinator.async_update_listeners()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits & ~(1 << 10)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(1 << 10, 0)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.async_update()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     """Negative Site Limit switch. Sets minimum import power when enabled."""
 
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Negative Site Limit"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_negative_site_limit"
 
     @property
     def available(self) -> bool:
@@ -156,49 +115,33 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
         )
 
     @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_negative_site_limit"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Negative Site Limit"
-
-    @property
     def is_on(self) -> bool:
         """Return True if on."""
         return (self._platform.site_limit_control_data.E_Lim_Ctl_Mode >> 11) & 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits | (1 << 11)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(0, 1 << 11)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.async_update()
+        self.coordinator.async_update_listeners()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits & ~(1 << 11)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(1 << 11, 0)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.async_update()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeGridControl(SolarEdgeSwitchBase):
     """Grid Control boolean switch. This is "AdvancedPwrControlEn" in specs."""
 
-    entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Advanced Power Control"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_adv_pwr_ctrl"
 
     @property
     def available(self) -> bool:
@@ -208,16 +151,6 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
             and self._platform.has_advanced_power_control
             and self._platform.advanced_power_control_data.AdvPwrCtrlEn is not None
         )
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id."""
-        return f"{self._platform.uid_base}_adv_pwr_ctrl"
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Advanced Power Control"
 
     @property
     def is_on(self) -> bool:
@@ -231,7 +164,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x1
         )
-        await self.async_update()
+        self.coordinator.async_update_listeners()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off."""
@@ -240,4 +173,4 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x0
         )
-        await self.async_update()
+        self.coordinator.async_update_listeners()

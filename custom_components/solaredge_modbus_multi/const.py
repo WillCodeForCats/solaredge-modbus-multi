@@ -4,10 +4,24 @@ from __future__ import annotations
 
 from enum import IntEnum, StrEnum
 import re
-from typing import Final
+from typing import Any, Final
+
+from homeassistant.util.hass_dict import HassKey
 
 DOMAIN = "solaredge_modbus_multi"
+DATA_YAML: HassKey[dict[str, Any]] = HassKey(f"{DOMAIN}_yaml")
 DEFAULT_NAME = "SolarEdge"
+
+# Logbook 'what happened' cause
+EVENT_PROBLEM: Final = f"{DOMAIN}_problem"
+EVENT_STATUS_VENDOR: Final = f"{DOMAIN}_status_vendor"
+EVENT_METER_EVENTS: Final = f"{DOMAIN}_meter_events"
+ATTR_EVENTS: Final = "events"
+ATTR_EVENTS_TEXT: Final = "events_text"
+ATTR_STATUS_VALUE: Final = "status_value"
+ATTR_STATUS_TEXT: Final = "status_text"
+ATTR_ERROR_ENTITY_ID: Final = "error_entity_id"
+CAUSE_GROUP_INVERTER_FAULT: Final = "inverter_fault"
 
 SETUP_TYPE = "setup_type"
 SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
@@ -58,6 +72,15 @@ INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 # at the same time. Set to 0 to disable.
 MESSAGE_SPACING = 0.1
 
+# Seconds a setup or refresh may run before it is given up on as wedged. This
+# is not sized to the devices: every request has its own timeout, and taking
+# this long means something is broken or misconfigured.
+REFRESH_WATCHDOG = 300
+
+# Seconds a refresh may take before it is reported as slow. A healthy refresh
+# takes a second or two.
+SLOW_REFRESH = 60
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
@@ -66,18 +89,7 @@ class RetrySettings(IntEnum):
     Ratio = 2  # time multiplier between each attempt
     Limit = 6  # number of attempts before failing
     RequestRetries = 3  # max attempts for a single modbus request
-    CoordinatorTimeouts = 3  # coordinator timeouts before failing this cycle
     FeatureProbeTimeouts = 3  # failures tolerated for an already-detected feature
-
-
-class SolarEdgeTimeouts(IntEnum):
-    """Timeouts in milliseconds."""
-
-    Inverter = 8400
-    Device = 1200
-    Battery = 3200
-    Init = 1200
-    Read = 6000
 
 
 class BatteryLimit(IntEnum):
@@ -98,7 +110,7 @@ class ConfDefaultInt(IntEnum):
 
     SCAN_INTERVAL = 10
     PORT = 1502
-    REQUEST_TIMEOUT = 3
+    REQUEST_TIMEOUT = 10
     SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
     BATTERY_ENERGY_RESET_CYCLES = 0
@@ -130,6 +142,7 @@ class ConfName(StrEnum):
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
     DETECT_EXTRAS = "detect_extras"
+    VIRTUAL_SYSTEM = "virtual_system"
     ADV_PWR_CONTROL = "advanced_power_control"
     ADV_STORAGE_CONTROL = "adv_storage_control"
     ADV_SITE_LIMIT_CONTROL = "adv_site_limit_control"
@@ -143,6 +156,22 @@ class ConfName(StrEnum):
     # Old config entry names for migration
     NUMBER_INVERTERS = "number_of_inverters"
     DEVICE_ID = "device_id"
+
+
+class MeterRole(StrEnum):
+    """Meter role, as reported in the SunSpec C_Option string."""
+
+    EXPORT_IMPORT = "export+import"
+    PRODUCTION = "production"
+    CONSUMPTION = "consumption"
+    UNKNOWN = "unknown"
+
+
+class MeterScope(StrEnum):
+    """What a Production meter measures, set by the user."""
+
+    INVERTER = "inverter"
+    SITE = "site"
 
 
 class SunSpecAccum(IntEnum):
@@ -314,6 +343,19 @@ METER_EVENTS = {
     30: "OEM15",
 }
 
+METER_EVENTS_TEXT = {
+    2: "Loss of power or phase",
+    3: "Voltage below threshold (phase Loss)",
+    4: "Power Factor below threshold (possible phase mismatch)",
+    5: "Current Input over threshold (out of range)",
+    6: "Voltage Input over threshold (out of range)",
+    7: "Sensor not connected",
+}
+
+# M_Events bits 2-7:
+# POWER_FAILURE, UNDER_VOLTAGE, LOW_PF, OVER_CURRENT, OVER_VOLTAGE, MISSING_SENSOR
+METER_PROBLEM_EVENTS = 0x000000FC
+
 BATTERY_STATUS = {
     0: "B_STATUS_OFF",
     1: "B_STATUS_STANDBY",
@@ -338,13 +380,13 @@ BATTERY_STATUS_TEXT = {
     10: "Power Saving",
 }
 
-DER_BATTERY_STATUS = {
+DER_STORAGE_STATUS = {
     0: "OK",
     1: "WARNING",
     2: "ERROR",
 }
 
-DER_BATTERY_STATUS_TEXT = {
+DER_STORAGE_STATUS_TEXT = {
     0: "No Error",
     1: "Warning",
     2: "Error",
@@ -415,6 +457,11 @@ LIMIT_CONTROL_MODE = {
 }
 
 LIMIT_CONTROL = {0: "Total", 1: "Per Phase"}
+
+PRODUCTION_METER_SCOPE = {
+    MeterScope.INVERTER: "Inverter Only",
+    MeterScope.SITE: "Whole Site",
+}
 
 VENDOR4_STATUS: dict[int, dict[int, str]] = {
     0x0: {0x0: "No Error"},

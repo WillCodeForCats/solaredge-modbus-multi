@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "**"
   pull_request:
-    branches:
-      - main
   schedule:
     - cron: "0 0 * * *"
-permissions: read-all
+  workflow_dispatch:
+
+permissions: {}
+
 jobs:
   hacs:
     name: HACS Action

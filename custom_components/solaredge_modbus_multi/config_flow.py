@@ -8,7 +8,12 @@ import re
 from typing import Any
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlowResult,
+    OptionsFlow,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
@@ -31,8 +36,8 @@ from .const import (
     ConfDefaultStr,
     ConfName,
 )
-from .helpers import device_list_from_string, host_valid
-from .scanner import SolarEdgeDeviceScanner
+from .helpers import default_virtual_system, device_list_from_string, host_valid
+from .scanner import ScannerConnectionError, SolarEdgeDeviceScanner
 
 
 class ScanOtherDeviceError(HomeAssistantError):
@@ -199,11 +204,11 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if {info[4][0].lower() for info in addr_info} & discovered_ips:
                 return self.async_abort(reason="already_configured")
 
-        if not await self._async_port_open(host, port):
-            return self.async_abort(reason="cannot_connect")
-
         await self.async_set_unique_id(f"{host}:{port}")
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
+
+        if not await self._async_port_open(host, port):
+            return self.async_abort(reason="cannot_connect")
 
         self._discovered = {CONF_HOST: host, CONF_PORT: port}
         self.context["title_placeholders"] = {"host": host}
@@ -343,9 +348,6 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             self._scan_user_input[ConfName.DEVICE_LIST] = self._scan_task_result
 
-            if self._scan_user_input is None:
-                raise AbortFlow("No scan data available")  # noqa: TRY301
-
             self._pending_entry = {
                 "title": self._scan_user_input[CONF_NAME],
                 "data": self._scan_user_input,
@@ -437,7 +439,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 except (ScanOtherDeviceError, ScanNoResponseError) as e:
                     errors[ConfName.DEVICE_LIST] = f"{e}"
 
-                except HomeAssistantError as e:
+                except (ScannerConnectionError, HomeAssistantError) as e:
                     errors[CONF_HOST] = f"{e}"
 
                 else:
@@ -594,7 +596,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
+class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
     """Handle an options flow for SolarEdge Modbus Multi."""
 
     async def async_step_init(
@@ -647,6 +649,14 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                 ConfName.DETECT_EXTRAS: self.config_entry.options.get(
                     ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
                 ),
+                ConfName.VIRTUAL_SYSTEM: self.config_entry.options.get(
+                    ConfName.VIRTUAL_SYSTEM,
+                    default_virtual_system(
+                        self.config_entry.data.get(
+                            ConfName.DEVICE_LIST, [ConfDefaultStr.DEVICE_LIST]
+                        )
+                    ),
+                ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
                 ),
@@ -681,6 +691,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     vol.Optional(
                         f"{ConfName.DETECT_EXTRAS}",
                         default=user_input[ConfName.DETECT_EXTRAS],
+                    ): cv.boolean,
+                    vol.Optional(
+                        f"{ConfName.VIRTUAL_SYSTEM}",
+                        default=user_input[ConfName.VIRTUAL_SYSTEM],
                     ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.ADV_PWR_CONTROL}",

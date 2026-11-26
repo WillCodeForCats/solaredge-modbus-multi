@@ -104,7 +104,11 @@ class InverterData(Component):
     I_Temp_SF = integer(40106, signed=True)
     I_Status = integer(40107, signed=False)
     I_Status_Vendor = integer(40108, signed=False)
-    I_Grid_Status = integer(40113, signed=False)  # previously uint32 little endian
+    Evt1 = uint32(40109)  # no known use by SolarEdge
+    Evt2 = uint32(40111)  # no known use by SolarEdge
+    I_Grid_Status = uint32(40113)  # SunSpec EvtVnd1, undocumented by SolarEdge
+    EvtVnd2 = uint32(40115)  # no known use by SolarEdge
+    EvtVnd3 = uint32(40117)  # no known use by SolarEdge
     I_Status_Vendor4 = uint32(40119)
 
     def restrict_status_vendor4(self, use_status_vendor4: bool) -> None:
@@ -121,15 +125,71 @@ class InverterData(Component):
         )
 
 
-class GlobalDynamicPowerControl(Component):
-    """Global Dynamic Power Control and Status."""
+class WriteCachedComponent(Component):
+    """A Component that shows written values until its next poll.
+
+    After a successful write(), reading that field returns the written value
+    instead of the last polled one, so entities can show a change right away
+    without waiting for a refresh. async_update() clears the written values and
+    the polled values are used again.
+    """
+
+    # Command registers read back a result code instead of the value written.
+    # Until the next poll reads the result, these show None (no value yet).
+    command_fields: frozenset[str] = frozenset()
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the component."""
+        # Field name to (value to show, write number).
+        self._written: dict[str, tuple[Any, int]] = {}
+        self._write_number = 0
+        super().__init__(*args, **kwargs)
+
+    def __getattribute__(self, name: str) -> Any:
+        """Return a written value if there is one, else the attribute."""
+        if name in type(self).declared_fields:
+            written = super().__getattribute__("_written")
+            if name in written:
+                return written[name][0]
+        return super().__getattribute__(name)
+
+    async def write(self, field: str, value: Any) -> None:
+        """Write a field and keep the value until the next poll."""
+        await super().write(field, value)
+        self._write_number += 1
+        shown = None if field in self.command_fields else value
+        self._written[field] = (shown, self._write_number)
+
+    async def async_update(self, *, notify: bool = True) -> None:
+        """Poll the component, then use the polled values again.
+
+        Written values are shown while the poll runs. A failed poll keeps all
+        of them. After a successful poll, only values written before it started
+        are dropped: a write that finished during the poll may have come after
+        the poll read that register.
+        """
+        poll_started_after = self._write_number
+        await super().async_update(notify=notify)
+        self._written = {
+            field: entry
+            for field, entry in self._written.items()
+            if entry[1] > poll_started_after
+        }
+
+
+class GlobalDynamicPowerControl(WriteCachedComponent):
+    """Global Dynamic Power Control and Status.
+
+    I_Power_Limit and I_CosPhi
+    should use count_write=False since they are not saved to the inverter.
+    """
 
     I_RRCR = integer(61440, signed=False)
     I_Power_Limit = integer(61441, signed=False, unit="%", writable=True)
     I_CosPhi = float32(61442, word_order="little", writable=True)
 
 
-class AdvancedPowerControl(Component):
+class AdvancedPowerControl(WriteCachedComponent):
     """Advanced Power Control Power Control Block is read every polling cycle."""
 
     # Most of these are not used by the integration, but all of this can be read
@@ -137,6 +197,9 @@ class AdvancedPowerControl(Component):
     # read requests, so we're choosing fewer, larger reads over more, smaller reads.
 
     max_span = 120
+
+    # Writing 1 runs the command and reading back gives its result code.
+    command_fields = frozenset({"CommitPwrCtlSettings", "RestorePwrCtlDefaults"})
 
     CommitPwrCtlSettings = integer(61696, signed=True, writable=True)
     RestorePwrCtlDefaults = integer(61697, signed=True, writable=True)
@@ -238,7 +301,54 @@ class AdvancedPowerControl(Component):
     DisconnectAtZeroPwrLim = float32(61864, word_order="little", writable=True)
 
 
-class SiteLimitControl(Component):
+class EnhancedDynamicPowerControl(Component):
+    """Enhanced Dynamic Power Control.
+
+    DynamicActivePowerLimit, DynamicReactivePowerRef, and DynamicCosPhiRef
+    should use count_write=False since they are not saved to the inverter.
+    """
+
+    Enable = integer(62208, signed=False, writable=True)
+    _Reserved_F301 = integer(62209, signed=False)
+    _Reserved_F302 = float32(62210, word_order="little")
+    MaxActivePower = float32(62212, unit="W", word_order="little")
+    MaxReactivePower = float32(62214, unit="VAR", word_order="little")
+    ActiveReactivePreference = integer(62216, signed=False, writable=True)
+    CosPhiQPreference = integer(62217, signed=False, writable=True)
+    _Reserved_F30A = float32(62218, word_order="little", writable=True)
+    ActivePowerLimit = float32(62220, unit="W", word_order="little", writable=True)
+    ReactivePowerLimit = float32(62222, unit="VAR", word_order="little", writable=True)
+    CommandTimeout = uint32(62224, unit="s", word_order="little", writable=True)
+    FallbackActivePowerLimit = float32(
+        62226, unit="%", word_order="little", writable=True
+    )
+    FallbackReactivePowerLimit = float32(
+        62228, unit="%", word_order="little", writable=True
+    )
+    FallbackCosPhi = float32(62230, word_order="little", writable=True)
+    ActivePowerRampUpRate = float32(
+        62232, unit="%/min", word_order="little", writable=True
+    )
+    ActivePowerRampDownRate = float32(
+        62234, unit="%/min", word_order="little", writable=True
+    )
+    ReactivePowerRampUpRate = float32(
+        62236, unit="%/min", word_order="little", writable=True
+    )
+    ReactivePowerRampDownRate = float32(
+        62238, unit="%/min", word_order="little", writable=True
+    )
+    PhiChangeRate = float32(62240, unit="rad/min", word_order="little", writable=True)
+    DynamicActivePowerLimit = float32(
+        62242, unit="%", word_order="little", writable=True
+    )
+    DynamicReactivePowerRef = float32(
+        62244, unit="%", word_order="little", writable=True
+    )
+    DynamicCosPhiRef = float32(62246, word_order="little", writable=True)
+
+
+class SiteLimitControl(WriteCachedComponent):
     """Power Control Options: Site Limit Control, read every polling cycle."""
 
     register_ranges = ((57344, 57347), (57362, 57363))
@@ -249,8 +359,13 @@ class SiteLimitControl(Component):
     Ext_Prod_Max = float32(57362, unit="W", word_order="little", writable=True)
 
 
-class StorageControl(Component):
-    """Power Control Options: Storage Control, read every polling cycle."""
+class StorageControl(WriteCachedComponent):
+    """Power Control Options: Storage Control, read every polling cycle.
+
+    command_timeout, command_mode, charge_limit, and discharge_limit
+    should use count_write=False since they have been reported to not be saved
+    in issue #1141.
+    """
 
     control_mode = integer(57348, signed=False, writable=True)
     ac_charge_policy = integer(57349, signed=False, writable=True)

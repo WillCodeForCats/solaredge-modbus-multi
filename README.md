@@ -1,17 +1,20 @@
 # SolarEdge Modbus Multi
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS%20%7C%20Marketplace-Default-41BDF5.svg?style=for-the-badge)](https://contributors.home-assistant.io/marketplace/)
 
 This integration provides Modbus/TCP local polling to one or more SolarEdge inverters for Home Assistant.
-Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters,
-multiple inverters, meters, batteries, and controls. The work in this repository is also being used in
+Each inverter can support three meters and three batteries. It works with single inverters, multiple inverters
+(leader/follower systems), meters, batteries, and controls. The work in this repository is also being used in
 other libraries and integrations.
 
-By default, only features which are officially documented by SolarEdge are enabled: inverters,
-synergy inverters, and meters. All of the battery (read only) and control features (read/write battery and
-limit controls) can be enabled by configuring the hub after you add it to your Home Assistant. Support for
-batteries and controls is from documentation not publicly available from SolarEdge or through user
-discovery and may not be supported by SolarEdge.
+Controls are supported, but you need to enable them. By default, only features which are officially documented
+by SolarEdge are enabled: inverters, synergy inverters, and meters. All of the battery (read only) and control
+features (read/write battery and limit controls) can be enabled by configuring the hub after you add it to your
+Home Assistant. Support for batteries and controls is from documentation not publicly available from SolarEdge
+or through user discovery not supported by SolarEdge.
+
+All known modbus data has been added to this integration. If something is missing it's because there isn't
+any modbus data available for it, or it hasn't been discovered yet in modbus captures.
 
 ## Features
 
@@ -19,7 +22,7 @@ discovery and may not be supported by SolarEdge.
 - Inverter support for 1 to 32 SolarEdge inverters.
 - Meter support for 1 to 3 meters per inverter.
 - Battery support for 1 to 3 batteries per inverter (SolarEdge proprietary).
-- SunSpec DER Battery reporting (SunSpec model 713).
+- SunSpec DER Storage Capacity reporting (SunSpec model 713).
 - Supports site limit and storage controls.
 - Automatically detects meters and batteries.
 - Supports Three Phase Inverters with Synergy Technology.
@@ -27,28 +30,65 @@ discovery and may not be supported by SolarEdge.
 - Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
 - Informational sensor for device and its attributes
-- Supports status and error reporting sensors.
+- Error sensors for inverters and meters show the current error or meter events as text with the code.
+- Shows the cause of faults and status changes in the Home Assistant activity log.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
+- Virtual System device with whole-site power flows calculated across all inverters, on by default for leader/follower systems.
 
-Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)
+### Virtual System Device
+
+In a leader/follower system the site's totals for solar generation, consumption, and grid flows are not available
+from any single device. Other integrations require you to create template sensors to add the entities together, which can be difficult
+to set up and maintain.
+
+SolarEdge Modbus Multi creates a System device that does work this for you. It is on by default when the hub has more than one
+inverter, and off for a single inverter. Change it with **Enable Virtual System Device** in the integration options.
+
+- Inputs are added together across every inverter on the hub, and across every meter set up as Export+Import.
+- All inputs come from the same poll, so a total never mixes old and new readings.
+- If any input is unavailable, the sensor is unavailable. It never falls back to 0.
+- The individual sensors of your inverters and meters are not changed.
+
+Sensors provided:
+
+- Solar Generation, Consumption, Grid Import, Grid Export, and Self Consumption.
+  These follow the wiki's [template sensors](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Template-Sensors-for-Power-and-Energy) for systems without batteries,
+  except Self Consumption, which is Solar AC Power minus Grid Export.
+- Solar AC Power: from Production meters if you have any, otherwise from the inverters' AC output.
+
+Limitations:
+
+- Systems with batteries are not supported yet and get no System sensors.
+- If two inverters are set up with the same physical meter, that meter is counted twice.
+
+Virtual System is a new feature: please open an issue if you have suggestions for virtual sensors that can replace a template.
+
+<!-- ha-marketplace:exclude-start -->
 
 ## Installation
 
-Install with [HACS](https://hacs.xyz): Search for "SolarEdge Modbus Multi" in the default repository,
+Install with Marketplace (Home Assistant 2026.11 and later): Go to **Settings** → **Marketplace** and search for "SolarEdge Modbus Multi".
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=WillCodeForCats&repository=solaredge-modbus-multi&category=integration)
+Install with [HACS](https://hacs.xyz) (before Home Assistant 2026.11): Search for "SolarEdge Modbus Multi" in the default repository.
+
+Either way, you can also use this link to open the integration's page directly:
+
+[![Open your Home Assistant instance and open a repository in the Marketplace or the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=WillCodeForCats&repository=solaredge-modbus-multi&category=integration)
 
 OR
 
 Download the [latest release](https://github.com/WillCodeForCats/solaredge-modbus-multi/releases) and copy the `solaredge_modbus_multi` folder into to your Home Assistant `config/custom_components` folder.
 
-After rebooting Home Assistant, this integration can be configured through the integration setup UI. It also supports options, repair issues, and reconfiguration through the user interface.
+After rebooting Home Assistant, this integration can be configured through the integration setup UI.
+It also supports options, repair issues, and reconfiguration through the user interface.
+<!-- ha-marketplace:exclude-end -->
 
-### Configuration
+## Configuration
 
 [WillCodeForCats/solaredge-modbus-multi/wiki/Configuration](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki/Configuration)
 
-Inverter site limit and battery storage controls are disabled by default: not all inverters support controls. You will need to enable Power Control Options after adding your inverter hub in the integration.
+Inverter site limit and battery storage controls are disabled by default: not all inverters support controls.
+You will need to enable Power Control Options after adding your inverter hub in the integration.
 
 ### Documentation
 
@@ -56,7 +96,7 @@ Inverter site limit and battery storage controls are disabled by default: not al
 
 ### Minimum Required Versions
 
-- Home Assistant 2025.9.0
+- Home Assistant 2025.11.0
 - modbus-connection 4.10.0 or newer
 
 ## Specifications
@@ -71,13 +111,12 @@ do that, please open an issue and copy/paste the changes or attach the updated f
 
 ## Crediting Our Work
 
-There are other integrations and libraries that have included this work directly or indirectly, in
-some cases through AI agents. If you have used this work directly or indirectly, the author would appreciate it
-if you would include a prominent credit and link to this repository so that your users are aware of its origin.
-All of the original research on inverter behavior and undocumented features found here was curated by hand
-in a pre-AI era. If you use issues previously reported, or a user's diagnostic data as test cases or to generate
-code, including user feedback, please also extend credit to that user for their contributions as well as this
-repository, preferably with a direct link to the issue.
+There are other integrations and libraries that have included this work directly or indirectly. If you have used this
+work the author would appreciate it if you would include a prominent credit and link to this repository so that your
+users are aware of its origin. All of the original research on inverter behavior and undocumented features found
+here was curated by hand in a pre-AI era. If you use issues previously reported, or a user's diagnostic data as
+test cases or to generate code, including user feedback, please also extend credit to that user for their
+contributions as well as this repository, preferably with a direct link to the issue.
 
 ## Project Sponsors
 
