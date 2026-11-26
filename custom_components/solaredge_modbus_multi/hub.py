@@ -1523,7 +1523,9 @@ class SolarEdgeSystem:
 
     The power values follow the template sensors for a system without batteries
     from the wiki page Template-Sensors-for-Power-and-Energy, with the inputs
-    summed across all inverters.
+    summed across all inverters. Self consumption (pv_load) is the exception: it
+    uses solar_ac_power instead of the inverter DC power, so it doesn't include
+    the inverter conversion loss.
 
     Sign conventions of the inputs:
         inverter DC power: positive is flowing from the DC bus to the inverter
@@ -1608,7 +1610,9 @@ class SolarEdgeSystem:
             "consumption": self._calc(lambda iac, m: iac - m, iac, m),
             "grid_load": self._calc(lambda m: abs(min(m, 0)), m),
             "pv_grid": pv_grid,
-            "pv_load": self._calc(lambda s, g: max(s - g, 0), solar, pv_grid),
+            "pv_load": self._calc(
+                lambda s, g: max(s - g, 0), self.solar_ac_power, pv_grid
+            ),
         }
 
     def production_meter_scope(self, meter) -> MeterScope:
