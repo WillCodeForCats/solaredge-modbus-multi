@@ -46,6 +46,7 @@ from .const import (
     ConnectionMode,
 )
 from .helpers import (
+    default_virtual_system,
     device_list_from_string,
     get_connection_mode,
     host_valid,
@@ -697,6 +698,14 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                 ConfName.DETECT_EXTRAS: self.config_entry.options.get(
                     ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
                 ),
+                ConfName.VIRTUAL_SYSTEM: self.config_entry.options.get(
+                    ConfName.VIRTUAL_SYSTEM,
+                    default_virtual_system(
+                        self.config_entry.data.get(
+                            ConfName.DEVICE_LIST, [ConfDefaultStr.DEVICE_LIST]
+                        )
+                    ),
+                ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
                     ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
                 ),
@@ -730,6 +739,10 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlowWithReload):
                     vol.Optional(
                         f"{ConfName.DETECT_EXTRAS}",
                         default=user_input[ConfName.DETECT_EXTRAS],
+                    ): cv.boolean,
+                    vol.Optional(
+                        f"{ConfName.VIRTUAL_SYSTEM}",
+                        default=user_input[ConfName.VIRTUAL_SYSTEM],
                     ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.ADV_PWR_CONTROL}",

@@ -252,6 +252,7 @@ async def test_power_control_entities_created_whatever_detection_says(hass, dete
         option_detect_extras=True,
         option_storage_control=False,
         option_site_limit_control=False,
+        option_virtual_system=False,
     )
     entry = SimpleNamespace(
         entry_id="entry1",

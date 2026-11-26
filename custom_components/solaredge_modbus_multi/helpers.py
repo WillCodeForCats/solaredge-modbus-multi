@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ipaddress
 import struct
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -16,7 +17,20 @@ try:
 except ImportError:  # pragma: no cover
     async_get_connection_info = None
 
-from .const import DOMAIN, DOMAIN_REGEX, ConfName, ConnectionMode
+from .const import (
+    ATTR_STATUS_TEXT,
+    ATTR_STATUS_VALUE,
+    DOMAIN,
+    DOMAIN_REGEX,
+    METER_EVENTS,
+    METER_EVENTS_TEXT,
+    SUNSPEC_SF_RANGE,
+    VENDOR4_STATUS,
+    VENDOR_STATUS,
+    ConfName,
+    ConnectionMode,
+    SunSpecNotImpl,
+)
 
 
 def float_to_hex(f: float) -> str:
@@ -65,6 +79,71 @@ def modbus_connection_exists(hass: HomeAssistant, host: str, port: int) -> bool:
 
     endpoint = ModbusTcpParams(host=host, port=port).endpoint
     return any(info.endpoint == endpoint for info in async_get_connection_info(hass))
+
+
+def scale_sunspec_int16(value, sf) -> float | None:
+    """Return an int16 SunSpec value with its scale factor applied.
+
+    Returns None if the value or scale factor is missing, not implemented,
+    or the scale factor is out of range. The not implemented value 0x8000 is
+    checked both as read (32768) and as decoded to a signed int16 (-32768).
+    """
+    if (
+        value is None
+        or value in (SunSpecNotImpl.INT16, -SunSpecNotImpl.INT16)
+        or sf is None
+        or sf == SunSpecNotImpl.INT16
+        or sf not in SUNSPEC_SF_RANGE
+    ):
+        return None
+    return value * (10**sf)
+
+
+def default_virtual_system(device_list: list) -> bool:
+    """Return the default for the virtual system option.
+
+    Return true when the hub has more than one inverter.
+    """
+    return len(device_list) > 1
+
+
+def inverter_vendor_status(data, use_status_vendor4: bool) -> dict[str, Any]:
+    """Return the vendor status value and its text, when known."""
+    attrs: dict[str, Any] = {}
+
+    if use_status_vendor4:
+        value = data.I_Status_Vendor4
+        if value is not None and value != SunSpecNotImpl.UINT32:
+            controller = (value >> 24) & 0xFF
+            error = value & 0xFFFF
+            attrs[ATTR_STATUS_VALUE] = f"{controller:X}x{error:X}"
+            if controller in VENDOR4_STATUS and error in VENDOR4_STATUS[controller]:
+                attrs[ATTR_STATUS_TEXT] = VENDOR4_STATUS[controller][error]
+    else:
+        value = data.I_Status_Vendor
+        if value is not None and value != SunSpecNotImpl.UINT16:
+            attrs[ATTR_STATUS_VALUE] = value
+            if value in VENDOR_STATUS:
+                attrs[ATTR_STATUS_TEXT] = VENDOR_STATUS[value]
+
+    return attrs
+
+
+def meter_event_names(value: int) -> list[str]:
+    """Return the names of the meter event bits set in value."""
+    return [name for bit, name in METER_EVENTS.items() if value & (1 << bit)]
+
+
+def meter_event_texts(value: int) -> list[str]:
+    """Return the descriptions of the meter event bits set in value.
+
+    Bits without a description (reserved and OEM) use their name.
+    """
+    return [
+        METER_EVENTS_TEXT.get(bit, name)
+        for bit, name in METER_EVENTS.items()
+        if value & (1 << bit)
+    ]
 
 
 def host_valid(host):
