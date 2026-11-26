@@ -36,10 +36,6 @@ ZEROCONF_PROBE_TIMEOUT = 3.0
 # spacing active before clearing it back to 0.
 WRITE_SETTLE_CYCLES: Final = 2
 
-# raise a startup exception if library versions are less than this
-TMODBUS_REQUIRED_VERSION = "0.6.1"
-MODBUS_CONNECTION_REQUIRED_VERSION = "4.10.0"
-
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 
@@ -73,9 +69,16 @@ INVERTED_POWER_VERSION = "2026.2.0"  # home assistant core version
 MESSAGE_SPACING = 0.1
 
 # Seconds a setup or refresh may run before it is given up on as wedged. This
-# is not sized to the devices: every request has its own timeout, and taking
-# this long means something is broken or misconfigured.
+# is not sized to the devices: every request has its own timeout, and on a
+# shared connection a refresh can wait out the stuck requests of other holders,
+# which has been seen to take over two minutes. Taking this long means
+# something is broken or misconfigured.
 REFRESH_WATCHDOG = 300
+
+# Seconds a battery probe on a shared connection may take, retries included.
+# An empty battery slot can stay silent, and retrying it behind another
+# holder's longer timeout could use up the setup watchdog on its own.
+SHARED_BATTERY_PROBE_TIMEOUT = 10
 
 # Seconds a refresh may take before it is reported as slow. A healthy refresh
 # takes a second or two.
@@ -126,7 +129,14 @@ class ConfDefaultFlag(IntEnum):
     ADV_STORAGE_CONTROL = 0
     ADV_SITE_LIMIT_CONTROL = 0
     ALLOW_BATTERY_ENERGY_RESET = 0
-    CLOSE_AFTER_POLLING = 0
+
+
+class ConnectionMode(StrEnum):
+    """How this integration connects to the inverter."""
+
+    SHARED = "shared"
+    OWN = "own"
+    OWN_CLOSE_AFTER_POLLING = "own_close_after_polling"
 
 
 class ConfDefaultStr(StrEnum):
@@ -149,9 +159,9 @@ class ConfName(StrEnum):
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     REQUEST_TIMEOUT = "request_timeout"
     SLEEP_AFTER_WRITE = "sleep_after_write"
+    CONNECTION_MODE = "connection_mode"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
     BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
-    CLOSE_AFTER_POLLING = "close_after_polling"
 
     # Old config entry names for migration
     NUMBER_INVERTERS = "number_of_inverters"

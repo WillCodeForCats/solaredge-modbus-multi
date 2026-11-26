@@ -101,25 +101,25 @@
         "title": "SolarEdge Modbus 選項",
         "data": {
           "scan_interval": "輪詢頻率（秒）",
-          "close_after_polling": "輪詢後關閉連線",
           "detect_meters": "自動偵測電表",
           "detect_batteries": "自動偵測電池",
           "detect_extras": "自動偵測其他實體",
           "virtual_system": "啟用虛擬系統裝置",
           "advanced_power_control": "功率控制選項",
           "request_timeout": "Modbus 請求逾時（秒）",
-          "sleep_after_write": "逆變器指令延遲（秒）"
+          "sleep_after_write": "逆變器指令延遲（秒）",
+          "connection_mode": "Modbus 連線"
         },
         "data_description": {
           "scan_interval": "每隔多久（秒）從逆變器讀取一次資料。",
-          "close_after_polling": "每次輪詢成功後關閉 Modbus/TCP 連線。若還有其他裝置或程式也連線到逆變器，請啟用此選項，因為逆變器一次只接受一個連線。",
           "detect_meters": "整合啟動時，尋找連接到各逆變器的電表。",
           "detect_batteries": "整合啟動時，尋找連接到各逆變器的電池。電池支援使用的是 SolarEdge 未正式公開文件的暫存器。",
           "detect_extras": "檢查各逆變器是否支援全域動態功率控制（Global Dynamic Power Control）與進階功率控制（Advanced Power Control），找到時會加入其實體。",
           "virtual_system": "新增一個系統裝置，其功率感測器依據您的逆變器與電表計算而得，例如太陽能發電量與用電量。其他裝置的感測器不會變更。有多台逆變器時預設為開啟。",
           "advanced_power_control": "接著顯示「功率控制選項」步驟，用來開啟或關閉儲能控制與案場限制控制。",
           "request_timeout": "等待每個 Modbus 請求回覆的時間（秒）。",
-          "sleep_after_write": "對逆變器寫入指令後，到下一次對該逆變器發出請求之間要等待的秒數。部分逆變器需要時間處理指令後才會再次回應。設為 0 表示停用。"
+          "sleep_after_write": "對逆變器寫入指令後，到下一次對該逆變器發出請求之間要等待的秒數。部分逆變器需要時間處理指令後才會再次回應。設為 0 表示停用。",
+          "connection_mode": "SolarEdge Modbus Multi 連線到逆變器的方式。使用同一台逆變器的其他整合可能會拖慢共用連線。詳情請參閱 README。"
         }
       },
       "adv_pwr_ctl": {
@@ -191,6 +191,10 @@
       "title": "逆變器裝置 ID 無效",
       "description": "位於 {host} 的逆變器裝置 ID {device_id} 沒有回應，或不是有效的 SolarEdge 逆變器，已略過。若裝置已更換或其 ID 已變更，請在中樞設定中更新逆變器裝置 ID 清單；否則請檢查裝置與 Modbus/TCP 連線。"
     },
+    "shared_connection_other_integration": {
+      "title": "另一個整合共用此逆變器",
+      "description": "整合 {integrations} 使用與 {host} 相同的 Modbus 連線。Home Assistant 在共用連線上為每個裝置 ID 只保留一個逾時值，因此要求不同逾時的整合（例如內建的 SolarEdge Modbus 整合，30 秒）會依最後設定的是哪一個而互相覆蓋。這可能導致更新緩慢或遺漏。\n\n若要同時使用兩者，請在此整合的選項中將「Modbus 連線」設為「使用直接連線」。否則，請停用另一個整合並重新載入此整合。詳情請參閱 README。"
+    },
     "setup_timed_out": {
       "title": "設定逾時",
       "description": "位於 {host} 的中樞未能在 {timeout} 秒內完成設定，當時正在等待裝置 ID {device_id}。請檢查裝置與 Modbus/TCP 連線。若裝置已移除或其 ID 已變更，請在中樞設定中更新逆變器裝置 ID 清單。Home Assistant 記錄會顯示設定當時在等待哪個步驟。"
@@ -223,7 +227,21 @@
     },
     "deprecated_keep_modbus_open": {
       "title": "「保持 Modbus 連線開啟」選項已被取代",
-      "description": "「保持 Modbus 連線開啟」選項已被此整合設定中的「輪詢後關閉連線」取代。若需要相同的行為，請查看新的選項。"
+      "description": "「保持 Modbus 連線開啟」選項已不再使用。此整合現在會共用 modbus 整合的連線。若要自行控制連線，請在此中樞的選項中將「Modbus 連線」設為「使用直接連線」或「使用直接連線，並在每次輪詢後關閉」。"
+    }
+  },
+  "exceptions": {
+    "link_settings_in_use": {
+      "message": "另一個整合已使用不同的連線設定連線到 {host}:{port}，而同一個連線無法同時使用兩種設定。請移除或重新設定另一個整合，然後重新載入此整合。"
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "shared": "使用 Home Assistant 的共用 Modbus 連線",
+        "own": "使用直接連線",
+        "own_close_after_polling": "使用直接連線，並在每次輪詢後關閉"
+      }
     }
   }
 }

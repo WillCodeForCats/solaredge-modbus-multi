@@ -44,7 +44,7 @@ async def test_migrate_from_version_1(hass):
 
     assert await async_migrate_entry(hass, entry)
 
-    assert (entry.version, entry.minor_version) == (2, 3)
+    assert (entry.version, entry.minor_version) == (2, 4)
     assert entry.data == {
         "name": "SolarEdge",
         "host": "192.0.2.10",
@@ -85,7 +85,7 @@ async def test_migrate_from_version_2_0_sets_unique_id(hass):
     assert await async_migrate_entry(hass, entry)
 
     assert entry.unique_id == "192.0.2.10:502"
-    assert (entry.version, entry.minor_version) == (2, 3)
+    assert (entry.version, entry.minor_version) == (2, 4)
 
 
 @pytest.mark.parametrize("keep_modbus_open", [True, False])
@@ -119,7 +119,7 @@ async def test_migrate_from_version_2_2(hass):
 
     assert await async_migrate_entry(hass, entry)
 
-    assert (entry.version, entry.minor_version) == (2, 3)
+    assert (entry.version, entry.minor_version) == (2, 4)
     assert entry.data == data
     assert entry.options == {"detect_meters": True}
 

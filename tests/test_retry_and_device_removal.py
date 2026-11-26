@@ -237,6 +237,23 @@ async def test_coordinator_does_not_retry_a_watchdog_timeout(hass):
     refresh.assert_awaited_once()
 
 
+async def test_coordinator_still_retries_a_failed_update(hass):
+    """Test an ordinary failed update is still retried up to the limit."""
+    refresh = AsyncMock(side_effect=DataUpdateFailed("down"))
+    coordinator = _make_coordinator(hass, refresh)
+
+    with (
+        patch(
+            "custom_components.solaredge_modbus_multi.coordinator.asyncio.sleep",
+            new=AsyncMock(),
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+    assert refresh.await_count == RetrySettings.Limit
+
+
 async def test_coordinator_update_fails_after_yaml_retry_limit(hass):
     """Test a refresh that keeps failing fails the update after the YAML limit.
 
