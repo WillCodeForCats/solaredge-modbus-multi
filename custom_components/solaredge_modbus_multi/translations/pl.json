@@ -105,6 +105,7 @@
           "detect_meters": "Automatycznie wykryj liczniki",
           "detect_batteries": "Automatycznie wykryj baterie",
           "detect_extras": "Automatycznie wykrywaj dodatkowe elementy",
+          "virtual_system": "Włącz wirtualne urządzenie systemowe",
           "advanced_power_control": "Opcje kontroli mocy",
           "request_timeout": "Limit czasu żądania Modbus (sekundy)",
           "sleep_after_write": "Opóźnienie polecenia falownika (sekundy)"
@@ -115,6 +116,7 @@
           "detect_meters": "Wyszukuj liczniki podłączone do każdego falownika podczas uruchamiania integracji.",
           "detect_batteries": "Wyszukuj baterie podłączone do każdego falownika podczas uruchamiania integracji. Obsługa baterii korzysta z rejestrów, których SolarEdge oficjalnie nie dokumentuje.",
           "detect_extras": "Sprawdź, czy każdy falownik obsługuje Global Dynamic Power Control i Advanced Power Control, i dodaj ich encje, jeśli zostaną znalezione.",
+          "virtual_system": "Dodaj urządzenie System z czujnikami mocy obliczanymi na podstawie falowników i liczników, np. produkcja solarna i zużycie. Czujniki pozostałych urządzeń nie są zmieniane. Domyślnie włączone, gdy jest więcej niż jeden falownik.",
           "advanced_power_control": "Pokaż następnie krok Opcje sterowania mocą, aby włączyć lub wyłączyć sterowanie magazynem energii i limitem instalacji.",
           "request_timeout": "Jak długo (w sekundach) czekać na odpowiedź na każde żądanie Modbus.",
           "sleep_after_write": "Liczba sekund oczekiwania między żądaniami do falownika po zapisaniu do niego polecenia. Niektóre falowniki potrzebują czasu na przetworzenie polecenia, zanim znów odpowiedzą. 0 wyłącza tę funkcję."
