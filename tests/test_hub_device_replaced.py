@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers import (
     device_registry as dr,
@@ -12,7 +13,7 @@ from modbus_connection.mock import MockModbusConnection
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi.const import DOMAIN
+from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN
 from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
 from custom_components.solaredge_modbus_multi.repairs import DeviceReplacedRepairFlow
 
@@ -35,7 +36,7 @@ def _make_entry(hass) -> MockConfigEntry:
 
 
 def _make_hub(hass, entry: MockConfigEntry) -> SolarEdgeModbusMultiHub:
-    hass.data[DOMAIN] = {"yaml": {}}
+    hass.data[DATA_YAML] = {}
     return SolarEdgeModbusMultiHub(
         hass, entry.entry_id, ENTRY_DATA, {}, MockModbusConnection()
     )
@@ -169,8 +170,8 @@ async def test_migrate_preserves_entity_id_and_history(hass):
     hub.inverters = [live_inverter]
     hub.meters = []
     hub.batteries = []
-    hub.der_batteries = []
-    hass.data[DOMAIN][entry.entry_id] = {"hub": hub}
+    entry.runtime_data = SimpleNamespace(hub=hub)
+    entry.mock_state(hass, ConfigEntryState.LOADED)
 
     issue_id = f"device_replaced_{entry.entry_id}_1"
     ir.async_create_issue(
@@ -248,8 +249,8 @@ async def test_ignore_cleans_up_without_touching_entities(hass):
     hub.inverters = [live_inverter]
     hub.meters = []
     hub.batteries = []
-    hub.der_batteries = []
-    hass.data[DOMAIN][entry.entry_id] = {"hub": hub}
+    entry.runtime_data = SimpleNamespace(hub=hub)
+    entry.mock_state(hass, ConfigEntryState.LOADED)
 
     issue_id = f"device_replaced_{entry.entry_id}_1"
     ir.async_create_issue(
