@@ -86,6 +86,7 @@ async def test_setup_entry_entities_per_inverter(storage, site_limit, extras, ex
         option_storage_control=storage,
         option_site_limit_control=site_limit,
         option_detect_extras=extras,
+        option_virtual_system=False,
     )
     coordinator = _coordinator()
     entry = SimpleNamespace(
