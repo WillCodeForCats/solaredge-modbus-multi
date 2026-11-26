@@ -216,19 +216,19 @@ class DeviceReplacedRepairFlow(RepairsFlow):
         if device is None:
             return self.async_abort(reason="device_not_found")
 
-        old_uid_base = next(
-            (
-                identifier[1]
-                for identifier in device.identifiers
-                if identifier[0] == DOMAIN and identifier[1] != inverter.anchor
-            ),
-            None,
-        )
+        # Recorded when the replacement was detected, before entity setup added
+        # the new uid_base to the device alongside the old one.
+        old_uid_base = cast(str, self.data["old_uid_base"])
 
-        if old_uid_base is not None and old_uid_base != inverter.uid_base:
+        if old_uid_base != inverter.uid_base:
             self._migrate_entities(entry_id, old_uid_base, inverter.uid_base)
 
         self._refresh_devices(hub, unit_id)
+
+        if old_uid_base != inverter.uid_base:
+            # Entities were renamed while their platforms are running; reload
+            # so the live entities pick up the migrated unique_ids.
+            self.hass.config_entries.async_schedule_reload(entry_id)
 
         return self.async_create_entry(title="", data={})
 

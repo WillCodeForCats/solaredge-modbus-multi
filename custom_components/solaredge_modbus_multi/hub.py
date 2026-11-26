@@ -775,23 +775,24 @@ class SolarEdgeModbusMultiHub:
 
         issue_id = self._device_replaced_issue(inverter.inverter_unit_id)
 
-        if (
-            existing.model == inverter.model
-            and existing.serial_number == inverter.serial
-        ):
-            ir.async_delete_issue(self._hass, DOMAIN, issue_id)
-            return
-
+        # Entity setup adds the new uid_base to the device and overwrites its
+        # model/serial. A leftover uid_base that isn't the current one is the
+        # replacement hasn't been migrated or ignored yet.
         old_uid_base = next(
             (
                 identifier[1]
                 for identifier in existing.identifiers
-                if identifier[0] == DOMAIN and identifier[1] != anchor
+                if identifier[0] == DOMAIN
+                and identifier[1] not in (anchor, inverter.uid_base)
             ),
             None,
         )
         if old_uid_base is None:
-            # No prior uid_base recorded to compare/migrate from; treat as new.
+            ir.async_delete_issue(self._hass, DOMAIN, issue_id)
+            return
+
+        if ir.async_get(self._hass).async_get_issue(DOMAIN, issue_id) is not None:
+            # Already raised; existing now holds the new inverter's model/serial.
             return
 
         _LOGGER.warning(
@@ -810,6 +811,7 @@ class SolarEdgeModbusMultiHub:
             DOMAIN,
             issue_id,
             is_fixable=True,
+            is_persistent=True,
             severity=ir.IssueSeverity.WARNING,
             translation_key="device_replaced",
             translation_placeholders={
