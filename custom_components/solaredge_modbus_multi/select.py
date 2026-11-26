@@ -23,6 +23,8 @@ from .lib.const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -114,7 +116,7 @@ class StorageControlMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "control_mode", new_mode
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class StorageACChargePolicy(SolarEdgeSelectBase):
@@ -157,7 +159,7 @@ class StorageACChargePolicy(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "ac_charge_policy", new_mode
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class StorageDefaultMode(SolarEdgeSelectBase):
@@ -202,7 +204,7 @@ class StorageDefaultMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.storage_control_data, "default_mode", new_mode
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class StorageCommandMode(SolarEdgeSelectBase):
@@ -250,7 +252,7 @@ class StorageCommandMode(SolarEdgeSelectBase):
             new_mode,
             count_write=False,
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolaredgeLimitControlMode(SolarEdgeSelectBase):
@@ -294,21 +296,12 @@ class SolaredgeLimitControlMode(SolarEdgeSelectBase):
 
     async def async_select_option(self, option: str) -> None:
         """Select option."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
         new_mode = get_key(self._options, option)
+        set_mask = 0 if new_mode is None else 1 << int(new_mode)
 
-        set_bits = set_bits & ~(1 << 0)
-        set_bits = set_bits & ~(1 << 1)
-        set_bits = set_bits & ~(1 << 2)
-
-        if new_mode is not None:
-            set_bits = set_bits | (1 << int(new_mode))
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(0b111, set_mask)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolaredgeLimitControl(SolarEdgeSelectBase):
@@ -346,7 +339,7 @@ class SolaredgeLimitControl(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.site_limit_control_data, "E_Lim_Ctl", new_mode
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
@@ -387,4 +380,4 @@ class SolarEdgeReactivePowerMode(SolarEdgeSelectBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "ReactivePwrConfig", new_mode
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()

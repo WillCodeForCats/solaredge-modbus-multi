@@ -16,6 +16,8 @@ from .lib.const import SunSpecNotImpl
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -79,27 +81,15 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits | (1 << 10)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(0, 1 << 10)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits & ~(1 << 10)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(1 << 10, 0)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
@@ -131,27 +121,15 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits | (1 << 11)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(0, 1 << 11)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        set_bits = self._platform.site_limit_control_data.E_Lim_Ctl_Mode
-        set_bits = set_bits & ~(1 << 11)
-
+        set_bits = await self._platform.write_lim_ctl_mode_bits(1 << 11, 0)
         _LOGGER.debug("set %s bits %s", self.unique_id, format(set_bits, "016b"))
-
-        await self._platform.write(
-            self._platform.site_limit_control_data, "E_Lim_Ctl_Mode", set_bits
-        )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
 
 class SolarEdgeGridControl(SolarEdgeSwitchBase):
@@ -186,7 +164,7 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x1
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off."""
@@ -195,4 +173,4 @@ class SolarEdgeGridControl(SolarEdgeSwitchBase):
         await self._platform.write(
             self._platform.advanced_power_control_data, "AdvPwrCtrlEn", 0x0
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_update_listeners()

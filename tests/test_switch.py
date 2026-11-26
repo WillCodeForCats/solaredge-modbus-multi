@@ -23,21 +23,22 @@ def _coordinator(last_update_success=True):
     return SimpleNamespace(
         last_update_success=last_update_success,
         async_request_refresh=AsyncMock(),
+        async_update_listeners=MagicMock(),
     )
 
 
 def _record_order(platform, coordinator):
-    """Record when the write and refresh complete, in order."""
+    """Record when the write completes and the listeners update, in order."""
     events = []
 
     async def write(*args, **kwargs):
         events.append("write")
 
-    async def refresh():
-        events.append("refresh")
+    def update():
+        events.append("update")
 
     platform.write.side_effect = write
-    coordinator.async_request_refresh.side_effect = refresh
+    coordinator.async_update_listeners.side_effect = update
     return events
 
 
@@ -121,13 +122,22 @@ def test_coordinator_update_writes_state():
 
 def _site_limit_platform(mode=0, supported=True):
     """Build a fake inverter platform with site limit control data."""
-    return SimpleNamespace(
+    platform = SimpleNamespace(
         uid_base="inverter_1",
         device_info=None,
         has_site_limit_control=supported,
         site_limit_control_data=SimpleNamespace(E_Lim_Ctl_Mode=mode),
         write=AsyncMock(),
     )
+
+    async def write_lim_ctl_mode_bits(clear_mask, set_mask):
+        data = platform.site_limit_control_data
+        bits = (data.E_Lim_Ctl_Mode & ~clear_mask) | set_mask
+        await platform.write(data, "E_Lim_Ctl_Mode", bits)
+        return bits
+
+    platform.write_lim_ctl_mode_bits = write_lim_ctl_mode_bits
+    return platform
 
 
 @pytest.mark.parametrize(
@@ -209,8 +219,9 @@ class TestSiteLimitSwitches:
         platform.write.assert_awaited_once_with(
             platform.site_limit_control_data, "E_Lim_Ctl_Mode", other | (1 << bit)
         )
-        coordinator.async_request_refresh.assert_awaited_once_with()
-        assert events == ["write", "refresh"]
+        coordinator.async_update_listeners.assert_called_once_with()
+        coordinator.async_request_refresh.assert_not_awaited()
+        assert events == ["write", "update"]
 
     async def test_turn_off(self, cls, suffix, name, bit, enabled_default):
         """Turning off clears only this bit and keeps the other switch's bit."""
@@ -225,8 +236,9 @@ class TestSiteLimitSwitches:
         platform.write.assert_awaited_once_with(
             platform.site_limit_control_data, "E_Lim_Ctl_Mode", other
         )
-        coordinator.async_request_refresh.assert_awaited_once_with()
-        assert events == ["write", "refresh"]
+        coordinator.async_update_listeners.assert_called_once_with()
+        coordinator.async_request_refresh.assert_not_awaited()
+        assert events == ["write", "update"]
 
 
 def _adv_platform(enabled=0, supported=True):
@@ -287,5 +299,6 @@ async def test_grid_control_writes(method, value):
     platform.write.assert_awaited_once_with(
         platform.advanced_power_control_data, "AdvPwrCtrlEn", value
     )
-    coordinator.async_request_refresh.assert_awaited_once_with()
-    assert events == ["write", "refresh"]
+    coordinator.async_update_listeners.assert_called_once_with()
+    coordinator.async_request_refresh.assert_not_awaited()
+    assert events == ["write", "update"]

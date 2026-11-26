@@ -3,15 +3,18 @@
 [![hacs_badge](https://img.shields.io/badge/HACS%20%7C%20Marketplace-Default-41BDF5.svg?style=for-the-badge)](https://contributors.home-assistant.io/marketplace/)
 
 This integration provides Modbus/TCP local polling to one or more SolarEdge inverters for Home Assistant.
-Each inverter can support three meters and three batteries over Modbus/TCP. It works with single inverters,
-multiple inverters, meters, batteries, and controls. The work in this repository is also being used in
+Each inverter can support three meters and three batteries. It works with single inverters, multiple inverters
+(leader/follower systems), meters, batteries, and controls. The work in this repository is also being used in
 other libraries and integrations.
 
-By default, only features which are officially documented by SolarEdge are enabled: inverters,
-synergy inverters, and meters. All of the battery (read only) and control features (read/write battery and
-limit controls) can be enabled by configuring the hub after you add it to your Home Assistant. Support for
-batteries and controls is from documentation not publicly available from SolarEdge or through user
-discovery and may not be supported by SolarEdge.
+Controls are supported, but you need to enable them. By default, only features which are officially documented
+by SolarEdge are enabled: inverters, synergy inverters, and meters. All of the battery (read only) and control
+features (read/write battery and limit controls) can be enabled by configuring the hub after you add it to your
+Home Assistant. Support for batteries and controls is from documentation not publicly available from SolarEdge
+or through user discovery not supported by SolarEdge.
+
+All known modbus data has been added to this integration. If something is missing it's because there isn't
+any modbus data available for it, or it hasn't been discovered yet in modbus captures.
 
 ## Features
 
@@ -27,7 +30,8 @@ discovery and may not be supported by SolarEdge.
 - Discovers inverters with Fast Scan (IDs 1–32), Complete Scan (IDs 1–247), or manual device ID list.
 - Connects locally using Modbus/TCP - no cloud dependencies.
 - Informational sensor for device and its attributes
-- Supports status and error reporting sensors.
+- Error sensors for inverters and meters show the current error or meter events as text with the code.
+- Shows the cause of faults and status changes in the Home Assistant activity log.
 - User friendly: Config Flow, Options, Repair Issues, and Reconfiguration.
 
 Read about more features on the wiki: [WillCodeForCats/solaredge-modbus-multi/wiki](https://github.com/WillCodeForCats/solaredge-modbus-multi/wiki)

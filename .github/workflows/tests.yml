@@ -2,6 +2,10 @@
 name: Tests
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "**"
   pull_request:
     branches:
       - main
@@ -22,4 +26,22 @@ jobs:
       - name: Install test dependencies
         run: pip install -r requirements-test.txt
       - name: Run tests
-        run: pytest tests/ -v
+        run: >-
+          pytest tests/ -v
+          --cov=custom_components/solaredge_modbus_multi
+          --cov-report=term-missing
+          --cov-report=json
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        run: coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+      - name: Check coverage of every module
+        # Silver quality scale rule test-coverage: more than 95% per module
+        run: |
+          below=$(jq -r '.files | to_entries[]
+            | select(.value.summary.percent_covered <= 95)
+            | "\(.key): \(.value.summary.percent_covered_display)%"' coverage.json)
+          if [ -n "$below" ]; then
+            echo "Modules at or below 95% coverage:"
+            echo "$below"
+            exit 1
+          fi
