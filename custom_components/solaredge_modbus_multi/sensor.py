@@ -18,6 +18,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    MAX_LENGTH_STATE_STATE,
     PERCENTAGE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
@@ -38,15 +39,22 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
+    ATTR_EVENTS,
+    ATTR_EVENTS_TEXT,
+    ATTR_STATUS_TEXT,
+    ATTR_STATUS_VALUE,
     BATTERY_STATUS,
     BATTERY_STATUS_TEXT,
+    CAUSE_GROUP_INVERTER_FAULT,
     DER_STORAGE_STATUS,
     DER_STORAGE_STATUS_TEXT,
     DEVICE_STATUS,
     DEVICE_STATUS_TEXT,
     ENERGY_VOLT_AMPERE_HOUR,
+    EVENT_METER_EVENTS,
+    EVENT_PROBLEM,
+    EVENT_STATUS_VENDOR,
     INVERTED_POWER_VERSION,
-    METER_EVENTS,
     MMPPT_EVENTS,
     RRCR_STATUS,
     SUNSPEC_DID,
@@ -58,8 +66,14 @@ from .const import (
     SunSpecNotImpl,
 )
 from .coordinator import SolarEdgeConfigEntry
-from .entity import SolarEdgeEntity
-from .helpers import float_to_hex
+from .entity import SolarEdgeCauseEntity, SolarEdgeEntity
+from .helpers import (
+    float_to_hex,
+    inverter_vendor_status,
+    meter_event_names,
+    meter_event_texts,
+)
+from .virtual_sensor import async_virtual_system_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,6 +96,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeInverterDevice(inverter, config_entry, coordinator))
         entities.append(Version(inverter, config_entry, coordinator))
         entities.append(SolarEdgeInverterStatus(inverter, config_entry, coordinator))
+        entities.append(InverterError(inverter, config_entry, coordinator))
         entities.append(StatusVendor(inverter, config_entry, coordinator))
         if inverter.use_status_vendor4:
             entities.append(StatusVendor4(inverter, config_entry, coordinator))
@@ -159,6 +174,7 @@ async def async_setup_entry(
         entities.append(SolarEdgeLastUpdate(meter, config_entry, coordinator))
         entities.append(SolarEdgeMeterDevice(meter, config_entry, coordinator))
         entities.append(Version(meter, config_entry, coordinator))
+        entities.append(MeterError(meter, config_entry, coordinator))
         entities.append(MeterEvents(meter, config_entry, coordinator))
         entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator))
         entities.append(ACCurrentSensorMeter(meter, config_entry, coordinator, "A"))
@@ -293,6 +309,9 @@ async def async_setup_entry(
         # model 713. Add them here if that changes.
 
     entities.extend(Version(evse, config_entry, coordinator) for evse in hub.evses)
+
+    if hub.option_virtual_system:
+        entities.extend(async_virtual_system_entities(hub, config_entry, coordinator))
 
     if entities:
         async_add_entities(entities)
@@ -1511,10 +1530,16 @@ class SolarEdgeStatusSensor(SolarEdgeSensorBase):
         self._attr_unique_id = f"{platform.uid_base}_status"
 
 
-class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
-    """Representation of a solar edge inverter status."""
+class SolarEdgeInverterStatus(SolarEdgeCauseEntity, SolarEdgeStatusSensor):
+    """Representation of a solar edge inverter status.
+
+    Going to I_STATUS_FAULT records the vendor status as the cause, sharing
+    the cause event with the inverter Problem binary sensor.
+    """
 
     _attr_options = list(DEVICE_STATUS.values())
+    _cause_event = EVENT_PROBLEM
+    _cause_group = CAUSE_GROUP_INVERTER_FAULT
 
     @property
     def available(self) -> bool:
@@ -1543,6 +1568,18 @@ class SolarEdgeInverterStatus(SolarEdgeStatusSensor):
             attrs["status_value"] = value
 
         return attrs
+
+    def _cause_value(self) -> bool:
+        """Return True if the inverter status is fault."""
+        return self.native_value == "I_STATUS_FAULT"
+
+    def _cause_data(self, value: bool, last_value: bool | None) -> dict | None:
+        """Return the vendor status when the status goes to fault."""
+        if not value:
+            return None
+        return inverter_vendor_status(
+            self._platform.inverter_data, self._platform.use_status_vendor4
+        )
 
 
 class SolarEdgeBatteryStatus(SolarEdgeStatusSensor):
@@ -1717,17 +1754,79 @@ class SolarEdgeDERStorageStatus(SolarEdgeDERStorageBase):
         return attrs
 
 
-class StatusVendor(SolarEdgeSensorBase):
+class SolarEdgeStatusVendorBase(SolarEdgeCauseEntity, SolarEdgeSensorBase):
+    """Base for vendor status sensors that record the code text in the logbook.
+
+    An EVENT_STATUS_VENDOR event is recorded when the code changes. At startup
+    or after being unavailable, a zero (no error) code is not recorded.
+    """
+
+    _cause_event = EVENT_STATUS_VENDOR
+
+    def _status_text(self) -> str | None:
+        """Return the text for the current code."""
+        raise NotImplementedError
+
+    def _cause_data(self, value: int, last_value: int | None) -> dict | None:
+        """Return the code and its text."""
+        if value == 0 and last_value is None:
+            return None
+        data = {ATTR_STATUS_VALUE: self.native_value}
+        if (text := self._status_text()) is not None:
+            data[ATTR_STATUS_TEXT] = text
+        return data
+
+
+class InverterError(SolarEdgeSensorBase):
+    """The text of the inverter's vendor status code.
+
+    Uses Status Vendor 4 when the inverter supports it, otherwise Status
+    Vendor. Has no unit or state class, so each change shows in the logbook.
+    """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_name = "Error"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_error"
+
+    def _vendor_status(self) -> dict[str, Any]:
+        """Return the vendor status value and its text, when known."""
+        return inverter_vendor_status(
+            self._platform.inverter_data, self._platform.use_status_vendor4
+        )
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return super().available and ATTR_STATUS_VALUE in self._vendor_status()
+
+    @property
+    def native_value(self) -> str:
+        """Return the error text and its code, like the logbook cause."""
+        status = self._vendor_status()
+        text = status.get(ATTR_STATUS_TEXT, "Unknown Error")
+        return f"{text} ({status[ATTR_STATUS_VALUE]})"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the vendor status code."""
+        return {ATTR_STATUS_VALUE: self._vendor_status()[ATTR_STATUS_VALUE]}
+
+
+class StatusVendor(SolarEdgeStatusVendorBase):
     """Representation of a status vendor."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Status Vendor"
 
     def __init__(self, platform, config_entry, coordinator):
         """Initialize the entity."""
         super().__init__(platform, config_entry, coordinator)
         self._attr_unique_id = f"{platform.uid_base}_status_vendor"
-        self._attr_entity_registry_enabled_default = not platform.use_status_vendor4
 
     @property
     def available(self) -> bool:
@@ -1752,11 +1851,20 @@ class StatusVendor(SolarEdgeSensorBase):
 
         return None
 
+    def _cause_value(self) -> int:
+        """Return the vendor status code."""
+        return self._platform.inverter_data.I_Status_Vendor
 
-class StatusVendor4(SolarEdgeSensorBase):
+    def _status_text(self) -> str | None:
+        """Return the vendor status text."""
+        return VENDOR_STATUS.get(self._platform.inverter_data.I_Status_Vendor)
+
+
+class StatusVendor4(SolarEdgeStatusVendorBase):
     """Representation of a status vendor4."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Status Vendor 4"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1796,6 +1904,15 @@ class StatusVendor4(SolarEdgeSensorBase):
             attrs["description"] = VENDOR4_STATUS[controller][error]
 
         return attrs
+
+    def _cause_value(self) -> int:
+        """Return the vendor status 4 code."""
+        return self._platform.inverter_data.I_Status_Vendor4
+
+    def _status_text(self) -> str | None:
+        """Return the vendor status 4 text."""
+        value = self._platform.inverter_data.I_Status_Vendor4
+        return VENDOR4_STATUS.get((value >> 24) & 0xFF, {}).get(value & 0xFFFF)
 
 
 class SolarEdgeGlobalPowerControlBlock(SolarEdgeSensorBase):
@@ -1921,10 +2038,63 @@ class SolarEdgeCosPhi(SolarEdgeGlobalPowerControlBlock):
         return round(self._platform.global_power_control_data.I_CosPhi, 1)
 
 
-class MeterEvents(SolarEdgeSensorBase):
-    """Representation of a meter events."""
+class MeterError(SolarEdgeSensorBase):
+    """The text of the meter's active events.
+
+    Has no unit or state class, so each change shows in the logbook.
+    """
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_name = "Error"
+
+    def __init__(self, platform, config_entry, coordinator):
+        """Initialize the entity."""
+        super().__init__(platform, config_entry, coordinator)
+        self._attr_unique_id = f"{platform.uid_base}_error"
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        value = self._platform.meter_data.M_Events
+        return (
+            super().available and value is not None and value != SunSpecNotImpl.UINT32
+        )
+
+    @property
+    def native_value(self) -> str:
+        """Return the active events' text and their value, like the logbook cause.
+
+        Only the text is cut to fit the state length limit, so the value stays
+        and different events never show the same state.
+        """
+        value = self._platform.meter_data.M_Events
+        text = "; ".join(meter_event_texts(value)) or "No Error"
+        code = f" ({value})"
+        if len(text) + len(code) > MAX_LENGTH_STATE_STATE:
+            text = text[: MAX_LENGTH_STATE_STATE - len(code) - 3] + "..."
+        return text + code
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the event bits and their names."""
+        value = self._platform.meter_data.M_Events
+        return {
+            ATTR_STATUS_VALUE: value,
+            ATTR_EVENTS: meter_event_names(value),
+        }
+
+
+class MeterEvents(SolarEdgeCauseEntity, SolarEdgeSensorBase):
+    """Representation of a meter events.
+
+    An EVENT_METER_EVENTS event is recorded when the event bits change. At
+    startup or after being unavailable, no events (zero) is not recorded.
+    """
+
+    _cause_event = EVENT_METER_EVENTS
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Meter Events"
 
     def __init__(self, platform, config_entry, coordinator):
@@ -1949,20 +2119,24 @@ class MeterEvents(SolarEdgeSensorBase):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         value = self._platform.meter_data.M_Events
-        m_events_active = []
-
-        if value != 0x0:
-            for i in range(2, 31):
-                try:
-                    if value & (1 << i):
-                        m_events_active.append(METER_EVENTS[i])
-
-                except KeyError:  # noqa: PERF203
-                    pass
 
         return {
             "bits": f"{value:032b}",
-            "events": str(m_events_active),
+            "events": str(meter_event_names(value)),
+        }
+
+    def _cause_value(self) -> int:
+        """Return the meter event bits."""
+        return self._platform.meter_data.M_Events
+
+    def _cause_data(self, value: int, last_value: int | None) -> dict | None:
+        """Return the event bits and their names."""
+        if value == 0 and last_value is None:
+            return None
+        return {
+            ATTR_STATUS_VALUE: value,
+            ATTR_EVENTS: meter_event_names(value),
+            ATTR_EVENTS_TEXT: meter_event_texts(value),
         }
 
 
