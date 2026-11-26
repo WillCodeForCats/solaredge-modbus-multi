@@ -298,6 +298,84 @@ async def test_migrate_preserves_entity_id_and_history(hass):
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
+async def test_migrate_aborts_when_old_inverter_moved(hass):
+    """Migrating must not take entities from an inverter that only changed ID.
+
+    Here the old inverter was moved from Device ID 1 to 2 and another inverter
+    now answers at 1. The old inverter is still live under its uid_base, so
+    renaming its entities onto the inverter at ID 1 would strip its history.
+    """
+    entry = _make_entry(hass)
+    hub = _make_hub(hass, entry)
+    device, anchor, old_uid_base = _seed_existing_device(hass, entry, 1)
+    new_uid_base = f"{NEW_MODEL}_{NEW_SERIAL}"
+    _simulate_entity_setup(hass, entry, anchor, new_uid_base)
+
+    entity_registry = er.async_get(hass)
+    old_entity = entity_registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"{old_uid_base}_ac_power",
+        config_entry=entry,
+        device_id=device.id,
+    )
+
+    hub.inverters = [
+        SimpleNamespace(
+            inverter_unit_id=1,
+            model=NEW_MODEL,
+            serial=NEW_SERIAL,
+            uid_base=new_uid_base,
+            anchor=anchor,
+            mmppt_units=[],
+        ),
+        SimpleNamespace(
+            inverter_unit_id=2,
+            model=OLD_MODEL,
+            serial=OLD_SERIAL,
+            uid_base=old_uid_base,
+            anchor=f"{entry.entry_id}_inverter_2",
+            mmppt_units=[],
+        ),
+    ]
+    hub.meters = []
+    hub.batteries = []
+    entry.runtime_data = SimpleNamespace(hub=hub)
+    entry.mock_state(hass, ConfigEntryState.LOADED)
+
+    issue_id = f"device_replaced_{entry.entry_id}_1"
+    flow = _make_flow(
+        hass,
+        issue_id,
+        {
+            "entry_id": entry.entry_id,
+            "device_id": 1,
+            "old_uid_base": old_uid_base,
+            "new_uid_base": new_uid_base,
+            "old_model": OLD_MODEL,
+            "old_serial": OLD_SERIAL,
+            "new_model": NEW_MODEL,
+            "new_serial": NEW_SERIAL,
+        },
+    )
+
+    with patch.object(hass.config_entries, "async_schedule_reload") as mock_reload:
+        result = await flow.async_step_migrate()
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "inverter_moved"
+    assert result["description_placeholders"] == {
+        "old_serial": OLD_SERIAL,
+        "moved_to": "2",
+    }
+    mock_reload.assert_not_called()
+    assert (
+        entity_registry.async_get(old_entity.entity_id).unique_id
+        == f"{old_uid_base}_ac_power"
+    )
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_ignore_cleans_up_without_touching_entities(hass):
     """Ignoring clears the issue and leaves existing entities as they are."""
     entry = _make_entry(hass)
