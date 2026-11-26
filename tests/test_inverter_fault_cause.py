@@ -16,7 +16,8 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.solaredge_modbus_multi.binary_sensor import InverterProblem
-from custom_components.solaredge_modbus_multi.const import EVENT_PROBLEM, VENDOR_STATUS
+from custom_components.solaredge_modbus_multi.const import EVENT_PROBLEM
+from custom_components.solaredge_modbus_multi.lib.const import VENDOR_STATUS
 from custom_components.solaredge_modbus_multi.sensor import SolarEdgeInverterStatus
 
 

@@ -15,7 +15,9 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.solaredge_modbus_multi import button, number, select, sensor
-from custom_components.solaredge_modbus_multi.components import (
+from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN, ConfName
+from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
+from custom_components.solaredge_modbus_multi.lib.components import (
     BatteryData,
     BatteryInfo,
     InverterData,
@@ -23,8 +25,6 @@ from custom_components.solaredge_modbus_multi.components import (
     MeterInfo,
     MmpptCommon,
 )
-from custom_components.solaredge_modbus_multi.const import DATA_YAML, DOMAIN, ConfName
-from custom_components.solaredge_modbus_multi.hub import SolarEdgeModbusMultiHub
 from custom_components.solaredge_modbus_multi.sensor import (
     SolarEdgeBatteryCurrent,
     SolarEdgeBatteryVoltage,

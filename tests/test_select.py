@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import (
+from custom_components.solaredge_modbus_multi.lib.const import (
     LIMIT_CONTROL,
     LIMIT_CONTROL_MODE,
     REACTIVE_POWER_CONFIG,

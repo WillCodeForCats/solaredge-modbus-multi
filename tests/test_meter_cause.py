@@ -17,9 +17,9 @@ from custom_components.solaredge_modbus_multi.binary_sensor import MeterProblem
 from custom_components.solaredge_modbus_multi.const import (
     EVENT_METER_EVENTS,
     EVENT_PROBLEM,
-    METER_EVENTS_TEXT,
 )
-from custom_components.solaredge_modbus_multi.helpers import (
+from custom_components.solaredge_modbus_multi.lib.const import METER_EVENTS_TEXT
+from custom_components.solaredge_modbus_multi.lib.helpers import (
     meter_event_names,
     meter_event_texts,
 )

@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from homeassistant.helpers.entity import EntityCategory
 import pytest
 
-from custom_components.solaredge_modbus_multi.const import SunSpecNotImpl
+from custom_components.solaredge_modbus_multi.lib.const import SunSpecNotImpl
 from custom_components.solaredge_modbus_multi.sensor import (
     InverterError,
     MeterError,

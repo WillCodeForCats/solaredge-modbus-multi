@@ -9,7 +9,7 @@ import struct
 from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 
 from .components import component_field_names
-from .const import DOMAIN_REGEX
+from .const import DOMAIN_REGEX, METER_EVENTS, METER_EVENTS_TEXT
 from .exceptions import DeviceListError
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,6 +24,23 @@ def float_to_hex(f: float) -> str:
         return hex(struct.unpack("<I", struct.pack("<f", float(f)))[0])
     except struct.error as e:
         raise ValueError(f"Error converting {f} to hex: {e}") from e
+
+
+def meter_event_names(value: int) -> list[str]:
+    """Return the names of the meter event bits set in value."""
+    return [name for bit, name in METER_EVENTS.items() if value & (1 << bit)]
+
+
+def meter_event_texts(value: int) -> list[str]:
+    """Return the descriptions of the meter event bits set in value.
+
+    Bits without a description (reserved and OEM) use their name.
+    """
+    return [
+        METER_EVENTS_TEXT.get(bit, name)
+        for bit, name in METER_EVENTS.items()
+        if value & (1 << bit)
+    ]
 
 
 def host_valid(host):

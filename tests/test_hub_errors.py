@@ -20,13 +20,6 @@ from modbus_connection.exceptions import (
 )
 import pytest
 
-from custom_components.solaredge_modbus_multi.components import (
-    BatteryInfo,
-    EvseCommon,
-    InverterCommon,
-    InverterData,
-    MeterData,
-)
 from custom_components.solaredge_modbus_multi.const import (
     DATA_YAML,
     DOMAIN,
@@ -41,6 +34,13 @@ from custom_components.solaredge_modbus_multi.hub import (
     SolarEdgeEVSE,
     SolarEdgeMeter,
     SolarEdgeModbusMultiHub,
+)
+from custom_components.solaredge_modbus_multi.lib.components import (
+    BatteryInfo,
+    EvseCommon,
+    InverterCommon,
+    InverterData,
+    MeterData,
 )
 
 from .simulated_site import DER_713_ADDRESS, METER_1_BASE, put, simulated_site

@@ -11,12 +11,12 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
-from custom_components.solaredge_modbus_multi.scanner import (
+from custom_components.solaredge_modbus_multi.lib.scanner import (
     ScannerConnectionError,
     SolarEdgeDeviceScanner,
 )
 
-SCANNER = "custom_components.solaredge_modbus_multi.scanner"
+SCANNER = "custom_components.solaredge_modbus_multi.lib.scanner"
 
 
 def _inverter_response(request):

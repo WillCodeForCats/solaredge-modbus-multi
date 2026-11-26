@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.solaredge_modbus_multi.const import (
-    EVENT_STATUS_VENDOR,
+from custom_components.solaredge_modbus_multi.const import EVENT_STATUS_VENDOR
+from custom_components.solaredge_modbus_multi.lib.const import (
     VENDOR4_STATUS,
     VENDOR_STATUS,
 )

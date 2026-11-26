@@ -13,7 +13,7 @@ from modbus_connection.mock import MockModbusUnit
 from modbus_connection.model import Component
 import pytest
 
-from custom_components.solaredge_modbus_multi.components import (
+from custom_components.solaredge_modbus_multi.lib.components import (
     AdvancedPowerControl,
     StorageControl,
 )

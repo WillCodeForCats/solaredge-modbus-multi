@@ -26,7 +26,7 @@ from modbus_connection.exceptions import (
 )
 from modbus_connection.mock import MockModbusConnection, MockModbusUnit
 
-from custom_components.solaredge_modbus_multi.components import (
+from custom_components.solaredge_modbus_multi.lib.components import (
     AdvancedPowerControl,
     BatteryData,
     BatteryInfo,

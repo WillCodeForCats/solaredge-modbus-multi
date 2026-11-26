@@ -18,11 +18,11 @@ from homeassistant.helpers import (
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.solaredge_modbus_multi.components import InverterData
 from custom_components.solaredge_modbus_multi.const import DOMAIN, ConfName
 from custom_components.solaredge_modbus_multi.diagnostics import (
     async_get_config_entry_diagnostics,
 )
+from custom_components.solaredge_modbus_multi.lib.components import InverterData
 
 from .simulated_site import put, simulated_site
 
