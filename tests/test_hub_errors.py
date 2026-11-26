@@ -414,7 +414,6 @@ async def test_hub_and_battery_properties(hass):
             **ALL_OPTIONS,
             ConfName.BATTERY_RATING_ADJUST: 10,
             ConfName.BATTERY_ENERGY_RESET_CYCLES: 3,
-            ConfName.ALLOW_BATTERY_ENERGY_RESET: True,
         },
     )
 
@@ -428,7 +427,6 @@ async def test_hub_and_battery_properties(hass):
     assert hub.close_after_polling is False
 
     battery = hub.batteries[0]
-    assert battery.allow_battery_energy_reset is True
     assert battery.battery_rating_adjust == 1.1
     assert battery.battery_energy_reset_cycles == 3
 

@@ -137,13 +137,11 @@
       "battery_options": {
         "title": "電池選項",
         "data": {
-          "allow_battery_energy_reset": "允許電池電量重置",
           "battery_energy_reset_cycles": "重置電池電量所需的更新週期數",
           "battery_rating_adjust": "電池額定值調整（百分比）"
         },
         "data_description": {
-          "allow_battery_energy_reset": "部分電池回報的電量累計值會下降或歸零。關閉時，較低的值會被忽略並保留上一個值；開啟時，則會接受較低的值。",
-          "battery_energy_reset_cycles": "電池電量較低的值必須連續出現幾次輪詢才會被接受。僅在開啟「允許電池電量重置」時使用。",
+          "battery_energy_reset_cycles": "較低的電池電量讀數必須連續出現幾次輪詢，才會被視為計數器重置。之後累計值會從新的讀數繼續計算。最小值為 2。",
           "battery_rating_adjust": "電池可用電量超出其額定電量多少百分比，才會被視為無效值。若您的電池回報的電量超過其額定值，請使用此選項。"
         }
       }
@@ -220,6 +218,10 @@
     "deprecated_yaml_modbus": {
       "title": "不再支援 Modbus YAML 設定",
       "description": "`configuration.yaml` 中 `solaredge_modbus_multi` 底下的 `modbus` 區段已不再支援，並會被忽略。請將它從您的 YAML 設定中移除。"
+    },
+    "battery_energy_reset_cycles_changed": {
+      "title": "電池電量重置週期數已變更",
+      "description": "「重置電池電量所需的更新週期數」選項現在用來設定較低的電池電量讀數必須連續維持幾次輪詢，才會被接受為重置，且最小值為 2。您原本的值 {old_value} 已變更為 {new_value}。若想使用其他值，請到電池選項中檢查此選項。"
     },
     "deprecated_keep_modbus_open": {
       "title": "「保持 Modbus 連線開啟」選項已被取代",
